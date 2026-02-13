@@ -23,8 +23,8 @@ locals {
       ports = {}
     }
 
-    # Archived: terraform (103), supabase (107), archon (108),
-    # minio_cache (109), n8n (110), mcpdog (111), github_runner (113)
+    # Archived: terraform (103), minio_cache (109), n8n (110), mcpdog (111), github_runner (113)
+    # Active (standalone TF workspaces): supabase (107), archon (108)
 
     runner = {
       vmid  = 101

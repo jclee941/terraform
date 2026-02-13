@@ -37,6 +37,9 @@ terraform/                      # Multi-provider IaC monorepo root
 │   └── tf-configs/             # TF-rendered configs (docker-compose, logstash)
 ├── 106-glitchtip/              # Error Tracking (GlitchTip)
 │   └── tf-configs/             # TF-rendered configs (docker-compose, env)
+├── 107-supabase/               # Supabase BaaS (Backend-as-a-Service)
+├── 108-archon/                 # AI Knowledge Management (Archon)
+│   └── terraform/              # Standalone TF workspace
 ├── 112-mcphub/                 # MCP Hub (Unified MCP + AI/Tools VM)
 │   └── templates/              # docker-compose, mcp_settings.json
 ├── 200-oc/                     # Dev Environment (GPU VM)
@@ -54,13 +57,13 @@ terraform/                      # Multi-provider IaC monorepo root
 ├── docs/                       # Documentation
 ├── scripts/                    # Utility scripts + n8n-workflows/
 ├── .github/workflows/          # CI/CD (6 workflows)
-└── .archive/                   # Archived services (103, 107-111, 113)
+└── .archive/                   # Archived services (103, 109-111, 113)
 ```
 
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
-| **IaC Definitions** | `100-pve/main.tf` | Manages 101-102, 104-106, 112, 200, 220. |
+| **IaC Definitions** | `100-pve/main.tf` | Manages 101-102, 104-108, 112, 200, 220. |
 | **Terraform Modules** | `modules/proxmox/` | 6 modules (lxc, lxc-config, vm-config, env-config, config-renderer, inventory). |
 | **Shared Modules** | `modules/shared/vault-secrets/` | Cross-stack modules (Vault secrets). |
 | **Cloudflare Modules** | `modules/cloudflare/` | DNS, tunnels (8 .tf files). |
@@ -73,6 +76,8 @@ terraform/                      # Multi-provider IaC monorepo root
 | **AI Agents** | `112-mcphub/` | MCP servers + AI tools (unified). |
 | **Observability** | `104-grafana/` | Prometheus/Elasticsearch/Grafana stack. |
 | **Error Tracking** | `106-glitchtip/` | GlitchTip error tracking (glitchtip.jclee.me). |
+| **Supabase BaaS** | `107-supabase/` | Backend-as-a-Service (supabase.jclee.me). |
+| **AI Knowledge Mgmt** | `108-archon/` | Archon AI with MCP server (archon.jclee.me). Standalone TF workspace. |
 | **MCP Hub** | `112-mcphub/` | MCPHub unified MCP management UI (mcphub.jclee.me). 9 stdio + 3 SSE (172 tools). |
 | **OpenCode Gen** | `200-oc/opencode/gen/` | Config gen pipeline: 3 variants (anti/claude/copilot), 9 agents, 8 categories. |
 | **Routing** | `102-traefik/config/` | Dynamic routing (elk.yml, glitchtip.yml, mcp.yml, vault.yml, mcphub.yml). |
@@ -94,6 +99,8 @@ terraform/                      # Multi-provider IaC monorepo root
 | 104 | grafana | 192.168.50.104 | Observability | Terraform (LXC) |
 | 105 | elk | 192.168.50.105 | ELK Stack | Terraform (LXC) |
 | 106 | glitchtip | 192.168.50.106 | Error Tracking (GlitchTip) | Terraform (LXC) ✅ Running |
+| 107 | supabase | 192.168.50.107 | Supabase BaaS | Terraform (LXC) |
+| 108 | archon | 192.168.50.108 | AI Knowledge Mgmt (Archon) | Terraform (LXC) |
 | 112 | mcphub | 192.168.50.112 | MCP Hub (Unified MCP + AI/Tools) | Terraform (VM) ✅ Running |
 | 200 | oc | 192.168.50.200 | Dev (GPU) | Terraform (VM) |
 | 215 | synology | 192.168.50.215 | Synology NAS (Physical) | Inventory only |
@@ -185,6 +192,6 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
 - **GlitchTip**: Org `jclee-homelab`, Project `homelab`. Alert rule `n8n-automation` → webhook.
 - **Vault**: vault.jclee.me via Traefik. Vault Agent on 112 replaces manual secrets. Deprecated vars: `n8n_mcp_config`, `mcp_secrets`.
 - **MCPHub**: Default creds `admin/admin123`. SSE proxies use sidecar Dockerfiles (`Dockerfile.proxmox`, `Dockerfile.playwright`). Env from `/opt/mcphub/.env`.
-- **GPU**: RTX 5070 Ti on VM 200 (IOMMU group 12, PCI 0000:01:00.0). **Archived**: 107-113 (excl. 112) → `.archive/`.
+- **GPU**: RTX 5070 Ti on VM 200 (IOMMU group 12, PCI 0000:01:00.0). **Archived**: 109-111, 113 → `.archive/`.
 - **Migration**: Migrated from single-provider `~/dev/proxmox/` repo (2026-02-13). Original repo preserved as reference.
 - **Cloudflare**: Migrated from standalone `~/dev/cloudflare/` repo (2026-02-13). Includes Workers, scripts, docker, inventory.

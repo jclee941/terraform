@@ -14,11 +14,11 @@ provider "proxmox" {
 }
 
 module "inventory" {
-  source = "../../modules/inventory"
+  source = "../../modules/proxmox/inventory"
 }
 
 module "lxc" {
-  source = "../../modules/lxc"
+  source = "../../modules/proxmox/lxc"
 
   node_name        = var.node_name
   vmid             = module.inventory.hosts.archon.vmid
@@ -38,7 +38,7 @@ module "lxc" {
 }
 
 module "lxc_config" {
-  source = "../../modules/lxc-config"
+  source = "../../modules/proxmox/lxc-config"
 
   deploy_lxc_configs = var.deploy_lxc_configs
   mcp_host           = module.inventory.hosts.mcphub.ip
@@ -56,7 +56,7 @@ module "lxc_config" {
           content = file("${path.root}/../docker-compose.yml")
         }
         ".env" = {
-          path    = "/opt/archon/.env"
+          path = "/opt/archon/.env"
           content = templatefile("${path.root}/../templates/.env.tftpl", {
             supabase_url         = var.supabase_url
             supabase_service_key = var.supabase_service_key

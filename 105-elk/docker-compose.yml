@@ -1,3 +1,7 @@
+# WARNING: Legacy production config — drift exists vs Terraform template.
+# Source of truth: 105-elk/templates/docker-compose.yml.tftpl
+# Known drift: hardcoded version 8.12.0 (template uses ${elk_version})
+# Do NOT manually sync — use `terraform apply` to converge.
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0

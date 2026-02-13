@@ -1,0 +1,49 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    fields:
+      service: system
+    fields_under_root: true
+
+  - type: container
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/archon/*.log
+    fields:
+      service: archon
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/mcp/*.log
+    fields:
+      service: archon-mcp
+    fields_under_root: true
+
+output.logstash:
+  hosts: ["${elk_ip}:${elk_ports.logstash_beat}"]
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
