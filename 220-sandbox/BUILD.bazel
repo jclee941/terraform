@@ -1,0 +1,16 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "docs",
+    srcs = glob(["*.md"]),
+)
+
+filegroup(
+    name = "config",
+    srcs = glob(["config/**"], allow_empty = True),
+)
+
+filegroup(
+    name = "scripts",
+    srcs = glob(["scripts/**"], allow_empty = True),
+)

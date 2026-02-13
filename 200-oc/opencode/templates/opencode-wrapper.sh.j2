@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+case "$1" in
+  restart|start|stop|status)
+    exec systemctl --user "$1" opencode-{{ variant }}
+    ;;
+  *)
+    exec opencode attach http://127.0.0.1:{{ port }}
+    ;;
+esac

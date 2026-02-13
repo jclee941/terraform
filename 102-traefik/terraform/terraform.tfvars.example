@@ -1,0 +1,14 @@
+proxmox_endpoint  = "https://192.168.50.100:8006/"
+proxmox_api_token = "root@pam!terraform=REPLACE_WITH_TOKEN"
+proxmox_insecure  = true
+
+node_name       = "pve3"
+network_gateway = "192.168.50.1"
+dns_servers     = ["8.8.8.8", "8.8.4.4"]
+datastore_id    = "dfge"
+
+ssh_public_keys = [
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAEXAMPLE replace-with-real-key"
+]
+
+deploy_lxc_configs = false

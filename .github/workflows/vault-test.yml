@@ -1,0 +1,48 @@
+name: Vault OIDC Test
+
+on:
+  workflow_dispatch:
+
+env:
+  VAULT_ADDR: http://192.168.50.112:8200
+
+jobs:
+  test-vault-oidc:
+    runs-on: [self-hosted, linux, homelab]
+    timeout-minutes: 5
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Fetch Secrets from Vault
+        uses: hashicorp/vault-action@v3
+        with:
+          url: ${{ env.VAULT_ADDR }}
+          method: jwt
+          role: github-actions
+          jwtGithubAudience: "https://github.com/jclee-lab"
+          secrets: |
+            secret/data/mcp/test api_key | MCP_API_KEY ;
+            secret/data/mcp/test service_name | MCP_SERVICE ;
+            secret/data/infra/test db_password | INFRA_PASSWORD ;
+            secret/data/infra/test environment | INFRA_ENV
+
+      - name: Verify Secrets
+        run: |
+          echo "=== Vault OIDC Test Results ==="
+          echo "MCP_API_KEY is set: ${MCP_API_KEY:+YES}"
+          echo "MCP_SERVICE: $MCP_SERVICE"
+          echo "INFRA_PASSWORD is set: ${INFRA_PASSWORD:+YES}"
+          echo "INFRA_ENV: $INFRA_ENV"
+
+          if [ -n "$MCP_API_KEY" ] && [ -n "$INFRA_PASSWORD" ]; then
+            echo "All secrets fetched successfully!"
+            exit 0
+          else
+            echo "Some secrets are missing"
+            exit 1
+          fi

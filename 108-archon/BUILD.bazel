@@ -1,0 +1,33 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "config",
+    srcs = glob(["config/**"]),
+)
+
+filegroup(
+    name = "templates",
+    srcs = glob(["templates/**"]),
+)
+
+filegroup(
+    name = "terraform",
+    srcs = glob(["terraform/**"]),
+)
+
+filegroup(
+    name = "tf_configs",
+    srcs = glob(["tf-configs/**"]),
+)
+
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":config",
+        ":templates",
+        ":terraform",
+        ":tf_configs",
+        "docker-compose.yml",
+        "OWNERS",
+    ],
+)

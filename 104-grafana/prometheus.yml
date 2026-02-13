@@ -1,0 +1,67 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['192.168.50.102:8080']
+
+  - job_name: 'infrastructure-nodes'
+    static_configs:
+      - targets:
+          - '192.168.50.100:9100'  # pve
+          - '192.168.50.102:9100'  # traefik
+          - '192.168.50.103:9100'  # terraform
+          - '192.168.50.104:9100'  # grafana (self)
+          - '192.168.50.105:9100'  # elk
+          - '192.168.50.112:9100'  # mcphub
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '192\.168\.50\.(\d+):.*'
+        replacement: '${1}'
+        target_label: vmid
+
+  - job_name: 'elasticsearch'
+    metrics_path: /_prometheus/metrics
+    static_configs:
+      - targets: ['192.168.50.105:9200']
+    relabel_configs:
+      - target_label: service
+        replacement: elasticsearch
+
+  - job_name: 'logstash-errors'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['192.168.50.105:9198']
+    relabel_configs:
+      - target_label: service
+        replacement: logstash
+
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx_no_tls]
+    static_configs:
+      - targets:
+          - 'http://192.168.50.112:5678/healthz'       # n8n
+          - 'http://192.168.50.106:8000/_health/'       # glitchtip
+          - 'http://192.168.50.112:3000/'               # mcphub
+          - 'http://192.168.50.102:8080/api/overview'   # traefik
+          - 'http://192.168.50.105:9200/_cluster/health' # elasticsearch
+          - 'http://localhost:3000/api/health'           # grafana
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9115

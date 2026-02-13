@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "ci"
+
+  # Terraform providers
+  - package-ecosystem: "terraform"
+    directory: "/terraform/envs/prod"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "automated"
+    commit-message:
+      prefix: "infra"

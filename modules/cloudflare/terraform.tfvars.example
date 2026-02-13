@@ -1,0 +1,110 @@
+# Cloudflare Authentication
+cloudflare_api_token  = "your-api-token-here"
+cloudflare_account_id = "your-account-id-here"
+cloudflare_zone_id    = "your-zone-id-here"
+
+# Example: Zero Trust Tunnel
+tunnels = {
+  homelab = {
+    name = "homelab"
+    config = {
+      ingress = [
+        {
+          hostname = "app.example.com"
+          service  = "http://192.168.50.100:8080"
+        },
+        {
+          hostname = "api.example.com"
+          service  = "http://192.168.50.101:3000"
+        },
+        {
+          # Catch-all rule (required)
+          service = "http_status:404"
+        }
+      ]
+    }
+  }
+}
+
+# Example: Access Application
+access_applications = {
+  app = {
+    name             = "My Application"
+    domain           = "app.example.com"
+    type             = "self_hosted"
+    session_duration = "24h"
+  }
+}
+
+# Example: Access Policy
+access_policies = {
+  allow_email = {
+    application_id = "<application_id>" # Reference from access_application output
+    name           = "Allow specific email"
+    decision       = "allow"
+    precedence     = 1
+    include = [{
+      email = ["user@example.com"]
+    }]
+  }
+  allow_domain = {
+    application_id = "<application_id>"
+    name           = "Allow domain"
+    decision       = "allow"
+    precedence     = 2
+    include = [{
+      email_domain = ["example.com"]
+    }]
+  }
+}
+
+# Example: R2 Bucket
+r2_buckets = {
+  storage = {
+    name     = "my-storage-bucket"
+    location = "WNAM" # WNAM, ENAM, WEUR, EEUR, APAC
+  }
+}
+
+# Example: Worker with R2 Binding
+workers = {
+  api = {
+    script_name  = "api-worker"
+    content_file = "./workers/api.js"
+    bindings = [
+      {
+        type        = "r2_bucket"
+        name        = "MY_BUCKET"
+        bucket_name = "my-storage-bucket"
+      },
+      {
+        type = "secret_text"
+        name = "API_KEY"
+        text = "secret-value-here"
+      },
+      {
+        type = "plain_text"
+        name = "ENVIRONMENT"
+        text = "production"
+      }
+    ]
+  }
+}
+
+# Example: Worker Route
+worker_routes = {
+  api = {
+    pattern     = "api.example.com/*"
+    script_name = "api-worker"
+  }
+}
+
+# Example: Custom DNS Record
+dns_records = {
+  www = {
+    name    = "www"
+    type    = "CNAME"
+    content = "example.com"
+    proxied = true
+  }
+}

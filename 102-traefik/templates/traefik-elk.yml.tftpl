@@ -1,0 +1,30 @@
+http:
+  routers:
+    kibana:
+      rule: Host(`elk.${domain}`) || Host(`kibana.${domain}`)
+      entryPoints:
+        - websecure
+      service: kibana
+      tls:
+        certResolver: cf
+      priority: 10
+
+    elasticsearch:
+      rule: Host(`es.${domain}`)
+      entryPoints:
+        - websecure
+      service: elasticsearch
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    kibana:
+      loadBalancer:
+        servers:
+          - url: http://${elk_ip}:${elk_ports.kibana}
+
+    elasticsearch:
+      loadBalancer:
+        servers:
+          - url: http://${elk_ip}:${elk_ports.elasticsearch}

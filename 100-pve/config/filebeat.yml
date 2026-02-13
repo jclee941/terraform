@@ -1,0 +1,41 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    fields:
+      service: system
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/ceph/*.log
+    fields:
+      service: ceph
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/pveproxy/*.log
+      - /var/log/pve-firewall.log
+      - /var/log/pveam.log
+      - /var/log/vzdump-hook.log
+    fields:
+      service: proxmox
+    fields_under_root: true
+
+output.logstash:
+  hosts: ["192.168.50.105:5044"]
+
+processors:
+  - add_host_metadata: ~
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7

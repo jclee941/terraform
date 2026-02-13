@@ -1,0 +1,64 @@
+services:
+  mcphub:
+    image: samanhappy/mcphub:latest
+    container_name: mcphub
+    restart: unless-stopped
+    ports:
+      - "${mcphub_port}:3000"
+    volumes:
+      - ./mcp_settings.json:/app/mcp_settings.json
+      - mcphub_data:/app/data
+      - npm_cache:/root/.npm
+    env_file:
+      - .env
+    environment:
+      - MCPHUB_PORT=3000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - mcp-proxmox
+      - mcp-playwright
+
+  mcp-proxmox:
+    build:
+      context: .
+      dockerfile: Dockerfile.proxmox
+    container_name: mcp-proxmox
+    restart: unless-stopped
+    ports:
+      - "8055:8055"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8055/sse || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  mcp-playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+    container_name: mcp-playwright
+    restart: unless-stopped
+    ports:
+      - "8056:8056"
+    env_file:
+      - .env
+    environment:
+      - PLAYWRIGHT_MCP_HEADLESS=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8056/sse || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  mcphub_data:
+  npm_cache:

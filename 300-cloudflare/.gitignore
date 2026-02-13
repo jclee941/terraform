@@ -1,0 +1,35 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Secrets - NEVER commit
+.env
+*.tfvars
+!*.tfvars.example
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Node
+node_modules/
+
+# Worker dev secrets
+.dev.vars
+
+# OpenCode
+.opencode/
+
+# In-Memoria
+in-memoria.db
+in-memoria-vectors.db/

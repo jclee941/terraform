@@ -1,0 +1,43 @@
+#cloud-config
+hostname: oc
+fqdn: oc.jclee.me
+manage_etc_hosts: true
+
+users:
+  - name: jclee
+    groups: [sudo, docker, video, render]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKtqkzRGFpy1dkgndShKi/Qv/HHs/kjX3wQFubrrTwea jclee@proxmox
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - build-essential
+  - git
+  - curl
+  - wget
+  - htop
+  - vim
+  - tmux
+  - jq
+  - unzip
+  - ca-certificates
+  - gnupg
+  - pkg-config
+  - libssl-dev
+
+runcmd:
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+
+write_files:
+  - path: /etc/default/qemu-guest-agent
+    content: |
+      DAEMON_ARGS="-fsfreeze-hook"
+    owner: root:root
+    permissions: '0644'
+
+final_message: "Cloud-init completed for oc (VM 200)"

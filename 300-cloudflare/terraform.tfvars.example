@@ -1,0 +1,30 @@
+# Cloudflare Terraform Variables
+# Copy this file to terraform.tfvars and fill in values:
+#   cp terraform.tfvars.example terraform.tfvars
+
+# Required - Cloudflare
+cloudflare_api_key    = ""
+cloudflare_email      = ""
+cloudflare_account_id = ""
+
+# Optional - GitHub (empty = skip GitHub secrets sync)
+github_token = ""
+
+# Optional - Vault (empty = skip Vault secrets sync)
+vault_token = ""
+
+# Required - Synology NAS Integration
+cloudflare_zone_id    = ""
+synology_domain       = ""                # e.g., "nas.example.com"
+access_allowed_emails = ["user@example.com"]
+
+# Optional (defaults exist)
+# cloudflare_secrets_store_id = "88dc5de305594f08aeb9bc04dad2f8cf"
+# github_owner                = "qws941"
+# vault_address               = "http://192.168.50.111:8200"
+# vault_mount_path            = "secret"
+# enable_cf_store_sync        = false
+# synology_nas_ip             = "192.168.50.215"
+# synology_nas_port           = 5001
+# r2_cache_ttl_days           = 7
+# enable_worker_route         = false  # Set true after wrangler deploy

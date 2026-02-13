@@ -1,0 +1,301 @@
+name: Milestone Automation
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'   # Monday 09:00 KST (UTC 00:00)
+    - cron: '0 9 * * 5'   # Friday 18:00 KST (UTC 09:00)
+  issues:
+    types: [closed]
+  pull_request:
+    types: [opened, reopened]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        type: choice
+        options:
+          - create-milestone
+          - close-and-rollover
+          - sync-all-repos
+
+permissions:
+  issues: write
+  pull-requests: write
+
+env:
+  # Managed via GitHub repo variable. Override by setting vars.ALL_REPOS in repo settings.
+  ALL_REPOS: ${{ vars.ALL_REPOS || 'qws941/blacklist,qws941/claude,qws941/propose,qws941/proxmox,qws941/resume,qws941/safework2,qws941/splunk' }}
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Job 1: Create weekly milestone across ALL repos
+  # Runs: Monday 09:00 KST | manual trigger
+  # ──────────────────────────────────────────────
+  create-weekly-milestone:
+    if: >-
+      github.event.schedule == '0 0 * * 1' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'create-milestone') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'sync-all-repos')
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 10
+    steps:
+      - name: Create Weekly Milestone (All Repos)
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            const repos = process.env.ALL_REPOS.split(',').map(r => r.trim());
+
+            function getISOWeek(date) {
+              const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+              const dayNum = d.getUTCDay() || 7;
+              d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+              const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+              return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            }
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const week = getISOWeek(now);
+            const weekStr = String(week).padStart(2, '0');
+            const title = `Week ${year}-W${weekStr}`;
+
+            const dueDate = new Date(now);
+            const dayOfWeek = dueDate.getDay();
+            const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+            dueDate.setDate(dueDate.getDate() + daysUntilFriday);
+            dueDate.setUTCHours(9, 0, 0, 0);
+
+            let created = 0;
+            let skipped = 0;
+
+            for (const repoFull of repos) {
+              const [owner, repo] = repoFull.split('/');
+              try {
+                const { data: milestones } = await github.rest.issues.listMilestones({
+                  owner, repo, state: 'open', per_page: 100
+                });
+
+                if (milestones.find(m => m.title === title)) {
+                  core.info(`[${repoFull}] "${title}" already exists`);
+                  skipped++;
+                  continue;
+                }
+
+                await github.rest.issues.createMilestone({
+                  owner, repo, title,
+                  description: `Weekly milestone for ${year} week ${weekStr}.\nAuto-created by milestone-automation.`,
+                  due_on: dueDate.toISOString()
+                });
+                core.info(`[${repoFull}] Created "${title}"`);
+                created++;
+              } catch (err) {
+                core.warning(`[${repoFull}] Failed: ${err.message}`);
+              }
+            }
+
+            core.info(`\nSummary: ${created} created, ${skipped} skipped across ${repos.length} repos`);
+
+  # ──────────────────────────────────────────────
+  # Job 2: Close milestone + rollover across ALL repos
+  # Runs: Friday 18:00 KST | manual trigger
+  # ──────────────────────────────────────────────
+  close-and-rollover:
+    if: >-
+      github.event.schedule == '0 9 * * 5' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'close-and-rollover') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'sync-all-repos')
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 10
+    steps:
+      - name: Close Current and Rollover Open Issues (All Repos)
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            const repos = process.env.ALL_REPOS.split(',').map(r => r.trim());
+
+            function getISOWeek(date) {
+              const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+              const dayNum = d.getUTCDay() || 7;
+              d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+              const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+              return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            }
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const week = getISOWeek(now);
+            const weekStr = String(week).padStart(2, '0');
+            const currentTitle = `Week ${year}-W${weekStr}`;
+
+            const nextWeek = week >= 52 ? 1 : week + 1;
+            const nextYear = week >= 52 ? year + 1 : year;
+            const nextWeekStr = String(nextWeek).padStart(2, '0');
+            const nextTitle = `Week ${nextYear}-W${nextWeekStr}`;
+
+            let totalMoved = 0;
+            let totalClosed = 0;
+
+            for (const repoFull of repos) {
+              const [owner, repo] = repoFull.split('/');
+              try {
+                const { data: milestones } = await github.rest.issues.listMilestones({
+                  owner, repo, state: 'open', sort: 'due_on', direction: 'asc', per_page: 100
+                });
+
+                const currentMilestone = milestones.find(m => m.title === currentTitle);
+                if (!currentMilestone) {
+                  core.info(`[${repoFull}] No milestone "${currentTitle}", skipping`);
+                  continue;
+                }
+
+                const { data: openIssues } = await github.rest.issues.listForRepo({
+                  owner, repo, milestone: currentMilestone.number, state: 'open', per_page: 100
+                });
+
+                if (openIssues.length > 0) {
+                  let nextMilestone = milestones.find(m => m.title === nextTitle);
+                  if (!nextMilestone) {
+                    const nextDue = new Date(now);
+                    nextDue.setDate(nextDue.getDate() + 7);
+                    nextDue.setUTCHours(9, 0, 0, 0);
+
+                    const { data: created } = await github.rest.issues.createMilestone({
+                      owner, repo, title: nextTitle,
+                      description: `Weekly milestone for ${nextYear} week ${nextWeekStr}.\nAuto-created by rollover.`,
+                      due_on: nextDue.toISOString()
+                    });
+                    nextMilestone = created;
+                  }
+
+                  for (const issue of openIssues) {
+                    await github.rest.issues.update({
+                      owner, repo, issue_number: issue.number, milestone: nextMilestone.number
+                    });
+                    core.info(`[${repoFull}] Rolled over #${issue.number} → ${nextTitle}`);
+                  }
+                  totalMoved += openIssues.length;
+                }
+
+                await github.rest.issues.updateMilestone({
+                  owner, repo, milestone_number: currentMilestone.number, state: 'closed'
+                });
+                totalClosed++;
+                core.info(`[${repoFull}] Closed "${currentTitle}" (${openIssues.length} rolled over)`);
+              } catch (err) {
+                core.warning(`[${repoFull}] Failed: ${err.message}`);
+              }
+            }
+
+            core.info(`\nSummary: ${totalClosed} milestones closed, ${totalMoved} issues rolled over`);
+
+  # ──────────────────────────────────────────────
+  # Job 3: Auto-assign PR to current week milestone
+  # Runs: On PR open/reopen (this repo only)
+  # ──────────────────────────────────────────────
+  assign-pr-to-milestone:
+    if: github.event_name == 'pull_request'
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 5
+    steps:
+      - name: Assign PR to Current Week Milestone
+        uses: actions/github-script@v8
+        with:
+          script: |
+            function getISOWeek(date) {
+              const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+              const dayNum = d.getUTCDay() || 7;
+              d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+              const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+              return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            }
+
+            const pr = context.payload.pull_request;
+
+            if (pr.milestone) {
+              core.info(`PR #${pr.number} already has milestone "${pr.milestone.title}", skipping`);
+              return;
+            }
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const week = getISOWeek(now);
+            const weekStr = String(week).padStart(2, '0');
+            const title = `Week ${year}-W${weekStr}`;
+
+            const { data: milestones } = await github.rest.issues.listMilestones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            let milestone = milestones.find(m => m.title === title);
+
+            if (!milestone) {
+              const dueDate = new Date(now);
+              const dayOfWeek = dueDate.getDay();
+              const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+              dueDate.setDate(dueDate.getDate() + daysUntilFriday);
+              dueDate.setUTCHours(9, 0, 0, 0);
+
+              const { data: created } = await github.rest.issues.createMilestone({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                description: `Weekly milestone for ${year} week ${weekStr}.\nAuto-created by PR assignment.`,
+                due_on: dueDate.toISOString()
+              });
+              milestone = created;
+              core.info(`Created milestone "${title}" for PR assignment`);
+            }
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              milestone: milestone.number
+            });
+
+            core.info(`Assigned PR #${pr.number} "${pr.title}" → ${title}`);
+
+  # ──────────────────────────────────────────────
+  # Job 4: Auto-close milestone when all issues done
+  # Runs: On issue close (this repo only)
+  # ──────────────────────────────────────────────
+  auto-close-milestone:
+    if: github.event_name == 'issues' && github.event.action == 'closed'
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 5
+    steps:
+      - name: Auto-close Milestone if All Issues Done
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const issue = context.payload.issue;
+
+            if (!issue.milestone) {
+              core.info(`Issue #${issue.number} has no milestone, skipping`);
+              return;
+            }
+
+            const milestone = issue.milestone;
+
+            const { data: current } = await github.rest.issues.getMilestone({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              milestone_number: milestone.number
+            });
+
+            if (current.open_issues === 0 && current.closed_issues > 0) {
+              await github.rest.issues.updateMilestone({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                milestone_number: milestone.number,
+                state: 'closed'
+              });
+              core.info(`Auto-closed milestone "${current.title}" (${current.closed_issues} issues completed)`);
+            } else {
+              core.info(`Milestone "${current.title}" still has ${current.open_issues} open issues`);
+            }

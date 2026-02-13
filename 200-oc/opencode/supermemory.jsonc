@@ -1,0 +1,16 @@
+{
+  // SUPERMEMORY 설정 - 컨텍스트 최적화
+  // Docs: https://github.com/supermemoryai/opencode-supermemory
+
+  // 요청당 주입할 메모리 수 (기본: 5)
+  "maxMemories": 3,
+
+  // 프로젝트 메모리 최대 개수 (기본: 10)
+  "maxProjectMemories": 5,
+
+  // 프로필 아이템 최대 개수 (기본: 5)
+  "maxProfileItems": 3,
+
+  // 프로필 주입 여부 (기본: true)
+  "injectProfile": true
+}

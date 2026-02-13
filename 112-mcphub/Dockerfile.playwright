@@ -1,0 +1,11 @@
+FROM node:22-slim
+
+WORKDIR /app
+RUN npm install -g mcp-proxy@6.4.0
+RUN npm install --save @playwright/mcp@latest
+
+RUN npx playwright install --with-deps chromium
+
+ENV PLAYWRIGHT_MCP_HEADLESS=true
+EXPOSE 8056
+CMD ["mcp-proxy", "--port", "8056", "--host", "0.0.0.0", "--", "npx", "@playwright/mcp", "--no-sandbox"]

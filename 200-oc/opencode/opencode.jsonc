@@ -1,0 +1,109 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "tokyo-night",
+  "default_agent": "Sisyphus",
+  "username": "jclee",
+
+  "instructions": [
+    "/home/jclee/.config/opencode/rules/session-init.md"
+  ],
+
+  "plugin": [
+    "opencode-antigravity-auth@latest",
+    "@franlol/opencode-md-table-formatter",
+    "open-trees",
+    "@tarquinen/opencode-dcp@latest",
+    "opencode-pty@0.1.4",
+    "opencode-supermemory@0.1.6",
+    "oh-my-opencode",
+    "opencode-agent-skills"
+  ],
+
+  "provider": {
+    "google": {
+      "models": {
+        "antigravity-gemini-3-pro": {
+          "name": "Gemini 3 Pro (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": { "low": { "thinkingLevel": "low" }, "high": { "thinkingLevel": "high" } }
+        },
+        "antigravity-gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": { "minimal": { "thinkingLevel": "minimal" }, "low": { "thinkingLevel": "low" }, "medium": { "thinkingLevel": "medium" }, "high": { "thinkingLevel": "high" } }
+        },
+        "antigravity-claude-sonnet-4-5": {
+          "name": "Claude Sonnet 4.5 (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "antigravity-claude-sonnet-4-5-thinking": {
+          "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": { "low": { "thinkingConfig": { "thinkingBudget": 8192 } }, "max": { "thinkingConfig": { "thinkingBudget": 32768 } } }
+        },
+        "antigravity-claude-opus-4-6-thinking": {
+          "name": "Claude Opus 4.6 Thinking (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": { "low": { "thinkingConfig": { "thinkingBudget": 8192 } }, "max": { "thinkingConfig": { "thinkingBudget": 32768 } } }
+        }
+      }
+    }
+  },
+
+  "mcp": {
+    "n8n": {
+      "type": "remote",
+      "url": "",
+      "headers": { "Authorization": "Bearer ", "Accept": "application/json, text/event-stream" },
+      "timeout": 60000
+    },
+    "cf-dns": { "type": "remote", "url": "http://192.168.50.112:8073/sse", "timeout": 60000 },
+    "context7": { "type": "remote", "url": "http://192.168.50.112:8068/sse", "timeout": 60000 },
+    "elk": { "type": "remote", "url": "http://192.168.50.112:8065/sse", "timeout": 60000 },
+    "git": { "type": "remote", "url": "http://192.168.50.112:8059/sse", "timeout": 60000 },
+    "github": { "type": "remote", "url": "http://192.168.50.112:8058/sse", "timeout": 60000 },
+    "grafana": { "type": "remote", "url": "http://192.168.50.112:8069/sse", "timeout": 60000 },
+    "kratos": { "type": "remote", "url": "http://192.168.50.112:8060/sse", "timeout": 60000 },
+    "playwright": { "type": "remote", "url": "http://192.168.50.112:8056/sse", "timeout": 60000 },
+    "proxmox": { "type": "remote", "url": "http://192.168.50.112:8055/sse", "timeout": 60000 },
+    "sequential-thinking": { "type": "remote", "url": "http://192.168.50.112:8057/sse", "timeout": 60000 },
+    "slack": { "type": "remote", "url": "http://192.168.50.112:8072/sse", "timeout": 60000 },
+    "sqlite": { "type": "remote", "url": "http://192.168.50.112:8054/sse", "timeout": 60000 },
+    "terraform": { "type": "remote", "url": "http://192.168.50.112:8071/sse", "timeout": 60000 },
+    "time": { "type": "remote", "url": "http://192.168.50.112:8062/sse", "timeout": 60000 },
+    "websearch": { "type": "remote", "url": "http://192.168.50.112:8067/sse", "timeout": 60000 },
+    "bazel": { "type": "local", "command": ["npx","-y","github:nacgarg/bazel-mcp-server"], "timeout": 60000 },
+    "cf-observability": { "type": "local", "command": ["npx","-y","mcp-remote","https://observability.mcp.cloudflare.com/mcp"], "timeout": 60000 },
+    "cf-radar": { "type": "local", "command": ["npx","-y","mcp-remote","https://radar.mcp.cloudflare.com/mcp"], "timeout": 60000 },
+    "cf-workers": { "type": "local", "command": ["npx","-y","mcp-remote","https://bindings.mcp.cloudflare.com/mcp"], "timeout": 60000 },
+    "in-memoria": { "type": "local", "command": ["npx","-y","in-memoria","server"], "timeout": 120000, "environment": {"IN_MEMORIA_BATCH_SIZE":"25","IN_MEMORIA_DB_FILENAME":"data/in-memoria.db","IN_MEMORIA_LOG_LEVEL":"warn","IN_MEMORIA_MAX_CONCURRENT":"5","IN_MEMORIA_VECTOR_DB_PATH":"data/in-memoria-vectors.db"} }
+  },
+
+  "permission": { "*": "allow" },
+
+  "experimental": { "continue_loop_on_deny": true, "batch_tool": true },
+
+  "compaction": { "auto": true, "prune": true },
+
+  "small_model": "google/antigravity-gemini-3-flash",
+
+  "formatter": {
+    ".ts": { "command": ["prettier", "--write"] },
+    ".tsx": { "command": ["prettier", "--write"] },
+    ".js": { "command": ["prettier", "--write"] },
+    ".jsx": { "command": ["prettier", "--write"] },
+    ".py": { "command": ["ruff", "format"] },
+    ".go": { "command": ["gofmt", "-w"] },
+    ".json": { "command": ["prettier", "--write"] },
+    ".yaml": { "command": ["prettier", "--write"] },
+    ".yml": { "command": ["prettier", "--write"] },
+    ".md": { "command": ["prettier", "--write"] }
+  },
+
+  "keybinds": { "leader": "ctrl+x", "tool_details": "<leader>d", "session_fork": "<leader>f" }
+}

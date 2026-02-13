@@ -1,0 +1,190 @@
+# PROJECT KNOWLEDGE BASE
+
+**Generated:** 2026-02-13
+**Branch:** master
+**Style:** Google3 Monorepo (Bazel)
+
+## OVERVIEW
+Multi-Provider Infrastructure Management Monorepo. Unified entry point for managing Proxmox homelab and other infrastructure providers (Cloudflare, AWS, etc.) using Terraform and Bazel. Orchestrates LXC containers and VMs for `jclee.me` with strict Google3-style governance (BUILD files, OWNERS). Migrated from single-provider `proxmox/` repo.
+
+## STRUCTURE
+```
+terraform/                      # Multi-provider IaC monorepo root
+├── modules/                    # Reusable Terraform modules
+│   ├── proxmox/                # Proxmox-specific modules
+│   │   ├── lxc/                # LXC container provisioning
+│   │   ├── lxc-config/         # LXC config rendering (templates/)
+│   │   ├── vm-config/          # VM config rendering (templates/)
+│   │   ├── env-config/         # Environment config (IP/port mapping)
+│   │   ├── config-renderer/    # Template → tf-configs pipeline
+│   │   └── inventory/          # Host inventory management
+│   ├── cloudflare/             # Cloudflare DNS/tunnel modules (8 .tf files)
+│   └── shared/
+│       └── vault-secrets/      # HashiCorp Vault secret management
+├── 100-pve/                    # Proxmox Host + TF workspace (primary)
+│   ├── main.tf                 # Central orchestration (665 lines)
+│   ├── variables.tf            # TF variables
+│   ├── terraform.tfvars        # Variable values
+│   └── envs/prod/              # Production environment
+│       └── hosts.tf            # SSoT: ALL host IPs/ports
+├── 101-runner/                 # GitHub Actions Self-hosted Runner (LXC)
+├── 102-traefik/                # Reverse Proxy (Entry point)
+│   ├── tf-configs/             # TF-rendered configs (traefik, routing)
+│   └── templates/              # Config templates
+├── 104-grafana/                # Observability Stack (Prometheus/Grafana)
+│   └── tf-configs/             # TF-rendered configs (datasources, prometheus)
+├── 105-elk/                    # ELK Stack (Elasticsearch, Logstash, Kibana)
+│   └── tf-configs/             # TF-rendered configs (docker-compose, logstash)
+├── 106-glitchtip/              # Error Tracking (GlitchTip)
+│   └── tf-configs/             # TF-rendered configs (docker-compose, env)
+├── 112-mcphub/                 # MCP Hub (Unified MCP + AI/Tools VM)
+│   └── templates/              # docker-compose, mcp_settings.json
+├── 200-oc/                     # Dev Environment (GPU VM)
+│   ├── config/                 # System-level configs (cloud-init, systemd)
+│   └── opencode/               # Config gen pipeline (3 variants, 9 agents)
+├── 215-synology/               # Synology NAS (Physical Device)
+├── 220-sandbox/                # Dev Sandbox (CF WARP)
+│   └── cloud-init/             # Cloud-init config
+├── 300-cloudflare/             # Cloudflare Infrastructure (External)
+│   ├── *.tf                    # DNS, tunnel, access, R2, secrets (14 files)
+│   ├── workers/synology-proxy/ # Hono Worker (FileStation proxy + R2 cache)
+│   ├── scripts/                # collect, audit, sync, generate-bindings
+│   ├── inventory/secrets.yaml  # Secret metadata SSoT (NO values)
+│   └── docker/cloudflared/     # Tunnel connector on Synology NAS
+├── docs/                       # Documentation
+├── scripts/                    # Utility scripts + n8n-workflows/
+├── .github/workflows/          # CI/CD (6 workflows)
+└── .archive/                   # Archived services (103, 107-111, 113)
+```
+
+## WHERE TO LOOK
+| Task | Location | Notes |
+|------|----------|-------|
+| **IaC Definitions** | `100-pve/main.tf` | Manages 101-102, 104-106, 112, 200, 220. |
+| **Terraform Modules** | `modules/proxmox/` | 6 modules (lxc, lxc-config, vm-config, env-config, config-renderer, inventory). |
+| **Shared Modules** | `modules/shared/vault-secrets/` | Cross-stack modules (Vault secrets). |
+| **Cloudflare Modules** | `modules/cloudflare/` | DNS, tunnels (8 .tf files). |
+| **Host Inventory (SoT)** | `100-pve/envs/prod/hosts.tf` | Single Source of Truth for all IPs/ports. |
+| **Terraform Architecture** | `100-pve/main.tf` → `module.hosts` → `module.env_config` → downstream modules | No hardcoded IPs in main.tf. |
+| **Config Templates** | Distributed per service dir | `102-traefik/templates/`, `104-grafana/templates/`, `105-elk/templates/`, `106-glitchtip/templates/`, `112-mcphub/templates/` |
+| **Module Templates** | `modules/proxmox/{lxc-config,vm-config}/templates/` | 3 module-level templates. |
+| **TF-Rendered Configs** | `{service}/tf-configs/` | Terraform-rendered outputs colocated with each service. NOT hand-editable. |
+| **Self-hosted Runner** | `101-runner/` | GitHub Actions runner (LXC 101). Multi-repo registration scripts. |
+| **AI Agents** | `112-mcphub/` | MCP servers + AI tools (unified). |
+| **Observability** | `104-grafana/` | Prometheus/Elasticsearch/Grafana stack. |
+| **Error Tracking** | `106-glitchtip/` | GlitchTip error tracking (glitchtip.jclee.me). |
+| **MCP Hub** | `112-mcphub/` | MCPHub unified MCP management UI (mcphub.jclee.me). 9 stdio + 3 SSE (172 tools). |
+| **OpenCode Gen** | `200-oc/opencode/gen/` | Config gen pipeline: 3 variants (anti/claude/copilot), 9 agents, 8 categories. |
+| **Routing** | `102-traefik/config/` | Dynamic routing (elk.yml, glitchtip.yml, mcp.yml, vault.yml, mcphub.yml). |
+| **Alerting** | `104-grafana/alerting.yaml` | 12 alert rules, 1 contact point (n8n-webhook). Slack removed. |
+| **CI/CD** | `.github/workflows/` | 6 workflows (alerts, milestone-automation, parallel-test, pr-review, service-access, vault-test). |
+| **Scripts** | `scripts/` | create-pr.sh, production_verification_v2.sh, terraform-drift-check.sh. |
+| **n8n Workflows** | `scripts/n8n-workflows/` + `112-mcphub/n8n-workflows/` | 8 workflow JSON definitions (6 primary + 2 pipeline). |
+| **Runbooks** | `docs/runbooks/` | Incident response and operational guides. |
+| **Synology NAS** | `215-synology/` | Physical device inventory. IP/port ref only (no TF provisioning). |
+| **Cloudflare Infra** | `300-cloudflare/` | DNS, tunnel, access, R2, secrets, Workers. External provider (300+). |
+| **Add New Provider** | `{NNN}-{svc}/` + `modules/{provider}/` | Create flat NNN dir + modules. 300+ for external infra. |
+
+## INFRASTRUCTURE STATUS
+| VMID | Name | IP | Purpose | Governance |
+|------|------|----|---------|------------|
+| 100 | pve | 192.168.50.100 | Proxmox Host | Host configs |
+| 101 | runner | 192.168.50.101 | GitHub Actions Runner | Terraform (LXC) |
+| 102 | traefik | 192.168.50.102 | Reverse Proxy | Terraform (LXC) |
+| 104 | grafana | 192.168.50.104 | Observability | Terraform (LXC) |
+| 105 | elk | 192.168.50.105 | ELK Stack | Terraform (LXC) |
+| 106 | glitchtip | 192.168.50.106 | Error Tracking (GlitchTip) | Terraform (LXC) ✅ Running |
+| 112 | mcphub | 192.168.50.112 | MCP Hub (Unified MCP + AI/Tools) | Terraform (VM) ✅ Running |
+| 200 | oc | 192.168.50.200 | Dev (GPU) | Terraform (VM) |
+| 215 | synology | 192.168.50.215 | Synology NAS (Physical) | Inventory only |
+| 220 | sandbox | 192.168.50.220 | Sandbox (WARP) | Terraform (VM) |
+| 300 | cloudflare | — | DNS/Tunnel/Access/R2/Secrets | Terraform (External) |
+
+## MCP SERVERS
+**Managed via MCPHub (VM 112)**. 172 tools total.
+
+| Server | Type | Tools | Notes |
+|--------|------|-------|-------|
+| sqlite | stdio | 10 | `mcp-server-sqlite` |
+| sequential-thinking | stdio | 1 | `@modelcontextprotocol/server-sequential-thinking` |
+| elk | stdio | 11 | `@awesome-ai/elasticsearch-mcp` |
+| websearch | stdio | 3 | `exa-mcp-server` |
+| context7 | stdio | 2 | `@upstash/context7-mcp` |
+| grafana | stdio | 43 | `@leval/mcp-grafana` |
+| terraform | stdio | 10 | `terraform-mcp-server` |
+| splunk | stdio | 11 | `splunk-mcp` |
+| glitchtip | stdio | 2 | `mcp-glitchtip` |
+| proxmox | SSE | 55 | :8055 (pino crash in stdio) |
+| playwright | SSE | 22 | :8056 (needs Chromium) |
+| cf-docs | SSE | 2 | External (docs.mcp.cloudflare.com) |
+| n8n | docker | — | :5678 workflow automation |
+| github | local | — | gh CLI auth on dev host 200 |
+| in-memoria | local | — | CWD-relative storage |
+| bazel | local | — | Project-local |
+| kratos | local | — | stdio-only |
+| git | local | — | Project-local |
+
+## CONVENTIONS
+- **Build System**: Bazel (Google3 style). Every dir MUST have `BUILD.bazel` and `OWNERS`.
+- **Monorepo Layout**: Flat `{NNN}-{svc}/` directories for Terraform workspaces, `modules/{provider}/` for reusable modules, `modules/shared/` for cross-provider modules. NO `stacks/` subdirectories.
+- **Architecture**: `main.tf` → `module.hosts` → `module.env_config` → downstream modules. No hardcoded IPs in `main.tf`.
+- **Numbering**: `1-255` = internal infra (maps to `192.168.50.{NNN}`), `300+` = external infra (Cloudflare, AWS, etc.).
+- **Naming**: `{VMID}-{HOSTNAME}` (e.g., `102-traefik`).
+- **Network**: `192.168.50.0/24` (GW: .1). Primary DNS: `.1`.
+- **Terraform**: `bpg/proxmox` provider (v0.94.0), `hashicorp/vault` (~>4.0).
+- **Single Source of Truth (SSoT)**: `100-pve/envs/prod/hosts.tf` defines ALL IPs/ports. No hardcoded IPs in `main.tf`.
+- **Module Sources**: Always use `../modules/{provider}/{module}` relative paths from service dirs.
+- **Template Paths**: `${path.module}/../{NNN}-{svc}/templates/` from workspace to service templates.
+- **Config Pipeline**: `hosts.tf` → `env-config` → `config-renderer` → service-specific `tf-configs/`.
+- **Multi-stack Makefile**: `make plan STACK=proxmox` (default: proxmox). All Terraform commands route through `$(STACK)/`.
+- **Cloud-Init**: Custom snippets via `proxmox_virtual_environment_file`.
+- **Logs**: Filebeat → Logstash:5044 → Elasticsearch (105) → Grafana.
+- **PR Automation**: Use the dedicated `pr-automation` skill for all Pull Request operations.
+- **Memory Budget**: Total allocation < 90% physical RAM. Current limit: 54 GB.
+
+## COMMANDS
+```bash
+ssh pve; pct enter {VMID}  # LXC access via PVE
+ssh root@192.168.50.100 'pct exec {VMID} -- bash -c "CMD"'
+bazel build //... && bazel test //...
+make plan                        # Default: proxmox stack
+make plan STACK=proxmox          # Explicit stack selection
+make apply STACK=proxmox         # Apply proxmox stack
+cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
+```
+
+## ANTI-PATTERNS
+- **Infrastructure (IaC)**:
+  - **NO UI tweaks** on Terraform-managed LXCs (102-106). Causes drift.
+  - **NO manual state edits**. Use `terraform` CLI or OpenTofu.
+  - **NO hardcoded IPs** in `main.tf`. Use `module.hosts`.
+  - **NO hardcoded module paths**. Use `../modules/{provider}/{module}` relative paths.
+  - **NO hand-editing** of TF-rendered configs in `{service}/tf-configs/`.
+- **Security**:
+  - **NEVER commit .env files**. Use Vault Agent or `.env.example` templates.
+  - **NEVER commit API keys**: Protect `antigravity-accounts.json` and signature caches.
+  - **NEVER put tokens** in Splunk `default/*.conf` files.
+- **Development**:
+  - **NEVER use `as any`**, `@ts-ignore`, or `@ts-expect-error`.
+  - **NEVER empty catch blocks**. Always log errors.
+  - **NEVER use `print()`** in Splunk python scripts; use Splunk logging.
+  - **NO global npm/pip** on MCP. Use Bazel or absolute paths.
+  - **NO runtime pip install** inside Docker containers.
+- **Service-Specific**:
+  - **NO mcp-server-elasticsearch** (RajwardhanShinde); incompatible with xpack disabled.
+  - **NO direct SSH** to LXCs (102-106); use `pct exec` via PVE.
+
+## AUTOMATION PIPELINES (n8n)
+8 workflows on n8n (VM 112, :5678). Login: `admin@jclee.me` / `Admin123!`.
+- **Primary** (6): `scripts/n8n-workflows/` — error→issue, alert→issue, daily-digest, request-tracker, PR-notify, error-handler.
+- **Pipeline** (2): `112-mcphub/n8n-workflows/` — ELK error pipeline, GlitchTip sync.
+- **Webhooks**: `/webhook/glitchtip-error`, `/webhook/grafana-alert`, `/webhook/github-issue`, `/webhook/github-pr`.
+
+## NOTES
+- **n8n**: MCP API key expires 2026-05-11. Workflows must be Published via UI (CLI import doesn't register webhooks).
+- **GlitchTip**: Org `jclee-homelab`, Project `homelab`. Alert rule `n8n-automation` → webhook.
+- **Vault**: vault.jclee.me via Traefik. Vault Agent on 112 replaces manual secrets. Deprecated vars: `n8n_mcp_config`, `mcp_secrets`.
+- **MCPHub**: Default creds `admin/admin123`. SSE proxies use sidecar Dockerfiles (`Dockerfile.proxmox`, `Dockerfile.playwright`). Env from `/opt/mcphub/.env`.
+- **GPU**: RTX 5070 Ti on VM 200 (IOMMU group 12, PCI 0000:01:00.0). **Archived**: 107-113 (excl. 112) → `.archive/`.
+- **Migration**: Migrated from single-provider `~/dev/proxmox/` repo (2026-02-13). Original repo preserved as reference.
+- **Cloudflare**: Migrated from standalone `~/dev/cloudflare/` repo (2026-02-13). Includes Workers, scripts, docker, inventory.

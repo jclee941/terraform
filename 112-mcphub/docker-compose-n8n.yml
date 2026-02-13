@@ -1,0 +1,47 @@
+services:
+  n8n:
+    container_name: n8n
+    image: n8nio/n8n:2.8.1
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_API_KEY: ${N8N_API_KEY}
+      N8N_HOST: n8n.jclee.me
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      N8N_SECURE_COOKIE: "false"
+      TZ: Asia/Seoul
+      WEBHOOK_URL: https://n8n.jclee.me/
+      EXECUTIONS_DATA_SAVE_ON_ERROR: "all"
+      N8N_EXECUTION_TIMEOUT: "300"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.00'
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - n8n_default
+
+volumes:
+  n8n_data:
+    name: n8n_n8n_data
+    driver: local
+
+networks:
+  n8n_default:
+    name: n8n_default
+    driver: bridge

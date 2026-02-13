@@ -1,0 +1,171 @@
+name: PR Review & Validation
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    name: Validate Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        id: changes
+        run: |
+          echo "tf_changed=false" >> $GITHUB_OUTPUT
+          echo "yaml_changed=false" >> $GITHUB_OUTPUT
+          echo "docker_changed=false" >> $GITHUB_OUTPUT
+
+          CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }} 2>/dev/null || echo "")
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          if echo "$CHANGED" | grep -q '\.tf$\|\.tfvars$'; then
+            echo "tf_changed=true" >> $GITHUB_OUTPUT
+          fi
+          if echo "$CHANGED" | grep -q '\.ya\?ml$'; then
+            echo "yaml_changed=true" >> $GITHUB_OUTPUT
+          fi
+          if echo "$CHANGED" | grep -qE 'docker-compose|Dockerfile'; then
+            echo "docker_changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate YAML syntax
+        if: steps.changes.outputs.yaml_changed == 'true'
+        run: |
+          pip install --quiet --break-system-packages yamllint
+          echo "## YAML Lint Results" >> $GITHUB_STEP_SUMMARY
+          ERRORS=0
+          for f in $(find . \( -name '*.yml' -o -name '*.yaml' \) -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/.archive/*'); do
+            if ! yamllint -d relaxed "$f" 2>/dev/null; then
+              echo "❌ $f" >> $GITHUB_STEP_SUMMARY
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "❌ $ERRORS YAML file(s) failed validation" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "✅ YAML validation complete" >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup Terraform
+        if: steps.changes.outputs.tf_changed == 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.7.5'
+
+      - name: Validate Terraform format
+        if: steps.changes.outputs.tf_changed == 'true'
+        run: |
+          echo "## Terraform Validation" >> $GITHUB_STEP_SUMMARY
+          cd 100-pve/envs/prod
+
+          # Format check — fail on unformatted files
+          if terraform fmt -check -recursive; then
+            echo "✅ Terraform format OK" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Terraform format issues detected:" >> $GITHUB_STEP_SUMMARY
+            terraform fmt -recursive -diff >> $GITHUB_STEP_SUMMARY 2>&1 || true
+            exit 1
+          fi
+
+          # Validate (init with backend=false to skip state)
+          terraform init -backend=false -input=false > /dev/null 2>&1
+          if terraform validate; then
+            echo "✅ Terraform validate OK" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Terraform validation failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Validate Docker Compose syntax
+        if: steps.changes.outputs.docker_changed == 'true'
+        run: |
+          echo "## Docker Compose Validation" >> $GITHUB_STEP_SUMMARY
+          find . -name 'docker-compose*.yml' -not -name '*.tftpl' | while read f; do
+            if docker compose -f "$f" config --quiet 2>/dev/null; then
+              echo "✅ $f" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ $f" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Check BUILD.bazel and OWNERS files
+        run: |
+          echo "## Governance Check" >> $GITHUB_STEP_SUMMARY
+          ERRORS=0
+
+          # Check that directories with code have BUILD.bazel
+          for dir in $(find . -maxdepth 1 -type d -name '[0-9]*' | sort); do
+            dirname=$(basename "$dir")
+            if [ ! -f "$dir/BUILD.bazel" ]; then
+              echo "❌ Missing BUILD.bazel in $dirname" >> $GITHUB_STEP_SUMMARY
+              ERRORS=$((ERRORS + 1))
+            fi
+            if [ ! -f "$dir/OWNERS" ]; then
+              echo "❌ Missing OWNERS in $dirname" >> $GITHUB_STEP_SUMMARY
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+
+          if [ $ERRORS -eq 0 ]; then
+            echo "✅ All directories have BUILD.bazel and OWNERS" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Post PR comment with results
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('## 🔍 PR Validation Report')
+            );
+
+            const tf_changed = '${{ steps.changes.outputs.tf_changed }}' === 'true';
+            const yaml_changed = '${{ steps.changes.outputs.yaml_changed }}' === 'true';
+            const docker_changed = '${{ steps.changes.outputs.docker_changed }}' === 'true';
+            const status = '${{ job.status }}';
+            const emoji = status === 'success' ? '✅' : '❌';
+
+            let body = `## 🔍 PR Validation Report\n\n`;
+            body += `**Status**: ${emoji} ${status}\n\n`;
+            body += `| Check | Ran | Result |\n`;
+            body += `|-------|-----|--------|\n`;
+            body += `| Terraform | ${tf_changed ? '✅' : '⏭️ skip'} | ${tf_changed ? (status === 'success' ? '✅' : '❌') : 'N/A'} |\n`;
+            body += `| YAML | ${yaml_changed ? '✅' : '⏭️ skip'} | ${yaml_changed ? (status === 'success' ? '✅' : '❌') : 'N/A'} |\n`;
+            body += `| Docker | ${docker_changed ? '✅' : '⏭️ skip'} | ${docker_changed ? (status === 'success' ? '✅' : '❌') : 'N/A'} |\n`;
+            body += `| Governance (BUILD/OWNERS) | ✅ | ${status === 'success' ? '✅' : '❌'} |\n`;
+            body += `\n---\n*Run: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+

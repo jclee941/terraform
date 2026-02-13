@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
+  // Enable or disable the plugin
+  "enabled": true,
+  // Enable debug logging to ~/.config/opencode/logs/dcp/
+  "debug": false,
+  // Notification display: "off", "minimal", or "detailed"
+  "pruneNotification": "detailed",
+  // Where to display prune notifications: "chat" or "toast"
+  "pruneNotificationType": "chat",
+  // DCP slash commands (/dcp)
+  "commands": {
+    "enabled": true,
+    "protectedTools": []
+  },
+  // Protect from pruning for <turns> message turns
+  "turnProtection": {
+    "enabled": false,
+    "turns": 4
+  },
+  // Protect file operations from pruning via glob patterns
+  "protectedFilePatterns": [],
+  // LLM-driven context pruning tools
+  "tools": {
+    // Shared settings for all prune tools
+    "settings": {
+      // Nudge the LLM to use prune tools (every <nudgeFrequency> tool results)
+      "nudgeEnabled": true,
+      "nudgeFrequency": 10,
+      // Additional tools to protect from pruning
+      "protectedTools": [],
+      // Compress nudge when session tokens exceed this limit ("model" = active model's limit)
+      "contextLimit": "80%"
+    },
+    // Distills key findings into preserved knowledge before removing raw content
+    "distill": {
+      "permission": "allow",
+      "showDistillation": false
+    },
+    // Compress contiguous conversation ranges into summaries
+    "compress": {
+      "permission": "allow",
+      "showCompression": false
+    },
+    // Removes tool content from context without preservation
+    "prune": {
+      "permission": "allow"
+    }
+  },
+  // Automatic pruning strategies
+  "strategies": {
+    // Remove duplicate tool calls (same tool with same arguments)
+    "deduplication": {
+      "enabled": true,
+      "protectedTools": []
+    },
+    // Prune write tool inputs when the file has been subsequently read
+    "supersedeWrites": {
+      "enabled": false
+    },
+    // Prune tool inputs for errored tools after X turns
+    "purgeErrors": {
+      "enabled": true,
+      "turns": 4,
+      "protectedTools": []
+    }
+  }
+}

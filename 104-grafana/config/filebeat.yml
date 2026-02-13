@@ -1,0 +1,33 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    fields:
+      service: system
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/grafana/*.log
+    fields:
+      service: grafana
+    fields_under_root: true
+    multiline.pattern: ^'t='
+    multiline.negate: true
+    multiline.match: after
+
+output.logstash:
+  hosts: ["192.168.50.105:5044"]
+
+processors:
+  - add_host_metadata: ~
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7

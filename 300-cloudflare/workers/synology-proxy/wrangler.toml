@@ -1,0 +1,14 @@
+name = "synology-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-12-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "a8d9c67f586acdd15eebcc65ca3aa5bb"
+workers_dev = true
+
+[[r2_buckets]]
+binding = "SYNOLOGY_CACHE"
+bucket_name = "synology-cache"
+
+[vars]
+SYNOLOGY_API_URL = "https://nas.example.com"
+ENVIRONMENT = "production"

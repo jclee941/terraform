@@ -1,0 +1,6 @@
+http.host: "0.0.0.0"
+xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# Dead Letter Queue - captures failed events for retry/inspection
+dead_letter_queue.enable: true
+dead_letter_queue.max_bytes: 1024mb

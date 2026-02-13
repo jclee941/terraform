@@ -1,0 +1,17 @@
+# Cloudflare Terraform Module
+load("@aspect_bazel_lib//lib:directory_path.bzl", "make_directory_paths")
+
+filegroup(
+    name = "terraform_files",
+    srcs = glob([
+        "*.tf",
+        "*.tfvars.example",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]),
+    visibility = ["//terraform:__pkg__"],
+)

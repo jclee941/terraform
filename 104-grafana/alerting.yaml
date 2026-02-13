@@ -1,0 +1,763 @@
+apiVersion: 1
+
+deleteContactPoints:
+  - orgId: 1
+    uid: discord-webhook
+  - orgId: 1
+    uid: discord-1
+  - orgId: 1
+    uid: grafana-default-email
+
+contactPoints:
+  # n8n webhook - creates GitHub Issues from alerts
+  - orgId: 1
+    name: n8n-webhook
+    receivers:
+      - uid: n8n-webhook-receiver
+        type: webhook
+        settings:
+          url: "http://192.168.50.112:5678/webhook/grafana-alert"
+          httpMethod: POST
+          maxAlerts: "10"
+  # Fallback - log alerts to file when n8n is unavailable
+  # WARNING: This is a self-referential loop back into Grafana's internal Alertmanager.
+  # It does NOT provide true external fallback — alerts only persist in Grafana's internal DB.
+  # For real resilience, consider adding an email or file-based contact point.
+  - orgId: 1
+    name: alert-log-fallback
+    receivers:
+      - uid: alert-log-fallback-receiver
+        type: webhook
+        settings:
+          url: "http://localhost:3000/api/alertmanager/grafana/api/v2/alerts"
+          httpMethod: POST
+          maxAlerts: "50"
+
+
+policies:
+  - orgId: 1
+    receiver: n8n-webhook
+    group_by: ['grafana_folder', 'alertname']
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      - receiver: n8n-webhook
+        matchers:
+          - severity = critical
+        group_by: ['alertname']
+        group_wait: 10s
+        group_interval: 1m
+        repeat_interval: 1h
+        continue: true
+      - receiver: n8n-webhook
+        matchers:
+          - severity = warning
+        group_by: ['grafana_folder', 'alertname']
+        group_wait: 1m
+        group_interval: 5m
+        repeat_interval: 4h
+        continue: true
+      # Info alerts: n8n for GitHub tracking
+      - receiver: n8n-webhook
+        matchers:
+          - severity = info
+        group_by: ['grafana_folder']
+        group_wait: 2m
+        group_interval: 10m
+        repeat_interval: 12h
+        continue: true
+      # Fallback route - catches all alerts when primary fails
+      - receiver: alert-log-fallback
+        group_by: ['alertname']
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 4h
+
+groups:
+  - orgId: 1
+    name: homelab-logs
+    folder: Alerting
+    interval: 1m
+    rules:
+      # High Error Rate - Elasticsearch query
+      - uid: high-error-rate
+        title: High Error Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "_exists_:error_classification AND error_severity:(critical OR high OR medium)"
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "High error rate detected across homelab"
+          description: "More than 100 errors in the last 5 minutes"
+        labels:
+          severity: warning
+
+      # Critical Error Spike - Elasticsearch query
+      - uid: critical-error-spike
+        title: Critical Error Spike
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "error_severity:critical"
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "Critical errors detected"
+          description: "Fatal, Panic, or Critical errors detected in logs"
+        labels:
+          severity: critical
+
+      # Gateway Errors (502/503) - Elasticsearch query
+      - uid: gateway-errors
+        title: Gateway Errors (502/503)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "error_classification:GATEWAY_ERROR"
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 10
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Gateway errors detected on Traefik"
+          description: "More than 10 502/503 errors in the last 5 minutes"
+        labels:
+          severity: warning
+
+      # Client Errors Spike (4xx) - Elasticsearch query
+      - uid: client-errors-spike
+        title: Client Errors Spike (4xx)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "host:traefik AND message:(400 OR 401 OR 403 OR 404 OR 405 OR 429)"
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "High 4xx error rate"
+          description: "More than 100 client errors in the last 5 minutes"
+        labels:
+          severity: info
+
+      # Host Silent - Elasticsearch query
+      - uid: host-silent
+        title: Host Silent
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "host:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR oc)"
+              alias: ""
+              bucketAggs:
+                - field: "host.keyword"
+                  id: "3"
+                  settings:
+                    min_doc_count: "1"
+                    order: "desc"
+                    orderBy: "_count"
+                    size: "10"
+                  type: terms
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: count
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 5
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Host appears silent"
+          description: "One or more critical hosts have not sent logs in 10 minutes"
+        labels:
+          severity: warning
+
+
+  - orgId: 1
+    name: opencode-alerts
+    folder: OpenCode
+    interval: 1m
+    rules:
+      # OpenCode Session Activity - Elasticsearch query
+      - uid: opencode-session-activity
+        title: OpenCode Session Activity
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "service:opencode OR job:opencode"
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 10
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "OpenCode session active"
+          description: "{{ $values.B.Value }} log entries in the last 5 minutes from OpenCode"
+        labels:
+          severity: info
+
+      # OpenCode Errors - Elasticsearch query
+      - uid: opencode-errors
+        title: OpenCode Errors
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "(service:opencode OR job:opencode) AND _exists_:error_classification"
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "OpenCode errors detected"
+          description: "{{ $values.B.Value }} errors in the last 5 minutes"
+        labels:
+          severity: warning
+
+  - orgId: 1
+    name: mcp-alerts
+    folder: MCP Alerts
+    interval: 1m
+    rules:
+      # MCP Error Logs - Elasticsearch query
+      - uid: mcp_error_logs
+        title: MCP Error Logs
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: "(service:mcp OR service:mcphub OR job:mcp) AND _exists_:error_classification"
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "MCP Service logged errors"
+          description: "found {{ $values.B.Value }} errors in the last minute"
+        labels:
+          severity: warning
+
+  - name: infrastructure-health
+    folder: Alerting
+    interval: 1m
+    rules:
+      - uid: service-down
+        title: Service Down (HTTP Probe Failed)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: probe_success == 0
+              intervalMs: 15000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+                  operator:
+                    type: and
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "{{ $labels.service }} is DOWN"
+          description: "HTTP probe to {{ $labels.instance }} has been failing for more than 2 minutes"
+        labels:
+          severity: critical
+
+      - uid: disk-usage-high
+        title: Disk Usage High (>80%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: '(1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) * 100'
+              intervalMs: 30000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 80
+                  operator:
+                    type: and
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Disk usage above 80% on {{ $labels.instance }}"
+          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is at {{ $values.B.Value | printf \"%.1f\" }}%"
+        labels:
+          severity: warning
+
+      - uid: disk-usage-critical
+        title: Disk Usage Critical (>90%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: '(1 - node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes{fstype=~"ext4|xfs"}) * 100'
+              intervalMs: 30000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 90
+                  operator:
+                    type: and
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "CRITICAL: Disk usage above 90% on {{ $labels.instance }}"
+          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is at {{ $values.B.Value | printf \"%.1f\" }}%"
+        labels:
+          severity: critical
+
+      - uid: ssl-cert-expiry
+        title: SSL Certificate Expiring Soon (<7 days)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: (probe_ssl_earliest_cert_expiry - time()) / 86400
+              intervalMs: 60000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 7
+                  operator:
+                    type: and
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $values.B.Value | printf \"%.1f\" }} days"
+        labels:
+          severity: warning

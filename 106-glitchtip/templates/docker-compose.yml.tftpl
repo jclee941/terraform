@@ -1,0 +1,79 @@
+services:
+  web:
+    image: glitchtip/glitchtip:latest
+    container_name: glitchtip-web
+    env_file:
+      - ./glitchtip.env
+    command: ["./bin/start.sh"]
+    environment:
+      SERVER_ROLE: web
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/_health/\")' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  worker:
+    image: glitchtip/glitchtip:latest
+    container_name: glitchtip-worker
+    env_file:
+      - ./glitchtip.env
+    command: ["./bin/start.sh"]
+    environment:
+      SERVER_ROLE: worker_with_beat
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A glitchtip inspect ping --timeout 10 || exit 1"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: glitchtip-postgres
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${glitchtip_postgres_password}
+    volumes:
+      - glitchtip_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip -d glitchtip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: glitchtip-redis
+    command: ["redis-server", "--requirepass", "${glitchtip_redis_password}"]
+    volumes:
+      - glitchtip_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${glitchtip_redis_password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  glitchtip_postgres_data:
+    driver: local
+  glitchtip_redis_data:
+    driver: local

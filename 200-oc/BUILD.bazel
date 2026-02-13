@@ -1,0 +1,38 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "systemd_units",
+    srcs = glob(["config/systemd/*.service", "config/systemd/*.socket", "config/systemd/*.timer"], allow_empty = True),
+)
+
+filegroup(
+    name = "config",
+    srcs = glob(["config/**"], allow_empty = True),
+)
+
+# sh_binary requires native rule, just use filegroup for scripts
+filegroup(
+    name = "install_service",
+    srcs = ["scripts/install-service.sh"],
+    data = [":systemd_units"],
+)
+
+filegroup(
+    name = "uninstall_service",
+    srcs = ["scripts/uninstall-service.sh"],
+)
+
+filegroup(
+    name = "cleanup_logs",
+    srcs = ["scripts/cleanup-logs.sh"],
+)
+
+filegroup(
+    name = "service_status",
+    srcs = ["scripts/service-status.sh"],
+)
+
+filegroup(
+    name = "scripts",
+    srcs = glob(["scripts/**"], allow_empty = True),
+)

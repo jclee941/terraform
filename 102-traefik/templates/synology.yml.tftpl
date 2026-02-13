@@ -1,0 +1,15 @@
+http:
+  routers:
+    nas:
+      rule: "Host(`nas.${domain}`)"
+      entryPoints:
+        - websecure
+      service: nas
+      tls:
+        certResolver: cf
+      priority: 10
+  services:
+    nas:
+      loadBalancer:
+        servers:
+          - url: "http://${synology_ip}:${synology_ports.dsm}"

@@ -1,0 +1,43 @@
+{
+  "policy": {
+    "name": "homelab-logs-30d",
+    "phases": {
+      "hot": {
+        "min_age": "0ms",
+        "actions": {
+          "set_priority": {
+            "priority": 100
+          }
+        }
+      },
+      "delete": {
+        "min_age": "30d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  },
+  "index_templates": [
+    {
+      "name": "logs-template",
+      "index_patterns": ["logs-*"],
+      "priority": 200,
+      "settings": {
+        "number_of_replicas": 0,
+        "number_of_shards": 1,
+        "index.lifecycle.name": "homelab-logs-30d"
+      }
+    },
+    {
+      "name": "elastalert-template",
+      "index_patterns": ["elastalert_*"],
+      "priority": 50,
+      "settings": {
+        "number_of_replicas": 0,
+        "number_of_shards": 1,
+        "index.lifecycle.name": "homelab-logs-30d"
+      }
+    }
+  ]
+}

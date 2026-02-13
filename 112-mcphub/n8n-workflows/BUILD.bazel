@@ -1,0 +1,6 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "workflows",
+    srcs = glob(["*.json"], allow_empty = True),
+)

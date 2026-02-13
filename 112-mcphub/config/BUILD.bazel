@@ -1,0 +1,8 @@
+filegroup(
+    name = "config",
+    srcs = glob(
+        ["**"],
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,32 @@
+name: Parallel Runner Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  job1:
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "Job 1 on $(hostname)"
+          sleep 10
+          echo "Job 1 done"
+
+  job2:
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "Job 2 on $(hostname)"
+          sleep 10
+          echo "Job 2 done"
+
+  job3:
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 5
+    steps:
+      - run: |
+          echo "Job 3 on $(hostname)"
+          sleep 10
+          echo "Job 3 done"

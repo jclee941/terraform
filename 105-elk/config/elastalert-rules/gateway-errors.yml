@@ -1,0 +1,37 @@
+# DISABLED: Grafana alerting now handles this detection (gateway-errors rule, exact overlap).
+is_enabled: false
+name: gateway-errors
+type: frequency
+index: logs-*
+num_events: 10
+timeframe:
+  minutes: 5
+filter:
+  - query:
+      query_string:
+        query: "error_code:GATEWAY_ERROR"
+alert:
+  - http_post
+http_post_url: "http://192.168.50.106:8000/api/1/store/"
+http_post_headers:
+  Content-Type: "application/json"
+  X-Sentry-Auth: "Sentry sentry_key=${GLITCHTIP_SENTRY_KEY},sentry_version=7"
+http_post_payload:
+  event_id: "{match[_id]}"
+  timestamp: "{match[@timestamp]}"
+  level: "error"
+  logger: "elastalert"
+  platform: "other"
+  server_name: "{match[host][name]}"
+  message: "Gateway Errors: {num_matches} gateway errors in 5 minutes on {match[service]}"
+  tags:
+    alert_rule: "gateway-errors"
+    service: "{match[service]}"
+    tier: "infra"
+    source: "elastalert"
+  extra:
+    num_matches: "{num_matches}"
+    error_code: "{match[error_code]}"
+http_post_static_payload:
+  platform: "other"
+  logger: "elastalert"

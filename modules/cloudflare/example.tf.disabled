@@ -1,0 +1,69 @@
+# Example usage of the Cloudflare module
+# Rename to example.tf to use
+
+module "cloudflare" {
+  source = "./"
+
+  cloudflare_api_token  = var.cloudflare_api_token
+  cloudflare_account_id = var.cloudflare_account_id
+  cloudflare_zone_id    = var.cloudflare_zone_id
+
+  # Create a Zero Trust tunnel
+  tunnels = {
+    homelab = {
+      name = "homelab-tunnel"
+      config = {
+        ingress = [
+          {
+            hostname = "grafana.example.com"
+            service  = "http://192.168.50.104:3000"
+          },
+          {
+            hostname = "elk.example.com"
+            service  = "http://192.168.50.105:5601"
+          },
+          {
+            service = "http_status:404"
+          }
+        ]
+      }
+    }
+  }
+
+  # Access application for Grafana
+  access_applications = {
+    grafana = {
+      name             = "Grafana Dashboard"
+      domain           = "grafana.example.com"
+      type             = "self_hosted"
+      session_duration = "24h"
+    }
+  }
+
+  # Access policy - allow specific email
+  access_policies = {
+    grafana_allow = {
+      application_id = module.cloudflare.access_application_ids["grafana"]
+      name           = "Allow Admin"
+      decision       = "allow"
+      precedence     = 1
+      include = [{
+        email = ["admin@example.com"]
+      }]
+    }
+  }
+
+  # R2 bucket for backups
+  r2_buckets = {
+    backups = {
+      name     = "homelab-backups"
+      location = "WNAM"
+    }
+  }
+}
+
+# Output tunnel token for cloudflared deployment
+output "tunnel_token" {
+  value     = module.cloudflare.tunnel_tokens["homelab"]
+  sensitive = true
+}

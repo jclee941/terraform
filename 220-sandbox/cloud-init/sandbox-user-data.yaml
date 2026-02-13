@@ -1,0 +1,71 @@
+#cloud-config
+hostname: sandbox
+fqdn: sandbox.jclee.me
+manage_etc_hosts: true
+
+users:
+  - name: jclee
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKtqkzRGFpy1dkgndShKi/Qv/HHs/kjX3wQFubrrTwea jclee@proxmox
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDG3YUt/najmLsmvBH38cNi+K8Ralkqlp78sM8Jg8Oiu0eOFhQ6San4IdEJItZfSWvKd5A4n3wfS8oTPTyOM1Q34fhZP0L2SG1d6JtgdFgIwWRMxz0nPTpwQGg0I3gd1V+kSh9xT/5uGTcSaGer1m2R+tramIFMneQDVxPpYP6ffLpoSA4hNmmVrrbfXMdSeOUR4ieNxYyM3aVCmBcAR+XpYIU45nRVvB3ysaqL3TyzSEEqURVnBoOl2gyvdCKIOunCgKgAFFUkjpeaCFNGfUj/U08dCeuOL96ARkg5d+sLwpxpMA2BNPerc9YJxw3+cC2nFTMbzihuzTDwpJ45/wBl2J1Q+iRc4g/2sN5k2Mnrcz2wUPNKe/kE2CRzV9yoMCgvx2AFA2ufjyS2RhteWdGEMwRoSrOVFr2PTG4VgCFIydhgxmCiHhIV91ljN/d3VsTlbMfkC768ZzeZkwIBg4dTDaUur2VA+7cTnxblAlyII6Up+1NC960AF7876Oki5k7NTSb0+/Gbw5tQSDugb4WZ/c97yxYr1N3gVCsRhVADiKLnj7kpuAHcwHbgTTHus0k8Otbi3LHfLfPyAK9AZDifq6LB1kEO7hK8Y9xjgsoBugDDx1cuRJY89U3D7xnhEmlSQUwmDALhwupD3ZRfuPM7IZLA09zvEagSXS6Dn0b6yw== jclee@dev
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - build-essential
+  - git
+  - curl
+  - wget
+  - htop
+  - vim
+  - tmux
+  - jq
+  - unzip
+  - ca-certificates
+  - gnupg
+  - lsb-release
+
+runcmd:
+  # QEMU Guest Agent
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+  # Cloudflare WARP - install
+  - curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg || { logger -t cloud-init-warp 'ERROR: Failed to fetch WARP GPG key'; exit 1; }
+  - echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/cloudflare-client.list
+  - apt-get update
+  - apt-get install -y cloudflare-warp || { logger -t cloud-init-warp 'ERROR: Failed to install cloudflare-warp package'; exit 1; }
+  # Cloudflare WARP - register (personal mode)
+  - warp-cli --accept-tos registration new || { logger -t cloud-init-warp 'ERROR: WARP registration failed'; exit 1; }
+  - warp-cli --accept-tos mode warp || logger -t cloud-init-warp 'WARN: Failed to set WARP mode'
+  - warp-cli --accept-tos connect || logger -t cloud-init-warp 'WARN: WARP connect failed - will retry on next boot'
+  # Verify WARP connection
+  - sleep 5
+  - curl -s https://www.cloudflare.com/cdn-cgi/trace/ | grep -q 'warp=on' && logger -t cloud-init-warp 'WARP connected successfully' || logger -t cloud-init-warp 'WARN: WARP connection pending - manual check required'
+
+write_files:
+  - path: /etc/default/qemu-guest-agent
+    content: |
+      DAEMON_ARGS="-fsfreeze-hook"
+    owner: root:root
+    permissions: '0644'
+  - path: /etc/systemd/system/warp-svc-check.service
+    content: |
+      [Unit]
+      Description=Cloudflare WARP Service Health Check
+      After=warp-svc.service
+      Wants=warp-svc.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/bash -c 'systemctl is-active warp-svc && warp-cli status || echo "warp-svc not running"'
+
+      [Install]
+      WantedBy=multi-user.target
+    owner: root:root
+    permissions: '0644'
+
+final_message: "Cloud-init completed for sandbox (VM 220) with Cloudflare WARP"

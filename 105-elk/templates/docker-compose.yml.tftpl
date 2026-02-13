@@ -1,0 +1,105 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${elk_version}
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=homelab-elk
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms${es_heap} -Xmx${es_heap}"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "${elasticsearch_port}:9200"
+      - "9300:9300"
+    networks:
+      - elk
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  logstash:
+    build:
+      context: ./config
+      dockerfile: Dockerfile.logstash
+    image: homelab/logstash:${elk_version}-prometheus
+    container_name: logstash
+    volumes:
+      - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - logstash_dlq:/usr/share/logstash/dlq
+    ports:
+      - "${logstash_beats_port}:5044"
+      - "${logstash_syslog_port}:5000"
+      - "9600:9600"
+      - "9198:9198"
+    environment:
+      - "LS_JAVA_OPTS=-Xms${logstash_heap} -Xmx${logstash_heap}"
+    networks:
+      - elk
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9600/_node/stats | grep -q 'host'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${elk_version}
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=kibana
+      - SERVER_HOST=0.0.0.0
+    ports:
+      - "${kibana_port}:5601"
+    networks:
+      - elk
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q 'available'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  elastalert:
+    image: jertel/elastalert2:2.19.0
+    container_name: elastalert
+    volumes:
+      - ./config/elastalert.yaml:/opt/elastalert/config.yaml:ro
+      - ./config/elastalert-rules:/opt/elastalert/rules:ro
+    environment:
+      - GLITCHTIP_SENTRY_KEY=$${GLITCHTIP_SENTRY_KEY}
+    networks:
+      - elk
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f elastalert || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  elasticsearch_data:
+    driver: local
+  logstash_dlq:
+    driver: local
+
+networks:
+  elk:
+    driver: bridge

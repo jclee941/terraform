@@ -1,0 +1,16 @@
+http:
+  routers:
+    glitchtip:
+      rule: Host(`glitchtip.${domain}`)
+      entryPoints:
+        - websecure
+      service: glitchtip
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    glitchtip:
+      loadBalancer:
+        servers:
+          - url: http://${glitchtip_ip}:${glitchtip_port}

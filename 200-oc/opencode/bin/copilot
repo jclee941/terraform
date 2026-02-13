@@ -1,0 +1,10 @@
+#!/bin/bash
+set -eo pipefail
+
+case "${1:-}" in
+    restart) systemctl --user restart opencode-copilot ;;
+    start)   systemctl --user start opencode-copilot ;;
+    stop)    systemctl --user stop opencode-copilot ;;
+    status)  systemctl --user status opencode-copilot ;;
+    *)       OPENCODE_SERVER_PASSWORD=opencode exec /home/jclee/.opencode/bin/opencode attach http://127.0.0.1:3003 --dir "$(pwd)" "$@" ;;
+esac

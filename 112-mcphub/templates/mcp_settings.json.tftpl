@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-sqlite"]
+    },
+    "proxmox": {
+      "type": "sse",
+      "url": "http://mcp-proxmox:8055/sse"
+    },
+    "playwright": {
+      "type": "sse",
+      "url": "http://mcp-playwright:8056/sse"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "elk": {
+      "command": "npx",
+      "args": ["-y", "@awesome-ai/elasticsearch-mcp"]
+    },
+    "websearch": {
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "grafana": {
+      "command": "npx",
+      "args": ["-y", "@leval/mcp-grafana"]
+    },
+    "terraform": {
+      "command": "npx",
+      "args": ["-y", "terraform-mcp-server"]
+    },
+    "splunk": {
+      "command": "npx",
+      "args": ["-y", "splunk-mcp"]
+    },
+    "glitchtip": {
+      "command": "npx",
+      "args": ["-y", "mcp-glitchtip"]
+    },
+    "cf-docs": {
+      "type": "sse",
+      "url": "https://docs.mcp.cloudflare.com/sse"
+    }
+  }
+}

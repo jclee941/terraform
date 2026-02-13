@@ -1,0 +1,33 @@
+# Traefik Dynamic Configuration - Resilient Middleware Chain
+# Applied to all internal/MCP routes for retry + circuit breaker protection
+#
+# Usage: Add "mcp-resilient" middleware to any route:
+#   middlewares:
+#     - mcp-resilient@file
+
+http:
+  middlewares:
+    # Retry failed requests up to 5 times with exponential backoff
+    mcp-retry:
+      retry:
+        attempts: 5
+        initialInterval: 100ms
+
+    # Trip circuit breaker on high error rates
+    mcp-circuit-breaker:
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+
+    # Combined resilient chain: retry first, then circuit breaker
+    mcp-resilient:
+      chain:
+        middlewares:
+          - mcp-retry
+          - mcp-circuit-breaker
+
+    # Rate limiting for external-facing endpoints
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s

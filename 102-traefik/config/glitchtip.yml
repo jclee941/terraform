@@ -1,0 +1,16 @@
+http:
+  routers:
+    glitchtip:
+      rule: Host(`glitchtip.jclee.me`)
+      entryPoints:
+        - websecure
+      service: glitchtip
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    glitchtip:
+      loadBalancer:
+        servers:
+          - url: http://192.168.50.106:8000

@@ -1,0 +1,15 @@
+http:
+  routers:
+    vault:
+      rule: Host(`vault.${domain}`)
+      entryPoints:
+        - websecure
+      service: vault
+      tls: {}
+      priority: 10
+
+  services:
+    vault:
+      loadBalancer:
+        servers:
+          - url: http://${vault_ip}:${vault_port}

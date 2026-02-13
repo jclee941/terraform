@@ -1,0 +1,415 @@
+{
+  "name": "GlitchTip ↔ GitHub Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 30 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://192.168.50.106:8000/api/0/organizations/jclee-homelab/issues/?limit=50",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "fetch-glitchtip",
+      "name": "Fetch GlitchTip Issues",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        470,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "glitchtip-token",
+          "name": "GlitchTip API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/qws941/proxmox/issues?labels=glitchtip,automated&state=all&per_page=100",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_TOKEN }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        }
+      },
+      "id": "fetch-github",
+      "name": "Fetch GitHub Issues",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        690,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compare GlitchTip issues with GitHub issues\nconst glitchtipResponse = $('Fetch GlitchTip Issues').first().json;\nconst githubResponse = $('Fetch GitHub Issues').first().json;\n\nconst gtIssues = glitchtipResponse.body || glitchtipResponse;\nconst ghIssues = (githubResponse.body || githubResponse) || [];\n\nconst gtList = Array.isArray(gtIssues) ? gtIssues : [];\nconst ghList = Array.isArray(ghIssues) ? ghIssues : [];\n\n// Create fingerprint helper (same as elk-error-pipeline)\nfunction fingerprint(title) {\n  let hash = 0;\n  for (let i = 0; i < title.length; i++) {\n    const char = title.charCodeAt(i);\n    hash = ((hash << 5) - hash) + char;\n    hash |= 0;\n  }\n  return Math.abs(hash).toString(16).padStart(8, '0');\n}\n\n// ISO week number\nfunction getISOWeek(date) {\n  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));\n  const dayNum = d.getUTCDay() || 7;\n  d.setUTCDate(d.getUTCDate() + 4 - dayNum);\n  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));\n  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);\n}\n\nconst actions = [];\n\nfor (const gt of gtList) {\n  const title = gt.title || gt.metadata?.title || 'Unknown Error';\n  const fp = fingerprint(title);\n  const isResolved = gt.status === 'resolved';\n  const project = gt.project?.name || gt.shortId?.split('-')[0] || 'unknown';\n  const level = gt.level || 'error';\n  const severity = ['fatal', 'critical'].includes(level.toLowerCase()) ? 'critical' :\n                   level.toLowerCase() === 'warning' ? 'warning' : 'error';\n\n  // Find matching GitHub issue by fingerprint in body\n  const matchingGH = ghList.find(gh => {\n    const body = gh.body || '';\n    return body.includes(fp);\n  });\n\n  if (!matchingGH && !isResolved) {\n    // GlitchTip issue exists without GitHub issue → create\n    actions.push({\n      action: 'create',\n      fingerprint: fp,\n      title: `[${severity.toUpperCase()}] ${title}`,\n      body: `## Auto-detected Error (Sync)\\n\\n**Source**: GlitchTip Sync\\n**Project**: ${project}\\n**Level**: ${level}\\n**Times Seen**: ${gt.count || 1}\\n**First Seen**: ${gt.firstSeen || 'unknown'}\\n**Last Seen**: ${gt.lastSeen || 'unknown'}\\n**GlitchTip Link**: ${gt.permalink || ''}\\n\\n---\\n\\n**Fingerprint**: \\`${fp}\\`\\n\\n> This issue was automatically created by GlitchTip Sync workflow.`,\n      labels: ['bug', 'glitchtip', 'automated', severity, project],\n      severity,\n      project,\n      glitchtipId: gt.id\n    });\n  } else if (matchingGH && isResolved && matchingGH.state === 'open') {\n    // GlitchTip resolved but GitHub still open → close\n    actions.push({\n      action: 'close',\n      issueNumber: matchingGH.number,\n      fingerprint: fp,\n      title: matchingGH.title,\n      glitchtipId: gt.id\n    });\n  }\n}\n\nif (actions.length === 0) {\n  return [{ json: { action: 'none', message: 'No sync actions needed' } }];\n}\n\nreturn actions.map(a => ({ json: a }));"
+      },
+      "id": "compare-issues",
+      "name": "Compare & Decide",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        910,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "action-create",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "create",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "route-create",
+      "name": "Is Create?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1130,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/qws941/proxmox/milestones?state=open&per_page=100",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_TOKEN }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        }
+      },
+      "id": "sync-list-milestones",
+      "name": "List Milestones (Sync)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1350,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Resolve current weekly milestone\nconst response = $input.first().json;\nconst milestones = response.body || response;\nconst items = Array.isArray(milestones) ? milestones : [];\n\nfunction getISOWeek(date) {\n  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));\n  const dayNum = d.getUTCDay() || 7;\n  d.setUTCDate(d.getUTCDate() + 4 - dayNum);\n  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));\n  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);\n}\n\nconst now = new Date();\nconst year = now.getFullYear();\nconst week = getISOWeek(now);\nconst weekStr = String(week).padStart(2, '0');\nconst milestoneTitle = `Week ${year}-W${weekStr}`;\n\nconst found = items.find(m => m.title === milestoneTitle);\nconst prevData = $('Is Create?').first().json;\n\nreturn [{\n  json: {\n    ...prevData,\n    milestoneNumber: found ? found.number : null,\n    milestoneTitle\n  }\n}];"
+      },
+      "id": "sync-resolve-milestone",
+      "name": "Resolve Milestone (Sync)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1570,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/qws941/proxmox/issues",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"title\": \"{{ $json.title }}\",\n  \"body\": \"{{ $json.body }}\",\n  \"labels\": {{ JSON.stringify($json.labels) }}{{ $json.milestoneNumber ? ', \"milestone\": ' + $json.milestoneNumber : '' }}\n}",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_TOKEN }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        }
+      },
+      "id": "sync-create-issue",
+      "name": "Create GitHub Issue (Sync)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1790,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "action-close",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "close",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "route-close",
+      "name": "Is Close?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1130,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.github.com/repos/qws941/proxmox/issues/{{ $json.issueNumber }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"state\": \"closed\",\n  \"state_reason\": \"completed\"\n}",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_TOKEN }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        }
+      },
+      "id": "sync-close-issue",
+      "name": "Close GitHub Issue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1350,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/qws941/proxmox/issues/{{ $json.issueNumber }}/comments",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"body\": \"## Auto-closed\\n\\nThis issue was automatically closed because the corresponding GlitchTip issue (ID: {{ $json.glitchtipId }}) has been resolved.\\n\\n> Auto-closed by GlitchTip Sync workflow.\"\n}",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_TOKEN }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        }
+      },
+      "id": "sync-close-comment",
+      "name": "Comment Before Close",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1570,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Every 30 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Fetch GlitchTip Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch GlitchTip Issues": {
+      "main": [
+        [
+          {
+            "node": "Fetch GitHub Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch GitHub Issues": {
+      "main": [
+        [
+          {
+            "node": "Compare & Decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare & Decide": {
+      "main": [
+        [
+          {
+            "node": "Is Create?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Close?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Create?": {
+      "main": [
+        [
+          {
+            "node": "List Milestones (Sync)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "List Milestones (Sync)": {
+      "main": [
+        [
+          {
+            "node": "Resolve Milestone (Sync)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Milestone (Sync)": {
+      "main": [
+        [
+          {
+            "node": "Create GitHub Issue (Sync)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Close?": {
+      "main": [
+        [
+          {
+            "node": "Close GitHub Issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Close GitHub Issue": {
+      "main": [
+        [
+          {
+            "node": "Comment Before Close",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

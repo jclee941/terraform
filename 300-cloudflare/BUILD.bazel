@@ -1,0 +1,44 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "terraform",
+    srcs = glob(
+        ["*.tf"],
+        exclude = ["*.tfvars"],
+    ),
+)
+
+filegroup(
+    name = "scripts",
+    srcs = glob(["scripts/**"]),
+)
+
+filegroup(
+    name = "workers",
+    srcs = glob(
+        ["workers/**"],
+        exclude = ["workers/**/node_modules/**"],
+    ),
+)
+
+filegroup(
+    name = "docker",
+    srcs = glob(["docker/**"]),
+)
+
+filegroup(
+    name = "inventory",
+    srcs = glob(["inventory/**"]),
+)
+
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":docker",
+        ":inventory",
+        ":scripts",
+        ":terraform",
+        ":workers",
+        "OWNERS",
+    ],
+)

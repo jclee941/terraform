@@ -1,0 +1,20 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "scripts",
+    srcs = glob(["scripts/**"]),
+)
+
+filegroup(
+    name = "config",
+    srcs = glob(["config/**"]),
+)
+
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":config",
+        ":scripts",
+        "OWNERS",
+    ],
+)

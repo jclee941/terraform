@@ -1,0 +1,8 @@
+FROM node:22-slim
+
+WORKDIR /app
+RUN npm install -g mcp-proxy@6.4.0
+RUN npm install --save @bldg-7/proxmox-mcp@latest pino-pretty@latest
+
+EXPOSE 8055
+CMD ["mcp-proxy", "--port", "8055", "--host", "0.0.0.0", "--", "node", "node_modules/@bldg-7/proxmox-mcp/dist/index.js"]

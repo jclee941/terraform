@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Deploy generated opencode configs to ~/.config/opencode/.
+# Usage: opencode-sync [variant]
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GEN_DIR="${SCRIPT_DIR}/../generated"
+VARIANT="${1:-main}"
+
+if [[ ! -d "${GEN_DIR}/${VARIANT}" ]]; then
+  echo "Error: No generated config for variant '${VARIANT}'" >&2
+  echo "Available: $(ls "${GEN_DIR}" 2>/dev/null | tr '\n' ' ')" >&2
+  exit 1
+fi
+
+# Target directory
+if [[ "${VARIANT}" == "main" ]]; then
+  TARGET="${HOME}/.config/opencode"
+else
+  TARGET="${HOME}/.config/opencode-wt-${VARIANT}/opencode"
+fi
+
+echo "Deploying variant '${VARIANT}' → ${TARGET}"
+mkdir -p "${TARGET}"
+
+# JSON configs
+cp "${GEN_DIR}/${VARIANT}/opencode.jsonc" "${TARGET}/"
+cp "${GEN_DIR}/${VARIANT}/antigravity.json" "${TARGET}/"
+
+# systemd service
+SYSTEMD_DIR="${HOME}/.config/systemd/user"
+mkdir -p "${SYSTEMD_DIR}"
+cp "${GEN_DIR}/${VARIANT}/opencode-${VARIANT}.service" "${SYSTEMD_DIR}/"
+systemctl --user daemon-reload
+
+# Wrapper script
+BIN_DIR="${HOME}/.local/bin"
+mkdir -p "${BIN_DIR}"
+cp "${GEN_DIR}/${VARIANT}/opencode-${VARIANT}" "${BIN_DIR}/"
+chmod +x "${BIN_DIR}/opencode-${VARIANT}"
+
+echo "✓ Deployed. Restart with: systemctl --user restart opencode-${VARIANT}"

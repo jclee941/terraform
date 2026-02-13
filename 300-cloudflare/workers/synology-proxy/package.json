@@ -1,0 +1,27 @@
+{
+  "name": "synology-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "tsc",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "lint": "prettier --check 'src/**/*.ts'",
+    "format": "prettier --write 'src/**/*.ts'"
+  },
+  "dependencies": {
+    "hono": "^4.9.11"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251011.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.42.2"
+  }
+}

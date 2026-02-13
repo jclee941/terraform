@@ -1,0 +1,217 @@
+{
+  "name": "Daily Infrastructure Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Daily 09:00 KST",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.50.105:9200/logs-*/_search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"size\": 0,\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n        { \"range\": { \"@timestamp\": { \"gte\": \"now-24h\", \"lte\": \"now\" } } },\n        { \"terms\": { \"log.level\": [\"error\", \"ERROR\", \"fatal\", \"FATAL\", \"critical\", \"CRITICAL\"] } }\n      ]\n    }\n  },\n  \"aggs\": {\n    \"by_host\": {\n      \"terms\": { \"field\": \"host.name.keyword\", \"size\": 20 }\n    },\n    \"by_service\": {\n      \"terms\": { \"field\": \"container.labels.com_docker_compose_service.keyword\", \"size\": 20 }\n    },\n    \"by_level\": {\n      \"terms\": { \"field\": \"level.keyword\", \"size\": 10 }\n    },\n    \"top_errors\": {\n      \"terms\": { \"field\": \"message.keyword\", \"size\": 10 }\n    },\n    \"total_errors\": {\n      \"value_count\": { \"field\": \"@timestamp\" }\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "elk-query",
+      "name": "Query ELK Errors",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        200
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://192.168.50.106:8000/api/0/organizations/jclee-homelab/issues/?query=is:unresolved",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GLITCHTIP_API_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "glitchtip-query",
+      "name": "Query GlitchTip Issues",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {},
+        "options": {}
+      },
+      "id": "merge-results",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        750,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compose daily digest from ELK + GlitchTip data\nconst items = $input.all();\nlet elkData = items[0]?.json || {};\nlet glitchtipData = items[1]?.json || {};\nconst warnings = [];\n\n// Detect continueOnFail error items\nif (elkData.error || elkData.$error) {\n  warnings.push('ELK query failed: ' + (elkData.error?.message || elkData.$error?.message || 'Unknown error'));\n  elkData = {};\n}\nif (glitchtipData.error || glitchtipData.$error) {\n  warnings.push('GlitchTip query failed: ' + (glitchtipData.error?.message || glitchtipData.$error?.message || 'Unknown error'));\n  glitchtipData = {};\n}\n\nconst today = new Date().toISOString().split('T')[0];\n\n// Parse ELK aggregations\nconst aggs = elkData.aggregations || {};\nconst totalErrors = aggs.total_errors?.value || 0;\nconst byHost = (aggs.by_host?.buckets || []).map(b => `  - **${b.key}**: ${b.doc_count} errors`).join('\\n');\nconst byService = (aggs.by_service?.buckets || []).map(b => `  - **${b.key}**: ${b.doc_count} errors`).join('\\n');\nconst byLevel = (aggs.by_level?.buckets || []).map(b => `  - **${b.key}**: ${b.doc_count}`).join('\\n');\nconst topErrors = (aggs.top_errors?.buckets || []).slice(0, 5).map(b => `  - \\`${b.key.substring(0, 100)}\\` (${b.doc_count}x)`).join('\\n');\n\n// Detect affected services for labels\nconst SVC_LABEL_MAP = {\n  'mcphub': 'svc:mcphub', 'grafana': 'svc:grafana', 'prometheus': 'svc:grafana',\n  'elasticsearch': 'svc:elk', 'logstash': 'svc:elk', 'kibana': 'svc:elk',\n  'web': 'svc:glitchtip', 'worker': 'svc:glitchtip', 'redis': 'svc:glitchtip',\n  'n8n': 'svc:n8n', 'blacklist-app': 'svc:blacklist', 'blacklist-collector': 'svc:blacklist'\n};\nconst detectedServices = new Set();\nfor (const bucket of (aggs.by_service?.buckets || [])) {\n  const svcLabel = SVC_LABEL_MAP[bucket.key];\n  if (svcLabel) detectedServices.add(svcLabel);\n}\nconst labels = ['digest', 'automated', ...detectedServices];\n\n// Check for blacklist-related errors\nconst blacklistErrors = (aggs.by_service?.buckets || []).filter(b => b.key.includes('blacklist'));\nconst blacklistNote = blacklistErrors.length > 0 ? `\\n\\n> ⚠️ **Blacklist service errors detected** (${blacklistErrors.reduce((s, b) => s + b.doc_count, 0)} errors) — see [qws941/blacklist](https://github.com/qws941/blacklist)` : '';\n\n// Parse GlitchTip issues\nconst issues = Array.isArray(glitchtipData) ? glitchtipData : (glitchtipData.results || []);\nconst unresolvedCount = issues.length;\nconst issueList = issues.slice(0, 10).map(i => `  - [${i.title || i.metadata?.type || 'Unknown'}](http://192.168.50.106:8000) (${i.count || 1}x)`).join('\\n');\n\nconst body = `## Daily Infrastructure Digest - ${today}\\n\\n### ELK Log Summary (Last 24h)\\n\\n**Total Errors**: ${totalErrors}\\n\\n#### Errors by Host\\n${byHost || '  - No errors detected'}\\n\\n#### Errors by Service\\n${byService || '  - No service data'}\\n\\n#### Errors by Level\\n${byLevel || '  - No level data'}\\n\\n#### Top Error Messages\\n${topErrors || '  - None'}${blacklistNote}\\n\\n---\\n\\n### GlitchTip - Unresolved Issues\\n\\n**Count**: ${unresolvedCount}\\n\\n${issueList || '  - No unresolved issues'}\\n\\n---\\n\\n### Action Items\\n\\n- [ ] Review hosts with highest error counts\\n- [ ] Triage new GlitchTip issues\\n- [ ] Check alert history in Grafana`;\n\n// Add warnings section if any data sources failed\nconst warningSection = warnings.length > 0 ? '\\n\\n## Data Source Warnings\\n' + warnings.map(w => '- ' + w).join('\\n') : '';\n\nreturn [{ json: { title: `[Daily Digest] ${today} Infrastructure Summary (${totalErrors} errors)`, body: body + warningSection, date: today, totalErrors, unresolvedCount, labels } }];"
+      },
+      "id": "compose-digest",
+      "name": "Compose Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/qws941/proxmox/issues",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_TOKEN }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: $json.title, body: $json.body, labels: $json.labels }) }}",
+        "options": {}
+      },
+      "id": "create-digest-issue",
+      "name": "Create Digest Issue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1250,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Daily 09:00 KST": {
+      "main": [
+        [
+          {
+            "node": "Query ELK Errors",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Query GlitchTip Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query ELK Errors": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query GlitchTip Issues": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Compose Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Digest": {
+      "main": [
+        [
+          {
+            "node": "Create Digest Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "error-handler"
+  }
+}

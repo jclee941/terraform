@@ -1,0 +1,31 @@
+[Unit]
+StartLimitBurst=${start_limit_burst}
+StartLimitIntervalSec=${start_limit_interval}
+Description=${description}
+After=${after}
+
+[Service]
+Type=simple
+%{ if env_file != null ~}
+EnvironmentFile=${env_file}
+%{ endif ~}
+%{ for key, value in env_vars ~}
+Environment="${key}=${value}"
+%{ endfor ~}
+%{ if working_dir != null ~}
+WorkingDirectory=${working_dir}
+%{ endif ~}
+%{ if user != "root" ~}
+User=${user}
+%{ endif ~}
+ExecStart=${exec_start}
+Restart=${restart}
+RestartSec=${restart_sec}
+TimeoutStartSec=90
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=${syslog_identifier}
+
+[Install]
+WantedBy=${wanted_by}

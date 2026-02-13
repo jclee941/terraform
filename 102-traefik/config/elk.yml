@@ -1,0 +1,30 @@
+http:
+  routers:
+    kibana:
+      rule: Host(`elk.jclee.me`) || Host(`kibana.jclee.me`)
+      entryPoints:
+        - websecure
+      service: kibana
+      tls:
+        certResolver: cf
+      priority: 10
+
+    elasticsearch:
+      rule: Host(`es.jclee.me`)
+      entryPoints:
+        - websecure
+      service: elasticsearch
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    kibana:
+      loadBalancer:
+        servers:
+          - url: http://192.168.50.105:5601
+
+    elasticsearch:
+      loadBalancer:
+        servers:
+          - url: http://192.168.50.105:9200

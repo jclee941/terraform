@@ -1,0 +1,37 @@
+# ============================================
+# Cloudflare Tunnel - Docker Compose
+# ============================================
+# Runs cloudflared connector on Synology NAS
+# to expose DSM API through CF Tunnel.
+#
+# Prerequisites:
+#   1. Get tunnel token from Terraform output:
+#      cd terraform && terraform output -raw tunnel_token
+#   2. Create .env file:
+#      echo "TUNNEL_TOKEN=<token>" > .env
+#
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f
+# ============================================
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-synology
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    network_mode: host
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

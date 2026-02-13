@@ -1,0 +1,15 @@
+http:
+  routers:
+    mcphub:
+      rule: "Host(`mcphub.${domain}`)"
+      entryPoints:
+        - websecure
+      service: mcphub
+      tls:
+        certResolver: cf
+      priority: 10
+  services:
+    mcphub:
+      loadBalancer:
+        servers:
+          - url: "http://${mcphub_ip}:${mcphub_port}"

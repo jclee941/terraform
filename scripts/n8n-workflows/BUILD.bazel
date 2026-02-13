@@ -1,0 +1,6 @@
+# n8n workflow JSON exports for version control
+filegroup(
+    name = "n8n-workflows",
+    srcs = glob(["*.json"]),
+    visibility = ["//visibility:public"],
+)

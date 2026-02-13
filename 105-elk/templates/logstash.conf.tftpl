@@ -1,0 +1,190 @@
+input {
+  beats {
+    port => 5044
+  }
+
+  syslog {
+    port => 5000
+    type => "syslog"
+  }
+}
+
+filter {
+  # Extract service name from filebeat fields
+  if [fields][service] {
+    mutate {
+      add_field => { "service" => "%%{[fields][service]}" }
+    }
+  }
+
+  # Syslog parsing
+  if [type] == "syslog" {
+    grok {
+      match => { "message" => "%%{SYSLOGTIMESTAMP:syslog_timestamp} %%{SYSLOGHOST:syslog_hostname} %%{DATA:syslog_program}(?:\\[%%{POSINT:syslog_pid}\\])?: %%{GREEDYDATA:syslog_message}" }
+    }
+    date {
+      match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+    }
+  }
+
+  # JSON log parsing (structured logs from apps)
+  if [message] =~ /^\s*\{/ {
+    json {
+      source => "message"
+      target => "parsed"
+      skip_on_invalid_json => true
+    }
+    if [parsed] {
+      if [parsed][level] {
+        mutate { add_field => { "level" => "%%{[parsed][level]}" } }
+      }
+      if [parsed][msg] {
+        mutate { add_field => { "log_message" => "%%{[parsed][msg]}" } }
+      } else if [parsed][message] {
+        mutate { add_field => { "log_message" => "%%{[parsed][message]}" } }
+      }
+      if [parsed][error] {
+        mutate { add_field => { "error_message" => "%%{[parsed][error]}" } }
+      }
+      if [parsed][service] and ![service] {
+        mutate { add_field => { "service" => "%%{[parsed][service]}" } }
+      }
+    }
+  }
+
+  # Normalize log level to lowercase
+  if [level] {
+    mutate { lowercase => [ "level" ] }
+  }
+
+  # Extract level from unstructured messages if not already set
+  if ![level] {
+    grok {
+      match => { "message" => "(?i)(?<level>fatal|panic|error|warn(?:ing)?|info|debug|trace)" }
+      tag_on_failure => []
+    }
+    if [level] {
+      mutate { lowercase => [ "level" ] }
+      if [level] == "warning" {
+        mutate { replace => { "level" => "warn" } }
+      }
+    }
+  }
+
+  # Default level if still not set
+  if ![level] {
+    mutate { add_field => { "level" => "info" } }
+  }
+
+  # Error Classification: assign tier and error_code
+  # Tier 1 (Critical): System-level failures
+  # Tier 2 (High):     Service degradation, connectivity issues
+  # Tier 3 (Medium):   Application errors, handled failures
+  # Tier 4 (Low):      Warnings, deprecations
+  if [level] in ["fatal", "panic"] {
+    mutate {
+      add_field => {
+        "tier" => "1"
+        "error_code" => "CRITICAL_FAILURE"
+      }
+    }
+  } else if [level] == "error" {
+    if [message] =~ /(?i)(out of memory|oom|disk full|no space|segfault|core dump)/ {
+      mutate {
+        add_field => {
+          "tier" => "1"
+          "error_code" => "RESOURCE_EXHAUSTION"
+        }
+      }
+    } else if [message] =~ /(?i)(connection refused|timeout|unreachable|dns|ECONNREFUSED|ETIMEDOUT)/ {
+      mutate {
+        add_field => {
+          "tier" => "2"
+          "error_code" => "CONNECTIVITY_FAILURE"
+        }
+      }
+    } else if [message] =~ /(?i)(502|503|504|bad gateway|service unavailable)/ {
+      mutate {
+        add_field => {
+          "tier" => "2"
+          "error_code" => "GATEWAY_ERROR"
+        }
+      }
+    } else if [message] =~ /(?i)(auth|unauthorized|forbidden|401|403|permission denied)/ {
+      mutate {
+        add_field => {
+          "tier" => "3"
+          "error_code" => "AUTH_FAILURE"
+        }
+      }
+    } else if [message] =~ /(?i)(null|undefined|NaN|type.*error|cast|parse|syntax|JSON)/ {
+      mutate {
+        add_field => {
+          "tier" => "3"
+          "error_code" => "DATA_ERROR"
+        }
+      }
+    } else {
+      mutate {
+        add_field => {
+          "tier" => "3"
+          "error_code" => "APPLICATION_ERROR"
+        }
+      }
+    }
+  } else if [level] == "warn" {
+    if [message] =~ /(?i)(deprecated|deprecation|will be removed|end of life)/ {
+      mutate {
+        add_field => {
+          "tier" => "4"
+          "error_code" => "DEPRECATION"
+        }
+      }
+    } else {
+      mutate {
+        add_field => {
+          "tier" => "4"
+          "error_code" => "WARNING"
+        }
+      }
+    }
+  }
+
+  # Set default service if not set
+  if ![service] {
+    mutate { add_field => { "service" => "unknown" } }
+  }
+
+  # Remove problematic OCI container labels that cause date parsing failures
+  # Docker sends empty strings for these fields but ES maps them as dates
+  mutate {
+    remove_field => [
+      "[container][labels][org_opencontainers_image_created]",
+      "[container][labels][org_opencontainers_image_revision]",
+      "[container][labels][org_opencontainers_image_version]"
+    ]
+  }
+
+  # Clean up parsed temp field
+  mutate {
+    remove_field => [ "parsed" ]
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["elasticsearch:9200"]
+    index => "${elasticsearch_index_pattern}"
+    retry_on_conflict => 3
+    retry_initial_interval => 2
+    retry_max_interval => 64
+  }
+
+  # Dead letter queue - capture failed events
+  if "_elasticsearch_lookup_failure" in [tags] or "_grokparsefailure" in [tags] {
+    file {
+      path => "/var/log/logstash/dead_letter_queue/failed-%%{+YYYY-MM-dd}.json"
+      codec => json_lines
+    }
+  }
+}

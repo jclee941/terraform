@@ -1,0 +1,11 @@
+[Unit]
+Description=OpenCode Log Cleanup Timer
+Documentation=https://github.com/opencode-ai/opencode
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

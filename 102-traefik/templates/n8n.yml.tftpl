@@ -1,0 +1,15 @@
+http:
+  routers:
+    n8n:
+      rule: Host(`n8n.jclee.me`)
+      entryPoints:
+        - websecure
+      service: n8n
+      tls: {}
+      priority: 10
+
+  services:
+    n8n:
+      loadBalancer:
+        servers:
+          - url: http://${n8n_ip}:5678
