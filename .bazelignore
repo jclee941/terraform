@@ -1,0 +1,18 @@
+# Auto-generated directories
+.git
+.archive
+.sisyphus
+
+# Terraform provider caches
+100-pve/.terraform
+108-archon/terraform/.terraform
+300-cloudflare/.terraform
+
+# Python caches
+**/__pycache__
+
+# OpenCode artifacts
+.opencode
+
+# Node modules (Cloudflare Worker)
+300-cloudflare/workers/synology-proxy/node_modules

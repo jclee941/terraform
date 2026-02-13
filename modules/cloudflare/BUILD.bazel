@@ -1,6 +1,4 @@
 # Cloudflare Terraform Module
-load("@aspect_bazel_lib//lib:directory_path.bzl", "make_directory_paths")
-
 filegroup(
     name = "terraform_files",
     srcs = glob([

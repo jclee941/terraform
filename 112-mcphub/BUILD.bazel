@@ -25,7 +25,7 @@ filegroup(
 
 filegroup(
     name = "n8n_workflows",
-    srcs = glob(["n8n-workflows/**"]),
+    srcs = glob(["n8n-workflows/**"], allow_empty = True),
 )
 
 filegroup(

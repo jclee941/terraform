@@ -14,14 +14,6 @@ filegroup(
 )
 
 filegroup(
-    name = "workers",
-    srcs = glob(
-        ["workers/**"],
-        exclude = ["workers/**/node_modules/**"],
-    ),
-)
-
-filegroup(
     name = "docker",
     srcs = glob(["docker/**"]),
 )
@@ -38,7 +30,6 @@ filegroup(
         ":inventory",
         ":scripts",
         ":terraform",
-        ":workers",
         "OWNERS",
-    ],
+    ] + glob(["docs/**"], allow_empty = True),
 )

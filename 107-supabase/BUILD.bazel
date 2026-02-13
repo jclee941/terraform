@@ -1,19 +1,13 @@
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
-    name = "config",
-    srcs = glob(["config/**"]),
-)
-
-filegroup(
     name = "templates",
-    srcs = glob(["templates/**"]),
+    srcs = glob(["templates/**"], allow_empty = True),
 )
 
 filegroup(
     name = "all_files",
     srcs = [
-        ":config",
         ":templates",
         "OWNERS",
     ],

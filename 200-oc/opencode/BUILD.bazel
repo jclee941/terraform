@@ -1,36 +1,55 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
-
 package(default_visibility = ["//visibility:public"])
 
-py_library(
-    name = "model_id_lib",
-    srcs = ["gen/model_id.py"],
+filegroup(
+    name = "gen",
+    srcs = glob(["gen/**"]),
 )
 
-py_library(
-    name = "config_lib",
-    srcs = ["gen/config.py"],
-    deps = [":model_id_lib"],
+filegroup(
+    name = "templates",
+    srcs = glob(["templates/**"]),
 )
 
-py_binary(
-    name = "generate",
-    srcs = ["gen/generate.py"],
-    data = glob(["templates/**"]),
-    deps = [
-        ":config_lib",
-        ":model_id_lib",
+filegroup(
+    name = "generated",
+    srcs = glob(["generated/**"]),
+)
+
+filegroup(
+    name = "rules",
+    srcs = glob(["rules/**"]),
+)
+
+filegroup(
+    name = "variants",
+    srcs = glob(["variants/**"]),
+)
+
+filegroup(
+    name = "configs",
+    srcs = [
+        "antigravity.json",
+        "dcp.jsonc",
+        "opencode.jsonc",
+        "supermemory.jsonc",
     ],
 )
 
-py_test(
-    name = "model_id_test",
-    srcs = ["gen/model_id_test.py"],
-    deps = [":model_id_lib"],
+filegroup(
+    name = "bin",
+    srcs = glob(["bin/*"]),
 )
 
-sh_binary(
-    name = "opencode-sync",
-    srcs = ["bin/opencode-sync"],
-    data = glob(["generated/**"]),
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":bin",
+        ":configs",
+        ":gen",
+        ":generated",
+        ":rules",
+        ":templates",
+        ":variants",
+        "OWNERS",
+    ],
 )
