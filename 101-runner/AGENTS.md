@@ -1,11 +1,11 @@
 # PROJECT KNOWLEDGE BASE: 101-RUNNER
 
-**Updated:** 2026-02-12
+**Updated:** 2026-02-13
 **Target:** LXC 101 (Debian 12)
 **IP:** 192.168.50.101
 
 ## OVERVIEW
-Dedicated GitHub Actions self-hosted runner infrastructure for the `jclee-homelab` organization. Orchestrates registration across 7+ repositories (blacklist, claude, propose, proxmox, resume, safework2, splunk) using JIT-config. Provides direct access to homelab services (Proxmox, Vault, ELK) for integration testing and automated deployments.
+Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user. Orchestrates registration across 8+ repositories (blacklist, claude, propose, proxmox, resume, safework2, splunk, terraform) using JIT-config. Provides direct access to homelab services (Proxmox, Vault, ELK) for integration testing and automated deployments. Includes Terraform and Bazel for infrastructure CI/CD.
 
 ## STRUCTURE
 ```
@@ -15,8 +15,10 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `jclee-homela
 ├── README.md            # Hardware/Setup documentation
 ├── config/
 │   └── filebeat.yml     # Log forwarding to ELK (105)
+├── templates/
+│   └── filebeat.yml.tftpl  # Templated filebeat config
 └── scripts/             # Runner lifecycle management
-    ├── setup-runner.sh       # Dependency bootstrap & Docker install
+    ├── setup-runner.sh       # Dependency bootstrap, Docker, Terraform, Bazel
     ├── register-all-repos.sh # SSoT for multi-repo registration
     ├── register-repo.sh      # Single repo registration handler
     └── unregister-all.sh     # Safe cleanup and token revocation
@@ -27,7 +29,7 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `jclee-homela
 |------|------|-------|
 | **Add new repo** | `scripts/register-all-repos.sh` | Add repo to `REPOS` list |
 | **Troubleshoot logs**| `config/filebeat.yml` | Verified against Logstash:5044 |
-| **Base dependencies**| `scripts/setup-runner.sh` | Python, Docker, build-essential |
+| **Base dependencies**| `scripts/setup-runner.sh` | Python, Docker, Terraform, Bazel |
 | **Service Control** | `README.md` | systemd templates: `github-runner@<repo>` |
 
 ## CONVENTIONS
@@ -43,4 +45,3 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `jclee-homela
 - **NO plaintext tokens**. Use environment variables or Vault integration.
 - **NO direct SSH**. Use `ssh root@pve 'pct exec 101 -- bash'` from PVE host.
 - **NO persistent storage** in work dirs. Cleaned by `unregister-all.sh`.
-

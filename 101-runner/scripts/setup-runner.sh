@@ -21,7 +21,7 @@ RUNNER_ARCH="${RUNNER_ARCH:-linux-x64}"
 RUNNER_USER="runner"
 RUNNER_HOME="/home/${RUNNER_USER}"
 RUNNER_DIR="${RUNNER_HOME}/actions-runner"
-RUNNER_LABELS="self-hosted,linux,x64,homelab"
+export RUNNER_LABELS="self-hosted,linux,x64,homelab"
 
 GITHUB_USER="${GITHUB_USER:-runner}"
 
@@ -125,7 +125,33 @@ install_runner() {
     "${RUNNER_DIR}/bin/installdependencies.sh" >/dev/null 2>&1 || true
 }
 
-# --- Phase 5: Done (Registration via register-all-repos.sh) ------------------
+# --- Phase 5: Infrastructure Tools (Terraform + Bazel) -----------------------
+install_infra_tools() {
+    local terraform_version="${TERRAFORM_VERSION:-1.10.5}"
+
+    # Install Terraform
+    if command -v terraform &>/dev/null; then
+        log "Terraform already installed: $(terraform version -json | jq -r '.terraform_version')"
+    else
+        log "Installing Terraform v${terraform_version}..."
+        wget -q "https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip" -O /tmp/terraform.zip
+        unzip -o /tmp/terraform.zip -d /usr/local/bin/ >/dev/null
+        rm -f /tmp/terraform.zip
+        log "Terraform installed: $(terraform version -json | jq -r '.terraform_version')"
+    fi
+
+    # Install Bazelisk (as bazel)
+    if command -v bazel &>/dev/null; then
+        log "Bazelisk already installed."
+    else
+        log "Installing Bazelisk..."
+        wget -q "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64" -O /usr/local/bin/bazel
+        chmod +x /usr/local/bin/bazel
+        log "Bazelisk installed at /usr/local/bin/bazel"
+    fi
+}
+
+# --- Phase 5b: Registration (via register-all-repos.sh) ----------------------
 # Runner registration is handled separately by register-all-repos.sh
 # This keeps setup idempotent and registration decoupled.
 
@@ -182,6 +208,7 @@ main() {
     fi
     create_runner_user
     install_runner
+    install_infra_tools
     install_service
 
     log ""
