@@ -25,6 +25,8 @@ output "secrets" {
 
     # Splunk
     splunk_username = data.vault_kv_secret_v2.splunk.data["username"]
+    splunk_host     = data.vault_kv_secret_v2.splunk.data["host"]
+    splunk_port     = data.vault_kv_secret_v2.splunk.data["port"]
 
     # Supabase
     supabase_url         = data.vault_kv_secret_v2.supabase.data["url"]
@@ -32,5 +34,20 @@ output "secrets" {
 
     # Archon
     archon_anthropic_key = data.vault_kv_secret_v2.archon.data["anthropic_api_key"]
+
+    # Cloudflare
+    cloudflare_api_key    = data.vault_kv_secret_v2.cloudflare.data["api_key"]
+    cloudflare_email      = data.vault_kv_secret_v2.cloudflare.data["email"]
+    cloudflare_account_id = data.vault_kv_secret_v2.cloudflare.data["account_id"]
+    cloudflare_zone_id    = data.vault_kv_secret_v2.cloudflare.data["zone_id"]
+
+    # n8n
+    n8n_api_key             = data.vault_kv_secret_v2.n8n.data["api_key"]
+    n8n_github_token        = data.vault_kv_secret_v2.n8n.data["github_token"]
+    n8n_glitchtip_api_token = data.vault_kv_secret_v2.n8n.data["glitchtip_api_token"]
+
+    # MCPHub
+    mcphub_proxmox_token_name  = data.vault_kv_secret_v2.mcphub.data["proxmox_token_name"]
+    mcphub_proxmox_token_value = data.vault_kv_secret_v2.mcphub.data["proxmox_token_value"]
   }
 }

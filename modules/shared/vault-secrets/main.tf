@@ -46,3 +46,18 @@ data "vault_kv_secret_v2" "archon" {
   mount = var.vault_mount
   name  = "homelab/archon"
 }
+
+data "vault_kv_secret_v2" "cloudflare" {
+  mount = var.vault_mount
+  name  = "homelab/cloudflare"
+}
+
+data "vault_kv_secret_v2" "n8n" {
+  mount = var.vault_mount
+  name  = "homelab/n8n"
+}
+
+data "vault_kv_secret_v2" "mcphub" {
+  mount = var.vault_mount
+  name  = "homelab/mcphub"
+}
