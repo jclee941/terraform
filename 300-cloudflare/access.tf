@@ -21,3 +21,27 @@ resource "cloudflare_zero_trust_access_policy" "synology_email" {
     }
   }]
 }
+
+# ============================================
+# Cloudflare Access for Restricted Homelab Services
+# ============================================
+
+resource "cloudflare_zero_trust_access_application" "homelab" {
+  for_each = local.restricted_services
+
+  zone_id          = var.cloudflare_zone_id
+  name             = each.value.name
+  domain           = "${each.value.subdomain}.${var.homelab_domain}"
+  type             = "self_hosted"
+  session_duration = "24h"
+
+  policies = [{
+    decision = "allow"
+    name     = "${each.value.name} Email Access"
+    include = [for email in var.access_allowed_emails : {
+      email = {
+        email = email
+      }
+    }]
+  }]
+}

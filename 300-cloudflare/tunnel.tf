@@ -36,3 +36,37 @@ data "cloudflare_zero_trust_tunnel_cloudflared_token" "synology" {
   account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.synology.id
 }
+
+# ============================================
+# Cloudflare Tunnel for Homelab Services
+# ============================================
+
+resource "random_password" "homelab_tunnel_secret" {
+  length = 64
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared" "homelab" {
+  account_id    = var.cloudflare_account_id
+  name          = "homelab-traefik"
+  tunnel_secret = base64encode(random_password.homelab_tunnel_secret.result)
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
+  account_id = var.cloudflare_account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
+
+  config = {
+    ingress = concat(
+      [for key, svc in local.homelab_services : {
+        hostname = "${svc.subdomain}.${var.homelab_domain}"
+        service  = "http://${var.traefik_ip}:80"
+      }],
+      [{ service = "http_status:404" }]
+    )
+  }
+}
+
+data "cloudflare_zero_trust_tunnel_cloudflared_token" "homelab" {
+  account_id = var.cloudflare_account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
+}

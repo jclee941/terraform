@@ -45,4 +45,30 @@ locals {
   ])
 
   total_secrets_count = length(local.all_secrets)
+
+  # ============================================
+  # Homelab Services exposed via Cloudflare Tunnel
+  # All traffic routes through Traefik (192.168.50.102)
+  # ============================================
+
+  homelab_services = {
+    elk       = { subdomain = "elk" }
+    kibana    = { subdomain = "kibana" }
+    es        = { subdomain = "es" }
+    glitchtip = { subdomain = "glitchtip" }
+    mcphub    = { subdomain = "mcphub" }
+    vault     = { subdomain = "vault" }
+    archon    = { subdomain = "archon" }
+    supabase  = { subdomain = "supabase" }
+    nas       = { subdomain = "nas" }
+    n8n       = { subdomain = "n8n" }
+  }
+
+  # Services requiring Cloudflare Access protection
+  restricted_services = {
+    vault  = { subdomain = "vault", name = "Vault" }
+    es     = { subdomain = "es", name = "Elasticsearch" }
+    n8n    = { subdomain = "n8n", name = "n8n Automation" }
+    mcphub = { subdomain = "mcphub", name = "MCP Hub" }
+  }
 }
