@@ -175,87 +175,91 @@ module "lxc" {
 
 locals {
   cloud_init_files = {
-    sandbox = "local:snippets/sandbox-user-data.yaml"
-    mcphub  = "local:snippets/mcphub-user-data.yaml"
+    # sandbox: Commented out — VM was manually created with non-standard 'dfge'
+    # datastore. bpg/proxmox provider GRPC crashes on import. Will re-add when
+    # VM is recreated from template on standard storage.
+    # sandbox = "local:snippets/sandbox-user-data.yaml"
+    mcphub = "local:snippets/mcphub-user-data.yaml"
   }
 }
 
 # =============================================================================
 # SANDBOX VM (220) - Development/Test Environment
 # =============================================================================
-
-resource "proxmox_virtual_environment_vm" "sandbox" {
-  name        = "sandbox"
-  description = "Sandbox VM for development testing and experiments"
-  node_name   = local.node_name
-  vm_id       = 220
-
-  # Clone from Ubuntu 24.04 cloud-init template
-  clone {
-    vm_id = 9000
-    full  = true
-  }
-
-  agent {
-    enabled = true
-  }
-
-  cpu {
-    cores = 2
-    type  = "host"
-  }
-
-  memory {
-    dedicated = 8192
-  }
-
-  # Resize disk from template (3.5GB -> 50GB)
-  disk {
-    datastore_id = var.datastore_id
-    interface    = "scsi0"
-    size         = 50
-    iothread     = true
-  }
-
-  network_device {
-    bridge = "vmbr0"
-  }
-
-  # Cloud-init configuration
-  initialization {
-    datastore_id      = "local"
-    user_data_file_id = local.cloud_init_files.sandbox
-
-    ip_config {
-      ipv4 {
-        address = "${module.hosts.hosts.sandbox.ip}/24"
-        gateway = var.network_gateway
-      }
-    }
-
-    dns {
-      servers = [var.network_gateway, "8.8.8.8"]
-    }
-  }
-
-  operating_system {
-    type = "l26"
-  }
-
-  machine = "q35"
-  bios    = "ovmf"
-
-  on_boot = true
-
-  lifecycle {
-    ignore_changes = [
-      network_device[0].mac_address,
-      agent,
-      operating_system,
-      disk[0].datastore_id,
-    ]
-  }
-}
+# TEMPORARILY DISABLED: VM 220 was manually created with non-standard 'dfge'
+# datastore. The bpg/proxmox provider GRPC plugin crashes during import
+# (ReadResource failure). This resource will be re-enabled when the VM is
+# recreated from template 9000 on standard 'local-lvm' storage.
+#
+# resource "proxmox_virtual_environment_vm" "sandbox" {
+#   name        = "sandbox"
+#   description = "Sandbox VM for development testing and experiments"
+#   node_name   = local.node_name
+#   vm_id       = 220
+#
+#   clone {
+#     vm_id = 9000
+#     full  = true
+#   }
+#
+#   agent {
+#     enabled = true
+#   }
+#
+#   cpu {
+#     cores = 2
+#     type  = "host"
+#   }
+#
+#   memory {
+#     dedicated = 8192
+#   }
+#
+#   disk {
+#     datastore_id = var.datastore_id
+#     interface    = "scsi0"
+#     size         = 50
+#     iothread     = true
+#   }
+#
+#   network_device {
+#     bridge = "vmbr0"
+#   }
+#
+#   initialization {
+#     datastore_id      = "local"
+#     user_data_file_id = local.cloud_init_files.sandbox
+#
+#     ip_config {
+#       ipv4 {
+#         address = "${module.hosts.hosts.sandbox.ip}/24"
+#         gateway = var.network_gateway
+#       }
+#     }
+#
+#     dns {
+#       servers = [var.network_gateway, "8.8.8.8"]
+#     }
+#   }
+#
+#   operating_system {
+#     type = "l26"
+#   }
+#
+#   machine = "q35"
+#   bios    = "ovmf"
+#
+#   on_boot = true
+#
+#   lifecycle {
+#     ignore_changes = [
+#       network_device[0].mac_address,
+#       agent,
+#       operating_system,
+#       disk[0].datastore_id,
+#     ]
+#   }
+# }
 
 # =============================================================================
 # MCPHUB VM (112) - MCPHub Server
@@ -384,26 +388,27 @@ module "vm_config" {
   ssh_user          = "jclee"
 
   vms = {
-    sandbox = {
-      vmid       = module.hosts.hosts.sandbox.vmid
-      hostname   = "sandbox"
-      ip_address = module.hosts.hosts.sandbox.ip
-      deploy     = var.deploy_vm_configs
-
-      cloud_init = {
-        packages = [
-          "qemu-guest-agent",
-          "curl",
-          "vim",
-          "git",
-          "gnupg",
-        ]
-        runcmd = [
-          "systemctl enable qemu-guest-agent",
-          "systemctl start qemu-guest-agent",
-        ]
-      }
-    }
+    # sandbox: Disabled — see sandbox VM resource block comment above
+    # sandbox = {
+    #   vmid       = module.hosts.hosts.sandbox.vmid
+    #   hostname   = "sandbox"
+    #   ip_address = module.hosts.hosts.sandbox.ip
+    #   deploy     = var.deploy_vm_configs
+    #
+    #   cloud_init = {
+    #     packages = [
+    #       "qemu-guest-agent",
+    #       "curl",
+    #       "vim",
+    #       "git",
+    #       "gnupg",
+    #     ]
+    #     runcmd = [
+    #       "systemctl enable qemu-guest-agent",
+    #       "systemctl start qemu-guest-agent",
+    #     ]
+    #   }
+    # }
 
     mcphub = {
       vmid       = module.hosts.hosts.mcphub.vmid
