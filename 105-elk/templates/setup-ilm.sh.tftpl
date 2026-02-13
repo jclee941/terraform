@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Managed by Terraform — do not edit manually
+# Sets up ILM policy and index template for log retention
+set -euo pipefail
+
+ES_HOST="http://localhost:${elasticsearch_port}"
+POLICY_NAME="${ilm_policy_name}"
+TEMPLATE_NAME="logs-template"
+INDEX_ALIAS="logs"
+INDEX_PATTERN="${elasticsearch_index_pattern}"
+
+echo "Waiting for Elasticsearch..."
+until curl -sf "$${ES_HOST}/_cluster/health" > /dev/null 2>&1; do
+  sleep 5
+done
+echo "Elasticsearch is ready."
+
+# Create/update ILM policy
+echo "Creating ILM policy: $${POLICY_NAME}"
+curl -sf -X PUT "$${ES_HOST}/_ilm/policy/$${POLICY_NAME}" \
+  -H 'Content-Type: application/json' \
+  -d @/opt/elk/config/ilm-policy.json
+echo
+
+# Create/update index template
+echo "Creating index template: $${TEMPLATE_NAME}"
+curl -sf -X PUT "$${ES_HOST}/_index_template/$${TEMPLATE_NAME}" \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "index_patterns": ["logs-*"],
+  "priority": 200,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.lifecycle.name": "'"$${POLICY_NAME}"'",
+      "index.lifecycle.rollover_alias": "'"$${INDEX_ALIAS}"'"
+    }
+  }
+}'
+echo
+
+# Create elastalert index template (low priority)
+echo "Creating elastalert index template"
+curl -sf -X PUT "$${ES_HOST}/_index_template/elastalert-template" \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "index_patterns": ["elastalert_*"],
+  "priority": 50,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    }
+  }
+}'
+echo
+
+# Bootstrap initial index if it doesn't exist
+if ! curl -sf "$${ES_HOST}/logs-000001" > /dev/null 2>&1; then
+  echo "Creating initial index: logs-000001"
+  curl -sf -X PUT "$${ES_HOST}/logs-000001" \
+    -H 'Content-Type: application/json' \
+    -d '{
+    "aliases": {
+      "'"$${INDEX_ALIAS}"'": {
+        "is_write_index": true
+      }
+    }
+  }'
+  echo
+else
+  echo "Initial index logs-000001 already exists, skipping."
+fi
+
+echo "ILM setup complete."

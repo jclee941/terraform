@@ -20,6 +20,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.00'
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     restart: unless-stopped
 
   logstash:
@@ -50,6 +60,47 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.00'
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    restart: unless-stopped
+
+  elastalert:
+    image: jertel/elastalert2:${elastalert_version}
+    container_name: elastalert
+    volumes:
+      - ./config/elastalert.yaml:/opt/elastalert/config.yaml:ro
+      - ./config/elastalert-rules:/opt/elastalert/rules:ro
+    environment:
+      - GLITCHTIP_SENTRY_KEY=$${GLITCHTIP_SENTRY_KEY}
+    networks:
+      - elk
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f elastalert || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     restart: unless-stopped
 
   kibana:
@@ -71,27 +122,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    restart: unless-stopped
-
-  elastalert:
-    image: jertel/elastalert2:2.19.0
-    container_name: elastalert
-    volumes:
-      - ./config/elastalert.yaml:/opt/elastalert/config.yaml:ro
-      - ./config/elastalert-rules:/opt/elastalert/rules:ro
-    environment:
-      - GLITCHTIP_SENTRY_KEY=$${GLITCHTIP_SENTRY_KEY}
-    networks:
-      - elk
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep -f elastalert || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.50'
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     restart: unless-stopped
 
 volumes:

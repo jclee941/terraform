@@ -558,6 +558,18 @@ module "lxc_config" {
           path    = "/opt/elk/config/logstash.conf"
           content = module.config_renderer.rendered_configs.elk_logstash_conf
         }
+        "logstash.yml" = {
+          path    = "/opt/elk/config/logstash.yml"
+          content = module.config_renderer.rendered_configs.elk_logstash_yml
+        }
+        "ilm-policy.json" = {
+          path    = "/opt/elk/config/ilm-policy.json"
+          content = module.config_renderer.rendered_configs.elk_ilm_policy
+        }
+        "setup-ilm.sh" = {
+          path    = "/opt/elk/scripts/setup-ilm.sh"
+          content = module.config_renderer.rendered_configs.elk_setup_ilm
+        }
       }
     }
 
@@ -663,6 +675,18 @@ module "config_renderer" {
     elk_logstash_conf = {
       source = "${path.module}/../105-elk/templates/logstash.conf.tftpl"
       output = "elk/logstash.conf"
+    }
+    elk_logstash_yml = {
+      source = "${path.module}/../105-elk/templates/logstash.yml.tftpl"
+      output = "elk/logstash.yml"
+    }
+    elk_ilm_policy = {
+      source = "${path.module}/../105-elk/templates/ilm-policy.json.tftpl"
+      output = "elk/ilm-policy.json"
+    }
+    elk_setup_ilm = {
+      source = "${path.module}/../105-elk/templates/setup-ilm.sh.tftpl"
+      output = "elk/setup-ilm.sh"
     }
     glitchtip_docker_compose = {
       source = "${path.module}/../106-glitchtip/templates/docker-compose.yml.tftpl"

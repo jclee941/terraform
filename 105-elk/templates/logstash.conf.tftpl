@@ -10,6 +10,14 @@ input {
 }
 
 filter {
+  # Truncate oversized messages to prevent OOM (Defense in depth)
+  if [message] {
+    truncate {
+      length_bytes => 1048576
+      add_tag => ["truncated"]
+    }
+  }
+
   # Extract service name from filebeat fields
   if [fields][service] {
     mutate {

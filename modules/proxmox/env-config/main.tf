@@ -87,7 +87,13 @@ locals {
     elk_version                 = "8.12.0"
     es_heap                     = "2g"
     logstash_heap               = "512m"
+    logstash_dlq_size           = "1024mb"
+    elastalert_version          = "2.19.0"
     elasticsearch_index_pattern = "logs-%%{+YYYY.MM.dd}"
+    ilm_delete_after            = "30d"
+    ilm_policy_name             = "homelab-logs-30d"
+    ilm_delete_after            = "30d"
+    ilm_policy_name             = "homelab-logs-30d"
     # Synology NAS
     synology_ip    = var.hosts.synology.ip
     synology_ports = var.hosts.synology.ports
