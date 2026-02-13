@@ -628,9 +628,33 @@ module "config_renderer" {
       output = "traefik/glitchtip.yml"
     }
 
-    filebeat = {
+    filebeat_elk = {
       source = "${path.module}/../105-elk/templates/filebeat.yml.tftpl"
-      output = "filebeat.yml"
+      output = "elk/filebeat.yml"
+    }
+    filebeat_runner = {
+      source = "${path.module}/../101-runner/templates/filebeat.yml.tftpl"
+      output = "runner/filebeat.yml"
+    }
+    filebeat_traefik = {
+      source = "${path.module}/../102-traefik/templates/filebeat.yml.tftpl"
+      output = "traefik/filebeat.yml"
+    }
+    filebeat_grafana = {
+      source = "${path.module}/../104-grafana/templates/filebeat.yml.tftpl"
+      output = "grafana/filebeat.yml"
+    }
+    filebeat_glitchtip = {
+      source = "${path.module}/../106-glitchtip/templates/filebeat.yml.tftpl"
+      output = "glitchtip/filebeat.yml"
+    }
+    filebeat_supabase = {
+      source = "${path.module}/../107-supabase/templates/filebeat.yml.tftpl"
+      output = "supabase/filebeat.yml"
+    }
+    filebeat_mcphub = {
+      source = "${path.module}/../112-mcphub/templates/filebeat.yml.tftpl"
+      output = "mcphub/filebeat.yml"
     }
     elk_docker_compose = {
       source = "${path.module}/../105-elk/templates/docker-compose.yml.tftpl"

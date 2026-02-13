@@ -1,0 +1,40 @@
+# Filebeat configuration for 106-glitchtip (Error Tracking)
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
+filebeat.inputs:
+  # System logs
+  - type: filestream
+    id: system-logs
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    fields:
+      service: system
+      host_role: glitchtip
+    fields_under_root: false
+
+  # Docker container logs (GlitchTip services)
+  - type: container
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    fields:
+      service: glitchtip
+      host_role: glitchtip
+    fields_under_root: false
+
+output.logstash:
+  hosts: ["${elk_ip}:${elk_ports.logstash_beat}"]
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+
+logging:
+  level: info
+  to_files: true
+  files:
+    path: /var/log/filebeat
+    name: filebeat
+    keepfiles: 7
+    permissions: 0644

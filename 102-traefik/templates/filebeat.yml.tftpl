@@ -1,0 +1,52 @@
+# Filebeat configuration for 102-traefik (Reverse Proxy)
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
+filebeat.inputs:
+  # System logs (exclude traefik logs to avoid duplication)
+  - type: filestream
+    id: system-logs
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    exclude_files:
+      - 'traefik.*\.log'
+    fields:
+      service: system
+      host_role: traefik
+    fields_under_root: false
+
+  # Traefik application logs
+  - type: filestream
+    id: traefik-logs
+    paths:
+      - /var/log/traefik.log
+    fields:
+      service: traefik
+      host_role: traefik
+    fields_under_root: false
+
+  # Traefik access logs
+  - type: filestream
+    id: traefik-access-logs
+    paths:
+      - /var/log/traefik-access.log
+    fields:
+      service: traefik-access
+      host_role: traefik
+    fields_under_root: false
+
+output.logstash:
+  hosts: ["${elk_ip}:${elk_ports.logstash_beat}"]
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+
+logging:
+  level: info
+  to_files: true
+  files:
+    path: /var/log/filebeat
+    name: filebeat
+    keepfiles: 7
+    permissions: 0644

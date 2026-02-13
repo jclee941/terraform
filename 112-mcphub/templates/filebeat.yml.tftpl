@@ -1,0 +1,55 @@
+# Filebeat configuration for 112-mcphub (MCP Hub + AI/Tools VM)
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
+filebeat.inputs:
+  # Docker container logs (MCPHub, n8n, Vault, etc.)
+  - type: container
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    fields:
+      service: mcphub
+      host_role: mcphub
+    fields_under_root: false
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.message_key: log
+    max_bytes: 500000
+
+  # System logs
+  - type: filestream
+    id: system-logs
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    fields:
+      service: system
+      host_role: mcphub
+    fields_under_root: false
+
+  # Auth logs
+  - type: filestream
+    id: auth-logs
+    paths:
+      - /var/log/auth.log
+    max_bytes: 500000
+    fields:
+      service: auth
+      host_role: mcphub
+    fields_under_root: false
+
+output.logstash:
+  hosts: ["${elk_ip}:${elk_ports.logstash_beat}"]
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+
+logging:
+  level: info
+  to_files: true
+  files:
+    path: /var/log/filebeat
+    name: filebeat
+    keepfiles: 7
+    permissions: 0644
