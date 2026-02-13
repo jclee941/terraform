@@ -1,0 +1,16 @@
+http:
+  routers:
+    supabase:
+      rule: Host(`supabase.${domain}`)
+      entryPoints:
+        - websecure
+      service: supabase
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    supabase:
+      loadBalancer:
+        servers:
+          - url: http://${supabase_ip}:${supabase_port}

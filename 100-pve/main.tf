@@ -498,6 +498,14 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/synology.yml"
           content = module.config_renderer.rendered_configs.traefik_synology
         }
+        "traefik-archon.yml" = {
+          path    = "/etc/traefik/dynamic/archon.yml"
+          content = module.config_renderer.rendered_configs.traefik_archon
+        }
+        "traefik-supabase.yml" = {
+          path    = "/etc/traefik/dynamic/supabase.yml"
+          content = module.config_renderer.rendered_configs.traefik_supabase
+        }
       }
     }
 
@@ -654,6 +662,14 @@ module "config_renderer" {
     traefik_synology = {
       source = "${path.module}/../102-traefik/templates/synology.yml.tftpl"
       output = "traefik/synology.yml"
+    }
+    traefik_archon = {
+      source = "${path.module}/../102-traefik/templates/archon.yml.tftpl"
+      output = "traefik/archon.yml"
+    }
+    traefik_supabase = {
+      source = "${path.module}/../102-traefik/templates/supabase.yml.tftpl"
+      output = "traefik/supabase.yml"
     }
   }
 }

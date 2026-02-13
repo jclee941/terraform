@@ -25,5 +25,12 @@ output "secrets" {
 
     # Splunk
     splunk_username = data.vault_kv_secret_v2.splunk.data["username"]
+
+    # Supabase
+    supabase_url         = data.vault_kv_secret_v2.supabase.data["url"]
+    supabase_service_key = data.vault_kv_secret_v2.supabase.data["service_key"]
+
+    # Archon
+    archon_anthropic_key = data.vault_kv_secret_v2.archon.data["anthropic_api_key"]
   }
 }

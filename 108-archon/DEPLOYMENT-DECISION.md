@@ -72,16 +72,16 @@ Reasons:
 1. Create Supabase project at https://supabase.com/dashboard
 2. Run migration SQL (`/tmp/archon/migration/complete_setup.sql`)
 3. Add credentials to Vault (`vault/archon/supabase`)
-4. Complete Terraform deployment of Archon LXC (107)
+4. Complete Terraform deployment of Archon LXC (108)
 
 ---
 
 ## If Self-hosted Required
 
 We need to:
-1. Choose VMID for Supabase (suggest 108)
+1. Choose VMID for Supabase (suggest 107)
 2. Add entry to `terraform/envs/prod/hosts.tf`
-3. Create `108-supabase/` directory structure
+3. Create `107-supabase/` directory structure
 4. Deploy Supabase via Docker Compose (separate from Archon)
 5. Configure Archon to point to internal Supabase
 

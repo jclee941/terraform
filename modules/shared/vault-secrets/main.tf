@@ -36,3 +36,13 @@ data "vault_kv_secret_v2" "splunk" {
   mount = var.vault_mount
   name  = "homelab/splunk"
 }
+
+data "vault_kv_secret_v2" "supabase" {
+  mount = var.vault_mount
+  name  = "homelab/supabase"
+}
+
+data "vault_kv_secret_v2" "archon" {
+  mount = var.vault_mount
+  name  = "homelab/archon"
+}

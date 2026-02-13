@@ -19,7 +19,7 @@ variable "proxmox_insecure" {
 variable "node_name" {
   description = "Proxmox node name"
   type        = string
-  default     = "pve"
+  default     = "pve3"
 }
 
 variable "network_gateway" {
@@ -31,13 +31,13 @@ variable "network_gateway" {
 variable "dns_servers" {
   description = "DNS servers"
   type        = list(string)
-  default     = ["192.168.50.1"]
+  default     = ["8.8.8.8", "8.8.4.4"]
 }
 
 variable "datastore_id" {
   description = "Proxmox storage datastore"
   type        = string
-  default     = "local-zfs"
+  default     = "dfge"
 }
 
 variable "ssh_public_keys" {

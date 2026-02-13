@@ -136,7 +136,8 @@ locals {
     prometheus_url     = "http://${local.hosts.grafana.ip}:${local.hosts.grafana.ports.prometheus}"
     grafana_url        = "http://${local.hosts.grafana.ip}:${local.hosts.grafana.ports.grafana}"
     glitchtip_url      = "http://${local.hosts.glitchtip.ip}:${local.hosts.glitchtip.ports.web}"
-
+    supabase_url       = "http://${local.hosts.supabase.ip}:${local.hosts.supabase.ports.api}"
+    archon_url         = "http://${local.hosts.archon.ip}:${local.hosts.archon.ports.ui}"
   }
 
   prometheus_targets = [

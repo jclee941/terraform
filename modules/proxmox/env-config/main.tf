@@ -31,6 +31,8 @@ locals {
     grafana_url       = "http://${var.hosts.grafana.ip}:${var.hosts.grafana.ports.grafana}"
     mcphub_url        = "http://${var.hosts.mcphub.ip}:${var.hosts.mcphub.ports.web}"
     n8n_url           = "http://${var.hosts.mcphub.ip}:${var.hosts.mcphub.ports.n8n}"
+    supabase_url      = "http://${var.hosts.supabase.ip}:${var.hosts.supabase.ports.api}"
+    archon_url        = "http://${var.hosts.archon.ip}:${var.hosts.archon.ports.ui}"
   }
 
   prometheus_node_targets = [
@@ -89,6 +91,15 @@ locals {
     # Synology NAS
     synology_ip    = var.hosts.synology.ip
     synology_ports = var.hosts.synology.ports
+    # Supabase (107)
+    supabase_ip     = var.hosts.supabase.ip
+    supabase_port   = var.hosts.supabase.ports.api
+    supabase_studio = var.hosts.supabase.ports.studio
+    # Archon (108)
+    archon_ip     = var.hosts.archon.ip
+    archon_port   = var.hosts.archon.ports.ui
+    archon_server = var.hosts.archon.ports.server
+    archon_mcp    = var.hosts.archon.ports.mcp
     # Vault (runs on mcphub VM as Docker container)
     vault_ip   = var.hosts.mcphub.ip
     vault_port = var.hosts.mcphub.ports.vault

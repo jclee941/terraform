@@ -1,0 +1,16 @@
+http:
+  routers:
+    archon:
+      rule: Host(`archon.${domain}`)
+      entryPoints:
+        - websecure
+      service: archon
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    archon:
+      loadBalancer:
+        servers:
+          - url: http://${archon_ip}:${archon_port}
