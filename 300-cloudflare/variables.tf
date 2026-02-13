@@ -1,13 +1,4 @@
-variable "cloudflare_api_key" {
-  description = "Cloudflare Global API Key"
-  type        = string
-  sensitive   = true
-}
 
-variable "cloudflare_email" {
-  description = "Cloudflare account email address"
-  type        = string
-}
 
 variable "cloudflare_account_id" {
   description = "Cloudflare account ID"
@@ -36,7 +27,7 @@ variable "github_token" {
 variable "vault_address" {
   description = "Vault server address"
   type        = string
-  default     = "http://192.168.50.111:8200"
+  default     = "http://192.168.50.112:8200"
 }
 
 variable "vault_token" {
