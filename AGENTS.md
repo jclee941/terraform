@@ -182,7 +182,7 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
   - **NO direct SSH** to LXCs (102-106); use `pct exec` via PVE.
 
 ## AUTOMATION PIPELINES (n8n)
-8 workflows on n8n (VM 112, :5678). Login: `admin@jclee.me` / `Admin123!`.
+8 workflows on n8n (VM 112, :5678). Login: see Vault `homelab/n8n`.
 - **Primary** (6): `scripts/n8n-workflows/` — error→issue, alert→issue, daily-digest, request-tracker, PR-notify, error-handler.
 - **Pipeline** (2): `112-mcphub/n8n-workflows/` — ELK error pipeline, GlitchTip sync.
 - **Webhooks**: `/webhook/glitchtip-error`, `/webhook/grafana-alert`, `/webhook/github-issue`, `/webhook/github-pr`.
@@ -191,7 +191,7 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
 - **n8n**: MCP API key expires 2026-05-11. Workflows must be Published via UI (CLI import doesn't register webhooks).
 - **GlitchTip**: Org `jclee-homelab`, Project `homelab`. Alert rule `n8n-automation` → webhook.
 - **Vault**: vault.jclee.me via Traefik. Vault Agent on 112 replaces manual secrets. Deprecated vars: `n8n_mcp_config`, `mcp_secrets`.
-- **MCPHub**: Default creds `admin/admin123`. SSE proxies use sidecar Dockerfiles (`Dockerfile.proxmox`, `Dockerfile.playwright`). Env from `/opt/mcphub/.env`.
+- **MCPHub**: Default creds — see Vault `homelab/mcphub`. SSE proxies use sidecar Dockerfiles (`Dockerfile.proxmox`, `Dockerfile.playwright`). Env from `/opt/mcphub/.env`.
 - **GPU**: RTX 5070 Ti on VM 200 (IOMMU group 12, PCI 0000:01:00.0). **Archived**: 109-111, 113 → `.archive/`.
 - **Migration**: Migrated from single-provider `~/dev/proxmox/` repo (2026-02-13). Original repo preserved as reference.
 - **Cloudflare**: Migrated from standalone `~/dev/cloudflare/` repo (2026-02-13). Includes Workers, scripts, docker, inventory.
