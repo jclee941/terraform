@@ -1,6 +1,11 @@
+data "vault_kv_secret_v2" "cloudflare" {
+  mount = var.vault_mount_path
+  name  = "homelab/cloudflare"
+}
+
 provider "cloudflare" {
-  api_key = var.cloudflare_api_key
-  email   = var.cloudflare_email
+  api_key = data.vault_kv_secret_v2.cloudflare.data["api_key"]
+  email   = data.vault_kv_secret_v2.cloudflare.data["email"]
 }
 
 provider "github" {

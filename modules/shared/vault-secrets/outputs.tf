@@ -25,6 +25,8 @@ output "secrets" {
 
     # Splunk
     splunk_username = data.vault_kv_secret_v2.splunk.data["username"]
+    splunk_host     = data.vault_kv_secret_v2.splunk.data["host"]
+    splunk_port     = data.vault_kv_secret_v2.splunk.data["port"]
 
     # Supabase (try() defaults allow plan to succeed before Vault keys are populated)
     supabase_url                = try(data.vault_kv_secret_v2.supabase.data["url"], "")
@@ -39,5 +41,20 @@ output "secrets" {
     # Archon (try() defaults allow plan to succeed before Vault keys are populated)
     archon_anthropic_key = try(data.vault_kv_secret_v2.archon.data["anthropic_api_key"], "")
     openai_api_key       = try(data.vault_kv_secret_v2.archon.data["openai_api_key"], "")
+
+    # Cloudflare (try() defaults allow plan to succeed before Vault keys are populated)
+    cloudflare_api_key    = try(data.vault_kv_secret_v2.cloudflare.data["api_key"], "")
+    cloudflare_email      = try(data.vault_kv_secret_v2.cloudflare.data["email"], "")
+    cloudflare_account_id = try(data.vault_kv_secret_v2.cloudflare.data["account_id"], "")
+    cloudflare_zone_id    = try(data.vault_kv_secret_v2.cloudflare.data["zone_id"], "")
+
+    # n8n (try() defaults allow plan to succeed before Vault keys are populated)
+    n8n_api_key             = try(data.vault_kv_secret_v2.n8n.data["api_key"], "")
+    n8n_github_token        = try(data.vault_kv_secret_v2.n8n.data["github_token"], "")
+    n8n_glitchtip_api_token = try(data.vault_kv_secret_v2.n8n.data["glitchtip_api_token"], "")
+
+    # MCPHub (try() defaults allow plan to succeed before Vault keys are populated)
+    mcphub_proxmox_token_name  = try(data.vault_kv_secret_v2.mcphub.data["proxmox_token_name"], "")
+    mcphub_proxmox_token_value = try(data.vault_kv_secret_v2.mcphub.data["proxmox_token_value"], "")
   }
 }
