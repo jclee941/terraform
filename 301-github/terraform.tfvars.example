@@ -1,0 +1,27 @@
+# GitHub configuration
+# Copy to terraform.tfvars and fill in values
+# NEVER commit terraform.tfvars
+
+github_token = ""
+github_owner = "qws941"
+
+manage_as_organization = false
+
+n8n_webhook_glitchtip_error_url = "https://mcphub.jclee.me/webhook/glitchtip-error"
+n8n_webhook_grafana_alert_url   = "https://mcphub.jclee.me/webhook/grafana-alert"
+n8n_webhook_github_issue_url    = "https://mcphub.jclee.me/webhook/github-issue"
+n8n_webhook_github_pr_url       = "https://mcphub.jclee.me/webhook/github-pr"
+
+webhook_secret = ""
+
+repository_actions_variables = {
+  terraform = {
+    TF_LOG_LEVEL = "INFO"
+  }
+}
+
+repository_actions_secrets = {
+  terraform = {
+    VAULT_ADDR = ""
+  }
+}

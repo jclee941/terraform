@@ -26,11 +26,18 @@ output "secrets" {
     # Splunk
     splunk_username = data.vault_kv_secret_v2.splunk.data["username"]
 
-    # Supabase
-    supabase_url         = data.vault_kv_secret_v2.supabase.data["url"]
-    supabase_service_key = data.vault_kv_secret_v2.supabase.data["service_key"]
+    # Supabase (try() defaults allow plan to succeed before Vault keys are populated)
+    supabase_url                = try(data.vault_kv_secret_v2.supabase.data["url"], "")
+    supabase_service_key        = try(data.vault_kv_secret_v2.supabase.data["service_key"], "")
+    supabase_anon_key           = try(data.vault_kv_secret_v2.supabase.data["anon_key"], "")
+    supabase_service_role_key   = try(data.vault_kv_secret_v2.supabase.data["service_role_key"], "")
+    supabase_db_password        = try(data.vault_kv_secret_v2.supabase.data["db_password"], "")
+    supabase_jwt_secret         = try(data.vault_kv_secret_v2.supabase.data["jwt_secret"], "")
+    supabase_dashboard_username = try(data.vault_kv_secret_v2.supabase.data["dashboard_username"], "")
+    supabase_dashboard_password = try(data.vault_kv_secret_v2.supabase.data["dashboard_password"], "")
 
-    # Archon
-    archon_anthropic_key = data.vault_kv_secret_v2.archon.data["anthropic_api_key"]
+    # Archon (try() defaults allow plan to succeed before Vault keys are populated)
+    archon_anthropic_key = try(data.vault_kv_secret_v2.archon.data["anthropic_api_key"], "")
+    openai_api_key       = try(data.vault_kv_secret_v2.archon.data["openai_api_key"], "")
   }
 }

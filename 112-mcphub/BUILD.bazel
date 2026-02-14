@@ -19,13 +19,18 @@ filegroup(
 )
 
 filegroup(
+    name = "catalog",
+    srcs = ["mcp_servers.json"],
+)
+
+filegroup(
     name = "compose",
     srcs = ["docker-compose-n8n.yml"],
 )
 
 filegroup(
     name = "n8n_workflows",
-    srcs = glob(["n8n-workflows/**"]),
+    srcs = glob(["n8n-workflows/**"], allow_empty = True),
 )
 
 filegroup(

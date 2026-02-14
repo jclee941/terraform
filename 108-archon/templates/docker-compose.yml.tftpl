@@ -1,0 +1,81 @@
+services:
+  archon-server:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.server
+    container_name: archon-server
+    ports:
+      - "${archon_server}:${archon_server}"
+    environment:
+      - SUPABASE_URL=${supabase_url}
+      - SUPABASE_ANON_KEY=${supabase_anon_key}
+      - OPENAI_API_KEY=${openai_api_key}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - LOG_LEVEL=INFO
+      - ARCHON_SERVER_PORT=${archon_server}
+      - ARCHON_MCP_PORT=${archon_mcp}
+      - ARCHON_UI_PORT=${archon_port}
+      - ARCHON_HOST=0.0.0.0
+    networks:
+      - app-network
+    command:
+      [
+        "python",
+        "-m",
+        "uvicorn",
+        "src.server.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "${archon_server}"
+      ]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${archon_server}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  archon-mcp:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.mcp
+    container_name: archon-mcp
+    ports:
+      - "${archon_mcp}:${archon_mcp}"
+    environment:
+      - SUPABASE_URL=${supabase_url}
+      - SUPABASE_ANON_KEY=${supabase_anon_key}
+      - OPENAI_API_KEY=${openai_api_key}
+      - TRANSPORT=sse
+      - ARCHON_MCP_PORT=${archon_mcp}
+      - ARCHON_SERVER_PORT=${archon_server}
+    networks:
+      - app-network
+    depends_on:
+      archon-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  archon-frontend:
+    build: ./archon-ui-main
+    container_name: archon-ui
+    ports:
+      - "${archon_port}:3737"
+    environment:
+      - VITE_ARCHON_SERVER_PORT=${archon_server}
+      - ARCHON_SERVER_PORT=${archon_server}
+      - HOST=0.0.0.0
+      - PROD=false
+      - DOCKER_ENV=true
+    networks:
+      - app-network
+    depends_on:
+      archon-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge

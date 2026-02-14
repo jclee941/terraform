@@ -78,10 +78,10 @@ terraform/                      # Multi-provider IaC monorepo root
 | **Error Tracking** | `106-glitchtip/` | GlitchTip error tracking (glitchtip.jclee.me). |
 | **Supabase BaaS** | `107-supabase/` | Backend-as-a-Service (supabase.jclee.me). |
 | **AI Knowledge Mgmt** | `108-archon/` | Archon AI with MCP server (archon.jclee.me). Standalone TF workspace. |
-| **MCP Hub** | `112-mcphub/` | MCPHub unified MCP management UI (mcphub.jclee.me). 9 stdio + 3 SSE (172 tools). |
+| **MCP Hub** | `112-mcphub/` | MCPHub unified MCP management UI (mcphub.jclee.me). SSoT: `mcp_servers.json` (24 servers). |
 | **OpenCode Gen** | `200-oc/opencode/gen/` | Config gen pipeline: 3 variants (anti/claude/copilot), 9 agents, 8 categories. |
 | **Routing** | `102-traefik/config/` | Dynamic routing (elk.yml, glitchtip.yml, mcp.yml, vault.yml, mcphub.yml). |
-| **Alerting** | `104-grafana/alerting.yaml` | 12 alert rules, 1 contact point (n8n-webhook). Slack removed. |
+| **Alerting** | `104-grafana/alerting.yaml` | 8 alert rules, 2 contact points (email, n8n-webhook). Slack removed. |
 | **CI/CD** | `.github/workflows/` | 6 workflows (alerts, milestone-automation, parallel-test, pr-review, service-access, vault-test). |
 | **Scripts** | `scripts/` | create-pr.sh, production_verification_v2.sh, terraform-drift-check.sh. |
 | **n8n Workflows** | `scripts/n8n-workflows/` + `112-mcphub/n8n-workflows/` | 8 workflow JSON definitions (6 primary + 2 pipeline). |
@@ -108,28 +108,36 @@ terraform/                      # Multi-provider IaC monorepo root
 | 300 | cloudflare | — | DNS/Tunnel/Access/R2/Secrets | Terraform (External) |
 
 ## MCP SERVERS
-**Managed via MCPHub (VM 112)**. 172 tools total.
+**SSoT: `112-mcphub/mcp_servers.json`** — Centralized catalog for all MCP servers. 24 servers total.
 
-| Server | Type | Tools | Notes |
-|--------|------|-------|-------|
-| sqlite | stdio | 10 | `mcp-server-sqlite` |
-| sequential-thinking | stdio | 1 | `@modelcontextprotocol/server-sequential-thinking` |
-| elk | stdio | 11 | `@awesome-ai/elasticsearch-mcp` |
-| websearch | stdio | 3 | `exa-mcp-server` |
-| context7 | stdio | 2 | `@upstash/context7-mcp` |
-| grafana | stdio | 43 | `@leval/mcp-grafana` |
-| terraform | stdio | 10 | `terraform-mcp-server` |
-| splunk | stdio | 11 | `splunk-mcp` |
-| glitchtip | stdio | 2 | `mcp-glitchtip` |
-| proxmox | SSE | 55 | :8055 (pino crash in stdio) |
-| playwright | SSE | 22 | :8056 (needs Chromium) |
-| cf-docs | SSE | 2 | External (docs.mcp.cloudflare.com) |
-| n8n | docker | — | :5678 workflow automation |
-| github | local | — | gh CLI auth on dev host 200 |
+| Server | Location | Port | Notes |
+|--------|----------|------|-------|
+| sqlite | hub | :8054 | `mcp-server-sqlite` |
+| proxmox | hub | :8055 | SSE sidecar (Dockerfile.proxmox) |
+| playwright | hub | :8056 | SSE sidecar (Dockerfile.playwright) |
+| sequential-thinking | hub | :8057 | `@modelcontextprotocol/server-sequential-thinking` |
+| github | hub | :8058 | `@modelcontextprotocol/server-github` |
+| git | hub | :8059 | `@cyanheads/git-mcp-server` |
+| kratos | hub | :8060 | `kratos-mcp` |
+| time | hub | :8062 | `@modelcontextprotocol/server-time` |
+| elk | hub | :8065 | `@awesome-ai/elasticsearch-mcp` |
+| websearch | hub | :8067 | `exa-mcp-server` |
+| context7 | hub | :8068 | `@upstash/context7-mcp` |
+| grafana | hub | :8069 | `@leval/mcp-grafana` |
+| terraform | hub | :8071 | `terraform-mcp-server` |
+| slack | hub | :8072 | `@nicepkg/slack-mcp` |
+| cf-dns | hub | :8073 | `@nicepkg/cloudflare-dns-mcp` |
+| splunk | hub | :8074 | `splunk-mcp` |
+| glitchtip | hub | :8075 | `mcp-glitchtip` |
+| n8n | hub | :5678 | HTTP transport, Bearer auth (env: N8N_MCP_API_KEY) |
 | in-memoria | local | — | CWD-relative storage |
 | bazel | local | — | Project-local |
-| kratos | local | — | stdio-only |
-| git | local | — | Project-local |
+| cf-docs | external | — | `docs.mcp.cloudflare.com` |
+| cf-observability | external | — | `observability.mcp.cloudflare.com` |
+| cf-radar | external | — | `radar.mcp.cloudflare.com` |
+| cf-workers | external | — | `bindings.mcp.cloudflare.com` |
+
+**Consumers**: Terraform (`mcp_settings.json.tftpl`), OpenCode gen (`config.py`), validation (`validate_mcps.py`).
 
 ## CONVENTIONS
 - **Build System**: Bazel (Google3 style). Every dir MUST have `BUILD.bazel` and `OWNERS`.

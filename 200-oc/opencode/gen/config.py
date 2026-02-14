@@ -6,6 +6,9 @@ definitions. Replaces the Terraform variables.tf data.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from model_id import AgentSpec
 
 # ---------------------------------------------------------------------------
@@ -49,75 +52,41 @@ VARIANTS: dict[str, dict] = {
 # ---------------------------------------------------------------------------
 # MCP Host
 # ---------------------------------------------------------------------------
-MCP_HOST = "192.168.50.112"
+CATALOG_PATH = Path(__file__).resolve().parents[3] / "112-mcphub" / "mcp_servers.json"
 
-# ---------------------------------------------------------------------------
-# Remote MCP Servers (running on MCP_HOST)
-# ---------------------------------------------------------------------------
-REMOTE_MCPS: dict[str, dict] = {
-    "sqlite": {"port": 8054},
-    "proxmox": {"port": 8055},
-    "playwright": {"port": 8056},
-    "sequential-thinking": {"port": 8057},
 
-    "elk": {"port": 8065},
-    "websearch": {"port": 8067},
-    "context7": {"port": 8068},
-    "grafana": {"port": 8069},
-    "terraform": {"port": 8071},
-    "splunk": {"port": 8074},
-}
+def _load_catalog() -> dict:
+    with open(CATALOG_PATH, encoding="utf-8") as f:
+        return json.load(f)
 
-# ---------------------------------------------------------------------------
-# Local MCP Servers (run on the VM itself)
+
+_catalog = _load_catalog()
+MCP_HOST = _catalog["mcp_host"]
+MCP_TIMEOUT = _catalog.get("mcp_timeout", 60000)
+
+# MCPHub gateway URL — single aggregated endpoint for all hub-hosted servers.
+MCPHUB_URL = f"http://{MCP_HOST}:3000/mcp"
+
 # ---------------------------------------------------------------------------
 LOCAL_MCPS: dict[str, dict] = {
-    "in-memoria": {
-        "command": ["npx", "-y", "in-memoria", "server"],
-        "environment": {
-            "IN_MEMORIA_BATCH_SIZE": "25",
-            "IN_MEMORIA_MAX_CONCURRENT": "5",
-            "IN_MEMORIA_LOG_LEVEL": "warn",
-        },
-    },
-    "bazel": {
-        "command": ["npx", "-y", "github:nacgarg/bazel-mcp-server"],
-    },
-    "git": {
-        "command": ["npx", "-y", "@cyanheads/git-mcp-server@latest"],
-    },
-    "kratos": {
-        "command": ["npx", "-y", "kratos-mcp"],
-    },
-    "cf-docs": {
-        "command": ["npx", "-y", "mcp-remote", "https://docs.mcp.cloudflare.com/sse"],
-    },
-    "github": {
-        "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
-        "environment": {
-            "GITHUB_PERSONAL_ACCESS_TOKEN": "",
-        },
-    },
+    name: server
+    for name, server in _catalog["servers"].items()
+    if server["location"] == "local"
 }
 
-# ---------------------------------------------------------------------------
-# N8N
-# ---------------------------------------------------------------------------
-N8N_MCP_URL = "http://192.168.50.112:5678/mcp-server/http"
-N8N_JWT = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJzdWIiOiIwMjhlMzcyZi02YTg4LTRlZTctYTY1Ny0xMTljN2MyOWM1ZWQiLCJpc3MiOiJu"
-    "OG4iLCJhdWQiOiJtY3Atc2VydmVyLWFwaSIsImp0aSI6IjZmOGM0MGMwLWVmYzAtNDQ5OC05"
-    "MzZmLWY1MGU1MjNhNzY0ZCIsImlhdCI6MTc3MDQ1NzkwN30."
-    "k0oFPJ8feVCoG28mjU5EkdUYr6hKMdXDWu2HgrLr5Jc"
-)
-MCP_TIMEOUT = 60000
+# OC VM-specific overrides for local MCPs (not in catalog SSoT).
+LOCAL_MCP_ENV_OVERRIDES: dict[str, dict[str, str]] = {
+    "in-memoria": {
+        "IN_MEMORIA_DB_FILENAME": "data/in-memoria.db",
+        "IN_MEMORIA_VECTOR_DB_PATH": "data/in-memoria-vectors.db",
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Plugins
 # ---------------------------------------------------------------------------
 PLUGINS: list[str] = [
-    "opencode-antigravity-auth@beta",
+    "opencode-antigravity-auth@latest",
     "@franlol/opencode-md-table-formatter",
     "open-trees",
     "@tarquinen/opencode-dcp@latest",
@@ -146,6 +115,10 @@ OPENCODE_BASE = {
         "leader": "ctrl+x",
         "tool_details": "<leader>d",
         "session_fork": "<leader>f",
+    },
+    "compaction": {
+        "auto": True,
+        "prune": True,
     },
 }
 
@@ -184,6 +157,35 @@ ANTIGRAVITY = {
     "tool_id_recovery": True,
     "claude_tool_hardening": True,
     "web_search": {"default_mode": "auto"},
+}
+
+# ---------------------------------------------------------------------------
+# DCP (Dynamic Context Pruning) Config
+# ---------------------------------------------------------------------------
+DCP: dict = {
+    "enabled": True,
+    "debug": False,
+    "pruneNotification": "detailed",
+    "pruneNotificationType": "chat",
+    "commands": {"enabled": True, "protectedTools": []},
+    "turnProtection": {"enabled": False, "turns": 4},
+    "protectedFilePatterns": [],
+    "tools": {
+        "settings": {
+            "nudgeEnabled": True,
+            "nudgeFrequency": 10,
+            "protectedTools": [],
+            "contextLimit": "80%",
+        },
+        "distill": {"permission": "allow", "showDistillation": False},
+        "compress": {"permission": "allow", "showCompression": False},
+        "prune": {"permission": "allow"},
+    },
+    "strategies": {
+        "deduplication": {"enabled": True, "protectedTools": []},
+        "supersedeWrites": {"enabled": False},
+        "purgeErrors": {"enabled": True, "turns": 4, "protectedTools": []},
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -226,7 +228,7 @@ GOOGLE_MODELS: dict[str, dict] = {
         },
     },
     "antigravity-claude-sonnet-4-5": {
-        "name": "Claude Sonnet 4.6 (Antigravity)",
+        "name": "Claude Sonnet 4.5 (Antigravity)",
         "limit": {"context": 200000, "output": 64000},
         "modalities": {
             "input": ["text", "image", "pdf"],
@@ -265,26 +267,34 @@ GOOGLE_MODELS: dict[str, dict] = {
 GITHUB_COPILOT_MODELS: dict[str, dict] = {
     "claude-haiku-4.5": {
         "name": "Claude Haiku 4.5 (GitHub Copilot)",
-        "limit": {"context": 200000, "output": 8192},
+        "limit": {"context": 200000, "output": 64000},
         "modalities": {
-            "input": ["text"],
+            "input": ["text", "image", "pdf"],
             "output": ["text"],
         },
     },
     "claude-sonnet-4.5": {
         "name": "Claude Sonnet 4.5 (GitHub Copilot)",
-        "limit": {"context": 200000, "output": 8192},
+        "limit": {"context": 200000, "output": 64000},
         "modalities": {
-            "input": ["text"],
+            "input": ["text", "image", "pdf"],
             "output": ["text"],
+        },
+        "variants": {
+            "low": {"thinkingConfig": {"thinkingBudget": 8192}},
+            "max": {"thinkingConfig": {"thinkingBudget": 32768}},
         },
     },
     "claude-opus-4.6": {
         "name": "Claude Opus 4.6 (GitHub Copilot)",
-        "limit": {"context": 200000, "output": 8192},
+        "limit": {"context": 200000, "output": 64000},
         "modalities": {
-            "input": ["text"],
+            "input": ["text", "image", "pdf"],
             "output": ["text"],
+        },
+        "variants": {
+            "low": {"thinkingConfig": {"thinkingBudget": 8192}},
+            "max": {"thinkingConfig": {"thinkingBudget": 32768}},
         },
     },
 }

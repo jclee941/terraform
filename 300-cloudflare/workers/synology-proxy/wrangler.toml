@@ -10,5 +10,5 @@ binding = "SYNOLOGY_CACHE"
 bucket_name = "synology-cache"
 
 [vars]
-SYNOLOGY_API_URL = "https://nas.example.com"
+SYNOLOGY_API_URL = "https://nas.jclee.me"
 ENVIRONMENT = "production"

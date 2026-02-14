@@ -4,7 +4,7 @@ WORKDIR /app
 RUN npm install -g mcp-proxy@6.4.0
 RUN npm install --save @playwright/mcp@latest
 
-RUN npx playwright install --with-deps chromium
+RUN npx playwright install --with-deps chromium chrome
 
 ENV PLAYWRIGHT_MCP_HEADLESS=true
 EXPOSE 8056

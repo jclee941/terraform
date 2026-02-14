@@ -1,25 +1,35 @@
 # 112-MCPHUB — Unified AI & Workflow Hub
 
 ## OVERVIEW
-Unified Model Context Protocol (MCP) management and workflow automation hub. Consolidates multi-provider AI tools (172+ tools) and local infrastructure automation (n8n). Provides a web-based management UI via mcphub.jclee.me.
+Unified Model Context Protocol (MCP) management and workflow automation hub. Consolidates multi-provider AI tools (24 servers) and local infrastructure automation (n8n). Provides a web-based management UI via mcphub.jclee.me.
 
 ## ARCHITECTURE
-**Hybrid Implementation:**
-- **Stdio Servers:** 9 servers run via `npx` directly inside the `mcphub` container (e.g., `sqlite`, `terraform`, `grafana`).
-- **SSE Sidecars:** 2 local proxies (`proxmox`, `playwright`) run in dedicated containers to handle long-running or resource-intensive tasks, avoiding pino crashes and isolation issues.
-- **SSE External:** `cf-docs` proxied directly to Cloudflare via external SSE.
+**SSoT Catalog:** `mcp_servers.json` is the Single Source of Truth for ALL MCP server definitions across the monorepo. Both Terraform (`mcp_settings.json.tftpl`) and OpenCode gen pipeline (`200-oc/opencode/gen/config.py`) consume this catalog.
+
+**Server Locations:**
+- **Hub (18):** Run on MCPHub VM 112. Stdio servers auto-exposed as SSE by MCPHub. SSE sidecars run in dedicated containers. Ports 5678, 8054-8075.
+- **Local (2):** Run on dev machine only (`bazel`, `in-memoria`). Never deployed to MCPHub.
+- **External (4):** Third-party SSE endpoints (`cf-docs`, `cf-observability`, `cf-radar`, `cf-workers`).
+
+**Transport Types:**
+- **Stdio:** 15 servers run via `npx` inside MCPHub container, auto-proxied to SSE.
+- **SSE Sidecars:** 2 servers (`proxmox`, `playwright`) in dedicated Docker containers.
+- **HTTP:** 1 server (`n8n`) with Bearer auth at `:5678/mcp-server/http`.
 - **Workflow Engine:** n8n runs as a sidecar for service-to-service automation and incident routing.
 
 ## WHERE TO LOOK
-- `templates/`: SSoT for configuration templates (`mcp_settings.json.tftpl`, `docker-compose.yml.tftpl`).
+- `mcp_servers.json`: **SSoT** — Canonical catalog of ALL MCP servers (hub/local/external).
+- `templates/`: Configuration templates rendered by Terraform (`mcp_settings.json.tftpl`, `docker-compose.yml.tftpl`).
+- `validate_mcps.py`: Validation script for catalog schema, port uniqueness, secret detection.
 - `n8n-workflows/`: JSON definitions for critical automation (GitHub issue sync, error pipelines).
 - `Dockerfile.*`: Specialized sidecar builds for SSE proxies.
 - `config/filebeat.yml`: Log shipping configuration with strict `max_bytes` size caps to prevent memory leaks.
 
 ## CONVENTIONS
+- **SSoT Catalog:** Add/modify MCP servers ONLY in `mcp_servers.json`. Downstream consumers auto-sync.
 - **SSE Migration:** Transition servers from stdio to SSE sidecars if they require native dependencies or exhibit high latency.
-- **Port Mapping:** SSE sidecars use the `8050-8060` range for unified discovery.
-- **Secrets:** All API keys and tokens must be injected via `.env` file (managed via Vault Agent).
+- **Port Mapping:** Hub servers use ports 8054-8075. n8n uses 5678.
+- **Secrets:** All API keys and tokens must be injected via `.env` file (managed via Vault Agent). Use `${}` placeholders in catalog, NEVER real tokens.
 
 ## ANTI-PATTERNS
 - **NO manual Docker edits:** Never `docker exec` to change internal configs; always update `templates/` and re-apply via Terraform.

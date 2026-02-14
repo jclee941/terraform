@@ -7,13 +7,11 @@ model_id.py, and writes JSON configs + rendered Jinja2 templates to
 Usage::
 
     python3 gen/generate.py            # Generate all variants
-    N8N_MCP_API_KEY=xxx python3 gen/generate.py  # With n8n token
 """
 
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -28,15 +26,13 @@ from config import (
     FORMATTER,
     GITHUB_COPILOT_MODELS,
     GOOGLE_MODELS,
+    LOCAL_MCP_ENV_OVERRIDES,
     LOCAL_MCPS,
-    MCP_HOST,
+    MCPHUB_URL,
     MCP_TIMEOUT,
-    N8N_JWT,
-    N8N_MCP_URL,
     OC_PATHS,
     OPENCODE_BASE,
     PLUGINS,
-    REMOTE_MCPS,
     VARIANTS,
 )
 from model_id import resolve_agents, resolve_categories
@@ -64,31 +60,34 @@ def _build_opencode_json(variant: str, cfg: dict) -> dict:
     # -- MCP servers ----------------------------------------------------------
     mcp: dict[str, Any] = {}
 
-    # n8n (streamable HTTP with JWT auth)
-    mcp["n8n"] = {
+    # MCPHub gateway — single aggregated endpoint for all hub-hosted servers.
+    mcp["mcphub"] = {
         "type": "remote",
-        "url": N8N_MCP_URL,
-        "headers": {"Authorization": f"Bearer {N8N_JWT}"},
+        "url": MCPHUB_URL,
+        "transport": "streamable-http",
         "timeout": MCP_TIMEOUT,
     }
 
-    # Remote SSE servers on MCP_HOST
-    for name, mcfg in REMOTE_MCPS.items():
-        mcp[name] = {
-            "type": "remote",
-            "url": f"http://{MCP_HOST}:{mcfg['port']}/sse",
+    # Local MCPs (run on OC VM directly).
+    for name, mcfg in LOCAL_MCPS.items():
+        cmd = [mcfg["command"]] + mcfg.get("args", [])
+        entry: dict[str, Any] = {
+            "type": "local",
+            "command": cmd,
             "timeout": MCP_TIMEOUT,
         }
 
-    # Local stdio servers
-    for name, mcfg in LOCAL_MCPS.items():
-        entry: dict[str, Any] = {
-            "type": "local",
-            "command": mcfg["command"],
-            "timeout": MCP_TIMEOUT,
+        # Merge catalog env with OC VM-specific overrides.
+        env_base = {
+            k: v
+            for k, v in (mcfg.get("env") or {}).items()
+            if not isinstance(v, str) or not v.startswith("${")
         }
-        if "environment" in mcfg:
-            entry["environment"] = mcfg["environment"]
+        env_overrides = LOCAL_MCP_ENV_OVERRIDES.get(name, {})
+        env = {**env_base, **env_overrides}
+        if env:
+            entry["environment"] = env
+
         mcp[name] = entry
 
     # -- Assemble top-level config -------------------------------------------
@@ -106,6 +105,7 @@ def _build_opencode_json(variant: str, cfg: dict) -> dict:
         "mcp": mcp,
         "permission": OPENCODE_BASE["permission"],
         "experimental": OPENCODE_BASE["experimental"],
+        "compaction": OPENCODE_BASE["compaction"],
         "small_model": OPENCODE_BASE["small_model"],
         "formatter": FORMATTER,
         "keybinds": OPENCODE_BASE["keybinds"],
@@ -116,7 +116,12 @@ def _build_oh_my_opencode_json(variant: str) -> dict:
     """Build oh-my-opencode.json for a variant using resolved model IDs."""
     agents = resolve_agents(variant, AGENTS)
     categories = resolve_categories(variant, CATEGORIES)
-    return {"agents": agents, "categories": categories}
+    return {
+        "$schema": "oh-my-opencode.schema.json",
+        "google_auth": False,
+        "agents": agents,
+        "categories": categories,
+    }
 
 
 def _build_antigravity_json() -> dict:

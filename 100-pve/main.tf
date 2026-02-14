@@ -55,13 +55,34 @@ module "env_config" {
 locals {
   node_name = var.node_name
 
+  mcp_catalog = jsondecode(file("${path.module}/../112-mcphub/mcp_servers.json"))
+  mcp_hub_servers = {
+    for k, v in local.mcp_catalog.servers : k => v
+    if v.location == "hub"
+  }
+  mcp_hub_stdio_servers = {
+    for k, v in local.mcp_hub_servers : k => v
+    if lookup(v, "transport", "stdio") == "stdio"
+  }
+  mcp_hub_sse_servers = {
+    for k, v in local.mcp_hub_servers : k => v
+    if lookup(v, "transport", "stdio") == "sse"
+  }
+  mcp_hub_http_servers = {
+    for k, v in local.mcp_hub_servers : k => v
+    if lookup(v, "transport", "stdio") == "http"
+  }
+
   # Container sizing (IP/VMID from module.hosts, sizing here)
+  # Memory budget: 53 GB total allocated on 60.45 GB physical (87.7%)
   container_sizing = {
-    runner    = { memory = 2048, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
+    runner    = { memory = 1536, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
     traefik   = { memory = 512, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    grafana   = { memory = 2048, cores = 2, disk_size = 16, description = "Grafana + Loki Observability Stack" }
-    elk       = { memory = 12288, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
-    glitchtip = { memory = 2048, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
+    grafana   = { memory = 1024, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
+    elk       = { memory = 8192, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana, ElastAlert2)" }
+    glitchtip = { memory = 1024, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
+    supabase  = { memory = 4096, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
+    archon    = { memory = 3072, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -591,6 +612,44 @@ module "lxc_config" {
         }
       }
     }
+
+    supabase = {
+      vmid       = module.hosts.hosts.supabase.vmid
+      hostname   = "supabase"
+      ip_address = module.hosts.hosts.supabase.ip
+      deploy     = var.deploy_lxc_configs
+
+      docker_compose = {
+        path    = "/opt/supabase/docker-compose.yml"
+        content = module.config_renderer.rendered_configs.supabase_docker_compose
+      }
+
+      config_files = {
+        "supabase.env" = {
+          path    = "/opt/supabase/.env"
+          content = module.config_renderer.rendered_configs.supabase_env
+        }
+      }
+    }
+
+    archon = {
+      vmid       = module.hosts.hosts.archon.vmid
+      hostname   = "archon"
+      ip_address = module.hosts.hosts.archon.ip
+      deploy     = var.deploy_lxc_configs
+
+      docker_compose = {
+        path    = "/opt/archon/docker-compose.yml"
+        content = module.config_renderer.rendered_configs.archon_docker_compose
+      }
+
+      config_files = {
+        "archon.env" = {
+          path    = "/opt/archon/.env"
+          content = module.config_renderer.rendered_configs.archon_env
+        }
+      }
+    }
   }
 }
 
@@ -619,8 +678,17 @@ module "vault_secrets" {
 module "config_renderer" {
   source = "../modules/proxmox/config-renderer"
 
-  template_vars = merge(module.env_config.template_vars, module.vault_secrets.secrets)
-  output_dir    = "${path.module}/configs/rendered"
+  template_vars = merge(
+    module.env_config.template_vars,
+    module.vault_secrets.secrets,
+    {
+      mcp_catalog_json     = jsonencode(local.mcp_catalog)
+      mcp_hub_servers_json = jsonencode(local.mcp_hub_servers)
+      mcp_hub_stdio_json   = jsonencode(local.mcp_hub_stdio_servers)
+      mcp_hub_sse_json     = jsonencode(local.mcp_hub_sse_servers)
+    }
+  )
+  output_dir = "${path.module}/configs/rendered"
 
   template_files = {
     grafana_datasources = {
@@ -695,6 +763,22 @@ module "config_renderer" {
     glitchtip_env = {
       source = "${path.module}/../106-glitchtip/templates/glitchtip.env.tftpl"
       output = "glitchtip/glitchtip.env"
+    }
+    supabase_docker_compose = {
+      source = "${path.module}/../107-supabase/templates/docker-compose.yml.tftpl"
+      output = "supabase/docker-compose.yml"
+    }
+    supabase_env = {
+      source = "${path.module}/../107-supabase/templates/.env.tftpl"
+      output = "supabase/.env"
+    }
+    archon_docker_compose = {
+      source = "${path.module}/../108-archon/templates/docker-compose.yml.tftpl"
+      output = "archon/docker-compose.yml"
+    }
+    archon_env = {
+      source = "${path.module}/../108-archon/templates/.env.tftpl"
+      output = "archon/.env"
     }
     mcphub_docker_compose = {
       source = "${path.module}/../112-mcphub/templates/docker-compose.yml.tftpl"

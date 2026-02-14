@@ -36,7 +36,7 @@ variable "github_token" {
 variable "vault_address" {
   description = "Vault server address"
   type        = string
-  default     = "http://192.168.50.111:8200"
+  default     = "http://192.168.50.112:8200"
 }
 
 variable "vault_token" {

@@ -10,6 +10,26 @@ input {
 }
 
 filter {
+  # Filebeat 8.x container input puts log text in [event][original], not [message].
+  # Copy it to [message] so downstream grok/json filters work correctly.
+  if ![message] and [event][original] {
+    mutate {
+      copy => { "[event][original]" => "message" }
+    }
+  }
+
+  # Extract host metadata from Filebeat fields
+  if [host][name] and ![host_name] {
+    mutate {
+      add_field => { "host_name" => "%%{[host][name]}" }
+    }
+  }
+  if [container][name] and ![container_name] {
+    mutate {
+      add_field => { "container_name" => "%%{[container][name]}" }
+    }
+  }
+
   # Truncate oversized messages to prevent OOM (Defense in depth)
   if [message] {
     truncate {
@@ -73,8 +93,13 @@ filter {
     }
     if [level] {
       mutate { lowercase => [ "level" ] }
+      # Normalize common level aliases
       if [level] == "warning" {
         mutate { replace => { "level" => "warn" } }
+      } else if [level] == "err" {
+        mutate { replace => { "level" => "error" } }
+      } else if [level] in ["crit", "critical"] {
+        mutate { replace => { "level" => "fatal" } }
       }
     }
   }
@@ -93,7 +118,8 @@ filter {
     mutate {
       add_field => {
         "tier" => "1"
-        "error_code" => "CRITICAL_FAILURE"
+        "error_classification" => "CRITICAL_FAILURE"
+        "error_severity" => "critical"
       }
     }
   } else if [level] == "error" {
@@ -101,42 +127,48 @@ filter {
       mutate {
         add_field => {
           "tier" => "1"
-          "error_code" => "RESOURCE_EXHAUSTION"
+          "error_classification" => "RESOURCE_EXHAUSTION"
+          "error_severity" => "critical"
         }
       }
     } else if [message] =~ /(?i)(connection refused|timeout|unreachable|dns|ECONNREFUSED|ETIMEDOUT)/ {
       mutate {
         add_field => {
           "tier" => "2"
-          "error_code" => "CONNECTIVITY_FAILURE"
+          "error_classification" => "CONNECTIVITY_FAILURE"
+          "error_severity" => "high"
         }
       }
     } else if [message] =~ /(?i)(502|503|504|bad gateway|service unavailable)/ {
       mutate {
         add_field => {
           "tier" => "2"
-          "error_code" => "GATEWAY_ERROR"
+          "error_classification" => "GATEWAY_ERROR"
+          "error_severity" => "high"
         }
       }
     } else if [message] =~ /(?i)(auth|unauthorized|forbidden|401|403|permission denied)/ {
       mutate {
         add_field => {
           "tier" => "3"
-          "error_code" => "AUTH_FAILURE"
+          "error_classification" => "AUTH_FAILURE"
+          "error_severity" => "medium"
         }
       }
     } else if [message] =~ /(?i)(null|undefined|NaN|type.*error|cast|parse|syntax|JSON)/ {
       mutate {
         add_field => {
           "tier" => "3"
-          "error_code" => "DATA_ERROR"
+          "error_classification" => "DATA_ERROR"
+          "error_severity" => "medium"
         }
       }
     } else {
       mutate {
         add_field => {
           "tier" => "3"
-          "error_code" => "APPLICATION_ERROR"
+          "error_classification" => "APPLICATION_ERROR"
+          "error_severity" => "medium"
         }
       }
     }
@@ -145,14 +177,16 @@ filter {
       mutate {
         add_field => {
           "tier" => "4"
-          "error_code" => "DEPRECATION"
+          "error_classification" => "DEPRECATION"
+          "error_severity" => "low"
         }
       }
     } else {
       mutate {
         add_field => {
           "tier" => "4"
-          "error_code" => "WARNING"
+          "error_classification" => "WARNING"
+          "error_severity" => "low"
         }
       }
     }

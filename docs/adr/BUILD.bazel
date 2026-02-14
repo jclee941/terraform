@@ -1,0 +1,11 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "adr",
+    srcs = glob(["*.md"]),
+)
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+)

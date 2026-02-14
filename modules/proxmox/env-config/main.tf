@@ -92,8 +92,6 @@ locals {
     elasticsearch_index_pattern = "logs-%%{+YYYY.MM.dd}"
     ilm_delete_after            = "30d"
     ilm_policy_name             = "homelab-logs-30d"
-    ilm_delete_after            = "30d"
-    ilm_policy_name             = "homelab-logs-30d"
     # Synology NAS
     synology_ip    = var.hosts.synology.ip
     synology_ports = var.hosts.synology.ports
@@ -101,6 +99,7 @@ locals {
     supabase_ip     = var.hosts.supabase.ip
     supabase_port   = var.hosts.supabase.ports.api
     supabase_studio = var.hosts.supabase.ports.studio
+    supabase_ports  = var.hosts.supabase.ports
     # Archon (108)
     archon_ip     = var.hosts.archon.ip
     archon_port   = var.hosts.archon.ports.ui

@@ -1,0 +1,17 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "terraform",
+    srcs = glob(
+        ["*.tf"],
+        exclude = ["*.tfvars"],
+    ),
+)
+
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":terraform",
+        "OWNERS",
+    ],
+)

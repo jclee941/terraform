@@ -48,6 +48,19 @@ backup: ## Create encrypted Terraform state backup
 drift-check: ## Check for Terraform drift
 	./scripts/terraform-drift-check.sh
 
+## OpenCode Config
+
+VARIANT ?= copilot
+
+deploy-opencode: ## Deploy OpenCode config to VM 200 (VARIANT=copilot)
+	./200-oc/opencode/deploy.sh $(VARIANT)
+
+deploy-opencode-dry: ## Dry-run OpenCode deploy (VARIANT=copilot)
+	./200-oc/opencode/deploy.sh $(VARIANT) --dry-run
+
+gen-opencode: ## Generate OpenCode config only (VARIANT=copilot)
+	./200-oc/opencode/deploy.sh $(VARIANT) --gen
+
 ## Pre-commit
 
 pre-commit-install: ## Install pre-commit hooks

@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "MCP Server Catalog — Single Source of Truth for all MCP server definitions. Consumed by: Terraform (mcp_settings.json rendering), OpenCode gen pipeline (config.py), validation scripts.",
+  "mcp_host": "192.168.50.112",
+  "mcp_timeout": 60000,
+  "servers": {
+    "sqlite": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-server-sqlite"],
+      "port": 8054,
+      "description": "SQLite database operations"
+    },
+    "proxmox": {
+      "location": "hub",
+      "transport": "sse",
+      "port": 8055,
+      "sidecar": true,
+      "docker_service": "mcp-proxmox",
+      "dockerfile": "Dockerfile.proxmox",
+      "description": "Proxmox VE cluster management"
+    },
+    "playwright": {
+      "location": "hub",
+      "transport": "sse",
+      "port": 8056,
+      "sidecar": true,
+      "docker_service": "mcp-playwright",
+      "dockerfile": "Dockerfile.playwright",
+      "description": "Browser automation via Playwright"
+    },
+    "sequential-thinking": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "port": 8057,
+      "description": "Sequential reasoning and chain-of-thought"
+    },
+    "github": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "port": 8058,
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "description": "GitHub API operations"
+    },
+    "git": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@cyanheads/git-mcp-server@latest"],
+      "port": 8059,
+      "description": "Git repository operations"
+    },
+    "kratos": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "kratos-mcp"],
+      "port": 8060,
+      "description": "Ory Kratos identity management"
+    },
+    "time": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-time"],
+      "port": 8062,
+      "description": "Time and timezone utilities"
+    },
+    "elk": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@awesome-ai/elasticsearch-mcp"],
+      "port": 8065,
+      "description": "Elasticsearch query and management"
+    },
+    "websearch": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server"],
+      "port": 8067,
+      "env": {
+        "EXA_API_KEY": "${EXA_API_KEY}"
+      },
+      "description": "Web search via Exa"
+    },
+    "context7": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "port": 8068,
+      "description": "Library documentation lookup"
+    },
+    "grafana": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@leval/mcp-grafana"],
+      "port": 8069,
+      "description": "Grafana dashboard and alerting"
+    },
+    "terraform": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "terraform-mcp-server"],
+      "port": 8071,
+      "description": "Terraform plan and state inspection"
+    },
+    "slack": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@nicepkg/slack-mcp"],
+      "port": 8072,
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
+      },
+      "description": "Slack messaging and channel management"
+    },
+    "cf-dns": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@nicepkg/cloudflare-dns-mcp"],
+      "port": 8073,
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}"
+      },
+      "description": "Cloudflare DNS management"
+    },
+    "splunk": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "splunk-mcp"],
+      "port": 8074,
+      "description": "Splunk search and analysis"
+    },
+    "glitchtip": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-glitchtip"],
+      "port": 8075,
+      "description": "GlitchTip error tracking"
+    },
+    "n8n": {
+      "location": "hub",
+      "transport": "http",
+      "port": 5678,
+      "path": "/mcp-server/http",
+      "auth": {
+        "type": "bearer",
+        "env_var": "N8N_MCP_API_KEY"
+      },
+      "description": "n8n workflow automation"
+    },
+    "in-memoria": {
+      "location": "local",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "in-memoria", "server"],
+      "env": {
+        "IN_MEMORIA_BATCH_SIZE": "25",
+        "IN_MEMORIA_MAX_CONCURRENT": "5",
+        "IN_MEMORIA_LOG_LEVEL": "warn"
+      },
+      "description": "Persistent memory and context management"
+    },
+    "bazel": {
+      "location": "local",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "github:nacgarg/bazel-mcp-server"],
+      "description": "Bazel build system operations"
+    },
+    "cf-docs": {
+      "location": "hub",
+      "transport": "sse",
+      "url": "https://docs.mcp.cloudflare.com/sse",
+      "description": "Cloudflare developer documentation"
+    },
+    "cf-observability": {
+      "location": "hub",
+      "transport": "sse",
+      "url": "https://observability.mcp.cloudflare.com/mcp",
+      "description": "Cloudflare observability and analytics"
+    },
+    "cf-radar": {
+      "location": "hub",
+      "transport": "sse",
+      "url": "https://radar.mcp.cloudflare.com/mcp",
+      "description": "Cloudflare Radar internet intelligence"
+    },
+    "cf-workers": {
+      "location": "hub",
+      "transport": "sse",
+      "url": "https://bindings.mcp.cloudflare.com/mcp",
+      "description": "Cloudflare Workers and bindings"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "theme": "tokyo-night",
+  "theme": "tron",
   "default_agent": "Sisyphus",
   "username": "jclee",
 
@@ -52,36 +52,36 @@
           "variants": { "low": { "thinkingConfig": { "thinkingBudget": 8192 } }, "max": { "thinkingConfig": { "thinkingBudget": 32768 } } }
         }
       }
+    },
+    "github-copilot": {
+      "models": {
+        "claude-opus-4.6": {
+          "name": "Claude Opus 4.6 (GitHub Copilot)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": { "low": { "thinkingConfig": { "thinkingBudget": 8192 } }, "max": { "thinkingConfig": { "thinkingBudget": 32768 } } }
+        },
+        "claude-sonnet-4.5": {
+          "name": "Claude Sonnet 4.5 (GitHub Copilot)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": { "low": { "thinkingConfig": { "thinkingBudget": 8192 } }, "max": { "thinkingConfig": { "thinkingBudget": 32768 } } }
+        },
+        "claude-haiku-4.5": {
+          "name": "Claude Haiku 4.5 (GitHub Copilot)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        }
+      }
     }
   },
 
   "mcp": {
-    "n8n": {
-      "type": "remote",
-      "url": "",
-      "headers": { "Authorization": "Bearer ", "Accept": "application/json, text/event-stream" },
-      "timeout": 60000
-    },
-    "cf-dns": { "type": "remote", "url": "http://192.168.50.112:8073/sse", "timeout": 60000 },
-    "context7": { "type": "remote", "url": "http://192.168.50.112:8068/sse", "timeout": 60000 },
-    "elk": { "type": "remote", "url": "http://192.168.50.112:8065/sse", "timeout": 60000 },
-    "git": { "type": "remote", "url": "http://192.168.50.112:8059/sse", "timeout": 60000 },
-    "github": { "type": "remote", "url": "http://192.168.50.112:8058/sse", "timeout": 60000 },
-    "grafana": { "type": "remote", "url": "http://192.168.50.112:8069/sse", "timeout": 60000 },
-    "kratos": { "type": "remote", "url": "http://192.168.50.112:8060/sse", "timeout": 60000 },
-    "playwright": { "type": "remote", "url": "http://192.168.50.112:8056/sse", "timeout": 60000 },
-    "proxmox": { "type": "remote", "url": "http://192.168.50.112:8055/sse", "timeout": 60000 },
-    "sequential-thinking": { "type": "remote", "url": "http://192.168.50.112:8057/sse", "timeout": 60000 },
-    "slack": { "type": "remote", "url": "http://192.168.50.112:8072/sse", "timeout": 60000 },
-    "sqlite": { "type": "remote", "url": "http://192.168.50.112:8054/sse", "timeout": 60000 },
-    "terraform": { "type": "remote", "url": "http://192.168.50.112:8071/sse", "timeout": 60000 },
-    "time": { "type": "remote", "url": "http://192.168.50.112:8062/sse", "timeout": 60000 },
-    "websearch": { "type": "remote", "url": "http://192.168.50.112:8067/sse", "timeout": 60000 },
+    // MCPHub gateway — single aggregated endpoint for all hub-hosted MCP servers
+    "mcphub": { "type": "remote", "url": "http://192.168.50.112:3000/mcp", "transport": "streamable-http", "timeout": 60000 },
+    // Local MCPs (run on OC VM directly)
     "bazel": { "type": "local", "command": ["npx","-y","github:nacgarg/bazel-mcp-server"], "timeout": 60000 },
-    "cf-observability": { "type": "local", "command": ["npx","-y","mcp-remote","https://observability.mcp.cloudflare.com/mcp"], "timeout": 60000 },
-    "cf-radar": { "type": "local", "command": ["npx","-y","mcp-remote","https://radar.mcp.cloudflare.com/mcp"], "timeout": 60000 },
-    "cf-workers": { "type": "local", "command": ["npx","-y","mcp-remote","https://bindings.mcp.cloudflare.com/mcp"], "timeout": 60000 },
-    "in-memoria": { "type": "local", "command": ["npx","-y","in-memoria","server"], "timeout": 120000, "environment": {"IN_MEMORIA_BATCH_SIZE":"25","IN_MEMORIA_DB_FILENAME":"data/in-memoria.db","IN_MEMORIA_LOG_LEVEL":"warn","IN_MEMORIA_MAX_CONCURRENT":"5","IN_MEMORIA_VECTOR_DB_PATH":"data/in-memoria-vectors.db"} }
+    "in-memoria": { "type": "local", "command": ["npx","-y","in-memoria","server"], "timeout": 120000, "environment": {"IN_MEMORIA_BATCH_SIZE":"25","IN_MEMORIA_DB_FILENAME":"data/in-memoria.db","IN_MEMORIA_LOG_LEVEL":"warn","IN_MEMORIA_MAX_CONCURRENT":"5","IN_MEMORIA_VECTOR_DB_PATH":"data/in-memoria-vectors.db"} },
   },
 
   "permission": { "*": "allow" },
