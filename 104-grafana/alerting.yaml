@@ -327,7 +327,7 @@ groups:
               to: 0
             datasourceUid: P31C819B24CF3C3C7
             model:
-              query: "host:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR oc)"
+              query: "host:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR oc OR supabase OR archon)"
               alias: ""
               bucketAggs:
                 - field: "host.keyword"
@@ -759,5 +759,111 @@ groups:
         annotations:
           summary: "SSL certificate expiring soon for {{ $labels.instance }}"
           description: "Certificate for {{ $labels.instance }} expires in {{ $values.B.Value | printf \"%.1f\" }} days"
+        labels:
+          severity: warning
+
+      - uid: memory-pressure
+        title: Memory Pressure High (>85%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: '(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100'
+              intervalMs: 30000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 85
+                  operator:
+                    type: and
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Memory pressure above 85% on {{ $labels.instance }}"
+          description: "Available memory on {{ $labels.instance }} is at {{ $values.B.Value | printf \"%.1f\" }}% utilization"
+        labels:
+          severity: warning
+
+      - uid: container-restart-loop
+        title: Container Restart Loop Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: P31C819B24CF3C3C7
+            model:
+              query: 'message:("container restart" OR "Restarting" OR "unhealthy" OR "OOMKilled") AND host:(supabase OR archon OR mcphub OR elk OR glitchtip OR grafana)'
+              alias: ""
+              bucketAggs:
+                - field: "@timestamp"
+                  id: "2"
+                  settings:
+                    interval: auto
+                  type: date_histogram
+              metrics:
+                - id: "1"
+                  type: count
+              timeField: "@timestamp"
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              settings:
+                mode: dropNN
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+                  operator:
+                    type: and
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Container restart loop detected"
+          description: "{{ $values.B.Value }} container restart events in the last hour across Docker hosts"
         labels:
           severity: warning

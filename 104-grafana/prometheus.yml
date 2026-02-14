@@ -9,59 +9,45 @@ scrape_configs:
 
   - job_name: 'node'
     static_configs:
-      - targets: ['localhost:9100']
+      - targets: ['192.168.50.104:9100']
 
   - job_name: 'traefik'
+    metrics_path: /metrics
     static_configs:
       - targets: ['192.168.50.102:8080']
 
   - job_name: 'infrastructure-nodes'
     static_configs:
       - targets:
-          - '192.168.50.100:9100'  # pve
-          - '192.168.50.102:9100'  # traefik
-          - '192.168.50.103:9100'  # terraform
-          - '192.168.50.104:9100'  # grafana (self)
-          - '192.168.50.105:9100'  # elk
-          - '192.168.50.112:9100'  # mcphub
-    relabel_configs:
-      - source_labels: [__address__]
-        regex: '192\.168\.50\.(\d+):.*'
-        replacement: '${1}'
-        target_label: vmid
-
-  - job_name: 'elasticsearch'
-    metrics_path: /_prometheus/metrics
-    static_configs:
-      - targets: ['192.168.50.105:9200']
-    relabel_configs:
-      - target_label: service
-        replacement: elasticsearch
-
-  - job_name: 'logstash-errors'
-    metrics_path: /metrics
-    static_configs:
-      - targets: ['192.168.50.105:9198']
-    relabel_configs:
-      - target_label: service
-        replacement: logstash
+          - '192.168.50.101:9100'   # runner
+          - '192.168.50.102:9100'   # traefik
+          - '192.168.50.104:9100'   # grafana
+          - '192.168.50.105:9100'   # elk
+          - '192.168.50.106:9100'   # glitchtip
+          - '192.168.50.107:9100'   # supabase
+          - '192.168.50.108:9100'   # archon
+          - '192.168.50.112:9100'   # mcphub
+          - '192.168.50.200:9100'   # oc
+          - '192.168.50.220:9100'   # sandbox
 
   - job_name: 'blackbox-http'
     metrics_path: /probe
     params:
-      module: [http_2xx_no_tls]
+      module: [http_2xx]
     static_configs:
       - targets:
-          - 'http://192.168.50.112:5678/healthz'       # n8n
-          - 'http://192.168.50.106:8000/_health/'       # glitchtip
-          - 'http://192.168.50.112:3000/'               # mcphub
-          - 'http://192.168.50.102:8080/api/overview'   # traefik
-          - 'http://192.168.50.105:9200/_cluster/health' # elasticsearch
-          - 'http://localhost:3000/api/health'           # grafana
+          - 'http://192.168.50.112:5678'    # n8n
+          - 'http://192.168.50.106:8000'    # glitchtip
+          - 'http://192.168.50.112:3000'    # mcphub
+          - 'http://192.168.50.102:80'      # traefik
+          - 'http://192.168.50.105:9200'    # elasticsearch
+          - 'http://192.168.50.104:3000'    # grafana
+          - 'http://192.168.50.107:8000'    # supabase
+          - 'http://192.168.50.108:3737'    # archon
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: localhost:9115
+        replacement: blackbox:9115

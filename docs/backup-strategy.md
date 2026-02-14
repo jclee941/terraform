@@ -1,8 +1,8 @@
 # Backup Strategy for jclee.me Homelab
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-02-11  
-**Status:** Active  
+**Document Version:** 1.0
+**Last Updated:** 2026-02-11
+**Status:** Active
 **Issue Reference:** #34
 
 ## Overview
@@ -17,6 +17,8 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 | 104 | grafana | LXC | 02:00 UTC daily | Observability stack |
 | 105 | elk | LXC | 02:00 UTC daily | ELK logging / Elasticsearch |
 | 106 | glitchtip | LXC | 02:00 UTC daily | Error tracking |
+| 107 | supabase | LXC | 02:00 UTC daily | Supabase BaaS (PostgreSQL, Auth, Storage) |
+| 108 | archon | LXC | 02:00 UTC daily | AI Knowledge Management (Archon) |
 | 112 | mcphub | VM | 03:00 UTC daily | MCP Hub + n8n automation |
 
 ### What's NOT Backed Up (Non-Critical)
@@ -58,13 +60,13 @@ Oldest backup automatically deleted: ~2025-11-11 (90 days old)
 
 ## Backup Execution Details
 
-### LXC Containers (102, 104, 105, 106)
+### LXC Containers (102, 104, 105, 106, 107, 108)
 
 **Schedule**: Daily at **02:00 UTC** (9:00 PM UTC-5)
 **Command**:
 ```bash
 pvesh create /cluster/backup \
-  --vmid 102,104,105,106 \
+  --vmid 102,104,105,106,107,108 \
   --schedule "0 2 * * *" \
   --storage local \
   --mode snapshot \
@@ -82,7 +84,7 @@ pvesh create /cluster/backup \
 
 ### VM (112-mcphub)
 
-**Schedule**: Daily at **03:00 UTC** (10:00 PM UTC-5)  
+**Schedule**: Daily at **03:00 UTC** (10:00 PM UTC-5)
 **Command**:
 ```bash
 pvesh create /cluster/backup \

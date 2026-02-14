@@ -73,6 +73,27 @@ curl -s localhost:9200/_snapshot/backup/_all | jq '.snapshots[-1].snapshot'
 curl -X POST localhost:9200/_snapshot/backup/latest/_restore
 ```
 
+### Supabase Recovery (LXC 107)
+```bash
+ssh root@192.168.50.100
+pct start 107
+pct exec 107 -- bash -c "cd /opt/supabase && docker compose up -d"
+# Wait for all 13 services to become healthy
+pct exec 107 -- bash -c "cd /opt/supabase && docker compose ps"
+# Verify PostgREST
+curl -s http://192.168.50.107:8000/rest/v1/ | head -5
+```
+
+### Archon Recovery (LXC 108)
+```bash
+ssh root@192.168.50.100
+pct start 108
+pct exec 108 -- bash -c "cd /opt/archon && docker compose up -d"
+# Verify UI
+curl -s -o /dev/null -w "%{http_code}" http://192.168.50.108:3737
+# Archon depends on Supabase DB — ensure LXC 107 is up first
+```
+
 ### Full Rebuild (Nuclear Option)
 ```bash
 # 1. Fresh PVE install

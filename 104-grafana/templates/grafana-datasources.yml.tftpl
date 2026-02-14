@@ -20,3 +20,16 @@ datasources:
       logMessageField: message
       logLevelField: level
     editable: false
+
+  - name: Elasticsearch-Filebeat
+    type: elasticsearch
+    access: proxy
+    url: http://${elk_ip}:${elk_ports.elasticsearch}
+    database: "filebeat-*"
+    isDefault: false
+    jsonData:
+      timeField: "@timestamp"
+      esVersion: "8.0.0"
+      logMessageField: message
+      logLevelField: log.level
+    editable: false

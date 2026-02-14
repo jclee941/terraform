@@ -18,5 +18,18 @@ datasources:
       timeField: "@timestamp"
       esVersion: "8.0.0"
       logMessageField: message
-      logLevelField: level
+      logLevelField: "log.level"
+    editable: false
+
+  - name: Elasticsearch-Filebeat
+    type: elasticsearch
+    access: proxy
+    url: http://192.168.50.105:9200
+    database: "filebeat-*"
+    isDefault: false
+    jsonData:
+      timeField: "@timestamp"
+      esVersion: "8.0.0"
+      logMessageField: message
+      logLevelField: "log.level"
     editable: false
