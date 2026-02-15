@@ -83,13 +83,13 @@ locals {
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
-  # Total dedicated: 14336 MB (14 GB) + swap: 9472 MB (9.3 GB) = 23808 MB effective
+  # Total dedicated: 16640 MB (16.3 GB) + swap: 9472 MB (9.3 GB) = 26112 MB effective
   container_sizing = {
     runner    = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
     traefik   = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     grafana   = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
-    elk       = { memory = 6144, swap = 4096, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana, ElastAlert2)" }
-    glitchtip = { memory = 768, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
+    elk       = { memory = 8192, swap = 4096, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana, ElastAlert2)" }
+    glitchtip = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
     supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
     archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
   }
@@ -423,6 +423,20 @@ module "lxc_config" {
   mcp_host           = module.hosts.hosts.mcphub.ip
 
   lxc_containers = {
+    runner = {
+      vmid       = module.hosts.hosts.runner.vmid
+      hostname   = "runner"
+      ip_address = module.hosts.hosts.runner.ip
+      deploy     = var.deploy_lxc_configs
+
+      config_files = {
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.runner_filebeat
+        }
+      }
+    }
+
     traefik = {
       vmid       = module.hosts.hosts.traefik.vmid
       hostname   = "traefik"
@@ -462,6 +476,14 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/supabase.yml"
           content = module.config_renderer.rendered_configs.traefik_supabase
         }
+        "traefik-vault.yml" = {
+          path    = "/etc/traefik/dynamic/vault.yml"
+          content = module.config_renderer.rendered_configs.traefik_vault
+        }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.traefik_filebeat
+        }
       }
     }
 
@@ -479,6 +501,10 @@ module "lxc_config" {
         "grafana-datasources.yml" = {
           path    = "/etc/grafana/provisioning/datasources/datasources.yml"
           content = module.config_renderer.rendered_configs.grafana_datasources
+        }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.grafana_filebeat
         }
       }
 
@@ -521,6 +547,10 @@ module "lxc_config" {
           path    = "/opt/elk/scripts/setup-ilm.sh"
           content = module.config_renderer.rendered_configs.elk_setup_ilm
         }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.elk_filebeat
+        }
       }
     }
 
@@ -539,6 +569,10 @@ module "lxc_config" {
         "glitchtip.env" = {
           path    = "/opt/glitchtip/glitchtip.env"
           content = module.config_renderer.rendered_configs.glitchtip_env
+        }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.glitchtip_filebeat
         }
       }
     }
@@ -559,6 +593,10 @@ module "lxc_config" {
           path    = "/opt/supabase/.env"
           content = module.config_renderer.rendered_configs.supabase_env
         }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.supabase_filebeat
+        }
       }
     }
 
@@ -577,6 +615,10 @@ module "lxc_config" {
         "archon.env" = {
           path    = "/opt/archon/.env"
           content = module.config_renderer.rendered_configs.archon_env
+        }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.archon_filebeat
         }
       }
     }
@@ -651,6 +693,7 @@ locals {
       synology  = "synology.yml.tftpl"
       archon    = "archon.yml.tftpl"
       supabase  = "supabase.yml.tftpl"
+      vault     = "vault.yml.tftpl"
       filebeat  = "filebeat.yml.tftpl"
     } }
     "104-grafana" = { prefix = "grafana", files = {
@@ -724,7 +767,7 @@ module "config_renderer" {
       infrastructure_nodes = local.infrastructure_nodes
 
       elk_version                 = "8.12.0"
-      es_heap                     = "2g"
+      es_heap                     = "3g"
       logstash_heap               = "512m"
       logstash_dlq_size           = "1024mb"
       elastalert_version          = "2.19.0"
