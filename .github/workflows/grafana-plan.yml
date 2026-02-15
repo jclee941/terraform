@@ -1,0 +1,125 @@
+name: Grafana Plan
+
+on:
+  pull_request:
+    paths:
+      - '104-grafana/terraform/**'
+      - '104-grafana/dashboards/**'
+
+concurrency:
+  group: grafana-plan-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  TF_WORKING_DIR: 104-grafana/terraform
+
+jobs:
+  plan:
+    name: Grafana Plan
+    runs-on: self-hosted
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform & Init
+        uses: ./.github/actions/terraform-setup
+        with:
+          terraform-version: '1.10.5'
+          working-directory: ${{ env.TF_WORKING_DIR }}
+          init-args: '-input=false -backend-config=../../backend.hcl'
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          set +e
+          terraform plan -input=false -no-color -out=tfplan 2>&1 | tee plan_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "result=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=failure" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Capture plan output for PR comment (truncate if too large)
+          PLAN=$(cat plan_output.txt)
+          if [ ${#PLAN} -gt 65000 ]; then
+            PLAN="${PLAN:0:65000}
+
+            ... (truncated, see workflow run for full output)"
+          fi
+          echo "plan<<EOFPLAN" >> "$GITHUB_OUTPUT"
+          echo "$PLAN" >> "$GITHUB_OUTPUT"
+          echo "EOFPLAN" >> "$GITHUB_OUTPUT"
+
+          exit $EXIT_CODE
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_grafana_auth: ${{ secrets.TF_VAR_GRAFANA_AUTH }}
+          TF_VAR_n8n_webhook_url: ${{ secrets.TF_VAR_N8N_WEBHOOK_URL }}
+
+      - name: Comment Plan on PR
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const result = '${{ steps.plan.outputs.result }}';
+            const plan = `${{ steps.plan.outputs.plan }}`;
+            const icon = result === 'success' ? '\u2705' : '\u274c';
+            const status = result === 'success' ? 'Success' : 'Failed';
+
+            const body = `## ${icon} Grafana Plan ${status}
+
+            <details><summary>Show Plan Output</summary>
+
+            \`\`\`
+            ${plan}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*
+            *Working Directory: \`${{ env.TF_WORKING_DIR }}\`*`;
+
+            // Find existing bot comment to update
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Grafana Plan')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }

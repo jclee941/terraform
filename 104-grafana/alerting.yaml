@@ -1,3 +1,10 @@
+# =============================================================================
+# DEPRECATED: This file is kept for reference only.
+# All alert rules, contact points, and notification policies are now managed
+# by Terraform in 104-grafana/terraform/main.tf (grafana_rule_group,
+# grafana_contact_point, grafana_notification_policy resources).
+# DO NOT mount this file in docker-compose or use it for Grafana provisioning.
+# =============================================================================
 apiVersion: 1
 
 deleteContactPoints:
