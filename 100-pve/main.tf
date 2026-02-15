@@ -720,6 +720,58 @@ module "vault_agent_mcphub" {
   }
 }
 
+module "vault_agent_glitchtip" {
+  source = "../modules/shared/vault-agent"
+
+  service_name = "glitchtip"
+  vault_addr   = "https://vault.jclee.me"
+  vault_mount  = "secret"
+  kv_path      = "homelab/glitchtip"
+
+  template_mappings = {
+    env = {
+      source      = "/opt/vault-agent/templates/glitchtip.env.ctmpl"
+      destination = "/opt/glitchtip/.env"
+      perms       = "0600"
+    }
+  }
+}
+
+module "vault_agent_supabase" {
+  source = "../modules/shared/vault-agent"
+
+  service_name = "supabase"
+  vault_addr   = "https://vault.jclee.me"
+  vault_mount  = "secret"
+  kv_path      = "homelab/supabase"
+
+  template_mappings = {
+    env = {
+      source      = "/opt/vault-agent/templates/supabase.env.ctmpl"
+      destination = "/opt/supabase/.env"
+      perms       = "0600"
+    }
+  }
+}
+
+module "vault_agent_archon" {
+  source = "../modules/shared/vault-agent"
+
+  service_name        = "archon"
+  vault_addr          = "https://vault.jclee.me"
+  vault_mount         = "secret"
+  kv_path             = "homelab/archon"
+  additional_kv_paths = ["homelab/supabase"]
+
+  template_mappings = {
+    env = {
+      source      = "/opt/vault-agent/templates/archon.env.ctmpl"
+      destination = "/opt/archon/.env"
+      perms       = "0600"
+    }
+  }
+}
+
 # =============================================================================
 # CONFIG RENDERER - Centralized Config Generation
 # =============================================================================

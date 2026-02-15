@@ -22,14 +22,24 @@ resource "vault_auth_backend" "approle" {
 resource "vault_policy" "service" {
   name = "${var.service_name}-agent"
 
-  policy = <<-EOT
-    path "${var.vault_mount}/data/${var.kv_path}" {
-      capabilities = ["read"]
-    }
-    path "${var.vault_mount}/metadata/${var.kv_path}" {
-      capabilities = ["read"]
-    }
-  EOT
+  policy = join("\n", concat(
+    [
+      "path \"${var.vault_mount}/data/${var.kv_path}\" {",
+      "  capabilities = [\"read\"]",
+      "}",
+      "path \"${var.vault_mount}/metadata/${var.kv_path}\" {",
+      "  capabilities = [\"read\"]",
+      "}",
+    ],
+    flatten([for p in var.additional_kv_paths : [
+      "path \"${var.vault_mount}/data/${p}\" {",
+      "  capabilities = [\"read\"]",
+      "}",
+      "path \"${var.vault_mount}/metadata/${p}\" {",
+      "  capabilities = [\"read\"]",
+      "}",
+    ]])
+  ))
 }
 
 resource "vault_approle_auth_backend_role" "service" {

@@ -44,6 +44,12 @@ variable "token_max_ttl" {
   default     = 14400
 }
 
+variable "additional_kv_paths" {
+  description = "Additional KV secret paths this agent needs read access to"
+  type        = list(string)
+  default     = []
+}
+
 variable "template_mappings" {
   description = "Map of Vault Agent template source to destination paths"
   type = map(object({
