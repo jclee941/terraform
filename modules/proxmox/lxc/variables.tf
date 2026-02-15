@@ -54,9 +54,10 @@ variable "dns_servers" {
   type        = list(string)
 }
 
-variable "default_swap" {
-  description = "Swap memory in MB"
+variable "swap" {
+  description = "Swap memory in MB (per-container)"
   type        = number
+  default     = 512
 }
 
 variable "datastore_id" {

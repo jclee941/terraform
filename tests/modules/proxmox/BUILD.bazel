@@ -1,0 +1,5 @@
+filegroup(
+    name = "proxmox",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)

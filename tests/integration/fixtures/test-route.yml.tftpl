@@ -1,0 +1,11 @@
+# Traefik route config for test
+http:
+  routers:
+    test-router:
+      rule: "Host(`test.${domain}`)"
+      service: test-service
+  services:
+    test-service:
+      loadBalancer:
+        servers:
+          - url: "http://${elk_ip}:${elk_port}"

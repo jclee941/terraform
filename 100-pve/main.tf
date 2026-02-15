@@ -74,15 +74,17 @@ locals {
   }
 
   # Container sizing (IP/VMID from module.hosts, sizing here)
-  # Memory budget: 53 GB total allocated on 60.45 GB physical (87.7%)
+  # Memory budget: Optimized with per-container swap for efficient memory utilization
+  # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
+  # Total dedicated: 14336 MB (14 GB) + swap: 9472 MB (9.3 GB) = 23808 MB effective
   container_sizing = {
-    runner    = { memory = 1536, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
-    traefik   = { memory = 512, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    grafana   = { memory = 1024, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
-    elk       = { memory = 8192, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana, ElastAlert2)" }
-    glitchtip = { memory = 1024, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
-    supabase  = { memory = 4096, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
-    archon    = { memory = 3072, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
+    runner    = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
+    traefik   = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
+    grafana   = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
+    elk       = { memory = 6144, swap = 4096, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana, ElastAlert2)" }
+    glitchtip = { memory = 768, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
+    supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
+    archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -118,7 +120,8 @@ locals {
     for k, v in local.containers : k => {
       sufficient = v.memory >= 256
       divisible  = v.memory % 256 == 0
-      message    = "Container '${k}' memory ${v.memory}MB must be >= 256MB and divisible by 256"
+      swap_valid = v.swap >= 0 && v.swap <= v.memory * 2
+      message    = "Container '${k}' memory ${v.memory}MB must be >= 256MB and divisible by 256, swap ${v.swap}MB must be 0..${v.memory * 2}MB"
     }
   }
 }
@@ -149,10 +152,10 @@ check "ip_subnet" {
 check "memory_requirements" {
   assert {
     condition = alltrue([
-      for k, v in local.memory_validation : v.sufficient && v.divisible
+      for k, v in local.memory_validation : v.sufficient && v.divisible && v.swap_valid
     ])
     error_message = join("\n", [
-      for k, v in local.memory_validation : v.message if !(v.sufficient && v.divisible)
+      for k, v in local.memory_validation : v.message if !(v.sufficient && v.divisible && v.swap_valid)
     ])
   }
 }
@@ -170,13 +173,13 @@ module "lxc" {
   hostname         = each.value.hostname
   ip_address       = each.value.ip
   memory           = each.value.memory
+  swap             = each.value.swap
   cores            = each.value.cores
   disk_size        = each.value.disk_size
   description      = each.value.description
   privileged       = lookup(each.value, "privileged", false)
   network_gateway  = var.network_gateway
   dns_servers      = var.dns_servers
-  default_swap     = var.default_swap
   datastore_id     = var.datastore_id
   managed_vmid_min = var.managed_vmid_range.min
   managed_vmid_max = var.managed_vmid_range.max

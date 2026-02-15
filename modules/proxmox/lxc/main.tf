@@ -39,7 +39,7 @@ resource "proxmox_virtual_environment_container" "this" {
 
   memory {
     dedicated = var.memory
-    swap      = var.default_swap
+    swap      = var.swap
   }
 
   cpu {

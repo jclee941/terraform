@@ -1,4 +1,4 @@
-.PHONY: plan apply verify lint backup fmt validate init drift-check
+.PHONY: plan apply verify lint backup fmt validate init drift-check test
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
@@ -36,6 +36,18 @@ lint-tf: ## Check Terraform formatting
 
 lint-shell: ## Lint shell scripts
 	find scripts/ -name '*.sh' -exec shellcheck --severity=warning {} +
+
+## Testing
+
+test: ## Run Terraform module tests
+	cd tests/modules/proxmox && terraform init -backend=false && terraform test
+	cd tests/integration && terraform init -backend=false && terraform test
+
+test-unit: ## Run unit tests only
+	cd tests/modules/proxmox && terraform init -backend=false && terraform test
+
+test-integration: ## Run integration tests only
+	cd tests/integration && terraform init -backend=false && terraform test
 
 ## Verification & Backup
 

@@ -102,7 +102,7 @@ variable "datastore_id" {
 # -----------------------------------------------------------------------------
 
 variable "default_swap" {
-  description = "Default swap memory in MB for containers"
+  description = "DEPRECATED: Use per-container swap in container_sizing. Kept for backward compatibility."
   type        = number
   default     = 512
 
