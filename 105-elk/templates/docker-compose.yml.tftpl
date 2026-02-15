@@ -80,6 +80,7 @@ services:
       - ./config/elastalert-rules:/opt/elastalert/rules:ro
     environment:
       - GLITCHTIP_SENTRY_KEY=$${GLITCHTIP_SENTRY_KEY}
+      - ES_VERSION=8
     networks:
       - elk
     depends_on:
@@ -89,8 +90,8 @@ services:
       test: ["CMD-SHELL", "pgrep -f elastalert || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 60s
     deploy:
       resources:
         limits:
