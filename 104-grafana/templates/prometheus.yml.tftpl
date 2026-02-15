@@ -13,7 +13,7 @@ scrape_configs:
 
   - job_name: 'traefik'
     static_configs:
-      - targets: ['${traefik_ip}:${traefik_ports.traefik}']
+      - targets: ['${hosts.traefik.ip}:${hosts.traefik.ports.traefik}']
 
   - job_name: 'infrastructure-nodes'
     static_configs:
@@ -33,14 +33,14 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - 'http://${n8n_ip}:5678/healthz'
-          - 'http://${glitchtip_ip}:8000/_health/'
-          - 'http://${mcphub_ip}:3000/'
-          - 'http://${traefik_ip}:${traefik_ports.traefik}/api/overview'
-          - 'http://${elk_ip}:${elk_ports.elasticsearch}/_cluster/health'
-          - 'http://${grafana_ip}:3000/api/health'
-          - 'http://${supabase_ip}:${supabase_ports.api}/rest/v1/'
-          - 'http://${archon_ip}:${archon_port}/'
+          - 'http://${hosts.mcphub.ip}:${hosts.mcphub.ports.n8n}/healthz'
+          - 'http://${hosts.glitchtip.ip}:${hosts.glitchtip.ports.web}/_health/'
+          - 'http://${hosts.mcphub.ip}:3000/'
+          - 'http://${hosts.traefik.ip}:${hosts.traefik.ports.traefik}/api/overview'
+          - 'http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}/_cluster/health'
+          - 'http://${hosts.grafana.ip}:3000/api/health'
+          - 'http://${hosts.supabase.ip}:${hosts.supabase.ports.api}/rest/v1/'
+          - 'http://${hosts.archon.ip}:${hosts.archon.ports.ui}/'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

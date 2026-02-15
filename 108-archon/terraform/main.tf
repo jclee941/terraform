@@ -1,6 +1,10 @@
 terraform {
   required_version = ">= 1.7, < 2.0"
 
+  backend "s3" {
+    key = "108-archon/terraform.tfstate"
+  }
+
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
@@ -15,24 +19,45 @@ provider "proxmox" {
   insecure  = var.proxmox_insecure
 }
 
-module "inventory" {
-  source = "../../modules/proxmox/inventory"
+# ---------------------------------------------------------------------------
+# Remote State: consume 100-pve infrastructure outputs
+# Provides host_inventory (IPs, ports, VMIDs) — replaces deprecated module.inventory
+# ---------------------------------------------------------------------------
+data "terraform_remote_state" "infra" {
+  backend = "s3"
+
+  config = {
+    bucket                      = "jclee-tf-state"
+    key                         = "100-pve/terraform.tfstate"
+    region                      = "auto"
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    use_path_style              = true
+    endpoints = {
+      s3 = "https://a8d9c67f586acdd15eebcc65ca3aa5bb.r2.cloudflarestorage.com"
+    }
+  }
+}
+
+locals {
+  hosts = data.terraform_remote_state.infra.outputs.host_inventory
 }
 
 module "lxc" {
   source = "../../modules/proxmox/lxc"
 
   node_name        = var.node_name
-  vmid             = module.inventory.hosts.archon.vmid
+  vmid             = local.hosts.archon.vmid
   hostname         = "archon"
-  ip_address       = module.inventory.hosts.archon.ip
-  memory           = 6144
+  ip_address       = local.hosts.archon.ip
+  memory           = 2048
   cores            = 4
   disk_size        = 20
   description      = "Archon AI Knowledge Management + MCP Server"
   network_gateway  = var.network_gateway
   dns_servers      = var.dns_servers
-  default_swap     = 2048
   datastore_id     = var.datastore_id
   managed_vmid_min = 101
   managed_vmid_max = 113
@@ -43,13 +68,13 @@ module "lxc_config" {
   source = "../../modules/proxmox/lxc-config"
 
   deploy_lxc_configs = var.deploy_lxc_configs
-  mcp_host           = module.inventory.hosts.mcphub.ip
+  mcp_host           = local.hosts.mcphub.ip
 
   lxc_containers = {
     archon = {
-      vmid       = module.inventory.hosts.archon.vmid
+      vmid       = local.hosts.archon.vmid
       hostname   = "archon"
-      ip_address = module.inventory.hosts.archon.ip
+      ip_address = local.hosts.archon.ip
       deploy     = var.deploy_lxc_configs
 
       config_files = {
@@ -60,8 +85,9 @@ module "lxc_config" {
         ".env" = {
           path = "/opt/archon/.env"
           content = templatefile("${path.root}/../templates/.env.tftpl", {
-            supabase_url         = var.supabase_url
-            supabase_service_key = var.supabase_service_key
+            supabase_url      = var.supabase_url
+            supabase_anon_key = var.supabase_anon_key
+            openai_api_key    = var.openai_api_key
           })
         }
       }

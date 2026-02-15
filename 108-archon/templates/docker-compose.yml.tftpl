@@ -5,16 +5,16 @@ services:
       dockerfile: Dockerfile.server
     container_name: archon-server
     ports:
-      - "${archon_server}:${archon_server}"
+      - "${hosts.archon.ports.server}:${hosts.archon.ports.server}"
     environment:
       - SUPABASE_URL=${supabase_url}
       - SUPABASE_ANON_KEY=${supabase_anon_key}
       - OPENAI_API_KEY=${openai_api_key}
       - SERVICE_DISCOVERY_MODE=docker_compose
       - LOG_LEVEL=INFO
-      - ARCHON_SERVER_PORT=${archon_server}
-      - ARCHON_MCP_PORT=${archon_mcp}
-      - ARCHON_UI_PORT=${archon_port}
+      - ARCHON_SERVER_PORT=${hosts.archon.ports.server}
+      - ARCHON_MCP_PORT=${hosts.archon.ports.mcp}
+      - ARCHON_UI_PORT=${hosts.archon.ports.ui}
       - ARCHON_HOST=0.0.0.0
     networks:
       - app-network
@@ -27,10 +27,10 @@ services:
         "--host",
         "0.0.0.0",
         "--port",
-        "${archon_server}"
+        "${hosts.archon.ports.server}"
       ]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${archon_server}/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${hosts.archon.ports.server}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -43,14 +43,14 @@ services:
       dockerfile: Dockerfile.mcp
     container_name: archon-mcp
     ports:
-      - "${archon_mcp}:${archon_mcp}"
+      - "${hosts.archon.ports.mcp}:${hosts.archon.ports.mcp}"
     environment:
       - SUPABASE_URL=${supabase_url}
       - SUPABASE_ANON_KEY=${supabase_anon_key}
       - OPENAI_API_KEY=${openai_api_key}
       - TRANSPORT=sse
-      - ARCHON_MCP_PORT=${archon_mcp}
-      - ARCHON_SERVER_PORT=${archon_server}
+      - ARCHON_MCP_PORT=${hosts.archon.ports.mcp}
+      - ARCHON_SERVER_PORT=${hosts.archon.ports.server}
     networks:
       - app-network
     depends_on:
@@ -62,10 +62,10 @@ services:
     build: ./archon-ui-main
     container_name: archon-ui
     ports:
-      - "${archon_port}:3737"
+      - "${hosts.archon.ports.ui}:3737"
     environment:
-      - VITE_ARCHON_SERVER_PORT=${archon_server}
-      - ARCHON_SERVER_PORT=${archon_server}
+      - VITE_ARCHON_SERVER_PORT=${hosts.archon.ports.server}
+      - ARCHON_SERVER_PORT=${hosts.archon.ports.server}
       - HOST=0.0.0.0
       - PROD=false
       - DOCKER_ENV=true

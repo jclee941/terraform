@@ -11,15 +11,13 @@ Unified IaC pipeline for Proxmox resource lifecycle. Abstracted layer between gl
 - `lxc/`: Direct PCT container provisioning (CPU, RAM, Storage, Network).
 - `lxc-config/`: Container-level configuration snippet generation.
 - `vm-config/`: VM-level lifecycle (Cloud-init rendering, hardware specs).
-- `env-config/`: Maps host inventory metadata to module-compatible inputs.
 - `config-renderer/`: Central pipeline for rendering `.tftpl` to service configs.
 - `inventory/`: SSoT for resource allocation, ID management, and IP assignments.
 
 ## WHERE TO LOOK (Config Flow)
 1. **Source:** `inventory/` defines IDs, IPs, and service metadata.
-2. **Mapping:** `env-config/` transforms inventory data into typed objects.
-3. **Templating:** `config-renderer/` fetches `.tftpl` and injects env-config data.
-4. **Deployment:** `lxc/` or `vm-config/` consumes rendered strings for final state.
+2. **Templating:** `config-renderer/` renders `.tftpl` with `hosts` map + inline vars from `main.tf`.
+3. **Deployment:** `lxc/` or `vm-config/` consumes rendered strings for final state.
 
 ## CONVENTIONS
 - **Templates:** App-level logic belongs in `templates/*.tftpl`. Never in `.tf`.

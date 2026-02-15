@@ -13,4 +13,4 @@ http:
     glitchtip:
       loadBalancer:
         servers:
-          - url: http://${glitchtip_ip}:${glitchtip_port}
+          - url: http://${hosts.glitchtip.ip}:${hosts.glitchtip.ports.web}

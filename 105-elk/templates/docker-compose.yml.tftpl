@@ -11,7 +11,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
-      - "${elasticsearch_port}:9200"
+      - "${hosts.elk.ports.elasticsearch}:9200"
       - "9300:9300"
     networks:
       - elk
@@ -43,8 +43,8 @@ services:
       - ./config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - logstash_dlq:/usr/share/logstash/dlq
     ports:
-      - "${logstash_beats_port}:5044"
-      - "${logstash_syslog_port}:5000"
+      - "${hosts.elk.ports.logstash_beat}:5044"
+      - "${hosts.elk.ports.logstash_syslog}:5000"
       - "9600:9600"
       - "9198:9198"
     environment:
@@ -111,7 +111,7 @@ services:
       - SERVER_NAME=kibana
       - SERVER_HOST=0.0.0.0
     ports:
-      - "${kibana_port}:5601"
+      - "${hosts.elk.ports.kibana}:5601"
     networks:
       - elk
     depends_on:

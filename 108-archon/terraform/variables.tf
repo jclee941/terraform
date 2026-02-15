@@ -58,8 +58,16 @@ variable "supabase_url" {
   sensitive   = true
 }
 
-variable "supabase_service_key" {
-  description = "Supabase service role key (from Vault)"
+variable "supabase_anon_key" {
+  description = "Supabase anonymous key (from Vault)"
   type        = string
   sensitive   = true
+  default     = ""
+}
+
+variable "openai_api_key" {
+  description = "OpenAI API key (from Vault)"
+  type        = string
+  sensitive   = true
+  default     = ""
 }

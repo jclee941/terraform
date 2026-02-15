@@ -22,9 +22,9 @@ http:
     kibana:
       loadBalancer:
         servers:
-          - url: http://${elk_ip}:${elk_ports.kibana}
+          - url: http://${hosts.elk.ip}:${hosts.elk.ports.kibana}
 
     elasticsearch:
       loadBalancer:
         servers:
-          - url: http://${elk_ip}:${elk_ports.elasticsearch}
+          - url: http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}

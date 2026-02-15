@@ -54,13 +54,16 @@ jobs:
               return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             }
 
-            const now = new Date();
-            const year = now.getFullYear();
-            const week = getISOWeek(now);
-            const weekStr = String(week).padStart(2, '0');
-            const title = `Week ${year}-W${weekStr}`;
+            function getWeekTitle(date) {
+              const year = date.getFullYear();
+              const week = getISOWeek(date);
+              const weekStr = String(week).padStart(2, '0');
+              return { year, week, weekStr, title: `Week ${year}-W${weekStr}` };
+            }
 
-            const dueDate = new Date(now);
+            const { year, weekStr, title } = getWeekTitle(new Date());
+
+            const dueDate = new Date();
             const dayOfWeek = dueDate.getDay();
             const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
             dueDate.setDate(dueDate.getDate() + daysUntilFriday);
@@ -123,11 +126,15 @@ jobs:
               return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             }
 
+            function getWeekTitle(date) {
+              const year = date.getFullYear();
+              const week = getISOWeek(date);
+              const weekStr = String(week).padStart(2, '0');
+              return { year, week, weekStr, title: `Week ${year}-W${weekStr}` };
+            }
+
             const now = new Date();
-            const year = now.getFullYear();
-            const week = getISOWeek(now);
-            const weekStr = String(week).padStart(2, '0');
-            const currentTitle = `Week ${year}-W${weekStr}`;
+            const { year, week, weekStr, title: currentTitle } = getWeekTitle(now);
 
             const nextWeek = week >= 52 ? 1 : week + 1;
             const nextYear = week >= 52 ? year + 1 : year;
@@ -211,6 +218,13 @@ jobs:
               return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
             }
 
+            function getWeekTitle(date) {
+              const year = date.getFullYear();
+              const week = getISOWeek(date);
+              const weekStr = String(week).padStart(2, '0');
+              return { year, week, weekStr, title: `Week ${year}-W${weekStr}` };
+            }
+
             const pr = context.payload.pull_request;
 
             if (pr.milestone) {
@@ -218,11 +232,7 @@ jobs:
               return;
             }
 
-            const now = new Date();
-            const year = now.getFullYear();
-            const week = getISOWeek(now);
-            const weekStr = String(week).padStart(2, '0');
-            const title = `Week ${year}-W${weekStr}`;
+            const { year, weekStr, title } = getWeekTitle(new Date());
 
             const { data: milestones } = await github.rest.issues.listMilestones({
               owner: context.repo.owner,
@@ -234,7 +244,7 @@ jobs:
             let milestone = milestones.find(m => m.title === title);
 
             if (!milestone) {
-              const dueDate = new Date(now);
+              const dueDate = new Date();
               const dayOfWeek = dueDate.getDay();
               const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
               dueDate.setDate(dueDate.getDate() + daysUntilFriday);

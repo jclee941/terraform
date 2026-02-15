@@ -1,41 +1,50 @@
+# Filebeat configuration for 105-elk (ELK Stack)
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
 filebeat.inputs:
-  - type: log
-    enabled: true
+  # System logs
+  - type: filestream
+    id: system-logs
     paths:
       - /var/log/*.log
       - /var/log/syslog
     fields:
       service: system
-    fields_under_root: true
+      host_role: elk
+    fields_under_root: false
 
+  # Docker container logs (Elasticsearch, Logstash, Kibana, ElastAlert)
   - type: container
-    enabled: true
     paths:
       - /var/lib/docker/containers/*/*.log
-    processors:
-      - add_docker_metadata:
-          host: "unix:///var/run/docker.sock"
+    fields:
+      service: elk
+      host_role: elk
+    fields_under_root: false
 
-  - type: log
-    enabled: true
+  # MCP logs
+  - type: filestream
+    id: mcp-logs
     paths:
       - /var/log/mcp/*.log
     fields:
       service: mcp
-    fields_under_root: true
+      host_role: elk
+    fields_under_root: false
 
 output.logstash:
-  hosts: ["${elk_ip}:${elk_ports.logstash_beat}"]
+  hosts: ["${hosts.elk.ip}:${hosts.elk.ports.logstash_beat}"]
 
 processors:
-  - add_host_metadata:
-      when.not.contains.tags: forwarded
+  - add_host_metadata: ~
   - add_cloud_metadata: ~
+  - add_docker_metadata: ~
 
-logging.level: info
-logging.to_files: true
-logging.files:
-  path: /var/log/filebeat
-  name: filebeat
-  keepfiles: 7
-  permissions: 0644
+logging:
+  level: info
+  to_files: true
+  files:
+    path: /var/log/filebeat
+    name: filebeat
+    keepfiles: 7
+    permissions: 0644

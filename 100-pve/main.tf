@@ -42,16 +42,8 @@ module "hosts" {
   source = "./envs/prod"
 }
 
-module "env_config" {
-  source = "../modules/proxmox/env-config"
-
-  hosts = module.hosts.hosts
-  network = {
-    subnet  = var.network_cidr
-    gateway = var.network_gateway
-    domain  = "jclee.me"
-  }
-}
+# env-config module removed — non-hosts template vars inlined below
+# All IP/port refs now use hosts.X.Y directly in templates
 
 
 # =============================================================================
@@ -60,6 +52,15 @@ module "env_config" {
 
 locals {
   node_name = var.node_name
+
+  infrastructure_nodes = [
+    for name, host in module.hosts.hosts : {
+      name = name
+      ip   = host.ip
+      vmid = host.vmid
+    }
+    if !contains(host.roles, "hypervisor")
+  ]
 
   mcp_catalog = jsondecode(file("${path.module}/../112-mcphub/mcp_servers.json"))
   mcp_hub_servers = {
@@ -607,16 +608,6 @@ locals {
       kv_path                = "homelab/mcphub"
       create_approle_backend = true
     }
-    glitchtip = {
-      kv_path = "homelab/glitchtip"
-    }
-    supabase = {
-      kv_path = "homelab/supabase"
-    }
-    archon = {
-      kv_path             = "homelab/archon"
-      additional_kv_paths = ["homelab/supabase"]
-    }
   }
 }
 
@@ -638,22 +629,9 @@ module "vault_agent" {
   }
 }
 
-# State migration: vault_agent_{name} → vault_agent["{name}"]
 moved {
   from = module.vault_agent_mcphub
   to   = module.vault_agent["mcphub"]
-}
-moved {
-  from = module.vault_agent_glitchtip
-  to   = module.vault_agent["glitchtip"]
-}
-moved {
-  from = module.vault_agent_supabase
-  to   = module.vault_agent["supabase"]
-}
-moved {
-  from = module.vault_agent_archon
-  to   = module.vault_agent["archon"]
 }
 
 # =============================================================================
@@ -697,6 +675,7 @@ locals {
       env            = ".env.tftpl"
     } }
     "108-archon" = { prefix = "archon", files = {
+      filebeat       = "filebeat.yml.tftpl"
       docker_compose = "docker-compose.yml.tftpl"
       env            = ".env.tftpl"
     } }
@@ -738,9 +717,24 @@ module "config_renderer" {
   source = "../modules/proxmox/config-renderer"
 
   template_vars = merge(
-    module.env_config.template_vars,
     module.vault_secrets.secrets,
     {
+      hosts                = module.hosts.hosts
+      domain               = "jclee.me"
+      infrastructure_nodes = local.infrastructure_nodes
+
+      elk_version                 = "8.12.0"
+      es_heap                     = "2g"
+      logstash_heap               = "512m"
+      logstash_dlq_size           = "1024mb"
+      elastalert_version          = "2.19.0"
+      elasticsearch_index_pattern = "logs-%%{+YYYY.MM.dd}"
+      ilm_delete_after            = "30d"
+      ilm_policy_name             = "homelab-logs-30d"
+
+      prometheus_datasource_uid = "prometheus"
+      sla_target_percentage     = "99.9"
+
       mcp_catalog_json     = jsonencode(local.mcp_catalog)
       mcp_hub_servers_json = jsonencode(local.mcp_hub_servers)
       mcp_hub_stdio_json   = jsonencode(local.mcp_hub_stdio_servers)
@@ -765,4 +759,10 @@ output "host_inventory" {
   value       = module.hosts.hosts
 }
 
-
+output "service_urls" {
+  description = "Derived service URLs for consumption by app workspaces (301-github) via remote_state"
+  value = {
+    grafana_url = "https://grafana.jclee.me"
+    n8n_url     = "https://mcphub.jclee.me"
+  }
+}

@@ -4,7 +4,7 @@ services:
     container_name: mcphub
     restart: unless-stopped
     ports:
-      - "${mcphub_port}:3000"
+      - "${hosts.mcphub.ports.web}:3000"
     volumes:
       - ./mcp_settings.json:/app/mcp_settings.json
       - mcphub_data:/app/data

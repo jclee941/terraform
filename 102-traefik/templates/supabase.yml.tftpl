@@ -13,4 +13,4 @@ http:
     supabase:
       loadBalancer:
         servers:
-          - url: http://${supabase_ip}:${supabase_port}
+          - url: http://${hosts.supabase.ip}:${hosts.supabase.ports.api}

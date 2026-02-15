@@ -8,11 +8,11 @@ services:
     environment:
       STUDIO_PG_META_URL: http://meta:8080
       SUPABASE_URL: http://kong:8000
-      SUPABASE_PUBLIC_URL: http://${supabase_ip}:${supabase_ports.api}
+      SUPABASE_PUBLIC_URL: http://${hosts.supabase.ip}:${hosts.supabase.ports.api}
       SUPABASE_ANON_KEY: ${supabase_anon_key}
       SUPABASE_SERVICE_ROLE_KEY: ${supabase_service_role_key}
     ports:
-      - "${supabase_ports.studio}:3000"
+      - "${hosts.supabase.ports.studio}:3000"
     depends_on:
       - kong
       - meta
@@ -34,7 +34,7 @@ services:
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
     ports:
-      - "${supabase_ports.api}:8000"
+      - "${hosts.supabase.ports.api}:8000"
       - "8443:8443"
     volumes:
       - ./kong.yml:/var/lib/kong/kong.yml:ro
@@ -60,9 +60,9 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: http://${supabase_ip}:${supabase_ports.api}
+      API_EXTERNAL_URL: http://${hosts.supabase.ip}:${hosts.supabase.ports.api}
       GOTRUE_SITE_URL: http://supabase.jclee.me
-      GOTRUE_URI_ALLOW_LIST: "http://localhost:3000,http://${supabase_ip}:${supabase_ports.studio}"
+      GOTRUE_URI_ALLOW_LIST: "http://localhost:3000,http://${hosts.supabase.ip}:${hosts.supabase.ports.studio}"
       GOTRUE_JWT_SECRET: ${supabase_jwt_secret}
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_DB_DRIVER: postgres
@@ -113,7 +113,7 @@ services:
       APP_NAME: realtime
       SEED_SELF_HOST: "true"
     ports:
-      - "${supabase_ports.realtime}:4000"
+      - "${hosts.supabase.ports.realtime}:4000"
     depends_on:
       - db
     networks:
@@ -179,7 +179,7 @@ services:
       JWT_SECRET: ${supabase_jwt_secret}
       JWT_EXP: 3600
     ports:
-      - "${supabase_ports.db}:5432"
+      - "${hosts.supabase.ports.db}:5432"
     volumes:
       - supabase_db_data:/var/lib/postgresql/data
     healthcheck:

@@ -12,4 +12,4 @@ http:
     mcphub:
       loadBalancer:
         servers:
-          - url: "http://${mcphub_ip}:${mcphub_port}"
+          - url: "http://${hosts.mcphub.ip}:${hosts.mcphub.ports.web}"

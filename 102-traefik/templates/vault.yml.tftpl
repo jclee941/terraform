@@ -5,11 +5,12 @@ http:
       entryPoints:
         - websecure
       service: vault
-      tls: {}
+      tls:
+        certResolver: cf
       priority: 10
 
   services:
     vault:
       loadBalancer:
         servers:
-          - url: http://${vault_ip}:${vault_port}
+          - url: http://${hosts.mcphub.ip}:${hosts.mcphub.ports.vault}

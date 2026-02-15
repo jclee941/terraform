@@ -3,7 +3,7 @@
 # Sets up ILM policy and index template for log retention
 set -euo pipefail
 
-ES_HOST="http://localhost:${elasticsearch_port}"
+ES_HOST="http://localhost:${hosts.elk.ports.elasticsearch}"
 POLICY_NAME="${ilm_policy_name}"
 TEMPLATE_NAME="logs-template"
 INDEX_ALIAS="logs"

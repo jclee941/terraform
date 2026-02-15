@@ -13,4 +13,4 @@ http:
     archon:
       loadBalancer:
         servers:
-          - url: http://${archon_ip}:${archon_port}
+          - url: http://${hosts.archon.ip}:${hosts.archon.ports.ui}

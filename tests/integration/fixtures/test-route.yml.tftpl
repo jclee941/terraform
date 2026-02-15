@@ -8,4 +8,4 @@ http:
     test-service:
       loadBalancer:
         servers:
-          - url: "http://${elk_ip}:${elk_port}"
+          - url: "http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}"

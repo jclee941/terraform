@@ -30,7 +30,7 @@ filebeat.inputs:
           match: after
 
 output.logstash:
-  hosts: ["${elk_ip}:${elk_ports.logstash_beat}"]
+  hosts: ["${hosts.elk.ip}:${hosts.elk.ports.logstash_beat}"]
 
 processors:
   - add_host_metadata: ~

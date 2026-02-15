@@ -11,7 +11,7 @@ datasources:
   - name: Elasticsearch
     type: elasticsearch
     access: proxy
-    url: http://${elk_ip}:${elk_ports.elasticsearch}
+    url: http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}
     database: "logs-*"
     isDefault: false
     jsonData:
@@ -24,7 +24,7 @@ datasources:
   - name: Elasticsearch-Filebeat
     type: elasticsearch
     access: proxy
-    url: http://${elk_ip}:${elk_ports.elasticsearch}
+    url: http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}
     database: "filebeat-*"
     isDefault: false
     jsonData:
