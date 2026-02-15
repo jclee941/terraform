@@ -380,3 +380,9 @@ variable "enable_repository_imports" {
   type        = bool
   default     = false
 }
+
+variable "enable_codeowners_management" {
+  description = "Enable Terraform-managed CODEOWNERS files. Disable when rulesets block direct commits."
+  type        = bool
+  default     = false
+}

@@ -2,7 +2,7 @@ locals {
   codeowners_repositories = {
     for repo_name, repo_cfg in local.repositories :
     repo_name => repo_cfg
-    if !try(repo_cfg.archived, false) && contains(["strict", "standard"], try(repo_cfg.protection, "minimal"))
+    if var.enable_codeowners_management && !try(repo_cfg.archived, false) && contains(["strict", "standard"], try(repo_cfg.protection, "minimal"))
   }
 }
 
