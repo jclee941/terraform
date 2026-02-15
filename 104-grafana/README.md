@@ -12,7 +12,7 @@
 ## 2. Configuration Files
 Configurations follow a monorepo-provisioning model:
 - **Grafana Provisioning**: `/opt/grafana/config/grafana/provisioning/` - Defines datasources and dashboard providers.
-- **Dashboards (As Code)**: `/opt/grafana/config/grafana/dashboards/` - JSON definitions for all 5 active dashboards.
+- **Dashboards (As Code)**: `/opt/grafana/config/grafana/dashboards/` - JSON definitions for all 7 active dashboards.
 - **Prometheus Config**: `/etc/prometheus/prometheus.yml` - Defines scrape intervals and target lists (all nodes on port 9100).
 
 ## 3. Operations
@@ -53,10 +53,13 @@ scripts/sync-dashboards.sh # Pushes local JSON files to the Grafana API
 ## 6. Dashboards
 | Name | Purpose |
 |------|---------|
-| **Homelab Overview** | High-level status of all active hosts. |
-| **Log Explorer** | Search logs across all hosts via Elasticsearch queries. |
-| **MCP Logs** | Dedicated viewer for MCP server logs. |
-| **Infrastructure Metrics** | Real-time CPU/MEM/Network usage for the cluster. |
+| **Container Metrics** | Per-container resource monitoring. |
+| **Infra Overview** | High-level status of all active hosts. |
+| **Log Analytics** | Search logs across all hosts via Elasticsearch queries. |
+| **Network Overview** | Network traffic and connectivity monitoring. |
+| **Node Metrics** | Host-level CPU/MEM/Disk metrics. |
+| **Service Health** | Service availability and uptime tracking. |
+| **SLA Dashboard** | SLA compliance and availability targets. |
 
 ## 7. Governance
 - **Style**: Google3 Monorepo

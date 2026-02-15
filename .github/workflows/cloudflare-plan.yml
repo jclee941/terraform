@@ -1,13 +1,12 @@
-name: Terraform Plan
+name: Cloudflare Plan
 
 on:
   pull_request:
     paths:
-      - '100-pve/**'
-      - 'modules/**'
+      - '300-cloudflare/**'
 
 concurrency:
-  group: terraform-plan-${{ github.event.pull_request.number }}
+  group: cloudflare-plan-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -15,11 +14,11 @@ permissions:
   pull-requests: write
 
 env:
-  TF_WORKING_DIR: 100-pve
+  TF_WORKING_DIR: 300-cloudflare
 
 jobs:
   plan:
-    name: Terraform Plan
+    name: Cloudflare Plan
     runs-on: self-hosted
     timeout-minutes: 15
     defaults:
@@ -39,7 +38,6 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Plan
         id: plan
@@ -68,10 +66,12 @@ jobs:
 
           exit $EXIT_CODE
         env:
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
-          TF_VAR_proxmox_endpoint: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
-          TF_VAR_proxmox_api_token: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
-          TF_VAR_proxmox_insecure: ${{ secrets.TF_VAR_PROXMOX_INSECURE }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
+          TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
+          TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
+          TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
+          TF_VAR_vault_token: ${{ secrets.TF_VAR_VAULT_TOKEN }}
 
       - name: Comment Plan on PR
         if: always()
@@ -80,10 +80,10 @@ jobs:
           script: |
             const result = '${{ steps.plan.outputs.result }}';
             const plan = `${{ steps.plan.outputs.plan }}`;
-            const icon = result === 'success' ? '✅' : '❌';
+            const icon = result === 'success' ? '\u2705' : '\u274c';
             const status = result === 'success' ? 'Success' : 'Failed';
 
-            const body = `## ${icon} Terraform Plan ${status}
+            const body = `## ${icon} Cloudflare Plan ${status}
 
             <details><summary>Show Plan Output</summary>
 
@@ -104,7 +104,7 @@ jobs:
             });
 
             const botComment = comments.find(c =>
-              c.user.type === 'Bot' && c.body.includes('Terraform Plan')
+              c.user.type === 'Bot' && c.body.includes('Cloudflare Plan')
             );
 
             if (botComment) {

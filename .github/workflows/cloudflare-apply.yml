@@ -1,12 +1,11 @@
-name: Terraform Apply
+name: Cloudflare Apply
 
 on:
   push:
     branches:
       - master
     paths:
-      - '100-pve/**'
-      - 'modules/**'
+      - '300-cloudflare/**'
   workflow_dispatch:
 
 permissions:
@@ -14,15 +13,15 @@ permissions:
   issues: write
 
 concurrency:
-  group: terraform-apply
+  group: cloudflare-apply
   cancel-in-progress: false
 
 env:
-  TF_WORKING_DIR: 100-pve
+  TF_WORKING_DIR: 300-cloudflare
 
 jobs:
   apply:
-    name: Terraform Apply
+    name: Cloudflare Apply
     runs-on: self-hosted
     timeout-minutes: 30
     environment: production
@@ -43,26 +42,28 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -input=false -no-color
         env:
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
-          TF_VAR_proxmox_endpoint: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
-          TF_VAR_proxmox_api_token: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
-          TF_VAR_proxmox_insecure: ${{ secrets.TF_VAR_PROXMOX_INSECURE }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
+          TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
+          TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
+          TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
+          TF_VAR_vault_token: ${{ secrets.TF_VAR_VAULT_TOKEN }}
 
       - name: Create Issue on Failure
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
-          title-prefix: '[Terraform] Apply failed on master'
+          title-prefix: '[Cloudflare] Apply failed on master'
           extra-body: |
-            **Workspace:** `100-pve/envs/prod`
+            **Workspace:** `300-cloudflare`
 
             ### Checklist
-            - [ ] Verify Proxmox API connectivity and credentials
+            - [ ] Verify Cloudflare API credentials
+            - [ ] Verify Vault token is valid
             - [ ] Run `terraform plan` locally to diagnose
             - [ ] Fix and re-apply, or revert the commit
           labels: 'terraform-drift,automated,infrastructure'

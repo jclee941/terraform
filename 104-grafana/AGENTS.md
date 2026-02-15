@@ -6,11 +6,11 @@
 Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchestrates **Prometheus** for time-series infrastructure metrics and **Grafana** for unified dashboarding. Consumes log data from **ELK Stack (105)** via Elasticsearch datasource for error tracking and automated issue classification.
 
 ## STRUCTURE
-- `dashboards/`: Static JSON definitions for all 12 dashboards (Source of Truth).
+- `dashboards/`: Static JSON definitions for all 7 dashboards (Source of Truth).
 - `provisioning/`: Standard Grafana configuration for datasources (ES/Prometheus) and dashboard providers.
 - `tf-configs/`: Terraform-rendered outputs (Prometheus scrape targets, interpolated dashboard JSON).
 - `templates/`: `.tftpl` sources for dynamic configuration rendering.
-- `alerting.yaml`: Integrated alert definitions (12 rules across 4 groups: logs, opencode, mcp, infra).
+- `alerting.yaml`: Deprecated. Alert rules are now managed via Terraform (`terraform/main.tf`): 14 rules across 4 groups (homelab_logs, infrastructure_health, opencode_alerts, mcp_alerts).
 
 ## WHERE TO LOOK
 | Task | Location | Notes |
@@ -18,7 +18,7 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 | **Datasource Config** | `provisioning/datasources/datasources.yml` | Connection strings for Prometheus + ES |
 | **Dashboard Layouts** | `dashboards/*.json` | Base JSON for visual design |
 | **Metric Scrapes** | `tf-configs/prometheus.yml` | Node-exporter targets & intervals |
-| **Alert Rules** | `alerting.yaml` | Multi-condition thresholds & n8n hooks |
+| **Alert Rules** | `terraform/main.tf` | 14 rules in 4 groups (Terraform SSoT) |
 | **Interpolated JSON** | `tf-configs/*.json` | Rendered dashboards with injected host IPs |
 
 ## CONVENTIONS

@@ -1,12 +1,11 @@
-name: Terraform Apply
+name: ELK Apply
 
 on:
   push:
     branches:
       - master
     paths:
-      - '100-pve/**'
-      - 'modules/**'
+      - '105-elk/**'
   workflow_dispatch:
 
 permissions:
@@ -14,15 +13,15 @@ permissions:
   issues: write
 
 concurrency:
-  group: terraform-apply
+  group: elk-apply
   cancel-in-progress: false
 
 env:
-  TF_WORKING_DIR: 100-pve
+  TF_WORKING_DIR: 105-elk/terraform
 
 jobs:
   apply:
-    name: Terraform Apply
+    name: ELK Apply
     runs-on: self-hosted
     timeout-minutes: 30
     environment: production
@@ -39,30 +38,24 @@ jobs:
         with:
           terraform-version: '1.10.5'
           working-directory: ${{ env.TF_WORKING_DIR }}
-          init-args: '-backend-config=../backend.hcl -input=false'
+          init-args: '-backend-config=../../backend.hcl -input=false'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -input=false -no-color
-        env:
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
-          TF_VAR_proxmox_endpoint: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
-          TF_VAR_proxmox_api_token: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
-          TF_VAR_proxmox_insecure: ${{ secrets.TF_VAR_PROXMOX_INSECURE }}
 
       - name: Create Issue on Failure
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
-          title-prefix: '[Terraform] Apply failed on master'
+          title-prefix: '[ELK] Apply failed on master'
           extra-body: |
-            **Workspace:** `100-pve/envs/prod`
+            **Workspace:** `105-elk/terraform`
 
             ### Checklist
-            - [ ] Verify Proxmox API connectivity and credentials
+            - [ ] Verify Elasticsearch connectivity
             - [ ] Run `terraform plan` locally to diagnose
             - [ ] Fix and re-apply, or revert the commit
           labels: 'terraform-drift,automated,infrastructure'
