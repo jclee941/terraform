@@ -1,0 +1,30 @@
+name: Setup Terraform
+description: >
+  Composite action to install Terraform and run terraform init.
+  Standardizes Terraform setup across plan, apply, and drift workflows.
+
+inputs:
+  terraform-version:
+    description: 'Terraform version to install'
+    required: false
+    default: '1.10.5'
+  working-directory:
+    description: 'Directory containing Terraform configuration'
+    required: true
+  init-args:
+    description: 'Additional arguments for terraform init'
+    required: false
+    default: '-input=false'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform-version }}
+
+    - name: Terraform Init
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: terraform init ${{ inputs.init-args }}

@@ -58,11 +58,13 @@ jobs:
           fi
           echo "✅ YAML validation complete" >> $GITHUB_STEP_SUMMARY
 
-      - name: Setup Terraform
+      - name: Setup Terraform & Init (backend=false)
         if: steps.changes.outputs.tf_changed == 'true'
-        uses: hashicorp/setup-terraform@v3
+        uses: ./.github/actions/terraform-setup
         with:
-          terraform_version: '1.7.5'
+          terraform-version: '1.10.5'
+          working-directory: 100-pve/envs/prod
+          init-args: '-backend=false -input=false'
 
       - name: Validate Terraform format
         if: steps.changes.outputs.tf_changed == 'true'
@@ -79,8 +81,7 @@ jobs:
             exit 1
           fi
 
-          # Validate (init with backend=false to skip state)
-          terraform init -backend=false -input=false > /dev/null 2>&1
+          # Validate (init already done by terraform-setup)
           if terraform validate; then
             echo "✅ Terraform validate OK" >> $GITHUB_STEP_SUMMARY
           else

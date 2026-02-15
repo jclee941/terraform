@@ -30,13 +30,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform & Init
+        uses: ./.github/actions/terraform-setup
         with:
-          terraform_version: "1.7.5"
-
-      - name: Terraform Init
-        run: terraform init -input=false
+          terraform-version: '1.10.5'
+          working-directory: ${{ env.TF_WORKING_DIR }}
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
