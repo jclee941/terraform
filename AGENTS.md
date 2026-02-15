@@ -74,7 +74,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | **Grafana App Config** | `104-grafana/terraform/` | Standalone workspace: dashboards, datasources, alerts (grafana provider). |
 | **ELK App Config** | `105-elk/terraform/` | Standalone workspace: ILM policies, index templates (elasticstack provider). |
 | **GitHub Org Mgmt** | `301-github/` | GitHub org, repos, teams, branch protection (github provider). |
-| **Cloudflare Modules** | `modules/cloudflare/` | DNS, tunnels (8 .tf files). |
+| **Cloudflare Infra** | `300-cloudflare/` | DNS, tunnel, access, R2, secrets, Workers (inline resources, no shared module). |
 | **Host Inventory (SoT)** | `100-pve/envs/prod/hosts.tf` | Single Source of Truth for all IPs/ports. |
 | **Terraform Architecture** | `100-pve/main.tf` → `module.hosts` → `module.env_config` → downstream modules | No hardcoded IPs in main.tf. |
 | **Config Templates** | Distributed per service dir | `102-traefik/templates/`, `104-grafana/templates/`, `105-elk/templates/`, `106-glitchtip/templates/`, `112-mcphub/templates/` |

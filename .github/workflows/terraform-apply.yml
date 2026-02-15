@@ -13,6 +13,10 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: terraform-apply
+  cancel-in-progress: false
+
 env:
   TF_WORKING_DIR: 100-pve/envs/prod
 

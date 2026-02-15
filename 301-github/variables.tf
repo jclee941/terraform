@@ -8,6 +8,11 @@ variable "github_owner" {
   description = "GitHub organization or user"
   type        = string
   default     = "qws941"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$", var.github_owner))
+    error_message = "github_owner must be a valid GitHub username (alphanumeric and hyphens, max 39 chars)."
+  }
 }
 
 variable "manage_as_organization" {
@@ -20,6 +25,11 @@ variable "infra_domain" {
   description = "Infrastructure domain used to derive service URLs (e.g., mcphub.{domain})."
   type        = string
   default     = "jclee.me"
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9.-]+[a-z0-9]$", var.infra_domain))
+    error_message = "infra_domain must be a valid domain name."
+  }
 }
 
 variable "enable_infra_actions_variables" {
@@ -56,6 +66,11 @@ variable "actions_allowed_actions" {
   description = "Organization-level allowed actions policy: all, local_only, selected."
   type        = string
   default     = "selected"
+
+  validation {
+    condition     = contains(["all", "local_only", "selected"], var.actions_allowed_actions)
+    error_message = "actions_allowed_actions must be one of: all, local_only, selected."
+  }
 }
 
 variable "actions_allowed_patterns" {
@@ -72,6 +87,11 @@ variable "actions_enabled_repositories" {
   description = "Organization-level enabled repositories policy: all, none, selected."
   type        = string
   default     = "selected"
+
+  validation {
+    condition     = contains(["all", "none", "selected"], var.actions_enabled_repositories)
+    error_message = "actions_enabled_repositories must be one of: all, none, selected."
+  }
 }
 
 variable "actions_enabled_repositories_selected" {
@@ -93,6 +113,11 @@ variable "organization_secret_visibility" {
   description = "Visibility for organization-level secrets and variables: all, private, selected."
   type        = string
   default     = "private"
+
+  validation {
+    condition     = contains(["all", "private", "selected"], var.organization_secret_visibility)
+    error_message = "organization_secret_visibility must be one of: all, private, selected."
+  }
 }
 
 variable "organization_secret_selected_repositories" {
@@ -147,24 +172,44 @@ variable "n8n_webhook_glitchtip_error_url" {
   description = "n8n webhook URL for GlitchTip error workflows."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.n8n_webhook_glitchtip_error_url == "" || can(regex("^https?://", var.n8n_webhook_glitchtip_error_url))
+    error_message = "n8n_webhook_glitchtip_error_url must be empty or a valid HTTP(S) URL."
+  }
 }
 
 variable "n8n_webhook_grafana_alert_url" {
   description = "n8n webhook URL for Grafana alerts."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.n8n_webhook_grafana_alert_url == "" || can(regex("^https?://", var.n8n_webhook_grafana_alert_url))
+    error_message = "n8n_webhook_grafana_alert_url must be empty or a valid HTTP(S) URL."
+  }
 }
 
 variable "n8n_webhook_github_issue_url" {
   description = "n8n webhook URL for GitHub issue automation."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.n8n_webhook_github_issue_url == "" || can(regex("^https?://", var.n8n_webhook_github_issue_url))
+    error_message = "n8n_webhook_github_issue_url must be empty or a valid HTTP(S) URL."
+  }
 }
 
 variable "n8n_webhook_github_pr_url" {
   description = "n8n webhook URL for GitHub PR automation."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.n8n_webhook_github_pr_url == "" || can(regex("^https?://", var.n8n_webhook_github_pr_url))
+    error_message = "n8n_webhook_github_pr_url must be empty or a valid HTTP(S) URL."
+  }
 }
 
 variable "webhook_secret" {

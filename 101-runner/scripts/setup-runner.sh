@@ -15,6 +15,18 @@
 
 set -euo pipefail
 
+# --- Cleanup on failure ------------------------------------------------------
+cleanup() {
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        err "Setup failed with exit code ${exit_code}. Partial install may exist."
+        err "Review output above and re-run after fixing the issue."
+    fi
+    rm -f /tmp/actions-runner-*.tar.gz /tmp/terraform.zip
+    exit $exit_code
+}
+trap cleanup EXIT
+
 # --- Configuration -----------------------------------------------------------
 RUNNER_VERSION="${RUNNER_VERSION:-2.322.0}"
 RUNNER_ARCH="${RUNNER_ARCH:-linux-x64}"

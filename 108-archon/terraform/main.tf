@@ -42,7 +42,7 @@ data "terraform_remote_state" "infra" {
 }
 
 locals {
-  hosts = data.terraform_remote_state.infra.outputs.host_inventory
+  hosts = try(data.terraform_remote_state.infra.outputs.host_inventory, {})
 }
 
 module "lxc" {

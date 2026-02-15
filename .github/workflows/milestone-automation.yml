@@ -99,6 +99,21 @@ jobs:
 
             core.info(`\nSummary: ${created} created, ${skipped} skipped across ${repos.length} repos`);
 
+      - name: Report failure
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            core.error('Milestone automation job "create-weekly-milestone" failed.');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[CI] Milestone creation failure (${new Date().toISOString().slice(0,10)})`,
+              body: `The \`create-weekly-milestone\` job failed.\n\nWorkflow run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['bug', 'automation']
+            });
+
   # ──────────────────────────────────────────────
   # Job 2: Close milestone + rollover across ALL repos
   # Runs: Friday 18:00 KST | manual trigger
@@ -197,6 +212,21 @@ jobs:
 
             core.info(`\nSummary: ${totalClosed} milestones closed, ${totalMoved} issues rolled over`);
 
+      - name: Report failure
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            core.error('Milestone automation job "close-and-rollover" failed.');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[CI] Milestone rollover failure (${new Date().toISOString().slice(0,10)})`,
+              body: `The \`close-and-rollover\` job failed.\n\nWorkflow run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['bug', 'automation']
+            });
+
   # ──────────────────────────────────────────────
   # Job 3: Auto-assign PR to current week milestone
   # Runs: On PR open/reopen (this repo only)
@@ -270,6 +300,13 @@ jobs:
 
             core.info(`Assigned PR #${pr.number} "${pr.title}" → ${title}`);
 
+      - name: Report failure
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            core.error('Milestone automation job "assign-pr-to-milestone" failed. Check the workflow run logs.');
+
   # ──────────────────────────────────────────────
   # Job 4: Auto-close milestone when all issues done
   # Runs: On issue close (this repo only)
@@ -309,3 +346,17 @@ jobs:
             } else {
               core.info(`Milestone "${current.title}" still has ${current.open_issues} open issues`);
             }
+
+      - name: Report failure
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            core.error('Milestone automation job "auto-close-milestone" failed. Check the workflow run logs.');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[CI] Milestone automation failure (${new Date().toISOString().slice(0,10)})`,
+              body: `The \`auto-close-milestone\` job failed.\n\nWorkflow run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['bug', 'automation']
+            });
