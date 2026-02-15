@@ -18,6 +18,8 @@ concurrency:
 
 env:
   TF_WORKING_DIR: 300-cloudflare
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   apply:
@@ -39,9 +41,6 @@ jobs:
           terraform-version: '1.10.5'
           working-directory: ${{ env.TF_WORKING_DIR }}
           init-args: '-backend-config=../backend.hcl -input=false'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -input=false -no-color
