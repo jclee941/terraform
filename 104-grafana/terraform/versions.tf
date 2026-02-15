@@ -26,7 +26,7 @@ data "terraform_remote_state" "infra" {
     skip_requesting_account_id  = true
     use_path_style              = true
     endpoints = {
-      s3 = "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+      s3 = "https://a8d9c67f586acdd15eebcc65ca3aa5bb.r2.cloudflarestorage.com"
     }
   }
 }
