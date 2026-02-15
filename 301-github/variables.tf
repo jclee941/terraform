@@ -16,6 +16,18 @@ variable "manage_as_organization" {
   default     = false
 }
 
+variable "infra_domain" {
+  description = "Infrastructure domain used to derive service URLs (e.g., mcphub.{domain})."
+  type        = string
+  default     = "jclee.me"
+}
+
+variable "enable_infra_actions_variables" {
+  description = "Populate GitHub Actions variables with infrastructure endpoints from remote state."
+  type        = bool
+  default     = false
+}
+
 variable "known_repositories" {
   description = "Known repositories in this workspace scope (github-iac-template renamed to github)."
   type        = set(string)

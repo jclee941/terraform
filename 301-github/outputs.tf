@@ -32,3 +32,17 @@ output "team_ids" {
     team_key => team.id
   }
 }
+
+output "n8n_webhook_urls" {
+  description = "Effective n8n webhook URLs (derived from infra domain or overridden by variables)."
+  value       = local.n8n_webhook_urls
+}
+
+output "infra_integration" {
+  description = "Infrastructure data consumed from 100-pve remote state."
+  value = {
+    hosts_available = length(local.infra_hosts) > 0
+    host_count      = length(local.infra_hosts)
+    service_urls    = local.service_urls
+  }
+}

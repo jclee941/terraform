@@ -117,6 +117,14 @@ resource "github_actions_variable" "repositories" {
   value         = each.value.variable_value
 }
 
+resource "github_actions_variable" "infra_endpoints" {
+  for_each = var.enable_infra_actions_variables ? local.infra_actions_variables : {}
+
+  repository    = "terraform"
+  variable_name = each.key
+  value         = each.value
+}
+
 resource "github_actions_runner_group" "groups" {
   for_each = var.manage_as_organization ? var.runner_groups : {}
 

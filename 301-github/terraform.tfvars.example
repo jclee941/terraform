@@ -7,12 +7,21 @@ github_owner = "qws941"
 
 manage_as_organization = false
 
-n8n_webhook_glitchtip_error_url = "https://mcphub.jclee.me/webhook/glitchtip-error"
-n8n_webhook_grafana_alert_url   = "https://mcphub.jclee.me/webhook/grafana-alert"
-n8n_webhook_github_issue_url    = "https://mcphub.jclee.me/webhook/github-issue"
-n8n_webhook_github_pr_url       = "https://mcphub.jclee.me/webhook/github-pr"
+# Infrastructure domain (default: jclee.me).
+# n8n webhook URLs are auto-derived as https://mcphub.{domain}/webhook/*.
+# Override individual URLs below only if they differ from the convention.
+infra_domain = "jclee.me"
+
+# Optional overrides — leave empty to use auto-derived URLs from infra_domain.
+# n8n_webhook_glitchtip_error_url = ""
+# n8n_webhook_grafana_alert_url   = ""
+# n8n_webhook_github_issue_url    = ""
+# n8n_webhook_github_pr_url       = ""
 
 webhook_secret = ""
+
+# Set to true to populate terraform repo Actions variables with infra endpoints.
+enable_infra_actions_variables = false
 
 repository_actions_variables = {
   terraform = {

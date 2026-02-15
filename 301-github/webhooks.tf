@@ -1,25 +1,25 @@
 locals {
   n8n_webhooks = {
     glitchtip-error = {
-      url          = var.n8n_webhook_glitchtip_error_url
+      url          = local.n8n_webhook_urls.glitchtip_error
       events       = ["push", "workflow_run", "check_run"]
       content_type = "json"
       active       = true
     }
     grafana-alert = {
-      url          = var.n8n_webhook_grafana_alert_url
+      url          = local.n8n_webhook_urls.grafana_alert
       events       = ["workflow_run", "check_suite"]
       content_type = "json"
       active       = true
     }
     github-issue = {
-      url          = var.n8n_webhook_github_issue_url
+      url          = local.n8n_webhook_urls.github_issue
       events       = ["issues", "issue_comment"]
       content_type = "json"
       active       = true
     }
     github-pr = {
-      url          = var.n8n_webhook_github_pr_url
+      url          = local.n8n_webhook_urls.github_pr
       events       = ["pull_request", "pull_request_review", "push"]
       content_type = "json"
       active       = true
