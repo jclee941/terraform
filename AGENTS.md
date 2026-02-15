@@ -20,7 +20,8 @@ terraform/                      # Multi-provider IaC monorepo root
 │   │   └── inventory/          # Host inventory management
 │   ├── cloudflare/             # Cloudflare DNS/tunnel modules (8 .tf files)
 │   └── shared/
-│       └── vault-secrets/      # HashiCorp Vault secret management
+│       ├── vault-secrets/      # HashiCorp Vault secret management
+│       └── vault-agent/        # Vault Agent AppRole auto-auth module
 ├── 100-pve/                    # Proxmox Host + TF workspace (primary)
 │   ├── main.tf                 # Central orchestration (665 lines)
 │   ├── variables.tf            # TF variables
@@ -32,8 +33,10 @@ terraform/                      # Multi-provider IaC monorepo root
 │   ├── tf-configs/             # TF-rendered configs (traefik, routing)
 │   └── templates/              # Config templates
 ├── 104-grafana/                # Observability Stack (Prometheus/Grafana)
+│   ├── terraform/              # Standalone TF workspace (grafana provider)
 │   └── tf-configs/             # TF-rendered configs (datasources, prometheus)
 ├── 105-elk/                    # ELK Stack (Elasticsearch, Logstash, Kibana)
+│   ├── terraform/              # Standalone TF workspace (elasticstack provider)
 │   └── tf-configs/             # TF-rendered configs (docker-compose, logstash)
 ├── 106-glitchtip/              # Error Tracking (GlitchTip)
 │   └── tf-configs/             # TF-rendered configs (docker-compose, env)
@@ -48,6 +51,7 @@ terraform/                      # Multi-provider IaC monorepo root
 ├── 215-synology/               # Synology NAS (Physical Device)
 ├── 220-sandbox/                # Dev Sandbox (CF WARP)
 │   └── cloud-init/             # Cloud-init config
+├── 301-github/                 # GitHub Org Management (External)
 ├── 300-cloudflare/             # Cloudflare Infrastructure (External)
 │   ├── *.tf                    # DNS, tunnel, access, R2, secrets (14 files)
 │   ├── workers/synology-proxy/ # Hono Worker (FileStation proxy + R2 cache)
@@ -66,6 +70,10 @@ terraform/                      # Multi-provider IaC monorepo root
 | **IaC Definitions** | `100-pve/main.tf` | Manages 101-102, 104-108, 112, 200, 220. |
 | **Terraform Modules** | `modules/proxmox/` | 6 modules (lxc, lxc-config, vm-config, env-config, config-renderer, inventory). |
 | **Shared Modules** | `modules/shared/vault-secrets/` | Cross-stack modules (Vault secrets). |
+| **Vault Agent Module** | `modules/shared/vault-agent/` | AppRole auto-auth + template engine for runtime secrets. |
+| **Grafana App Config** | `104-grafana/terraform/` | Standalone workspace: dashboards, datasources, alerts (grafana provider). |
+| **ELK App Config** | `105-elk/terraform/` | Standalone workspace: ILM policies, index templates (elasticstack provider). |
+| **GitHub Org Mgmt** | `301-github/` | GitHub org, repos, teams, branch protection (github provider). |
 | **Cloudflare Modules** | `modules/cloudflare/` | DNS, tunnels (8 .tf files). |
 | **Host Inventory (SoT)** | `100-pve/envs/prod/hosts.tf` | Single Source of Truth for all IPs/ports. |
 | **Terraform Architecture** | `100-pve/main.tf` → `module.hosts` → `module.env_config` → downstream modules | No hardcoded IPs in main.tf. |
@@ -106,6 +114,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | 215 | synology | 192.168.50.215 | Synology NAS (Physical) | Inventory only |
 | 220 | sandbox | 192.168.50.220 | Sandbox (WARP) | Terraform (VM) |
 | 300 | cloudflare | — | DNS/Tunnel/Access/R2/Secrets | Terraform (External) |
+| 301 | github | — | GitHub Org/Repos/Teams | Terraform (External) |
 
 ## MCP SERVERS
 **SSoT: `112-mcphub/mcp_servers.json`** — Centralized catalog for all MCP servers. 24 servers total.
@@ -146,7 +155,7 @@ terraform/                      # Multi-provider IaC monorepo root
 - **Numbering**: `1-255` = internal infra (maps to `192.168.50.{NNN}`), `300+` = external infra (Cloudflare, AWS, etc.).
 - **Naming**: `{VMID}-{HOSTNAME}` (e.g., `102-traefik`).
 - **Network**: `192.168.50.0/24` (GW: .1). Primary DNS: `.1`.
-- **Terraform**: `bpg/proxmox` provider (v0.94.0), `hashicorp/vault` (~>4.0).
+- **Terraform**: `bpg/proxmox` (v0.95.0), `hashicorp/vault` (~>4.0), `grafana/grafana` (~>4.0), `elastic/elasticstack` (~>0.11), `integrations/github` (v6.11.1).
 - **Single Source of Truth (SSoT)**: `100-pve/envs/prod/hosts.tf` defines ALL IPs/ports. No hardcoded IPs in `main.tf`.
 - **Module Sources**: Always use `../modules/{provider}/{module}` relative paths from service dirs.
 - **Template Paths**: `${path.module}/../{NNN}-{svc}/templates/` from workspace to service templates.
@@ -198,7 +207,7 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
 ## NOTES
 - **n8n**: MCP API key expires 2026-05-11. Workflows must be Published via UI (CLI import doesn't register webhooks).
 - **GlitchTip**: Org `jclee-homelab`, Project `homelab`. Alert rule `n8n-automation` → webhook.
-- **Vault**: vault.jclee.me via Traefik. Vault Agent on 112 replaces manual secrets. Deprecated vars: `n8n_mcp_config`, `mcp_secrets`.
+- **Vault**: vault.jclee.me via Traefik. Vault Agent module at `modules/shared/vault-agent/` (AppRole auto-auth, pilot target: VM 112). Plan-time secrets via `modules/shared/vault-secrets/`. Deprecated vars: `n8n_mcp_config`, `mcp_secrets`.
 - **MCPHub**: Default creds — see Vault `homelab/mcphub`. SSE proxies use sidecar Dockerfiles (`Dockerfile.proxmox`, `Dockerfile.playwright`). Env from `/opt/mcphub/.env`.
 - **GPU**: RTX 5070 Ti on VM 200 (IOMMU group 12, PCI 0000:01:00.0). **Archived**: 109-111, 113 → `.archive/`.
 - **Migration**: Migrated from single-provider `~/dev/proxmox/` repo (2026-02-13). Original repo preserved as reference.
