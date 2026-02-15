@@ -8,11 +8,11 @@ output "secrets" {
     grafana_admin_password        = data.vault_kv_secret_v2.grafana.data["admin_password"]
     grafana_service_account_token = data.vault_kv_secret_v2.grafana.data["service_account_token"]
 
-    # GlitchTip
-    glitchtip_django_secret_key = data.vault_kv_secret_v2.glitchtip.data["django_secret_key"]
-    glitchtip_postgres_password = data.vault_kv_secret_v2.glitchtip.data["postgres_password"]
-    glitchtip_redis_password    = data.vault_kv_secret_v2.glitchtip.data["redis_password"]
-    glitchtip_api_token         = data.vault_kv_secret_v2.glitchtip.data["api_token"]
+    # GlitchTip (try() defaults allow plan to succeed before Vault keys are populated)
+    glitchtip_django_secret_key = try(data.vault_kv_secret_v2.glitchtip.data["django_secret_key"], "")
+    glitchtip_postgres_password = try(data.vault_kv_secret_v2.glitchtip.data["postgres_password"], "")
+    glitchtip_redis_password    = try(data.vault_kv_secret_v2.glitchtip.data["redis_password"], "")
+    glitchtip_api_token         = try(data.vault_kv_secret_v2.glitchtip.data["api_token"], "")
 
     # Proxmox
     proxmox_api_token_value = data.vault_kv_secret_v2.proxmox.data["api_token_value"]
