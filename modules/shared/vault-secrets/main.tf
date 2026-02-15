@@ -9,9 +9,15 @@ terraform {
   }
 }
 
-# TODO(ephemeral): Convert data sources below to ephemeral resources
-# Vault provider v5+ supports ephemeral vault_kv_secret_v2 (TF >= 1.11).
-# Migration requires updating all downstream consumers to accept ephemeral values.
+# NOTE(ephemeral): These data sources CANNOT be converted to ephemeral resources
+# with the current architecture. Secrets flow into templatefile() → local_file
+# resources via config_renderer, and ephemeral values cannot feed into regular
+# resource attributes. To enable ephemeral secrets:
+#   1. Expand vault-agent template_mappings to render ALL secret-dependent configs
+#      at runtime (instead of Terraform plan-time via config_renderer)
+#   2. Remove secret values from template_vars merge in 100-pve/main.tf
+#   3. Then convert these data sources to ephemeral vault_kv_secret_v2
+# See: https://registry.terraform.io/providers/hashicorp/vault/latest/docs/ephemeral-resources/kv_secret_v2
 data "vault_kv_secret_v2" "grafana" {
   mount = var.vault_mount
   name  = "homelab/grafana"

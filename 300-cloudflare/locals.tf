@@ -56,6 +56,7 @@ locals {
     kibana    = { subdomain = "kibana" }
     es        = { subdomain = "es" }
     glitchtip = { subdomain = "glitchtip" }
+    grafana   = { subdomain = "grafana" }
     mcphub    = { subdomain = "mcphub" }
     vault     = { subdomain = "vault" }
     archon    = { subdomain = "archon" }

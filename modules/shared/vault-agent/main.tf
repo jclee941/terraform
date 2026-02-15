@@ -54,8 +54,10 @@ resource "vault_approle_auth_backend_role" "service" {
   token_max_ttl = var.token_max_ttl
 }
 
-# TODO(ephemeral): Convert to ephemeral vault_approle_auth_backend_role_secret_id (vault v5.7+, TF >= 1.10).
-# The secret_id is used in vault-agent config template — verify ephemeral lifecycle compatibility first.
+# NOTE(ephemeral): This resource CANNOT be converted to ephemeral. The secret_id
+# must persist on disk (/etc/vault-agent/secret-id) for vault-agent file-based
+# AppRole auth. Ephemeral resources generate transient values incompatible with
+# persistent file-based authentication.
 resource "vault_approle_auth_backend_role_secret_id" "service" {
   backend   = var.approle_backend_path
   role_name = vault_approle_auth_backend_role.service.role_name

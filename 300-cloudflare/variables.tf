@@ -109,8 +109,4 @@ variable "homelab_domain" {
   default     = "jclee.me"
 }
 
-variable "traefik_ip" {
-  description = "Traefik reverse proxy IP (entry point for all homelab services)"
-  type        = string
-  default     = "192.168.50.102"
-}
+

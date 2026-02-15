@@ -10,6 +10,10 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "synology" {
   account_id    = var.cloudflare_account_id
   name          = "synology-nas"
   tunnel_secret = base64encode(random_password.tunnel_secret.result)
+
+  lifecycle {
+    ignore_changes = [tunnel_secret, config_src]
+  }
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "synology" {
@@ -47,8 +51,12 @@ resource "random_password" "homelab_tunnel_secret" {
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "homelab" {
   account_id    = var.cloudflare_account_id
-  name          = "homelab-traefik"
+  name          = "traefik"
   tunnel_secret = base64encode(random_password.homelab_tunnel_secret.result)
+
+  lifecycle {
+    ignore_changes = [tunnel_secret, config_src]
+  }
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
@@ -59,7 +67,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
     ingress = concat(
       [for key, svc in local.homelab_services : {
         hostname = "${svc.subdomain}.${var.homelab_domain}"
-        service  = "http://${var.traefik_ip}:80"
+        service  = "http://localhost:80"
       }],
       [{ service = "http_status:404" }]
     )

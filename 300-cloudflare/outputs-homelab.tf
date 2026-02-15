@@ -13,7 +13,7 @@ output "homelab_dns_records" {
   description = "DNS records created for homelab services"
   value = {
     for key, record in cloudflare_dns_record.homelab :
-    key => "${record.name}.${var.homelab_domain}"
+    key => record.name
   }
 }
 
