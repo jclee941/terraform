@@ -12,7 +12,7 @@ terraform {
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -242,7 +242,7 @@ module "vm" {
   cores            = each.value.cores
   disk_size        = each.value.disk_size
   bios             = try(each.value.bios, "seabios")
-  machine          = try(each.value.machine, "i440fx")
+  machine          = try(each.value.machine, "pc")
   network_gateway  = var.network_gateway
   dns_servers      = [var.network_gateway, "8.8.8.8"]
   datastore_id     = var.datastore_id
@@ -590,6 +590,7 @@ output "vm_configs" {
 output "lxc_configs" {
   description = "LXC configuration paths"
   value       = module.lxc_config.lxc_configs
+  sensitive   = true
 }
 
 # =============================================================================
@@ -764,7 +765,4 @@ output "host_inventory" {
   value       = module.hosts.hosts
 }
 
-output "service_urls" {
-  description = "Derived service URLs from inventory"
-  value       = module.hosts.services
-}
+

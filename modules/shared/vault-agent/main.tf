@@ -4,7 +4,7 @@ terraform {
   required_providers {
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
     local = {
       source  = "hashicorp/local"
@@ -54,7 +54,8 @@ resource "vault_approle_auth_backend_role" "service" {
   token_max_ttl = var.token_max_ttl
 }
 
-# TODO(vault-v5): Convert to ephemeral resource when upgrading to vault provider v5.x + TF >= 1.11
+# TODO(ephemeral): Convert to ephemeral vault_approle_auth_backend_role_secret_id (vault v5.7+, TF >= 1.10).
+# The secret_id is used in vault-agent config template — verify ephemeral lifecycle compatibility first.
 resource "vault_approle_auth_backend_role_secret_id" "service" {
   backend   = var.approle_backend_path
   role_name = vault_approle_auth_backend_role.service.role_name

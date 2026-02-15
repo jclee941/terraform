@@ -1,5 +1,5 @@
 resource "vault_kv_secret_v2" "managed" {
-  for_each = nonsensitive(var.vault_token) != "" && length(var.secret_values) > 0 ? local.vault_secrets : {}
+  for_each = nonsensitive(var.vault_token != "" && length(var.secret_values) > 0) ? local.vault_secrets : {}
 
   mount = var.vault_mount_path
   name  = each.key
