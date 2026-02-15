@@ -15,40 +15,16 @@ resource "grafana_folder" "mcp_alerts" {
   title = "MCP Alerts"
 }
 
-resource "grafana_data_source" "prometheus" {
-  type = "prometheus"
+data "grafana_data_source" "prometheus" {
   name = "Prometheus"
-  url  = "http://prometheus:9090"
-
-  is_default = true
-
-  json_data_encoded = jsonencode({
-    httpMethod = "POST"
-  })
 }
 
-resource "grafana_data_source" "elasticsearch_logs" {
-  type = "elasticsearch"
+data "grafana_data_source" "elasticsearch_logs" {
   name = "Elasticsearch"
-  url  = "http://192.168.50.105:9200"
-
-  json_data_encoded = jsonencode({
-    index     = "logs-*"
-    timeField = "@timestamp"
-    esVersion = "8.0.0"
-  })
 }
 
-resource "grafana_data_source" "elasticsearch_filebeat" {
-  type = "elasticsearch"
+data "grafana_data_source" "elasticsearch_filebeat" {
   name = "Elasticsearch-Filebeat"
-  url  = "http://192.168.50.105:9200"
-
-  json_data_encoded = jsonencode({
-    index     = "filebeat-*"
-    timeField = "@timestamp"
-    esVersion = "8.0.0"
-  })
 }
 
 locals {
@@ -131,7 +107,7 @@ resource "grafana_rule_group" "homelab_logs" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 300
@@ -193,7 +169,7 @@ resource "grafana_rule_group" "homelab_logs" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 60
@@ -255,7 +231,7 @@ resource "grafana_rule_group" "homelab_logs" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 300
@@ -317,7 +293,7 @@ resource "grafana_rule_group" "homelab_logs" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 300
@@ -379,7 +355,7 @@ resource "grafana_rule_group" "homelab_logs" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 600
@@ -447,7 +423,7 @@ resource "grafana_rule_group" "infrastructure_health" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.prometheus.uid
+      datasource_uid = data.grafana_data_source.prometheus.uid
 
       relative_time_range {
         from = 300
@@ -490,7 +466,7 @@ resource "grafana_rule_group" "infrastructure_health" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.prometheus.uid
+      datasource_uid = data.grafana_data_source.prometheus.uid
 
       relative_time_range {
         from = 300
@@ -533,7 +509,7 @@ resource "grafana_rule_group" "infrastructure_health" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.prometheus.uid
+      datasource_uid = data.grafana_data_source.prometheus.uid
 
       relative_time_range {
         from = 300
@@ -577,7 +553,7 @@ resource "grafana_rule_group" "infrastructure_health" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.prometheus.uid
+      datasource_uid = data.grafana_data_source.prometheus.uid
 
       relative_time_range {
         from = 300
@@ -621,7 +597,7 @@ resource "grafana_rule_group" "infrastructure_health" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.prometheus.uid
+      datasource_uid = data.grafana_data_source.prometheus.uid
 
       relative_time_range {
         from = 300
@@ -665,7 +641,7 @@ resource "grafana_rule_group" "infrastructure_health" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 3600
@@ -733,7 +709,7 @@ resource "grafana_rule_group" "opencode_alerts" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 300
@@ -795,7 +771,7 @@ resource "grafana_rule_group" "opencode_alerts" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 300
@@ -863,7 +839,7 @@ resource "grafana_rule_group" "mcp_alerts" {
 
     data {
       ref_id         = "A"
-      datasource_uid = grafana_data_source.elasticsearch_logs.uid
+      datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
 
       relative_time_range {
         from = 600
