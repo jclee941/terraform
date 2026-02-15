@@ -456,6 +456,11 @@ module "vm_config" {
           "systemctl enable docker",
           "systemctl start docker",
           "mkdir -p /opt/mcphub",
+          "mkdir -p /opt/vault-agent/templates",
+          "curl -fsSL https://releases.hashicorp.com/vault/1.18.3/vault_1.18.3_linux_amd64.zip -o /tmp/vault.zip && unzip -o /tmp/vault.zip -d /usr/local/bin/ && rm /tmp/vault.zip",
+          "systemctl daemon-reload",
+          "systemctl enable vault-agent-mcphub",
+          "systemctl start vault-agent-mcphub",
           "cd /opt/mcphub && docker compose build && docker compose up -d"
         ]
         write_files = [
@@ -481,6 +486,29 @@ module "vm_config" {
             path        = "/opt/mcphub/Dockerfile.playwright"
             content     = file("${path.module}/../112-mcphub/Dockerfile.playwright")
             permissions = "0644"
+            owner       = "root:root"
+          },
+          {
+            path        = module.vault_agent_mcphub.config_files["vault-agent-config"].path
+            content     = module.vault_agent_mcphub.config_files["vault-agent-config"].content
+            permissions = "0640"
+            owner       = "root:root"
+          },
+          {
+            path        = module.vault_agent_mcphub.config_files["vault-agent-service"].path
+            content     = module.vault_agent_mcphub.config_files["vault-agent-service"].content
+            permissions = "0644"
+            owner       = "root:root"
+          },
+          {
+            path        = "/opt/vault-agent/templates/mcphub.env.ctmpl"
+            content     = <<-EOT
+{{ with secret "secret/data/homelab/mcphub" }}
+MCPHUB_ADMIN_PASSWORD={{ .Data.data.admin_password }}
+N8N_MCP_API_KEY={{ .Data.data.n8n_mcp_api_key }}
+{{ end }}
+EOT
+            permissions = "0640"
             owner       = "root:root"
           }
         ]
@@ -672,6 +700,24 @@ output "lxc_configs" {
 
 module "vault_secrets" {
   source = "../modules/shared/vault-secrets"
+}
+
+module "vault_agent_mcphub" {
+  source = "../modules/shared/vault-agent"
+
+  service_name           = "mcphub"
+  vault_addr             = "https://vault.jclee.me"
+  vault_mount            = "secret"
+  kv_path                = "homelab/mcphub"
+  create_approle_backend = true
+
+  template_mappings = {
+    env = {
+      source      = "/opt/vault-agent/templates/mcphub.env.ctmpl"
+      destination = "/opt/mcphub/.env"
+      perms       = "0600"
+    }
+  }
 }
 
 # =============================================================================
