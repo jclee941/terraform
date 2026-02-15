@@ -91,3 +91,38 @@ resource "elasticstack_elasticsearch_index_lifecycle" "filebeat_90d" {
     delete {}
   }
 }
+
+resource "elasticstack_kibana_space" "homelab" {
+  space_id    = "homelab"
+  name        = "Homelab"
+  description = "Homelab infrastructure monitoring"
+  color       = "#0077CC"
+  initials    = "HL"
+}
+
+resource "elasticstack_kibana_data_view" "logs" {
+  data_view = {
+    name            = "Logs"
+    title           = "logs-*"
+    time_field_name = "@timestamp"
+  }
+  space_id = elasticstack_kibana_space.homelab.space_id
+}
+
+resource "elasticstack_kibana_data_view" "filebeat" {
+  data_view = {
+    name            = "Filebeat"
+    title           = "filebeat-*"
+    time_field_name = "@timestamp"
+  }
+  space_id = elasticstack_kibana_space.homelab.space_id
+}
+
+resource "elasticstack_kibana_data_view" "elastalert" {
+  data_view = {
+    name            = "ElastAlert"
+    title           = "elastalert_*"
+    time_field_name = "@timestamp"
+  }
+  space_id = elasticstack_kibana_space.homelab.space_id
+}
