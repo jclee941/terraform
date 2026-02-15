@@ -226,7 +226,7 @@ locals {
       threshold    = 0
       condition    = "gt"
       severity     = "critical"
-      for_duration = ""
+      for_duration = "0s"
       summary      = "Service down"
       description  = "Blackbox probe failed for {{ $labels.instance }}"
     }
@@ -237,7 +237,7 @@ locals {
       threshold    = 0
       condition    = "gt"
       severity     = "warning"
-      for_duration = ""
+      for_duration = "5m"
       summary      = "Disk usage high"
       description  = "Disk usage above 80% on {{ $labels.instance }}"
     }
@@ -248,7 +248,7 @@ locals {
       threshold    = 0
       condition    = "gt"
       severity     = "critical"
-      for_duration = ""
+      for_duration = "5m"
       summary      = "Disk usage critical"
       description  = "Disk usage above 90% on {{ $labels.instance }}"
     }

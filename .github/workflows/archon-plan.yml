@@ -65,7 +65,9 @@ jobs:
 
           exit $EXIT_CODE
         env:
+          TF_VAR_proxmox_endpoint: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
           TF_VAR_proxmox_api_token: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
+          TF_VAR_proxmox_insecure: ${{ secrets.TF_VAR_PROXMOX_INSECURE }}
           TF_VAR_supabase_url: ${{ secrets.TF_VAR_SUPABASE_URL }}
 
       - name: Comment Plan on PR
