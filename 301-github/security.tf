@@ -12,7 +12,7 @@ locals {
 resource "github_repository_dependabot_security_updates" "repositories" {
   for_each = local.security_repositories
 
-  repository = each.key
+  repository = github_repository.repos[each.key].name
   enabled    = each.value.dependabot_enabled
 }
 
