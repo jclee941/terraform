@@ -44,7 +44,7 @@ services:
       - logstash_dlq:/usr/share/logstash/dlq
     ports:
       - "${hosts.elk.ports.logstash_beat}:5044"
-      - "${hosts.elk.ports.logstash_syslog}:5000"
+      - "${hosts.elk.ports.logstash_tcp}:5000"
       - "9600:9600"
       - "9198:9198"
     environment:
