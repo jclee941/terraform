@@ -17,11 +17,26 @@ variable "manage_as_organization" {
 }
 
 variable "known_repositories" {
-  description = "Known repositories in this workspace scope."
+  description = "Known repositories in this workspace scope (github-iac-template renamed to github)."
   type        = set(string)
   default = [
-    "terraform",
+    "blacklist",
+    "claude",
+    "cloudflare",
+    "github",
+    "hycu_fsds",
+    "opencode",
+    "opencode-jclee",
+    "opencode-slack-notify",
+    "propose",
     "proxmox",
+    "qqq",
+    "resume",
+    "safework2",
+    "splunk",
+    "terraform",
+    "tmux",
+    "youtube",
   ]
 }
 
@@ -251,8 +266,21 @@ variable "security_dependabot_enabled" {
   description = "Enable Dependabot security updates by repository."
   type        = map(bool)
   default = {
-    terraform = true
-    proxmox   = true
+    blacklist             = true
+    claude                = true
+    github                = true
+    hycu_fsds             = true
+    opencode              = true
+    opencode-jclee        = true
+    opencode-slack-notify = true
+    propose               = true
+    qqq                   = true
+    resume                = true
+    safework2             = true
+    splunk                = true
+    terraform             = true
+    tmux                  = true
+    youtube               = true
   }
 }
 
@@ -260,8 +288,21 @@ variable "security_code_scanning_tools" {
   description = "Code scanning tools required by ruleset for each repository."
   type        = map(set(string))
   default = {
-    terraform = ["CodeQL"]
-    proxmox   = ["CodeQL"]
+    blacklist             = ["CodeQL"]
+    claude                = ["CodeQL"]
+    github                = ["CodeQL"]
+    hycu_fsds             = ["CodeQL"]
+    opencode              = ["CodeQL"]
+    opencode-jclee        = ["CodeQL"]
+    opencode-slack-notify = ["CodeQL"]
+    propose               = ["CodeQL"]
+    qqq                   = ["CodeQL"]
+    resume                = ["CodeQL"]
+    safework2             = ["CodeQL"]
+    splunk                = ["CodeQL"]
+    terraform             = ["CodeQL"]
+    tmux                  = ["CodeQL"]
+    youtube               = ["CodeQL"]
   }
 }
 

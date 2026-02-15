@@ -31,5 +31,8 @@ locals {
     "terraform",
   ]
 
-  known_repositories = toset(var.known_repositories)
+  common_topics_by_repository = {
+    for repo_name, repo_cfg in local.repositories :
+    repo_name => (try(repo_cfg.archived, false) ? [] : local.common_topics)
+  }
 }
