@@ -22,6 +22,42 @@ variable "network" {
   }
 }
 
+variable "elk_stack" {
+  description = "ELK stack version and tuning parameters"
+  type = object({
+    elk_version        = string
+    es_heap            = string
+    logstash_heap      = string
+    logstash_dlq_size  = string
+    elastalert_version = string
+    index_pattern      = string
+    ilm_delete_after   = string
+    ilm_policy_name    = string
+  })
+  default = {
+    elk_version        = "8.12.0"
+    es_heap            = "2g"
+    logstash_heap      = "512m"
+    logstash_dlq_size  = "1024mb"
+    elastalert_version = "2.19.0"
+    index_pattern      = "logs-%%{+YYYY.MM.dd}"
+    ilm_delete_after   = "30d"
+    ilm_policy_name    = "homelab-logs-30d"
+  }
+}
+
+variable "grafana_sla" {
+  description = "Grafana SLA dashboard configuration"
+  type = object({
+    prometheus_datasource_uid = string
+    sla_target_percentage     = string
+  })
+  default = {
+    prometheus_datasource_uid = "prometheus"
+    sla_target_percentage     = "99.9"
+  }
+}
+
 locals {
   services = {
     elasticsearch_url = "http://${var.hosts.elk.ip}:${var.hosts.elk.ports.elasticsearch}"
@@ -84,14 +120,14 @@ locals {
     domain               = var.network.domain
     infrastructure_nodes = local.infrastructure_nodes
     # ELK docker-compose variables
-    elk_version                 = "8.12.0"
-    es_heap                     = "2g"
-    logstash_heap               = "512m"
-    logstash_dlq_size           = "1024mb"
-    elastalert_version          = "2.19.0"
-    elasticsearch_index_pattern = "logs-%%{+YYYY.MM.dd}"
-    ilm_delete_after            = "30d"
-    ilm_policy_name             = "homelab-logs-30d"
+    elk_version                 = var.elk_stack.elk_version
+    es_heap                     = var.elk_stack.es_heap
+    logstash_heap               = var.elk_stack.logstash_heap
+    logstash_dlq_size           = var.elk_stack.logstash_dlq_size
+    elastalert_version          = var.elk_stack.elastalert_version
+    elasticsearch_index_pattern = var.elk_stack.index_pattern
+    ilm_delete_after            = var.elk_stack.ilm_delete_after
+    ilm_policy_name             = var.elk_stack.ilm_policy_name
     # Synology NAS
     synology_ip    = var.hosts.synology.ip
     synology_ports = var.hosts.synology.ports
@@ -109,8 +145,8 @@ locals {
     vault_ip   = var.hosts.mcphub.ip
     vault_port = var.hosts.mcphub.ports.vault
     # Grafana SLA dashboard
-    prometheus_datasource_uid = "prometheus"
-    sla_target_percentage     = "99.9"
+    prometheus_datasource_uid = var.grafana_sla.prometheus_datasource_uid
+    sla_target_percentage     = var.grafana_sla.sla_target_percentage
   }
 }
 

@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.7, < 2.0"
+
   required_providers {
     vault = {
       source  = "hashicorp/vault"
@@ -7,6 +9,7 @@ terraform {
   }
 }
 
+# TODO(vault-v5): Convert data sources below to ephemeral resources (vault provider v5.x + TF >= 1.11)
 data "vault_kv_secret_v2" "grafana" {
   mount = var.vault_mount
   name  = "homelab/grafana"

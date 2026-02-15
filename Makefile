@@ -8,7 +8,7 @@ TF_DIR := $(SVC)
 ## Terraform targets
 
 init: ## Initialize Terraform (SVC=100-pve)
-	cd $(TF_DIR) && terraform init
+	cd $(TF_DIR) && terraform init -backend-config=../backend.hcl
 
 plan: ## Create Terraform plan (SVC=100-pve)
 	cd $(TF_DIR) && terraform plan -out=tfplan
@@ -25,7 +25,7 @@ validate: ## Validate Terraform configuration (SVC=100-pve)
 
 ## Linting targets
 
-lint: lint-yaml lint-tf lint-shell ## Run all linters
+lint: lint-yaml lint-tf lint-shell lint-tflint ## Run all linters
 
 lint-yaml: ## Lint YAML files
 	yamllint -c .yamllint.yml .
@@ -36,6 +36,15 @@ lint-tf: ## Check Terraform formatting
 
 lint-shell: ## Lint shell scripts
 	find scripts/ -name '*.sh' -exec shellcheck --severity=warning {} +
+
+lint-tflint: ## Run tflint on all workspaces
+	@command -v tflint >/dev/null 2>&1 || { echo "tflint not installed. Install: brew install tflint"; exit 1; }
+	@for dir in $(shell find . -maxdepth 1 -type d -name '[0-9]*'); do \
+		echo "==> tflint $$dir"; \
+		tflint --chdir=$$dir --config=$(CURDIR)/.tflint.hcl 2>&1 || true; \
+	done
+	@echo "==> tflint modules/"
+	@tflint --chdir=modules/ --config=$(CURDIR)/.tflint.hcl 2>&1 || true
 
 ## Testing
 
@@ -80,6 +89,15 @@ pre-commit-install: ## Install pre-commit hooks
 
 pre-commit-run: ## Run pre-commit on all files
 	pre-commit run --all-files
+
+## Documentation
+
+docs: ## Generate module README.md via terraform-docs
+	@command -v terraform-docs >/dev/null 2>&1 || { echo "terraform-docs not installed. Install: brew install terraform-docs"; exit 1; }
+	@for dir in $(shell find modules/ -mindepth 2 -maxdepth 2 -type f -name 'main.tf' -exec dirname {} \;); do \
+		echo "==> terraform-docs $$dir"; \
+		terraform-docs markdown table --output-file README.md --output-mode inject $$dir 2>&1 || true; \
+	done
 
 ## Help
 

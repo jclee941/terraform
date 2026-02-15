@@ -1,5 +1,5 @@
 variable "node_name" {
-  description = "Proxmox node name to deploy the container"
+  description = "Proxmox node name"
   type        = string
 
   validation {
@@ -9,7 +9,7 @@ variable "node_name" {
 }
 
 variable "vmid" {
-  description = "Container VMID"
+  description = "VM ID"
   type        = number
 
   validation {
@@ -19,7 +19,7 @@ variable "vmid" {
 }
 
 variable "hostname" {
-  description = "Container hostname"
+  description = "VM hostname"
   type        = string
 
   validation {
@@ -29,7 +29,7 @@ variable "hostname" {
 }
 
 variable "ip_address" {
-  description = "Container IPv4 address (without CIDR)"
+  description = "VM IPv4 address (without CIDR)"
   type        = string
 
   validation {
@@ -43,8 +43,8 @@ variable "memory" {
   type        = number
 
   validation {
-    condition     = var.memory >= 128 && var.memory <= 65536
-    error_message = "memory must be between 128 MB and 65536 MB."
+    condition     = var.memory >= 512 && var.memory <= 65536
+    error_message = "memory must be between 512 MB and 65536 MB."
   }
 }
 
@@ -63,24 +63,18 @@ variable "disk_size" {
   type        = number
 
   validation {
-    condition     = var.disk_size >= 2 && var.disk_size <= 500
-    error_message = "disk_size must be between 2 GB and 500 GB."
+    condition     = var.disk_size >= 8 && var.disk_size <= 500
+    error_message = "disk_size must be between 8 GB and 500 GB."
   }
 }
 
 variable "description" {
-  description = "Container description"
+  description = "VM description"
   type        = string
 }
 
-variable "privileged" {
-  description = "Run container in privileged mode"
-  type        = bool
-  default     = false
-}
-
 variable "network_gateway" {
-  description = "Network gateway IP address"
+  description = "Network gateway IP"
   type        = string
 
   validation {
@@ -90,7 +84,7 @@ variable "network_gateway" {
 }
 
 variable "dns_servers" {
-  description = "DNS servers for containers"
+  description = "DNS servers"
   type        = list(string)
 
   validation {
@@ -99,19 +93,8 @@ variable "dns_servers" {
   }
 }
 
-variable "swap" {
-  description = "Swap memory in MB (per-container)"
-  type        = number
-  default     = 512
-
-  validation {
-    condition     = var.swap >= 0 && var.swap <= 16384
-    error_message = "swap must be between 0 MB and 16384 MB."
-  }
-}
-
 variable "datastore_id" {
-  description = "Proxmox storage ID for container disks"
+  description = "Proxmox storage ID for VM disks"
   type        = string
 
   validation {
@@ -140,19 +123,65 @@ variable "managed_vmid_max" {
   }
 }
 
-variable "ssh_public_keys" {
-  description = "SSH public keys for root user"
-  type        = list(string)
-  default     = []
+variable "clone_template_id" {
+  description = "Template VMID to clone from"
+  type        = number
+  default     = 9000
 }
 
-variable "template_file_id" {
-  description = "Container template file ID (e.g., local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst)"
+variable "bios" {
+  description = "BIOS type (seabios or ovmf)"
   type        = string
-  default     = "local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst"
+  default     = "seabios"
 
   validation {
-    condition     = can(regex("^[a-z].*:vztmpl/", var.template_file_id))
-    error_message = "template_file_id must match format 'storage:vztmpl/...'."
+    condition     = contains(["seabios", "ovmf"], var.bios)
+    error_message = "bios must be 'seabios' or 'ovmf'."
   }
+}
+
+variable "machine" {
+  description = "Machine type (pc or q35)"
+  type        = string
+  default     = "pc"
+
+  validation {
+    condition     = contains(["pc", "q35"], var.machine)
+    error_message = "machine must be 'pc' or 'q35'."
+  }
+}
+
+variable "cpu_type" {
+  description = "CPU type"
+  type        = string
+  default     = "host"
+}
+
+variable "disk_interface" {
+  description = "Disk interface (scsi0, virtio0, etc.)"
+  type        = string
+  default     = "scsi0"
+
+  validation {
+    condition     = can(regex("^(scsi|virtio|sata|ide)\\d+$", var.disk_interface))
+    error_message = "disk_interface must match pattern like scsi0, virtio0, sata0, ide0."
+  }
+}
+
+variable "cloud_init_datastore_id" {
+  description = "Datastore for cloud-init drive"
+  type        = string
+  default     = "local"
+}
+
+variable "cloud_init_file_id" {
+  description = "Cloud-init user-data snippet file ID"
+  type        = string
+  default     = null
+}
+
+variable "on_boot" {
+  description = "Start VM on host boot"
+  type        = bool
+  default     = true
 }

@@ -128,48 +128,9 @@ locals {
       ports = {}
     }
   }
-
-  services = {
-    elasticsearch_url  = "http://${local.hosts.elk.ip}:${local.hosts.elk.ports.elasticsearch}"
-    kibana_url         = "http://${local.hosts.elk.ip}:${local.hosts.elk.ports.kibana}"
-    logstash_beats_url = "${local.hosts.elk.ip}:${local.hosts.elk.ports.logstash_beat}"
-    prometheus_url     = "http://${local.hosts.grafana.ip}:${local.hosts.grafana.ports.prometheus}"
-    grafana_url        = "http://${local.hosts.grafana.ip}:${local.hosts.grafana.ports.grafana}"
-    glitchtip_url      = "http://${local.hosts.glitchtip.ip}:${local.hosts.glitchtip.ports.web}"
-    supabase_url       = "http://${local.hosts.supabase.ip}:${local.hosts.supabase.ports.api}"
-    archon_url         = "http://${local.hosts.archon.ip}:${local.hosts.archon.ports.ui}"
-  }
-
-  prometheus_targets = [
-    for name, host in local.hosts : "${host.ip}:9100"
-    if contains(host.roles, "monitoring") == false && host.vmid != 100
-  ]
-
-  traefik_backends = {
-    for name, host in local.hosts : name => {
-      ip    = host.ip
-      ports = host.ports
-    }
-    if length(host.ports) > 0
-  }
 }
 
 output "hosts" {
   description = "All infrastructure hosts with IPs and ports"
   value       = local.hosts
-}
-
-output "services" {
-  description = "Derived service URLs"
-  value       = local.services
-}
-
-output "prometheus_targets" {
-  description = "Node exporter targets for Prometheus"
-  value       = local.prometheus_targets
-}
-
-output "traefik_backends" {
-  description = "Backend services for Traefik routing"
-  value       = local.traefik_backends
 }

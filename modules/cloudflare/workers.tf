@@ -2,9 +2,9 @@
 resource "cloudflare_workers_script" "scripts" {
   for_each = var.workers
 
-  account_id  = var.cloudflare_account_id
-  name        = each.value.script_name
-  content     = file(each.value.content_file)
+  account_id = var.cloudflare_account_id
+  name       = each.value.script_name
+  content    = file(each.value.content_file)
 
   dynamic "plain_text_binding" {
     for_each = [

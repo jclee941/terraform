@@ -13,9 +13,9 @@ updates:
     commit-message:
       prefix: "ci"
 
-  # Terraform providers
+  # Terraform — Primary infrastructure workspace
   - package-ecosystem: "terraform"
-    directory: "/terraform/envs/prod"
+    directory: "/100-pve"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -25,4 +25,60 @@ updates:
       - "terraform"
       - "automated"
     commit-message:
-      prefix: "infra"
+      prefix: "infra(proxmox)"
+
+  # Terraform — Grafana app workspace
+  - package-ecosystem: "terraform"
+    directory: "/104-grafana/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "automated"
+    commit-message:
+      prefix: "infra(grafana)"
+
+  # Terraform — ELK app workspace
+  - package-ecosystem: "terraform"
+    directory: "/105-elk/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "automated"
+    commit-message:
+      prefix: "infra(elk)"
+
+  # Terraform — Cloudflare workspace
+  - package-ecosystem: "terraform"
+    directory: "/300-cloudflare"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "automated"
+    commit-message:
+      prefix: "infra(cloudflare)"
+
+  # Terraform — GitHub workspace
+  - package-ecosystem: "terraform"
+    directory: "/301-github"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "automated"
+    commit-message:
+      prefix: "infra(github)"

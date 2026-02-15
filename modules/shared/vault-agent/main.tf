@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.7, < 2.0"
 
   required_providers {
     vault = {
@@ -54,6 +54,7 @@ resource "vault_approle_auth_backend_role" "service" {
   token_max_ttl = var.token_max_ttl
 }
 
+# TODO(vault-v5): Convert to ephemeral resource when upgrading to vault provider v5.x + TF >= 1.11
 resource "vault_approle_auth_backend_role_secret_id" "service" {
   backend   = var.approle_backend_path
   role_name = vault_approle_auth_backend_role.service.role_name
@@ -63,7 +64,6 @@ locals {
   vault_agent_config = templatefile("${path.module}/templates/vault-agent.hcl.tftpl", {
     vault_addr        = var.vault_addr
     role_id           = vault_approle_auth_backend_role.service.role_id
-    secret_id         = vault_approle_auth_backend_role_secret_id.service.secret_id
     backend_path      = var.approle_backend_path
     vault_mount       = var.vault_mount
     kv_path           = var.kv_path

@@ -20,7 +20,7 @@ variable "tunnels" {
   description = "Map of Zero Trust tunnels to create"
   type = map(object({
     name          = string
-    tunnel_secret = optional(string) # Base64-encoded, min 32 bytes
+    tunnel_secret = optional(string)               # Base64-encoded, min 32 bytes
     config_src    = optional(string, "cloudflare") # "cloudflare" or "local"
     config = optional(object({
       ingress = list(object({
@@ -37,12 +37,12 @@ variable "tunnels" {
 variable "access_applications" {
   description = "Map of Zero Trust Access applications"
   type = map(object({
-    name                     = string
-    domain                   = string
-    type                     = optional(string, "self_hosted")
-    session_duration         = optional(string, "24h")
+    name                      = string
+    domain                    = string
+    type                      = optional(string, "self_hosted")
+    session_duration          = optional(string, "24h")
     auto_redirect_to_identity = optional(bool, false)
-    allowed_idps             = optional(list(string))
+    allowed_idps              = optional(list(string))
   }))
   default = {}
 }
@@ -88,10 +88,10 @@ variable "workers" {
     script_name  = string
     content_file = string
     bindings = optional(list(object({
-      type        = string # "r2_bucket", "secret_text", "plain_text", "kv_namespace", "d1"
-      name        = string
-      bucket_name = optional(string) # For R2 buckets
-      text        = optional(string) # For secrets/plain text
+      type         = string # "r2_bucket", "secret_text", "plain_text", "kv_namespace", "d1"
+      name         = string
+      bucket_name  = optional(string) # For R2 buckets
+      text         = optional(string) # For secrets/plain text
       namespace_id = optional(string) # For KV
       database_id  = optional(string) # For D1
     })), [])

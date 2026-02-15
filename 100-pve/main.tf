@@ -1,4 +1,10 @@
 terraform {
+  required_version = ">= 1.7, < 2.0"
+
+  backend "s3" {
+    key = "100-pve/terraform.tfstate"
+  }
+
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
@@ -199,164 +205,56 @@ module "lxc" {
 
 locals {
   cloud_init_files = {
-    # sandbox: Commented out — VM was manually created with non-standard 'dfge'
-    # datastore. bpg/proxmox provider GRPC crashes on import. Will re-add when
-    # VM is recreated from template on standard storage.
-    # sandbox = "local:snippets/sandbox-user-data.yaml"
     mcphub = "local:snippets/mcphub-user-data.yaml"
+  }
+
+  vm_definitions = {
+    mcphub = {
+      vmid        = 112
+      description = "MCPHub - Unified MCP Server Gateway"
+      memory      = 6144
+      cores       = 2
+      disk_size   = 32
+    }
   }
 }
 
-# =============================================================================
-# SANDBOX VM (220) - Development/Test Environment
-# =============================================================================
-# TEMPORARILY DISABLED: VM 220 was manually created with non-standard 'dfge'
-# datastore. The bpg/proxmox provider GRPC plugin crashes during import
-# (ReadResource failure). This resource will be re-enabled when the VM is
-# recreated from template 9000 on standard 'local-lvm' storage.
-#
-# resource "proxmox_virtual_environment_vm" "sandbox" {
-#   name        = "sandbox"
-#   description = "Sandbox VM for development testing and experiments"
-#   node_name   = local.node_name
-#   vm_id       = 220
-#
-#   clone {
-#     vm_id = 9000
-#     full  = true
-#   }
-#
-#   agent {
-#     enabled = true
-#   }
-#
-#   cpu {
-#     cores = 2
-#     type  = "host"
-#   }
-#
-#   memory {
-#     dedicated = 8192
-#   }
-#
-#   disk {
-#     datastore_id = var.datastore_id
-#     interface    = "scsi0"
-#     size         = 50
-#     iothread     = true
-#   }
-#
-#   network_device {
-#     bridge = "vmbr0"
-#   }
-#
-#   initialization {
-#     datastore_id      = "local"
-#     user_data_file_id = local.cloud_init_files.sandbox
-#
-#     ip_config {
-#       ipv4 {
-#         address = "${module.hosts.hosts.sandbox.ip}/24"
-#         gateway = var.network_gateway
-#       }
-#     }
-#
-#     dns {
-#       servers = [var.network_gateway, "8.8.8.8"]
-#     }
-#   }
-#
-#   operating_system {
-#     type = "l26"
-#   }
-#
-#   machine = "q35"
-#   bios    = "ovmf"
-#
-#   on_boot = true
-#
-#   lifecycle {
-#     ignore_changes = [
-#       network_device[0].mac_address,
-#       agent,
-#       operating_system,
-#       disk[0].datastore_id,
-#     ]
-#   }
-# }
+# SANDBOX VM (220) - TEMPORARILY DISABLED
+# VM 220 was manually created with non-standard 'dfge' datastore.
+# bpg/proxmox provider GRPC crashes on import. Re-enable in vm_definitions
+# when VM is recreated from template 9000 on standard 'local-lvm' storage.
+# Config: vmid=220, memory=8192, cores=2, disk_size=50, bios=ovmf, machine=q35
 
 # =============================================================================
 # MCPHUB VM (112) - MCPHub Server
 # =============================================================================
 
-resource "proxmox_virtual_environment_vm" "mcphub" {
-  name        = "mcphub"
-  description = "MCPHub - Unified MCP Server Gateway"
-  node_name   = local.node_name
-  vm_id       = 112
+module "vm" {
+  source   = "../modules/proxmox/vm"
+  for_each = local.vm_definitions
 
-  bios = "seabios"
+  node_name        = local.node_name
+  vmid             = each.value.vmid
+  hostname         = each.key
+  description      = each.value.description
+  ip_address       = module.hosts.hosts[each.key].ip
+  memory           = each.value.memory
+  cores            = each.value.cores
+  disk_size        = each.value.disk_size
+  bios             = try(each.value.bios, "seabios")
+  machine          = try(each.value.machine, "i440fx")
+  network_gateway  = var.network_gateway
+  dns_servers      = [var.network_gateway, "8.8.8.8"]
+  datastore_id     = var.datastore_id
+  managed_vmid_min = var.managed_vmid_range.min
+  managed_vmid_max = var.managed_vmid_range.max
 
-  # Clone from Ubuntu 24.04 cloud-init template
-  clone {
-    vm_id = 9000
-    full  = true
-  }
+  cloud_init_file_id = try(local.cloud_init_files[each.key], null)
+}
 
-  agent {
-    enabled = true
-  }
-
-  cpu {
-    cores = 2
-    type  = "host"
-  }
-
-  memory {
-    dedicated = 6144
-  }
-
-  disk {
-    datastore_id = var.datastore_id
-    interface    = "scsi0"
-    size         = 32
-    iothread     = true
-  }
-
-  network_device {
-    bridge = "vmbr0"
-  }
-
-  initialization {
-    datastore_id      = "local"
-    user_data_file_id = local.cloud_init_files.mcphub
-
-    ip_config {
-      ipv4 {
-        address = "${module.hosts.hosts.mcphub.ip}/24"
-        gateway = var.network_gateway
-      }
-    }
-
-    dns {
-      servers = [var.network_gateway, "8.8.8.8"]
-    }
-  }
-
-  operating_system {
-    type = "l26"
-  }
-
-  on_boot = true
-
-  lifecycle {
-    ignore_changes = [
-      network_device[0].mac_address,
-      agent,
-      operating_system,
-      disk[0].datastore_id,
-    ]
-  }
+moved {
+  from = proxmox_virtual_environment_vm.mcphub
+  to   = module.vm["mcphub"].proxmox_virtual_environment_vm.this
 }
 
 # =============================================================================
@@ -489,14 +387,14 @@ module "vm_config" {
             owner       = "root:root"
           },
           {
-            path        = module.vault_agent_mcphub.config_files["vault-agent-config"].path
-            content     = module.vault_agent_mcphub.config_files["vault-agent-config"].content
+            path        = module.vault_agent["mcphub"].config_files["vault-agent-config"].path
+            content     = module.vault_agent["mcphub"].config_files["vault-agent-config"].content
             permissions = "0640"
             owner       = "root:root"
           },
           {
-            path        = module.vault_agent_mcphub.config_files["vault-agent-service"].path
-            content     = module.vault_agent_mcphub.config_files["vault-agent-service"].content
+            path        = module.vault_agent["mcphub"].config_files["vault-agent-service"].path
+            content     = module.vault_agent["mcphub"].config_files["vault-agent-service"].content
             permissions = "0644"
             owner       = "root:root"
           },
@@ -702,79 +600,138 @@ module "vault_secrets" {
   source = "../modules/shared/vault-secrets"
 }
 
-module "vault_agent_mcphub" {
-  source = "../modules/shared/vault-agent"
+locals {
+  vault_agents = {
+    mcphub = {
+      kv_path                = "homelab/mcphub"
+      create_approle_backend = true
+    }
+    glitchtip = {
+      kv_path = "homelab/glitchtip"
+    }
+    supabase = {
+      kv_path = "homelab/supabase"
+    }
+    archon = {
+      kv_path             = "homelab/archon"
+      additional_kv_paths = ["homelab/supabase"]
+    }
+  }
+}
 
-  service_name           = "mcphub"
-  vault_addr             = "https://vault.jclee.me"
-  vault_mount            = "secret"
-  kv_path                = "homelab/mcphub"
-  create_approle_backend = true
+module "vault_agent" {
+  source   = "../modules/shared/vault-agent"
+  for_each = local.vault_agents
+
+  service_name           = each.key
+  kv_path                = each.value.kv_path
+  create_approle_backend = try(each.value.create_approle_backend, false)
+  additional_kv_paths    = try(each.value.additional_kv_paths, [])
 
   template_mappings = {
     env = {
-      source      = "/opt/vault-agent/templates/mcphub.env.ctmpl"
-      destination = "/opt/mcphub/.env"
+      source      = "/opt/vault-agent/templates/${each.key}.env.ctmpl"
+      destination = "/opt/${each.key}/.env"
       perms       = "0600"
     }
   }
 }
 
-module "vault_agent_glitchtip" {
-  source = "../modules/shared/vault-agent"
-
-  service_name = "glitchtip"
-  vault_addr   = "https://vault.jclee.me"
-  vault_mount  = "secret"
-  kv_path      = "homelab/glitchtip"
-
-  template_mappings = {
-    env = {
-      source      = "/opt/vault-agent/templates/glitchtip.env.ctmpl"
-      destination = "/opt/glitchtip/.env"
-      perms       = "0600"
-    }
-  }
+# State migration: vault_agent_{name} → vault_agent["{name}"]
+moved {
+  from = module.vault_agent_mcphub
+  to   = module.vault_agent["mcphub"]
 }
-
-module "vault_agent_supabase" {
-  source = "../modules/shared/vault-agent"
-
-  service_name = "supabase"
-  vault_addr   = "https://vault.jclee.me"
-  vault_mount  = "secret"
-  kv_path      = "homelab/supabase"
-
-  template_mappings = {
-    env = {
-      source      = "/opt/vault-agent/templates/supabase.env.ctmpl"
-      destination = "/opt/supabase/.env"
-      perms       = "0600"
-    }
-  }
+moved {
+  from = module.vault_agent_glitchtip
+  to   = module.vault_agent["glitchtip"]
 }
-
-module "vault_agent_archon" {
-  source = "../modules/shared/vault-agent"
-
-  service_name        = "archon"
-  vault_addr          = "https://vault.jclee.me"
-  vault_mount         = "secret"
-  kv_path             = "homelab/archon"
-  additional_kv_paths = ["homelab/supabase"]
-
-  template_mappings = {
-    env = {
-      source      = "/opt/vault-agent/templates/archon.env.ctmpl"
-      destination = "/opt/archon/.env"
-      perms       = "0600"
-    }
-  }
+moved {
+  from = module.vault_agent_supabase
+  to   = module.vault_agent["supabase"]
+}
+moved {
+  from = module.vault_agent_archon
+  to   = module.vault_agent["archon"]
 }
 
 # =============================================================================
 # CONFIG RENDERER - Centralized Config Generation
 # =============================================================================
+
+locals {
+  # Service template registry: each service dir maps to its output prefix and template files.
+  _svc_tpl = {
+    "101-runner" = { prefix = "runner", files = {
+      filebeat = "filebeat.yml.tftpl"
+    } }
+    "102-traefik" = { prefix = "traefik", files = {
+      glitchtip = "glitchtip.yml.tftpl"
+      mcphub    = "mcphub.yml.tftpl"
+      n8n       = "n8n.yml.tftpl"
+      synology  = "synology.yml.tftpl"
+      archon    = "archon.yml.tftpl"
+      supabase  = "supabase.yml.tftpl"
+      filebeat  = "filebeat.yml.tftpl"
+    } }
+    "104-grafana" = { prefix = "grafana", files = {
+      filebeat = "filebeat.yml.tftpl"
+    } }
+    "105-elk" = { prefix = "elk", files = {
+      filebeat       = "filebeat.yml.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      logstash_conf  = "logstash.conf.tftpl"
+      logstash_yml   = "logstash.yml.tftpl"
+      ilm_policy     = "ilm-policy.json.tftpl"
+      setup_ilm      = "setup-ilm.sh.tftpl"
+    } }
+    "106-glitchtip" = { prefix = "glitchtip", files = {
+      filebeat       = "filebeat.yml.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      env            = "glitchtip.env.tftpl"
+    } }
+    "107-supabase" = { prefix = "supabase", files = {
+      filebeat       = "filebeat.yml.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      env            = ".env.tftpl"
+    } }
+    "108-archon" = { prefix = "archon", files = {
+      docker_compose = "docker-compose.yml.tftpl"
+      env            = ".env.tftpl"
+    } }
+    "112-mcphub" = { prefix = "mcphub", files = {
+      filebeat       = "filebeat.yml.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      mcp_settings   = "mcp_settings.json.tftpl"
+    } }
+  }
+
+  service_templates = merge([
+    for svc_dir, svc in local._svc_tpl : {
+      for name, file in svc.files :
+      "${svc.prefix}_${name}" => {
+        source = "${path.module}/../${svc_dir}/templates/${file}"
+        output = "${svc.prefix}/${trimsuffix(file, ".tftpl")}"
+      }
+    }
+  ]...)
+
+  # Root-level templates that output to the top-level (not in service subdirs).
+  root_templates = {
+    grafana_datasources = {
+      source = "${path.module}/../104-grafana/templates/grafana-datasources.yml.tftpl"
+      output = "grafana-datasources.yml"
+    }
+    prometheus = {
+      source = "${path.module}/../104-grafana/templates/prometheus.yml.tftpl"
+      output = "prometheus.yml"
+    }
+    traefik_elk = {
+      source = "${path.module}/../102-traefik/templates/traefik-elk.yml.tftpl"
+      output = "traefik-elk.yml"
+    }
+  }
+}
 
 module "config_renderer" {
   source = "../modules/proxmox/config-renderer"
@@ -791,128 +748,23 @@ module "config_renderer" {
   )
   output_dir = "${path.module}/configs/rendered"
 
-  template_files = {
-    grafana_datasources = {
-      source = "${path.module}/../104-grafana/templates/grafana-datasources.yml.tftpl"
-      output = "grafana-datasources.yml"
-    }
-    prometheus = {
-      source = "${path.module}/../104-grafana/templates/prometheus.yml.tftpl"
-      output = "prometheus.yml"
-    }
-    traefik_elk = {
-      source = "${path.module}/../102-traefik/templates/traefik-elk.yml.tftpl"
-      output = "traefik-elk.yml"
-    }
-    traefik_glitchtip = {
-      source = "${path.module}/../102-traefik/templates/glitchtip.yml.tftpl"
-      output = "traefik/glitchtip.yml"
-    }
-
-    filebeat_elk = {
-      source = "${path.module}/../105-elk/templates/filebeat.yml.tftpl"
-      output = "elk/filebeat.yml"
-    }
-    filebeat_runner = {
-      source = "${path.module}/../101-runner/templates/filebeat.yml.tftpl"
-      output = "runner/filebeat.yml"
-    }
-    filebeat_traefik = {
-      source = "${path.module}/../102-traefik/templates/filebeat.yml.tftpl"
-      output = "traefik/filebeat.yml"
-    }
-    filebeat_grafana = {
-      source = "${path.module}/../104-grafana/templates/filebeat.yml.tftpl"
-      output = "grafana/filebeat.yml"
-    }
-    filebeat_glitchtip = {
-      source = "${path.module}/../106-glitchtip/templates/filebeat.yml.tftpl"
-      output = "glitchtip/filebeat.yml"
-    }
-    filebeat_supabase = {
-      source = "${path.module}/../107-supabase/templates/filebeat.yml.tftpl"
-      output = "supabase/filebeat.yml"
-    }
-    filebeat_mcphub = {
-      source = "${path.module}/../112-mcphub/templates/filebeat.yml.tftpl"
-      output = "mcphub/filebeat.yml"
-    }
-    elk_docker_compose = {
-      source = "${path.module}/../105-elk/templates/docker-compose.yml.tftpl"
-      output = "elk/docker-compose.yml"
-    }
-    elk_logstash_conf = {
-      source = "${path.module}/../105-elk/templates/logstash.conf.tftpl"
-      output = "elk/logstash.conf"
-    }
-    elk_logstash_yml = {
-      source = "${path.module}/../105-elk/templates/logstash.yml.tftpl"
-      output = "elk/logstash.yml"
-    }
-    elk_ilm_policy = {
-      source = "${path.module}/../105-elk/templates/ilm-policy.json.tftpl"
-      output = "elk/ilm-policy.json"
-    }
-    elk_setup_ilm = {
-      source = "${path.module}/../105-elk/templates/setup-ilm.sh.tftpl"
-      output = "elk/setup-ilm.sh"
-    }
-    glitchtip_docker_compose = {
-      source = "${path.module}/../106-glitchtip/templates/docker-compose.yml.tftpl"
-      output = "glitchtip/docker-compose.yml"
-    }
-    glitchtip_env = {
-      source = "${path.module}/../106-glitchtip/templates/glitchtip.env.tftpl"
-      output = "glitchtip/glitchtip.env"
-    }
-    supabase_docker_compose = {
-      source = "${path.module}/../107-supabase/templates/docker-compose.yml.tftpl"
-      output = "supabase/docker-compose.yml"
-    }
-    supabase_env = {
-      source = "${path.module}/../107-supabase/templates/.env.tftpl"
-      output = "supabase/.env"
-    }
-    archon_docker_compose = {
-      source = "${path.module}/../108-archon/templates/docker-compose.yml.tftpl"
-      output = "archon/docker-compose.yml"
-    }
-    archon_env = {
-      source = "${path.module}/../108-archon/templates/.env.tftpl"
-      output = "archon/.env"
-    }
-    mcphub_docker_compose = {
-      source = "${path.module}/../112-mcphub/templates/docker-compose.yml.tftpl"
-      output = "mcphub/docker-compose.yml"
-    }
-    mcphub_mcp_settings = {
-      source = "${path.module}/../112-mcphub/templates/mcp_settings.json.tftpl"
-      output = "mcphub/mcp_settings.json"
-    }
-    traefik_mcphub = {
-      source = "${path.module}/../102-traefik/templates/mcphub.yml.tftpl"
-      output = "traefik/mcphub.yml"
-    }
-    traefik_n8n = {
-      source = "${path.module}/../102-traefik/templates/n8n.yml.tftpl"
-      output = "traefik/n8n.yml"
-    }
-    traefik_synology = {
-      source = "${path.module}/../102-traefik/templates/synology.yml.tftpl"
-      output = "traefik/synology.yml"
-    }
-    traefik_archon = {
-      source = "${path.module}/../102-traefik/templates/archon.yml.tftpl"
-      output = "traefik/archon.yml"
-    }
-    traefik_supabase = {
-      source = "${path.module}/../102-traefik/templates/supabase.yml.tftpl"
-      output = "traefik/supabase.yml"
-    }
-  }
+  template_files = merge(
+    local.root_templates,
+    local.service_templates,
+  )
 }
 
 output "rendered_configs" {
   description = "Paths to rendered configuration files"
   value       = module.config_renderer.rendered_files
+}
+
+output "host_inventory" {
+  description = "Host inventory map (ip, ports, vmid) for consumption by app workspaces via remote_state"
+  value       = module.hosts.hosts
+}
+
+output "service_urls" {
+  description = "Derived service URLs from inventory"
+  value       = module.hosts.services
 }
