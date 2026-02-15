@@ -1,5 +1,1 @@
-exports_files([
-    "tsconfig.json",
-    "package.json",
-    "pnpm-lock.yaml",
-])
+# Root BUILD file for Bazel governance

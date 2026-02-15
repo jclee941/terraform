@@ -33,6 +33,10 @@ tfplan
 
 # Bazel
 bazel-*
+MODULE.bazel.lock
+
+# Local data
+data/
 
 # Node
 **/node_modules/
