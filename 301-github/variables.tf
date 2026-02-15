@@ -289,18 +289,11 @@ variable "repository_environments" {
   default = {
     terraform = {
       production = {
-        wait_timer             = 5
-        can_admins_bypass      = true
-        prevent_self_review    = true
-        protected_branches     = true
-        custom_branch_policies = false
-      }
-      staging = {
         wait_timer             = 0
         can_admins_bypass      = true
         prevent_self_review    = false
-        protected_branches     = false
-        custom_branch_policies = true
+        protected_branches     = true
+        custom_branch_policies = false
       }
     }
   }
