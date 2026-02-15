@@ -1,0 +1,14 @@
+[Unit]
+Description=Vault Agent - ${service_name}
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/vault agent -config=${config_path}
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

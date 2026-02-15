@@ -1,0 +1,32 @@
+vault {
+  address = "${vault_addr}"
+}
+
+auto_auth {
+  method "approle" {
+    config = {
+      role_id_file_path                   = "/etc/vault-agent/role-id"
+      secret_id_file_path                 = "/etc/vault-agent/secret-id"
+      secret_id_response_wrapping_path    = "auth/${backend_path}/role/${role_id}/secret-id"
+      remove_secret_id_file_after_reading = false
+    }
+  }
+
+  sink "file" {
+    config = {
+      path = "/etc/vault-agent/.vault-token"
+    }
+  }
+}
+
+cache {
+  use_auto_auth_token = true
+}
+
+%{ for key, mapping in template_mappings ~}
+template {
+  source      = "${mapping.source}"
+  destination = "${mapping.destination}"
+  perms       = "${mapping.perms}"
+}
+%{ endfor ~}
