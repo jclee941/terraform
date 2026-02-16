@@ -6,13 +6,15 @@ terraform {
   }
 
   # NOTE: LXC lifecycle is owned by 100-pve/main.tf (module "lxc" for_each).
-  # This workspace only manages app-level config deployment via lxc-config.
+  # Config deployment is also owned by 100-pve via config-renderer templates.
+  # This workspace is reserved for future Traefik provider resources
+  # (e.g., direct API management), similar to 104-grafana/terraform/.
   required_providers {}
 }
 
 # ---------------------------------------------------------------------------
 # Remote State: consume 100-pve infrastructure outputs
-# Provides host_inventory (IPs, ports, VMIDs) — replaces deprecated module.inventory
+# Provides host_inventory (IPs, ports, VMIDs)
 # ---------------------------------------------------------------------------
 data "terraform_remote_state" "infra" {
   backend = "s3"
@@ -36,29 +38,10 @@ locals {
   hosts = data.terraform_remote_state.infra.outputs.host_inventory
 }
 
-module "lxc_config" {
-  source = "../../modules/proxmox/lxc-config"
-
-  deploy_lxc_configs = var.deploy_lxc_configs
-  mcp_host           = local.hosts.mcphub.ip
-
-  lxc_containers = {
-    traefik = {
-      vmid       = local.hosts.traefik.vmid
-      hostname   = "traefik"
-      ip_address = local.hosts.traefik.ip
-      deploy     = var.deploy_lxc_configs
-
-      config_files = {
-        "elk.yml" = {
-          path    = "/etc/traefik/dynamic/elk.yml"
-          content = file("${path.root}/../config/elk.yml")
-        }
-        "glitchtip.yml" = {
-          path    = "/etc/traefik/dynamic/glitchtip.yml"
-          content = file("${path.root}/../config/glitchtip.yml")
-        }
-      }
-    }
-  }
-}
+# Config deployment (elk.yml, glitchtip.yml, filebeat) is handled by
+# 100-pve/main.tf via config-renderer templates (dynamic IPs from hosts.tf).
+# Static config/ files with hardcoded IPs are kept as reference only.
+#
+# To add Traefik provider resources in the future:
+#   required_providers { traefik = { source = "..." } }
+#   provider "traefik" { endpoint = "http://${local.hosts.traefik.ip}:8080" }

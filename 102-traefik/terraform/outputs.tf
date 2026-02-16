@@ -1,9 +1,9 @@
 output "container_ip" {
   description = "Traefik container IP address"
-  value       = module.lxc.ip_address
+  value       = local.hosts.traefik.ip
 }
 
 output "container_id" {
   description = "Traefik container VMID"
-  value       = module.lxc.vmid
+  value       = local.hosts.traefik.vmid
 }

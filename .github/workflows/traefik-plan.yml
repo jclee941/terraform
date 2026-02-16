@@ -1,13 +1,13 @@
-name: Archon Plan
+name: Traefik Plan
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - '108-archon/**'
+      - '102-traefik/terraform/**'
 
 concurrency:
-  group: archon-plan-${{ github.event.pull_request.number || github.run_id }}
+  group: traefik-plan-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -15,13 +15,13 @@ permissions:
   pull-requests: write
 
 env:
-  TF_WORKING_DIR: 108-archon/terraform
+  TF_WORKING_DIR: 102-traefik/terraform
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   plan:
-    name: Archon Plan
+    name: Traefik Plan
     runs-on: self-hosted
     timeout-minutes: 15
     defaults:
@@ -41,8 +41,6 @@ jobs:
 
       - name: Migrate State (one-time)
         run: |
-          # Remove orphaned resources from previous config deployment era.
-          terraform state rm module.lxc 2>/dev/null || true
           terraform state rm module.lxc_config 2>/dev/null || true
 
       - name: Terraform Plan
@@ -72,7 +70,7 @@ jobs:
           exit $EXIT_CODE
 
       - name: Comment Plan on PR
-        if: always() && github.event_name == 'pull_request' && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           script: |
@@ -81,7 +79,7 @@ jobs:
             const icon = result === 'success' ? '\u2705' : '\u274c';
             const status = result === 'success' ? 'Success' : 'Failed';
 
-            const body = `## ${icon} Archon Plan ${status}
+            const body = `## ${icon} Traefik Plan ${status}
 
             <details><summary>Show Plan Output</summary>
 
@@ -94,7 +92,6 @@ jobs:
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*
             *Working Directory: \`${{ env.TF_WORKING_DIR }}\`*`;
 
-            // Find existing bot comment to update
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -102,7 +99,7 @@ jobs:
             });
 
             const botComment = comments.find(c =>
-              c.user.type === 'Bot' && c.body.includes('Archon Plan')
+              c.user.type === 'Bot' && c.body.includes('Traefik Plan')
             );
 
             if (botComment) {

@@ -1,25 +1,3 @@
-variable "deploy_lxc_configs" {
-  description = "Deploy LXC configs via SSH"
-  type        = bool
-  default     = false
-}
-
-variable "supabase_url" {
-  description = "Supabase project URL (from Vault)"
-  type        = string
-  sensitive   = true
-}
-
-variable "supabase_anon_key" {
-  description = "Supabase anonymous key (from Vault)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "openai_api_key" {
-  description = "OpenAI API key (from Vault)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
+# Config deployment (docker-compose, .env, filebeat) is owned by 100-pve
+# via config-renderer templates with vault_secrets variables.
+# No variables needed in this skeleton workspace.

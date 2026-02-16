@@ -1,11 +1,11 @@
-name: Archon Apply
+name: Traefik Apply
 
 on:
   push:
     branches:
       - master
     paths:
-      - '108-archon/**'
+      - '102-traefik/terraform/**'
   workflow_dispatch:
 
 permissions:
@@ -13,17 +13,17 @@ permissions:
   issues: write
 
 concurrency:
-  group: archon-apply
+  group: traefik-apply
   cancel-in-progress: false
 
 env:
-  TF_WORKING_DIR: 108-archon/terraform
+  TF_WORKING_DIR: 102-traefik/terraform
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   apply:
-    name: Archon Apply
+    name: Traefik Apply
     runs-on: self-hosted
     timeout-minutes: 30
     environment: production
@@ -44,8 +44,6 @@ jobs:
 
       - name: Migrate State (one-time)
         run: |
-          # Remove orphaned resources from previous config deployment era.
-          terraform state rm module.lxc 2>/dev/null || true
           terraform state rm module.lxc_config 2>/dev/null || true
 
       - name: Terraform Apply
@@ -55,12 +53,11 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
-          title-prefix: '[Archon] Apply failed on master'
+          title-prefix: '[Traefik] Apply failed on master'
           extra-body: |
-            **Workspace:** `108-archon/terraform`
+            **Workspace:** `102-traefik/terraform`
 
             ### Checklist
-            - [ ] Verify Supabase URL is accessible
             - [ ] Run `terraform plan` locally to diagnose
             - [ ] Fix and re-apply, or revert the commit
           labels: 'terraform-drift,automated,infrastructure'

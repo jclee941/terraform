@@ -5,14 +5,11 @@ terraform {
     key = "108-archon/terraform.tfstate"
   }
 
-  # LXC lifecycle owned by 100-pve/main.tf — this workspace manages app config only.
+  # LXC lifecycle and config deployment owned by 100-pve/main.tf.
+  # This workspace is reserved for future Archon-specific provider resources.
   required_providers {}
 }
 
-# ---------------------------------------------------------------------------
-# Remote State: consume 100-pve infrastructure outputs
-# Provides host_inventory (IPs, ports, VMIDs) — replaces deprecated module.inventory
-# ---------------------------------------------------------------------------
 data "terraform_remote_state" "infra" {
   backend = "s3"
 
@@ -33,35 +30,4 @@ data "terraform_remote_state" "infra" {
 
 locals {
   hosts = try(data.terraform_remote_state.infra.outputs.host_inventory, {})
-}
-
-module "lxc_config" {
-  source = "../../modules/proxmox/lxc-config"
-
-  deploy_lxc_configs = var.deploy_lxc_configs
-  mcp_host           = local.hosts.mcphub.ip
-
-  lxc_containers = {
-    archon = {
-      vmid       = local.hosts.archon.vmid
-      hostname   = "archon"
-      ip_address = local.hosts.archon.ip
-      deploy     = var.deploy_lxc_configs
-
-      config_files = {
-        "docker-compose.yml" = {
-          path    = "/opt/archon/docker-compose.yml"
-          content = file("${path.root}/../docker-compose.yml")
-        }
-        ".env" = {
-          path = "/opt/archon/.env"
-          content = templatefile("${path.root}/../templates/.env.tftpl", {
-            supabase_url      = var.supabase_url
-            supabase_anon_key = var.supabase_anon_key
-            openai_api_key    = var.openai_api_key
-          })
-        }
-      }
-    }
-  }
 }

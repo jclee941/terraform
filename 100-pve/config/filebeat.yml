@@ -1,3 +1,6 @@
+# REFERENCE ONLY — deployed via 100-pve/main.tf config-renderer pipeline.
+# Source template: N/A (PVE host filebeat is manually managed).
+# Hardcoded IP 192.168.50.105 = elk host (see hosts.tf).
 filebeat.inputs:
   - type: log
     enabled: true

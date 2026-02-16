@@ -1,5 +1,2 @@
-variable "deploy_lxc_configs" {
-  description = "Whether to deploy LXC configurations via SSH"
-  type        = bool
-  default     = false
-}
+# No variables needed — this workspace is a skeleton for future
+# Traefik provider resources. Config deployment is owned by 100-pve.
