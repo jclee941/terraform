@@ -17,7 +17,7 @@ locals {
       creation                          = true
       deletion                          = true
       non_fast_forward                  = true
-      status_checks                     = ["pr-review"]
+      status_checks                     = ["Validate Changes"]
     }
     standard = {
       required_approving_review_count   = 1
@@ -30,7 +30,20 @@ locals {
       creation                          = true
       deletion                          = true
       non_fast_forward                  = true
-      status_checks                     = ["pr-review"]
+      status_checks                     = ["Validate Changes"]
+    }
+    standard = {
+      required_approving_review_count   = 1
+      require_code_owner_review         = false
+      dismiss_stale_reviews_on_push     = true
+      require_last_push_approval        = false
+      required_review_thread_resolution = true
+      required_linear_history           = true
+      required_signatures               = false
+      creation                          = true
+      deletion                          = true
+      non_fast_forward                  = true
+      status_checks                     = ["Validate Changes"]
     }
     minimal = {
       required_approving_review_count   = 1
@@ -87,11 +100,17 @@ resource "github_repository_ruleset" "branch" {
     }
 
     dynamic "required_status_checks" {
-      for_each = length(local.protection_profiles[try(each.value.protection, "minimal")].status_checks) > 0 ? [1] : []
+      for_each = length(distinct(concat(
+        local.protection_profiles[try(each.value.protection, "minimal")].status_checks,
+        try(each.value.extra_status_checks, [])
+      ))) > 0 ? [1] : []
       content {
         strict_required_status_checks_policy = true
         dynamic "required_check" {
-          for_each = toset(local.protection_profiles[try(each.value.protection, "minimal")].status_checks)
+          for_each = toset(distinct(concat(
+            local.protection_profiles[try(each.value.protection, "minimal")].status_checks,
+            try(each.value.extra_status_checks, [])
+          )))
           content {
             context = required_check.value
           }

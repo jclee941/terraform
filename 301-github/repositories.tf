@@ -1,12 +1,13 @@
 locals {
   repositories = {
     terraform = {
-      description    = "Multi-provider infrastructure as code monorepo"
-      visibility     = "private"
-      topics         = ["homelab", "proxmox", "cloudflare", "bazel"]
-      archived       = false
-      default_branch = "master"
-      protection     = "strict"
+      description         = "Multi-provider infrastructure as code monorepo"
+      visibility          = "private"
+      topics              = ["homelab", "proxmox", "cloudflare", "bazel"]
+      archived            = false
+      default_branch      = "master"
+      protection          = "strict"
+      extra_status_checks = ["Terraform Plan"]
     }
     proxmox = {
       description    = "Proxmox infrastructure and automation workspace (migrated to terraform/)"

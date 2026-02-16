@@ -31,6 +31,12 @@ resource "github_repository_ruleset" "code_scanning" {
     }
   }
 
+  bypass_actors {
+    actor_id    = 5 # RepositoryRole: admin
+    actor_type  = "RepositoryRole"
+    bypass_mode = "always"
+  }
+
   rules {
     required_code_scanning {
       dynamic "required_code_scanning_tool" {
