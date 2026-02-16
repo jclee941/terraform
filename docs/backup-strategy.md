@@ -146,15 +146,15 @@ pvesh create /cluster/backup \
 2. **Restore to new container (105-new)**:
    ```bash
    pvesh create /nodes/pve/lxc \
-     --vmid 109 \
-     --hostname grafana-restored \
+      --vmid 150 \
+      --hostname grafana-restored \
      --archive /var/lib/vz/dump/vzdump-lxc-104-2026_02_11-02_15_00.tar.zst
    ```
    Or via GUI: Datacenter → Backup → select backup → Restore
 
 3. **Start restored container**:
    ```bash
-   pct start 109
+    pct start 150
    ```
 
 4. **Verify network & services**:

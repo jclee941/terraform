@@ -13,11 +13,10 @@ terraform/                      # Multi-provider IaC monorepo root
 ├── modules/                    # Reusable Terraform modules
 │   ├── proxmox/                # Proxmox-specific modules
 │   │   ├── lxc/                # LXC container provisioning
+│   │   ├── vm/                 # QEMU VM provisioning
 │   │   ├── lxc-config/         # LXC config rendering (templates/)
 │   │   ├── vm-config/          # VM config rendering (templates/)
-│   │   ├── env-config/         # Environment config (IP/port mapping)
-│   │   ├── config-renderer/    # Template → tf-configs pipeline
-│   │   └── inventory/          # Host inventory management
+│   │   └── config-renderer/    # Template → tf-configs pipeline
 │   ├── cloudflare/             # Cloudflare DNS/tunnel modules (8 .tf files)
 │   └── shared/
 │       ├── vault-secrets/      # HashiCorp Vault secret management
@@ -68,7 +67,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | Task | Location | Notes |
 |------|----------|-------|
 | **IaC Definitions** | `100-pve/main.tf` | Manages 101-102, 104-108, 112, 200, 220. |
-| **Terraform Modules** | `modules/proxmox/` | 6 modules (lxc, lxc-config, vm-config, env-config, config-renderer, inventory). |
+| **Terraform Modules** | `modules/proxmox/` | 5 modules (lxc, vm, lxc-config, vm-config, config-renderer). |
 | **Shared Modules** | `modules/shared/vault-secrets/` | Cross-stack modules (Vault secrets). |
 | **Vault Agent Module** | `modules/shared/vault-agent/` | AppRole auto-auth + template engine for runtime secrets. |
 | **Grafana App Config** | `104-grafana/terraform/` | Standalone workspace: dashboards, datasources, alerts (grafana provider). |
@@ -159,7 +158,7 @@ terraform/                      # Multi-provider IaC monorepo root
 - **Single Source of Truth (SSoT)**: `100-pve/envs/prod/hosts.tf` defines ALL IPs/ports. No hardcoded IPs in `main.tf`.
 - **Module Sources**: Always use `../modules/{provider}/{module}` relative paths from service dirs.
 - **Template Paths**: `${path.module}/../{NNN}-{svc}/templates/` from workspace to service templates.
-- **Config Pipeline**: `hosts.tf` → `env-config` → `config-renderer` → service-specific `tf-configs/`.
+- **Config Pipeline**: `hosts.tf` → `module.hosts` → `config-renderer` → service-specific `tf-configs/`.
 - **Multi-stack Makefile**: `make plan STACK=proxmox` (default: proxmox). All Terraform commands route through `$(STACK)/`.
 - **Cloud-Init**: Custom snippets via `proxmox_virtual_environment_file`.
 - **Logs**: Filebeat → Logstash:5044 → Elasticsearch (105) → Grafana.

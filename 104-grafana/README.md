@@ -35,7 +35,7 @@ scripts/sync-dashboards.sh # Pushes local JSON files to the Grafana API
 - **Internal API**: `http://192.168.50.104:3000`
 
 ## 4. Dependencies
-- **Infrastructure Nodes**: Depends on `node_exporter` running on all active hosts (100, 102, 103, 104, 105, 112).
+- **Infrastructure Nodes**: Depends on `node_exporter` running on all active hosts (100, 102, 104, 105, 106, 107, 108, 112).
 - **102-traefik**: Provides HTTPS ingress and certificate management.
 - **112-mcphub (n8n)**: Receives alert webhooks for external notifications (GitHub Issues).
 

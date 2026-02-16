@@ -5,18 +5,8 @@ terraform {
     key = "108-archon/terraform.tfstate"
   }
 
-  required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "~> 0.94.0"
-    }
-  }
-}
-
-provider "proxmox" {
-  endpoint  = var.proxmox_endpoint
-  api_token = var.proxmox_api_token
-  insecure  = var.proxmox_insecure
+  # LXC lifecycle owned by 100-pve/main.tf — this workspace manages app config only.
+  required_providers {}
 }
 
 # ---------------------------------------------------------------------------
@@ -43,25 +33,6 @@ data "terraform_remote_state" "infra" {
 
 locals {
   hosts = try(data.terraform_remote_state.infra.outputs.host_inventory, {})
-}
-
-module "lxc" {
-  source = "../../modules/proxmox/lxc"
-
-  node_name        = var.node_name
-  vmid             = local.hosts.archon.vmid
-  hostname         = "archon"
-  ip_address       = local.hosts.archon.ip
-  memory           = 2048
-  cores            = 4
-  disk_size        = 20
-  description      = "Archon AI Knowledge Management + MCP Server"
-  network_gateway  = var.network_gateway
-  dns_servers      = var.dns_servers
-  datastore_id     = var.datastore_id
-  managed_vmid_min = 101
-  managed_vmid_max = 113
-  ssh_public_keys  = var.ssh_public_keys
 }
 
 module "lxc_config" {

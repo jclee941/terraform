@@ -39,8 +39,8 @@ Archon AI Knowledge Management system with MCP server integration. Provides AI-p
 | 8051 | Archon MCP Server |
 
 ## CONVENTIONS
-- Standalone Terraform workspace (NOT wired into 100-pve/main.tf)
-- Uses `module.inventory` for host IP/VMID resolution
+- App-config workspace; LXC lifecycle owned by 100-pve/main.tf
+- Uses `terraform_remote_state.infra` for host IP/VMID resolution from 100-pve
 - Secrets via `.env` file (Vault Agent or manual)
 - Docker Compose profiles: default (server+mcp+frontend), `agents` (opt-in)
 

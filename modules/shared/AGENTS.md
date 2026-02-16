@@ -6,13 +6,16 @@ Reusable utility modules shared across multiple infrastructure stacks (Proxmox, 
 ## STRUCTURE
 ```
 modules/shared/
-└── vault-secrets/    # HashiCorp Vault KV v2 secret retrieval
+├── vault-secrets/    # HashiCorp Vault KV v2 secret retrieval
+└── vault-agent/      # Vault Agent AppRole auto-auth + template engine
 ```
 
 ## WHERE TO LOOK
 | Task | Module | Notes |
 |------|--------|-------|
 | **Retrieve Secrets** | `vault-secrets` | Wraps `vault_generic_secret` for KV v2. |
+| **Runtime Auth** | `vault-agent` | AppRole auto-auth config for runtime secret injection. |
+| **Runtime Auth** | `vault-agent` | AppRole auto-auth config for runtime secret injection. |
 
 ## CONVENTIONS
 - **Provider-Agnostic**: Logic here must NOT depend on specific infrastructure providers (Proxmox/AWS/Cloudflare) unless strictly necessary.

@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Last Updated:** 2026-02-14
+**Last Updated:** 2026-02-16
 
 ## System Overview
 
@@ -10,6 +10,7 @@
                          ┌───────┴───────┐
                          │  Cloudflare   │
                          │  (DNS/Tunnel) │
+                         │   (300)       │
                          └───────┬───────┘
                                  │
                     ┌────────────┼────────────┐
@@ -40,39 +41,64 @@
 
 ## Service Inventory
 
-| VMID | Name | IP | Type | Purpose |
-|------|------|----|------|---------|
-| 100 | pve | .100 | Host | Proxmox hypervisor |
-| 101 | runner | .101 | LXC | GitHub Actions self-hosted runner |
-| 102 | traefik | .102 | LXC | Reverse proxy (entry point) |
-| 104 | grafana | .104 | LXC | Observability (Prometheus + Grafana) |
-| 105 | elk | .105 | LXC | ELK Stack (ES + Logstash + Kibana) |
-| 106 | glitchtip | .106 | LXC | Error tracking |
-| 107 | supabase | .107 | LXC | Backend-as-a-Service |
-| 108 | archon | .108 | LXC | AI knowledge management |
-| 112 | mcphub | .112 | VM | MCP Hub + n8n + Vault |
-| 200 | oc | .200 | VM | Development (GPU: RTX 5070 Ti) |
-| 215 | synology | .215 | Physical | NAS storage |
-| 220 | sandbox | .220 | VM | Dev sandbox (CF WARP) |
+| VMID | Name | IP | Type | Purpose | Workspace Owner |
+|------|------|----|------|---------|-----------------|
+| 100 | pve | .100 | Host | Proxmox hypervisor | Manual |
+| 101 | runner | .101 | LXC | GitHub Actions self-hosted runner | 100-pve |
+| 102 | traefik | .102 | LXC | Reverse proxy (entry point) | 100-pve (lifecycle) + 102-traefik (app config) |
+| 104 | grafana | .104 | LXC | Observability (Prometheus + Grafana) | 100-pve (lifecycle) + 104-grafana (dashboards/alerts) |
+| 105 | elk | .105 | LXC | ELK Stack (ES + Logstash + Kibana) | 100-pve (lifecycle) + 105-elk (ILM/templates) |
+| 106 | glitchtip | .106 | LXC | Error tracking | 100-pve |
+| 107 | supabase | .107 | LXC | Backend-as-a-Service | 100-pve |
+| 108 | archon | .108 | LXC | AI knowledge management | 100-pve (lifecycle) + 108-archon (app config) |
+| 112 | mcphub | .112 | VM | MCP Hub + n8n + Vault | 100-pve |
+| 200 | oc | .200 | VM | Development (GPU: RTX 5070 Ti) | 100-pve |
+| 215 | synology | .215 | Physical | NAS storage | Inventory only |
+| 220 | sandbox | .220 | VM | Dev sandbox (CF WARP, disabled) | 100-pve |
 
 ## External Providers
 
-| ID | Provider | Purpose |
-|----|----------|---------|
-| 300 | Cloudflare | DNS, tunnels, Access, R2, Workers |
-| 301 | GitHub | Repository, branch protection, Actions |
+| ID | Provider | Workspace | Purpose |
+|----|----------|-----------|---------|
+| 300 | Cloudflare | `300-cloudflare/` | DNS, tunnels, Access, R2, Workers, secrets |
+| 301 | GitHub | `301-github/` | Repos, teams, rulesets, Actions, webhooks |
 
 ## Data Flows
 
 ### Config Pipeline
 ```
-hosts.tf (SSoT) → env-config → config-renderer → tf-configs/
+100-pve/envs/prod/hosts.tf (SSoT)
+         │
+         ▼
+    module.hosts (local variables)
+         │
+    ┌────┴────────────────┐
+    ▼                     ▼
+module.vault_secrets    module.config_renderer
+    │                     │
+    │              renders .tftpl templates
+    │                     │
+    ▼                     ▼
+module.lxc / module.vm   tf-configs/ (per service)
+    │                     │
+    ▼                     ▼
+Proxmox API          cloud-init → /opt/{service}/
 ```
-All IPs and ports are defined in `100-pve/envs/prod/hosts.tf`. No hardcoded IPs in `main.tf`.
 
-### Deployment Flow
+### Workspace Dependency Graph
 ```
-Edit config → terraform plan → terraform apply → verify
+100-pve (central orchestrator)
+    │
+    ├── outputs: host_inventory
+    │
+    ▼  terraform_remote_state consumers:
+    ├── 102-traefik/terraform/   (app config only)
+    ├── 104-grafana/terraform/   (grafana provider: dashboards, alerts)
+    ├── 105-elk/terraform/       (elasticstack provider: ILM, templates)
+    ├── 108-archon/terraform/    (app config only)
+    └── 301-github/              (github provider: repos, teams)
+
+300-cloudflare (independent — reads Vault directly)
 ```
 
 ### Observability Flow
@@ -92,24 +118,34 @@ Internet → Cloudflare DNS → CF Tunnel → Traefik:102 → Service LXC/VM
 modules/
 ├── proxmox/
 │   ├── lxc/              # LXC container provisioning
+│   ├── vm/               # QEMU VM provisioning
 │   ├── lxc-config/       # LXC config rendering (templates/)
-│   ├── vm-config/        # VM config rendering (templates/)
-│   ├── env-config/       # Environment config (IP/port mapping)
-│   ├── config-renderer/  # Template → tf-configs pipeline
-│   └── inventory/        # Host inventory management
-├── cloudflare/           # DNS and tunnel modules
+│   ├── vm-config/        # VM config rendering (Cloud-init)
+│   └── config-renderer/  # Template → tf-configs pipeline
+├── cloudflare/           # DNS and tunnel modules (unused by 300-cloudflare)
 └── shared/
-    └── vault-secrets/    # HashiCorp Vault secret management
+    ├── vault-secrets/    # HashiCorp Vault KV v2 secret retrieval
+    └── vault-agent/      # Vault Agent AppRole auto-auth + template engine
 ```
 
 ## Terraform Workspaces
 
-| Workspace | Provider | Manages |
-|-----------|----------|---------|
-| `100-pve/` | Proxmox (bpg) | All LXCs (101-108) and VMs (112, 200, 220) |
-| `108-archon/terraform/` | Proxmox | Archon standalone |
-| `300-cloudflare/` | Cloudflare | DNS, tunnels, R2, Workers, Access |
-| `301-github/` | GitHub (integrations) | Repos, branch protection, Actions |
+| Workspace | State Key | Provider(s) | Manages |
+|-----------|-----------|-------------|---------|
+| `100-pve/` | `100-pve/terraform.tfstate` | bpg/proxmox, hashicorp/vault | All LXC lifecycle (101-108), VMs (112, 200, 220), config rendering |
+| `102-traefik/terraform/` | `102-traefik/terraform.tfstate` | (none) | App-level config deployment via lxc-config |
+| `104-grafana/terraform/` | `104-grafana/terraform.tfstate` | grafana/grafana | Dashboards, datasources, alerts, contact points |
+| `105-elk/terraform/` | `105-elk/terraform.tfstate` | elastic/elasticstack | ILM policies, index templates |
+| `108-archon/terraform/` | `108-archon/terraform.tfstate` | (none) | App-level config deployment via lxc-config |
+| `300-cloudflare/` | `300-cloudflare/terraform.tfstate` | cloudflare, github, vault | DNS zones, tunnels, Access policies, R2, Workers |
+| `301-github/` | `301-github/terraform.tfstate` | integrations/github | Repos, teams, rulesets, Actions config, webhooks |
+
+## State Backend
+
+All workspaces use Cloudflare R2 as S3-compatible backend:
+- Bucket: `jclee-tf-state`
+- Config: `backend.hcl` (shared)
+- Init: `terraform init -backend-config=../backend.hcl`
 
 ## Build System
 
@@ -118,4 +154,5 @@ Bazel (Google3 style). Every directory has `BUILD.bazel` and `OWNERS`.
 ```bash
 bazel build //...   # Build all targets
 bazel test //...    # Test all targets
+make plan SVC=100-pve   # Plan specific workspace
 ```

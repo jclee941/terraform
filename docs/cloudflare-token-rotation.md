@@ -24,10 +24,10 @@ The following services are accessible via the Cloudflare Tunnel with this token:
 | Grafana | `grafana.jclee.me` | 192.168.50.104:3000 |
 | MCPHub | `mcphub.jclee.me` | 192.168.50.112:3000 |
 | Archon | `archon.jclee.me` | 192.168.50.108:80 |
-| MinIO | `minio.jclee.me` | 192.168.50.109:9000 |
-| n8n | `n8n.jclee.me` | 192.168.50.110:5678 |
-| Swagger | `swagger.jclee.me` | 192.168.50.112:80 |
 | Kibana | `kibana.jclee.me` | 192.168.50.105:5601 |
+| n8n | `n8n.jclee.me` | 192.168.50.112:5678 |
+| GlitchTip | `glitchtip.jclee.me` | 192.168.50.106:8000 |
+| Supabase | `supabase.jclee.me` | 192.168.50.107:8000 |
 
 ## Rotation Procedure (Zero Downtime)
 

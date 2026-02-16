@@ -22,7 +22,7 @@ High-performance edge router and reverse proxy (LXC 102) for the `jclee.me` ecos
 - **MCP Ingress**: All MCP servers are routed via `https://mcphub.jclee.me/sse/{server}`.
 - **Resilience**: All internal/MCP routes MUST include the `mcp-resilient` middleware chain (Retry-5 + Circuit Breaker).
 - **Subdomains**: Standard format is `https://{service}.jclee.me`.
-- **Backend IPs**: Never hardcode. Always inject via Terraform `inventory` module from `terraform/envs/prod/hosts.tf`.
+- **Backend IPs**: Never hardcode. Always inject via `module.hosts` from `100-pve/envs/prod/hosts.tf`.
 
 ## ANTI-PATTERNS
 - **NO Plaintext**: Direct HTTP access is forbidden; redirect to 443 is mandatory.

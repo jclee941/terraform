@@ -5,18 +5,9 @@ terraform {
     key = "102-traefik/terraform.tfstate"
   }
 
-  required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "~> 0.94.0"
-    }
-  }
-}
-
-provider "proxmox" {
-  endpoint  = var.proxmox_endpoint
-  api_token = var.proxmox_api_token
-  insecure  = var.proxmox_insecure
+  # NOTE: LXC lifecycle is owned by 100-pve/main.tf (module "lxc" for_each).
+  # This workspace only manages app-level config deployment via lxc-config.
+  required_providers {}
 }
 
 # ---------------------------------------------------------------------------
@@ -43,25 +34,6 @@ data "terraform_remote_state" "infra" {
 
 locals {
   hosts = data.terraform_remote_state.infra.outputs.host_inventory
-}
-
-module "lxc" {
-  source = "../../modules/proxmox/lxc"
-
-  node_name        = var.node_name
-  vmid             = local.hosts.traefik.vmid
-  hostname         = "traefik"
-  ip_address       = local.hosts.traefik.ip
-  memory           = 512
-  cores            = 2
-  disk_size        = 8
-  description      = "Traefik Reverse Proxy + Cloudflare Tunnel"
-  network_gateway  = var.network_gateway
-  dns_servers      = var.dns_servers
-  datastore_id     = var.datastore_id
-  managed_vmid_min = 101
-  managed_vmid_max = 113
-  ssh_public_keys  = var.ssh_public_keys
 }
 
 module "lxc_config" {
