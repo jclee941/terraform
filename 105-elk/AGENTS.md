@@ -50,9 +50,10 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12
 ## TEMPLATE VARIABLES (from env-config module)
 - `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`
 - `elk_version` (8.12.0), `es_heap` (2g), `logstash_heap` (512m)
-- `logstash_dlq_size` (1024mb), `elastalert_version` (2.19.0)
+- `logstash_dlq_size` (1024mb), `elastalert_version` (2.28.0)
 - `elasticsearch_index_pattern` (logs-%{+YYYY.MM.dd})
 - `ilm_delete_after` (30d), `ilm_policy_name` (homelab-logs-30d)
+- `elk_elastic_password`, `elk_kibana_password` (from Vault `homelab/elk`)
 
 ## CONFIG PIPELINE
 `templates/*.tftpl` → `config-renderer` module → `100-pve/configs/elk/` (local_sensitive_file) → cloud-init `write_files` → LXC `/opt/elk/`
@@ -64,23 +65,34 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12
 - **Naming**: Use `logs-{service}-{env}` prefix for automatic pattern matching in Kibana.
 - **Alerting**: ElastAlert2 → GlitchTip (Sentry SDK format) via http_post.
 
+## SECURITY
+- **xpack.security**: Enabled with HTTP basic auth (no TLS for internal network).
+- **Credentials**: Stored in Vault at `homelab/elk` with fields `elastic_password` and `kibana_password`.
+- **Setup Container**: `elk-setup` runs once to set `kibana_system` password via ES Security API.
+- **Auth Flow**: ES uses `ELASTIC_PASSWORD` env var; Kibana uses `kibana_system`; Logstash uses `elastic` for writes.
+- **Traefik**: ES endpoint (`es.jclee.me`) restricted to LAN via `ipAllowList` middleware.
+
 ## ANTI-PATTERNS
 - **NO Public 9200**: Elasticsearch API must never be exposed beyond `192.168.50.0/24`.
 - **NO Manual Config Updates**: Do not hand-edit `tf-configs/` or use Kibana Console for settings.
 - **NO Single-Point-of-Failure**: Do not disable ILM rollover (risk of disk saturation).
 - **NO Plaintext Secrets**: GlitchTip/Sentry keys via Docker env vars only.
+- **NO Disabling xpack.security**: Once enabled, do not disable; all clients depend on auth.
 
 ## COMMANDS
 ```bash
-# Verify ES Health
-curl localhost:9200/_cluster/health?pretty
+# Verify ES Health (requires auth)
+curl -u elastic:$ELASTIC_PASSWORD localhost:9200/_cluster/health?pretty
 
 # Test Logstash Pipeline
-docker exec -it elk-logstash-1 bin/logstash -t -f /etc/logstash/conf.d/logstash.conf
+docker exec -it logstash bin/logstash -t -f /usr/share/logstash/pipeline/logstash.conf
 
 # Restart Stack
 docker compose -f /opt/elk/docker-compose.yml restart
 
 # Run ILM Setup
 bash /opt/elk/scripts/setup-ilm.sh
+
+# Store credentials in Vault (one-time setup)
+vault kv put secret/homelab/elk elastic_password="<password>" kibana_password="<password>"
 ```

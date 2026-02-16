@@ -56,5 +56,9 @@ output "secrets" {
     # MCPHub (try() defaults allow plan to succeed before Vault keys are populated)
     mcphub_proxmox_token_name  = try(data.vault_kv_secret_v2.mcphub.data["proxmox_token_name"], "")
     mcphub_proxmox_token_value = try(data.vault_kv_secret_v2.mcphub.data["proxmox_token_value"], "")
+
+    # ELK / Elasticsearch (try() defaults allow plan to succeed before Vault keys are populated)
+    elk_elastic_password = try(data.vault_kv_secret_v2.elk.data["elastic_password"], "")
+    elk_kibana_password  = try(data.vault_kv_secret_v2.elk.data["kibana_password"], "")
   }
 }

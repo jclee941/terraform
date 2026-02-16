@@ -216,6 +216,8 @@ filter {
 output {
   elasticsearch {
     hosts => ["elasticsearch:9200"]
+    user => "$${ELASTICSEARCH_USERNAME}"
+    password => "$${ELASTICSEARCH_PASSWORD}"
     index => "${elasticsearch_index_pattern}"
     retry_on_conflict => 3
     retry_initial_interval => 2

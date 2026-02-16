@@ -72,3 +72,8 @@ data "vault_kv_secret_v2" "mcphub" {
   mount = var.vault_mount
   name  = "homelab/mcphub"
 }
+
+data "vault_kv_secret_v2" "elk" {
+  mount = var.vault_mount
+  name  = "homelab/elk"
+}

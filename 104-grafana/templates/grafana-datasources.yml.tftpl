@@ -14,6 +14,10 @@ datasources:
     url: http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}
     database: "logs-*"
     isDefault: false
+    basicAuth: true
+    basicAuthUser: elastic
+    secureJsonData:
+      basicAuthPassword: "${elk_elastic_password}"
     jsonData:
       timeField: "@timestamp"
       esVersion: "8.0.0"
@@ -27,6 +31,10 @@ datasources:
     url: http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}
     database: "filebeat-*"
     isDefault: false
+    basicAuth: true
+    basicAuthUser: elastic
+    secureJsonData:
+      basicAuthPassword: "${elk_elastic_password}"
     jsonData:
       timeField: "@timestamp"
       esVersion: "8.0.0"
