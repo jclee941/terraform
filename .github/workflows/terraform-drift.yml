@@ -10,23 +10,41 @@ permissions:
   contents: read
   issues: write
 
-concurrency:
-  group: terraform-drift
-  cancel-in-progress: true
-
 env:
-  TF_WORKING_DIR: 100-pve/envs/prod
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   drift-check:
-    name: Check for Infrastructure Drift
+    name: Drift - ${{ matrix.workspace.name }}
     runs-on: self-hosted
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - name: proxmox
+            dir: 100-pve/envs/prod
+            init_args: "-input=false"
+          - name: grafana
+            dir: 104-grafana/terraform
+            init_args: "-backend-config=../../backend.hcl -input=false"
+          - name: elk
+            dir: 105-elk/terraform
+            init_args: "-backend-config=../../backend.hcl -input=false"
+          - name: archon
+            dir: 108-archon/terraform
+            init_args: "-backend-config=../../backend.hcl -input=false"
+          - name: cloudflare
+            dir: 300-cloudflare
+            init_args: "-backend-config=../backend.hcl -input=false"
+          - name: github
+            dir: 301-github
+            init_args: "-backend-config=../backend.hcl -input=false"
+
     defaults:
       run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ${{ matrix.workspace.dir }}
 
     steps:
       - name: Checkout
@@ -36,7 +54,8 @@ jobs:
         uses: ./.github/actions/terraform-setup
         with:
           terraform-version: '1.10.5'
-          working-directory: ${{ env.TF_WORKING_DIR }}
+          working-directory: ${{ matrix.workspace.dir }}
+          init-args: ${{ matrix.workspace.init_args }}
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
@@ -51,7 +70,6 @@ jobs:
           # Exit codes: 0=no changes, 1=error, 2=changes detected
           if [ $EXIT_CODE -eq 2 ]; then
             echo "drift_detected=true" >> "$GITHUB_OUTPUT"
-            # Extract resource changes summary
             SUMMARY=$(grep -E '(Plan:|No changes)' plan_output.txt | head -5)
             echo "plan_summary<<EOF" >> "$GITHUB_OUTPUT"
             echo "$SUMMARY" >> "$GITHUB_OUTPUT"
@@ -67,36 +85,75 @@ jobs:
       - name: Create GitHub Issue on Drift
         if: steps.plan.outputs.drift_detected == 'true'
         uses: actions/github-script@v8
+        env:
+          PLAN_SUMMARY: ${{ steps.plan.outputs.plan_summary }}
+          WORKSPACE_NAME: ${{ matrix.workspace.name }}
+          WORKSPACE_DIR: ${{ matrix.workspace.dir }}
         with:
           script: |
-            const planSummary = `${{ steps.plan.outputs.plan_summary }}`;
+            const planSummary = process.env.PLAN_SUMMARY;
+            const workspaceName = process.env.WORKSPACE_NAME;
+            const workspaceDir = process.env.WORKSPACE_DIR;
             const today = new Date().toISOString().split('T')[0];
 
-            // Check for existing open drift issue to avoid duplicates
+            // Check for existing open drift issue for this workspace
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
               labels: 'terraform-drift,automated',
-              per_page: 1
+              per_page: 100
             });
 
-            if (existing.data.length > 0) {
-              // Update existing issue with new drift info
+            const existingIssue = existing.data.find(i =>
+              i.title.includes(`[${workspaceName}]`)
+            );
+
+            if (existingIssue) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: existing.data[0].number,
-                body: `## Drift Still Detected (${today})\n\n\`\`\`\n${planSummary}\n\`\`\`\n\nRun \`terraform plan\` in \`100-pve/envs/prod\` to see full details.`
+                issue_number: existingIssue.number,
+                body: [
+                  `## Drift Still Detected (${today})`,
+                  '',
+                  '```',
+                  planSummary,
+                  '```',
+                  '',
+                  `Run \`terraform plan\` in \`${workspaceDir}\` to see full details.`
+                ].join('\n')
               });
-              console.log(`Updated existing drift issue #${existing.data[0].number}`);
+              console.log(`Updated existing drift issue #${existingIssue.number}`);
             } else {
-              // Create new issue
               const issue = await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: `[Drift] Infrastructure drift detected (${today})`,
-                body: `## Terraform Drift Detected\n\n**Detected:** ${today}\n**Workspace:** \`100-pve/envs/prod\`\n\n### Plan Summary\n\`\`\`\n${planSummary}\n\`\`\`\n\n### Action Required\n- [ ] Review drift with \`terraform plan\` in \`100-pve/envs/prod\`\n- [ ] Apply changes with \`terraform apply\` or revert manual changes\n- [ ] Close this issue when resolved\n\n### Common Causes\n- Manual changes via Proxmox UI\n- Out-of-band configuration updates\n- Provider version updates\n\n---\n*Auto-generated by [Terraform Drift Detection](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/terraform-drift.yml)*`,
+                title: `[Drift] [${workspaceName}] Infrastructure drift detected (${today})`,
+                body: [
+                  '## Terraform Drift Detected',
+                  '',
+                  `**Detected:** ${today}`,
+                  `**Workspace:** \`${workspaceDir}\``,
+                  '',
+                  '### Plan Summary',
+                  '```',
+                  planSummary,
+                  '```',
+                  '',
+                  '### Action Required',
+                  `- [ ] Review drift with \`terraform plan\` in \`${workspaceDir}\``,
+                  '- [ ] Apply changes with `terraform apply` or revert manual changes',
+                  '- [ ] Close this issue when resolved',
+                  '',
+                  '### Common Causes',
+                  '- Manual changes via provider UI (Proxmox, Grafana, Cloudflare, etc.)',
+                  '- Out-of-band configuration updates',
+                  '- Provider version updates',
+                  '',
+                  '---',
+                  `*Auto-generated by [Terraform Drift Detection](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/terraform-drift.yml)*`
+                ].join('\n'),
                 labels: ['terraform-drift', 'automated', 'infrastructure']
               });
               console.log(`Created drift issue #${issue.data.number}`);
@@ -105,13 +162,34 @@ jobs:
       - name: Create GitHub Issue on Error
         if: steps.plan.outputs.drift_detected == 'error'
         uses: actions/github-script@v8
+        env:
+          WORKSPACE_NAME: ${{ matrix.workspace.name }}
+          WORKSPACE_DIR: ${{ matrix.workspace.dir }}
         with:
           script: |
+            const workspaceName = process.env.WORKSPACE_NAME;
+            const workspaceDir = process.env.WORKSPACE_DIR;
             const today = new Date().toISOString().split('T')[0];
+
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `[Drift] Terraform plan failed (${today})`,
-              body: `## Terraform Plan Error\n\n**Date:** ${today}\n**Workspace:** \`100-pve/envs/prod\`\n\nThe scheduled drift detection failed to run \`terraform plan\`. Check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/terraform-drift.yml) for details.\n\n### Action Required\n- [ ] Check Terraform state and provider connectivity\n- [ ] Verify secrets (TF_API_TOKEN) are valid\n- [ ] Re-run the workflow manually\n\n---\n*Auto-generated by Terraform Drift Detection*`,
+              title: `[Drift] [${workspaceName}] Terraform plan failed (${today})`,
+              body: [
+                '## Terraform Plan Error',
+                '',
+                `**Date:** ${today}`,
+                `**Workspace:** \`${workspaceDir}\``,
+                '',
+                `The scheduled drift detection failed. Check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/terraform-drift.yml) for details.`,
+                '',
+                '### Action Required',
+                '- [ ] Check Terraform state and provider connectivity',
+                '- [ ] Verify secrets (TF_API_TOKEN, provider credentials) are valid',
+                '- [ ] Re-run the workflow manually',
+                '',
+                '---',
+                '*Auto-generated by Terraform Drift Detection*'
+              ].join('\n'),
               labels: ['terraform-drift', 'automated', 'bug']
             });
