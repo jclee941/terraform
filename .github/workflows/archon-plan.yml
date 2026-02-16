@@ -39,6 +39,13 @@ jobs:
           working-directory: ${{ env.TF_WORKING_DIR }}
           init-args: '-backend-config=../../backend.hcl -input=false'
 
+      - name: Migrate State (one-time)
+        run: |
+          # PR #110 moved LXC lifecycle to 100-pve. Remove orphaned module.lxc from this workspace's state.
+          terraform state rm module.lxc 2>/dev/null || true
+        env:
+          TF_VAR_supabase_url: ${{ secrets.TF_VAR_SUPABASE_URL }}
+
       - name: Terraform Plan
         id: plan
         run: |
@@ -66,9 +73,6 @@ jobs:
 
           exit $EXIT_CODE
         env:
-          TF_VAR_proxmox_endpoint: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
-          TF_VAR_proxmox_api_token: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
-          TF_VAR_proxmox_insecure: ${{ secrets.TF_VAR_PROXMOX_INSECURE }}
           TF_VAR_supabase_url: ${{ secrets.TF_VAR_SUPABASE_URL }}
 
       - name: Comment Plan on PR
