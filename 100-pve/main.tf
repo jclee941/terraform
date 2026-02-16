@@ -766,7 +766,13 @@ module "config_renderer" {
       domain               = "jclee.me"
       infrastructure_nodes = local.infrastructure_nodes
 
-      elk_version                 = "8.12.0"
+      elk_version = "8.12.0"
+
+      glitchtip_version          = "v6.0.5"
+      glitchtip_postgres_version = "15.16-alpine"
+      glitchtip_redis_version    = "7.4.7-alpine"
+      mcphub_version             = "0.12.3"
+
       es_heap                     = "3g"
       logstash_heap               = "512m"
       logstash_dlq_size           = "1024mb"

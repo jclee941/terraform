@@ -1,6 +1,6 @@
 services:
   web:
-    image: glitchtip/glitchtip:latest
+    image: glitchtip/glitchtip:${glitchtip_version}
     container_name: glitchtip-web
     env_file:
       - ./glitchtip.env
@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
 
   worker:
-    image: glitchtip/glitchtip:latest
+    image: glitchtip/glitchtip:${glitchtip_version}
     container_name: glitchtip-worker
     env_file:
       - ./glitchtip.env
@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:${glitchtip_postgres_version}
     container_name: glitchtip-postgres
     environment:
       POSTGRES_DB: glitchtip
@@ -60,7 +60,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:${glitchtip_redis_version}
     container_name: glitchtip-redis
     command: ["redis-server", "--requirepass", "${glitchtip_redis_password}"]
     volumes:
