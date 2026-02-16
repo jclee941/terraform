@@ -1,12 +1,13 @@
 name: GitHub Plan
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - '301-github/**'
 
 concurrency:
-  group: github-plan-${{ github.event.pull_request.number }}
+  group: github-plan-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -68,7 +69,7 @@ jobs:
           TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
 
       - name: Comment Plan on PR
-        if: always()
+        if: always() && github.event_name == 'pull_request' && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           script: |

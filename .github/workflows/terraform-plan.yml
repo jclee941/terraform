@@ -1,13 +1,14 @@
 name: Terraform Plan
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - '100-pve/**'
       - 'modules/**'
 
 concurrency:
-  group: terraform-plan-${{ github.event.pull_request.number }}
+  group: terraform-plan-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -75,7 +76,7 @@ jobs:
           TF_VAR_vault_token: ${{ secrets.TF_VAR_VAULT_TOKEN }}
 
       - name: Comment Plan on PR
-        if: always()
+        if: always() && github.event_name == 'pull_request' && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           script: |

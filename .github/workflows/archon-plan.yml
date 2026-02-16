@@ -1,12 +1,13 @@
 name: Archon Plan
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - '108-archon/**'
 
 concurrency:
-  group: archon-plan-${{ github.event.pull_request.number }}
+  group: archon-plan-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -71,7 +72,7 @@ jobs:
           TF_VAR_supabase_url: ${{ secrets.TF_VAR_SUPABASE_URL }}
 
       - name: Comment Plan on PR
-        if: always()
+        if: always() && github.event_name == 'pull_request' && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           script: |

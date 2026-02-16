@@ -1,12 +1,13 @@
 name: ELK Plan
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - '105-elk/**'
 
 concurrency:
-  group: elk-plan-${{ github.event.pull_request.number }}
+  group: elk-plan-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -66,7 +67,7 @@ jobs:
           exit $EXIT_CODE
 
       - name: Comment Plan on PR
-        if: always()
+        if: always() && github.event_name == 'pull_request' && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           script: |

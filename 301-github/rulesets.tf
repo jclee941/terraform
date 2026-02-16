@@ -63,6 +63,12 @@ resource "github_repository_ruleset" "branch" {
     }
   }
 
+  bypass_actors {
+    actor_id    = 5 # RepositoryRole: admin
+    actor_type  = "RepositoryRole"
+    bypass_mode = "always"
+  }
+
   rules {
     creation                = local.protection_profiles[try(each.value.protection, "minimal")].creation
     update                  = true
@@ -108,6 +114,12 @@ resource "github_repository_ruleset" "tags" {
       include = ["refs/tags/v*"]
       exclude = []
     }
+  }
+
+  bypass_actors {
+    actor_id    = 5 # RepositoryRole: admin
+    actor_type  = "RepositoryRole"
+    bypass_mode = "always"
   }
 
   rules {
