@@ -551,6 +551,10 @@ module "lxc_config" {
           path    = "/etc/filebeat/filebeat.yml"
           content = module.config_renderer.rendered_configs.elk_filebeat
         }
+        "Dockerfile.logstash" = {
+          path    = "/opt/elk/config/Dockerfile.logstash"
+          content = module.config_renderer.rendered_configs.elk_dockerfile_logstash
+        }
       }
     }
 
@@ -700,12 +704,13 @@ locals {
       filebeat = "filebeat.yml.tftpl"
     } }
     "105-elk" = { prefix = "elk", files = {
-      filebeat       = "filebeat.yml.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      logstash_conf  = "logstash.conf.tftpl"
-      logstash_yml   = "logstash.yml.tftpl"
-      ilm_policy     = "ilm-policy.json.tftpl"
-      setup_ilm      = "setup-ilm.sh.tftpl"
+      filebeat            = "filebeat.yml.tftpl"
+      docker_compose      = "docker-compose.yml.tftpl"
+      logstash_conf       = "logstash.conf.tftpl"
+      logstash_yml        = "logstash.yml.tftpl"
+      ilm_policy          = "ilm-policy.json.tftpl"
+      setup_ilm           = "setup-ilm.sh.tftpl"
+      dockerfile_logstash = "Dockerfile.logstash.tftpl"
     } }
     "106-glitchtip" = { prefix = "glitchtip", files = {
       filebeat       = "filebeat.yml.tftpl"
@@ -766,7 +771,7 @@ module "config_renderer" {
       domain               = "jclee.me"
       infrastructure_nodes = local.infrastructure_nodes
 
-      elk_version = "8.12.0"
+      elk_version = "8.17.0"
 
       glitchtip_version          = "v6.0.5"
       glitchtip_postgres_version = "15.16-alpine"

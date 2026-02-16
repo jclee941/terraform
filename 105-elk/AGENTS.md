@@ -1,7 +1,7 @@
 # ELK Stack (LXC 105)
 
 ## OVERVIEW
-Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12.0), **Logstash** (ETL pipeline), and **Kibana** (visualization) to provide a unified telemetry sink. Ingests data from Filebeat agents across all containers and VMs. Alerting is handled by Grafana (104-grafana).
+Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline), and **Kibana** (visualization) to provide a unified telemetry sink. Ingests data from Filebeat agents across all containers and VMs. Alerting is handled by Grafana (104-grafana).
 
 ## STRUCTURE
 ```
@@ -12,7 +12,8 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12
 │   ├── logstash.yml.tftpl        # Logstash settings (DLQ, monitoring)
 │   ├── filebeat.yml.tftpl        # Local filebeat config
 │   ├── ilm-policy.json.tftpl     # Index Lifecycle Management policy
-│   └── setup-ilm.sh.tftpl        # ILM bootstrap script
+│   ├── setup-ilm.sh.tftpl        # ILM bootstrap script
+│   └── Dockerfile.logstash.tftpl # Logstash Dockerfile (templatized)
 ├── config/                       # Production config (reference/manual)
 │   ├── logstash.conf             # Production logstash pipeline
 │   ├── logstash.yml              # Production logstash settings
