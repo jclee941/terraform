@@ -41,21 +41,6 @@ curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_index_template/$${TEMPLATE_NAME}"
 }'
 echo
 
-# Create elastalert index template (low priority)
-echo "Creating elastalert index template"
-curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_index_template/elastalert-template" \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "index_patterns": ["elastalert_*"],
-  "priority": 50,
-  "template": {
-    "settings": {
-      "number_of_shards": 1,
-      "number_of_replicas": 0
-    }
-  }
-}'
-echo
 
 # Bootstrap initial index if it doesn't exist
 if ! curl -sf -u "$${ES_AUTH}" "$${ES_HOST}/logs-000001" > /dev/null 2>&1; then

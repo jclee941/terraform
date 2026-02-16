@@ -27,19 +27,6 @@ resource "elasticstack_elasticsearch_index_template" "logs" {
   }
 }
 
-resource "elasticstack_elasticsearch_index_template" "elastalert" {
-  name           = "elastalert-template"
-  index_patterns = ["elastalert_*"]
-  priority       = 50
-
-  template {
-    settings = jsonencode({
-      number_of_replicas     = 0
-      number_of_shards       = 1
-      "index.lifecycle.name" = elasticstack_elasticsearch_index_lifecycle.homelab_logs_30d.name
-    })
-  }
-}
 
 resource "elasticstack_elasticsearch_index_template" "filebeat" {
   name           = "filebeat-template"
@@ -113,15 +100,6 @@ resource "elasticstack_kibana_data_view" "filebeat" {
   data_view = {
     name            = "Filebeat"
     title           = "filebeat-*"
-    time_field_name = "@timestamp"
-  }
-  space_id = elasticstack_kibana_space.homelab.space_id
-}
-
-resource "elasticstack_kibana_data_view" "elastalert" {
-  data_view = {
-    name            = "ElastAlert"
-    title           = "elastalert_*"
     time_field_name = "@timestamp"
   }
   space_id = elasticstack_kibana_space.homelab.space_id

@@ -28,16 +28,6 @@
         "number_of_shards": 1,
         "index.lifecycle.name": "homelab-logs-30d"
       }
-    },
-    {
-      "name": "elastalert-template",
-      "index_patterns": ["elastalert_*"],
-      "priority": 50,
-      "settings": {
-        "number_of_replicas": 0,
-        "number_of_shards": 1,
-        "index.lifecycle.name": "homelab-logs-30d"
-      }
     }
   ]
 }

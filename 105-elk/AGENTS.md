@@ -1,7 +1,7 @@
 # ELK Stack (LXC 105)
 
 ## OVERVIEW
-Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12.0), **Logstash** (ETL pipeline), **Kibana** (visualization), and **ElastAlert2** (alerting) to provide a unified telemetry sink. Ingests data from Filebeat agents across all containers and VMs.
+Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12.0), **Logstash** (ETL pipeline), and **Kibana** (visualization) to provide a unified telemetry sink. Ingests data from Filebeat agents across all containers and VMs. Alerting is handled by Grafana (104-grafana).
 
 ## STRUCTURE
 ```
@@ -17,12 +17,6 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12
 │   ├── logstash.conf             # Production logstash pipeline
 │   ├── logstash.yml              # Production logstash settings
 │   ├── Dockerfile.logstash       # Custom logstash with prometheus plugin
-│   ├── elastalert.yaml           # ElastAlert2 base config
-│   ├── elastalert-rules/         # Alert rule definitions
-│   │   ├── critical-error-spike.yml
-│   │   ├── high-error-rate.yml
-│   │   ├── gateway-errors.yml
-│   │   └── mcp-errors.yml
 │   └── filebeat.yml              # Local filebeat config
 ├── scripts/                      # Operational scripts
 │   ├── setup-ilm.sh              # ILM policy bootstrap
@@ -40,7 +34,6 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12
 | Task | File Path |
 |------|-----------|
 | **Edit Pipeline** | `templates/logstash.conf.tftpl` (source) |
-| **Alert Rules** | `config/elastalert-rules/*.yml` |
 | **Docker Stack** | `templates/docker-compose.yml.tftpl` (source) |
 | **Index Management** | `templates/ilm-policy.json.tftpl` (source) |
 | **Logstash Settings** | `templates/logstash.yml.tftpl` (source) |
@@ -50,7 +43,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12
 ## TEMPLATE VARIABLES (from env-config module)
 - `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`
 - `elk_version` (8.12.0), `es_heap` (2g), `logstash_heap` (512m)
-- `logstash_dlq_size` (1024mb), `elastalert_version` (2.28.0)
+- `logstash_dlq_size` (1024mb)
 - `elasticsearch_index_pattern` (logs-%{+YYYY.MM.dd})
 - `ilm_delete_after` (30d), `ilm_policy_name` (homelab-logs-30d)
 - `elk_elastic_password`, `elk_kibana_password` (from Vault `homelab/elk`)
@@ -61,9 +54,9 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.12
 ## CONVENTIONS
 - **ILM Policy**: All indices governed by `ilm-policy.json`. Standard retention: 30 days.
 - **DLQ**: Enabled by default (1024mb max) to capture failed document mappings.
-- **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu, ElastAlert 256M/0.25cpu.
+- **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu.
 - **Naming**: Use `logs-{service}-{env}` prefix for automatic pattern matching in Kibana.
-- **Alerting**: ElastAlert2 → GlitchTip (Sentry SDK format) via http_post.
+- **Alerting**: Grafana (104-grafana/alerting.yaml) handles all alerting. ElastAlert2 was removed.
 
 ## SECURITY
 - **xpack.security**: Enabled with HTTP basic auth (no TLS for internal network).

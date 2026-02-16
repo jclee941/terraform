@@ -13,7 +13,7 @@ filebeat.inputs:
       host_role: elk
     fields_under_root: false
 
-  # Docker container logs (Elasticsearch, Logstash, Kibana, ElastAlert)
+  # Docker container logs (Elasticsearch, Logstash, Kibana)
   - type: container
     paths:
       - /var/lib/docker/containers/*/*.log

@@ -107,37 +107,6 @@ services:
         max-file: "5"
     restart: unless-stopped
 
-  elastalert:
-    image: jertel/elastalert2:${elastalert_version}
-    container_name: elastalert
-    volumes:
-      - ./config/elastalert.yaml:/opt/elastalert/config.yaml:ro
-      - ./config/elastalert-rules:/opt/elastalert/rules:ro
-    environment:
-      - GLITCHTIP_SENTRY_KEY=$${GLITCHTIP_SENTRY_KEY}
-      - ES_VERSION=8
-    networks:
-      - elk
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "grep -l elastalert /proc/*/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.25'
-    logging:
-      driver: json-file
-      options:
-        max-size: "50m"
-        max-file: "5"
-    restart: unless-stopped
 
   kibana:
     image: docker.elastic.co/kibana/kibana:${elk_version}
