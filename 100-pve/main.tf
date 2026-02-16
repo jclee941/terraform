@@ -51,7 +51,8 @@ module "hosts" {
 # =============================================================================
 
 locals {
-  node_name = var.node_name
+  node_name     = var.node_name
+  vault_version = "1.18.3"
 
   infrastructure_nodes = [
     for name, host in module.hosts.hosts : {
@@ -356,7 +357,7 @@ module "vm_config" {
           "systemctl start docker",
           "mkdir -p /opt/mcphub",
           "mkdir -p /opt/vault-agent/templates",
-          "curl -fsSL https://releases.hashicorp.com/vault/1.18.3/vault_1.18.3_linux_amd64.zip -o /tmp/vault.zip && unzip -o /tmp/vault.zip -d /usr/local/bin/ && rm /tmp/vault.zip",
+          "curl -fsSL https://releases.hashicorp.com/vault/${local.vault_version}/vault_${local.vault_version}_linux_amd64.zip -o /tmp/vault.zip && unzip -o /tmp/vault.zip -d /usr/local/bin/ && rm /tmp/vault.zip",
           "systemctl daemon-reload",
           "systemctl enable vault-agent-mcphub",
           "systemctl start vault-agent-mcphub",
