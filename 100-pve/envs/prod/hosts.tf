@@ -53,12 +53,13 @@ locals {
       ip    = "192.168.50.105"
       roles = ["logging", "elasticsearch", "kibana"]
       ports = {
-        elasticsearch = 9200
-        es_transport  = 9300
-        kibana        = 5601
-        logstash_beat = 5044
-        logstash_tcp  = 5000
-        logstash_api  = 9600
+        elasticsearch       = 9200
+        es_transport        = 9300
+        kibana              = 5601
+        logstash_beat       = 5044
+        logstash_tcp        = 5000
+        logstash_api        = 9600
+        logstash_prometheus = 9198
       }
     }
 
