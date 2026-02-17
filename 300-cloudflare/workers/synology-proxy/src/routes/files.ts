@@ -243,6 +243,48 @@ export const createFilesRoutes = (overrides?: Partial<FilesRouteDependencies>): 
     return c.json({ success: true, data });
   });
 
+  routes.post('/publish', async (c) => {
+    const body = await c.req.json<{ path?: string; expireDays?: number }>();
+    if (!body.path) {
+      throw new ValidationError('Request body "path" is required', 'MISSING_PATH');
+    }
+
+    const auth = deps.createAuth(c.env);
+    const client = deps.createClient(auth, c.env);
+    const response = await client.downloadFile(body.path);
+
+    if (response.body === null) {
+      throw new ExternalServiceError('Synology download response body is empty', 502);
+    }
+
+    const contentType = response.headers.get('content-type') ?? 'application/octet-stream';
+    const fileName = body.path.split('/').pop() ?? 'file';
+    const shareKey = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+    const ttlDays = body.expireDays ?? 7;
+    const expiresAtMs = Date.now() + ttlDays * 24 * 60 * 60 * 1000;
+
+    const cache = deps.createCache(c.env);
+    await cache.put(`public/${shareKey}`, response.body, {
+      contentType,
+      contentDisposition: `inline; filename="${fileName}"`,
+      fileName,
+      expiresAt: String(expiresAtMs),
+    });
+
+    const baseUrl = new URL(c.req.url);
+    const publicUrl = `${baseUrl.origin}/public/download/${shareKey}`;
+
+    return c.json({
+      success: true,
+      data: {
+        publicUrl,
+        shareKey,
+        fileName,
+        expiresAt: new Date(expiresAtMs).toISOString(),
+      },
+    });
+  });
+
   return routes;
 };
 

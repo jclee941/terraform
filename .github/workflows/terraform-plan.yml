@@ -75,6 +75,17 @@ jobs:
           TF_VAR_proxmox_insecure: ${{ secrets.TF_VAR_PROXMOX_INSECURE }}
           TF_VAR_vault_token: ${{ secrets.TF_VAR_VAULT_TOKEN }}
 
+      - name: Upload Plan Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-100-pve-${{ github.event.pull_request.number || github.run_id }}
+          path: |
+            ${{ env.TF_WORKING_DIR }}/tfplan
+            ${{ env.TF_WORKING_DIR }}/plan_output.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Comment Plan on PR
         if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v8

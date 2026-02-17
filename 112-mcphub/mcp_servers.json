@@ -68,8 +68,8 @@
     "time": {
       "location": "hub",
       "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-time"],
+      "command": "uvx",
+      "args": ["mcp-server-time"],
       "port": 8062,
       "description": "Time and timezone utilities"
     },
@@ -120,10 +120,10 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@nicepkg/slack-mcp"],
+      "args": ["-y", "slack-mcp-server"],
       "port": 8072,
       "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
+        "SLACK_MCP_XOXB_TOKEN": "${SLACK_MCP_XOXB_TOKEN}"
       },
       "description": "Slack messaging and channel management"
     },
@@ -131,7 +131,7 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@nicepkg/cloudflare-dns-mcp"],
+      "args": ["-y", "cloudflare-dns-mcp"],
       "port": 8073,
       "env": {
         "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}"
@@ -166,22 +166,26 @@
       "description": "n8n workflow automation"
     },
     "in-memoria": {
-      "location": "local",
+      "location": "hub",
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "in-memoria", "server"],
+      "port": 8076,
       "env": {
         "IN_MEMORIA_BATCH_SIZE": "25",
         "IN_MEMORIA_MAX_CONCURRENT": "5",
-        "IN_MEMORIA_LOG_LEVEL": "warn"
+        "IN_MEMORIA_LOG_LEVEL": "warn",
+        "IN_MEMORIA_DB_FILENAME": "/data/in-memoria.db",
+        "IN_MEMORIA_VECTOR_DB_PATH": "/data/in-memoria-vectors.db"
       },
       "description": "Persistent memory and context management"
     },
     "bazel": {
-      "location": "local",
+      "location": "hub",
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "github:nacgarg/bazel-mcp-server"],
+      "port": 8077,
       "description": "Bazel build system operations"
     },
     "cf-docs": {

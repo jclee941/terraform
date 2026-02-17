@@ -122,10 +122,10 @@ locals {
       }
     }
 
-    sandbox = {
+    staging = {
       vmid  = 220
       ip    = "192.168.50.220"
-      roles = ["sandbox", "dev"]
+      roles = ["staging", "dev"]
       ports = {}
     }
   }

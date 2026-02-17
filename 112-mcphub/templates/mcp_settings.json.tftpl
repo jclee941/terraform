@@ -16,10 +16,23 @@ ${jsonencode({
       }
     },
     {
-      for name, server in jsondecode(mcp_catalog_json).servers : name => {
+      for name, server in jsondecode(mcp_hub_external_sse_json) : name => {
         type = "sse"
         url  = lookup(server, "url", "")
-      } if lookup(server, "location", "") == "hub" && lookup(server, "transport", "") == "sse" && lookup(server, "url", "") != ""
+      }
+    },
+    {
+      for name, server in jsondecode(mcp_hub_http_json) : name => merge(
+        {
+          type = "sse"
+          url  = "http://${mcp_host}:${lookup(server, "port", 0)}${lookup(server, "path", "")}"
+        },
+        lookup(server, "auth", null) != null ? {
+          headers = {
+            Authorization = "Bearer $${${lookup(lookup(server, "auth", {}), "env_var", "")}}"
+          }
+        } : {}
+      )
     }
   )
 })}

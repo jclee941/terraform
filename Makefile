@@ -1,19 +1,58 @@
-.PHONY: plan apply verify lint backup fmt validate init drift-check test
+.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration docs deploy-opencode deploy-opencode-dry gen-opencode pre-commit-install pre-commit-run help
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
+# Accepts full paths (100-pve) or short aliases (pve, grafana, elk, etc.)
 SVC ?= 100-pve
-TF_DIR := $(SVC)
+
+# Workspace alias map: short name → directory path
+# App workspaces with nested terraform/ dirs resolve automatically
+ALIAS_pve        := 100-pve
+ALIAS_runner     := 101-runner
+ALIAS_traefik    := 102-traefik/terraform
+ALIAS_grafana    := 104-grafana/terraform
+ALIAS_elk        := 105-elk/terraform
+ALIAS_glitchtip  := 106-glitchtip
+ALIAS_supabase   := 107-supabase
+ALIAS_archon     := 108-archon/terraform
+ALIAS_mcphub     := 112-mcphub
+ALIAS_oc         := 200-oc
+ALIAS_synology   := 215-synology
+ALIAS_staging    := 220-staging
+ALIAS_cloudflare := 300-cloudflare
+ALIAS_github     := 301-github
+
+# Resolve alias: if ALIAS_$(SVC) is defined, use it; otherwise use SVC as-is
+TF_DIR := $(or $(ALIAS_$(SVC)),$(SVC))
+
+# Backend config path (relative to TF_DIR depth)
+# Single-level dirs (100-pve) → ../backend.hcl
+# Nested dirs (104-grafana/terraform) → ../../backend.hcl
+BACKEND_HCL := $(shell echo "$(TF_DIR)" | awk -F/ '{for(i=1;i<=NF;i++) printf "../"; print "backend.hcl"}')
+
+# Validate TF_DIR exists before running terraform commands
+define check_svc_dir
+	@if [ ! -d "$(TF_DIR)" ]; then \
+		echo "Error: workspace directory '$(TF_DIR)' does not exist."; \
+		echo "Available workspaces:"; \
+		echo "  Direct: $$(ls -d [0-9]*/ | tr -d '/' | tr '\n' ' ')"; \
+		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub oc synology staging cloudflare github"; \
+		exit 1; \
+	fi
+endef
 
 ## Terraform targets
 
 init: ## Initialize Terraform (SVC=100-pve)
-	cd $(TF_DIR) && terraform init -backend-config=../backend.hcl
+	$(check_svc_dir)
+	cd $(TF_DIR) && terraform init -backend-config=$(BACKEND_HCL)
 
 plan: ## Create Terraform plan (SVC=100-pve)
+	$(check_svc_dir)
 	cd $(TF_DIR) && terraform plan -out=tfplan
 
 apply: ## Apply Terraform plan (SVC=100-pve)
+	$(check_svc_dir)
 	cd $(TF_DIR) && terraform apply tfplan
 
 fmt: ## Format all Terraform files
@@ -21,6 +60,7 @@ fmt: ## Format all Terraform files
 	terraform fmt -recursive modules/
 
 validate: ## Validate Terraform configuration (SVC=100-pve)
+	$(check_svc_dir)
 	cd $(TF_DIR) && terraform init -backend=false && terraform validate
 
 ## Linting targets

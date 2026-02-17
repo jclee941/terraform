@@ -17,7 +17,6 @@ terraform/                      # Multi-provider IaC monorepo root
 │   │   ├── lxc-config/         # LXC config rendering (templates/)
 │   │   ├── vm-config/          # VM config rendering (templates/)
 │   │   └── config-renderer/    # Template → tf-configs pipeline
-│   ├── cloudflare/             # Cloudflare DNS/tunnel modules (8 .tf files)
 │   └── shared/
 │       ├── vault-secrets/      # HashiCorp Vault secret management
 │       └── vault-agent/        # Vault Agent AppRole auto-auth module
@@ -29,26 +28,26 @@ terraform/                      # Multi-provider IaC monorepo root
 │       └── hosts.tf            # SSoT: ALL host IPs/ports
 ├── 101-runner/                 # GitHub Actions Self-hosted Runner (LXC)
 ├── 102-traefik/                # Reverse Proxy (Entry point)
-│   ├── tf-configs/             # TF-rendered configs (traefik, routing)
+│   ├── terraform/              # Standalone TF workspace (reserved for Traefik provider)
 │   └── templates/              # Config templates
 ├── 104-grafana/                # Observability Stack (Prometheus/Grafana)
-│   ├── terraform/              # Standalone TF workspace (grafana provider)
-│   └── tf-configs/             # TF-rendered configs (datasources, prometheus)
+│   └── terraform/              # Standalone TF workspace (grafana provider)
 ├── 105-elk/                    # ELK Stack (Elasticsearch, Logstash, Kibana)
-│   ├── terraform/              # Standalone TF workspace (elasticstack provider)
-│   └── tf-configs/             # TF-rendered configs (docker-compose, logstash)
+│   └── terraform/              # Standalone TF workspace (elasticstack provider)
 ├── 106-glitchtip/              # Error Tracking (GlitchTip)
-│   └── tf-configs/             # TF-rendered configs (docker-compose, env)
 ├── 107-supabase/               # Supabase BaaS (Backend-as-a-Service)
 ├── 108-archon/                 # AI Knowledge Management (Archon)
 │   └── terraform/              # Standalone TF workspace
 ├── 112-mcphub/                 # MCP Hub (Unified MCP + AI/Tools VM)
 │   └── templates/              # docker-compose, mcp_settings.json
 ├── 200-oc/                     # Dev Environment (GPU VM)
-│   ├── config/                 # System-level configs (cloud-init, systemd)
-│   └── opencode/               # Config gen pipeline (3 variants, 9 agents)
+│   ├── cloud-init/             # Cloud-init user-data
+│   ├── config/                 # System-level configs (filebeat, systemd)
+│   ├── opencode/               # Config gen pipeline (3 variants, 9 agents)
+│   │   └── gen/                # Python generators (config.py = SoT)
+│   └── scripts/                # VM maintenance scripts
 ├── 215-synology/               # Synology NAS (Physical Device)
-├── 220-sandbox/                # Dev Sandbox (CF WARP)
+├── 220-staging/                # Staging Environment (Docker)
 │   └── cloud-init/             # Cloud-init config
 ├── 301-github/                 # GitHub Org Management (External)
 ├── 300-cloudflare/             # Cloudflare Infrastructure (External)
@@ -59,7 +58,7 @@ terraform/                      # Multi-provider IaC monorepo root
 │   └── docker/cloudflared/     # Tunnel connector on Synology NAS
 ├── docs/                       # Documentation
 ├── scripts/                    # Utility scripts + n8n-workflows/
-├── .github/workflows/          # CI/CD (6 workflows)
+├── .github/workflows/          # CI/CD (21 workflows)
 └── .archive/                   # Archived services (103, 109-111, 113)
 ```
 
@@ -78,7 +77,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | **Terraform Architecture** | `100-pve/main.tf` → `module.hosts` → `module.env_config` → downstream modules | No hardcoded IPs in main.tf. |
 | **Config Templates** | Distributed per service dir | `102-traefik/templates/`, `104-grafana/templates/`, `105-elk/templates/`, `106-glitchtip/templates/`, `112-mcphub/templates/` |
 | **Module Templates** | `modules/proxmox/{lxc-config,vm-config}/templates/` | 3 module-level templates. |
-| **TF-Rendered Configs** | `{service}/tf-configs/` | Terraform-rendered outputs colocated with each service. NOT hand-editable. |
+| **TF-Rendered Configs** | `100-pve/configs/lxc-{VMID}-{name}/` | Terraform-rendered outputs via config-renderer module. NOT hand-editable. |
 | **Self-hosted Runner** | `101-runner/` | GitHub Actions runner (LXC 101). Multi-repo registration scripts. |
 | **AI Agents** | `112-mcphub/` | MCP servers + AI tools (unified). |
 | **Observability** | `104-grafana/` | Prometheus/Elasticsearch/Grafana stack. |
@@ -89,7 +88,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | **OpenCode Gen** | `200-oc/opencode/gen/` | Config gen pipeline: 3 variants (anti/claude/copilot), 9 agents, 8 categories. |
 | **Routing** | `102-traefik/config/` | Dynamic routing (elk.yml, glitchtip.yml, mcp.yml, vault.yml, mcphub.yml). |
 | **Alerting** | `104-grafana/alerting.yaml` | 8 alert rules, 2 contact points (email, n8n-webhook). Slack removed. |
-| **CI/CD** | `.github/workflows/` | 6 workflows (alerts, milestone-automation, parallel-test, pr-review, service-access, vault-test). |
+| **CI/CD** | `.github/workflows/` | 21 workflows: terraform-{plan,apply}, terraform-drift, per-service {plan,apply}, internal-service-access, milestone-automation, pr-review, secret-audit, vault-test, worker-deploy. |
 | **Scripts** | `scripts/` | create-pr.sh, production_verification_v2.sh, terraform-drift-check.sh. |
 | **n8n Workflows** | `scripts/n8n-workflows/` + `112-mcphub/n8n-workflows/` | 8 workflow JSON definitions (6 primary + 2 pipeline). |
 | **Runbooks** | `docs/runbooks/` | Incident response and operational guides. |
@@ -111,7 +110,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | 112 | mcphub | 192.168.50.112 | MCP Hub (Unified MCP + AI/Tools) | Terraform (VM) ✅ Running |
 | 200 | oc | 192.168.50.200 | Dev (GPU) | Terraform (VM) |
 | 215 | synology | 192.168.50.215 | Synology NAS (Physical) | Inventory only |
-| 220 | sandbox | 192.168.50.220 | Sandbox (WARP) | Terraform (VM) |
+| 220 | staging | 192.168.50.220 | Staging Environment (Docker) | Terraform (VM) |
 | 300 | cloudflare | — | DNS/Tunnel/Access/R2/Secrets | Terraform (External) |
 | 301 | github | — | GitHub Org/Repos/Teams | Terraform (External) |
 
@@ -154,12 +153,12 @@ terraform/                      # Multi-provider IaC monorepo root
 - **Numbering**: `1-255` = internal infra (maps to `192.168.50.{NNN}`), `300+` = external infra (Cloudflare, AWS, etc.).
 - **Naming**: `{VMID}-{HOSTNAME}` (e.g., `102-traefik`).
 - **Network**: `192.168.50.0/24` (GW: .1). Primary DNS: `.1`.
-- **Terraform**: `bpg/proxmox` (v0.95.0), `hashicorp/vault` (~>4.0), `grafana/grafana` (~>4.0), `elastic/elasticstack` (~>0.11), `integrations/github` (v6.11.1).
+- **Terraform**: `bpg/proxmox` (~>0.94), `hashicorp/vault` (~>5.0), `grafana/grafana` (~>4.0), `elastic/elasticstack` (~>0.13), `hashicorp/cloudflare` (~>5.0), `integrations/github` (~>6.6).
 - **Single Source of Truth (SSoT)**: `100-pve/envs/prod/hosts.tf` defines ALL IPs/ports. No hardcoded IPs in `main.tf`.
 - **Module Sources**: Always use `../modules/{provider}/{module}` relative paths from service dirs.
 - **Template Paths**: `${path.module}/../{NNN}-{svc}/templates/` from workspace to service templates.
-- **Config Pipeline**: `hosts.tf` → `module.hosts` → `config-renderer` → service-specific `tf-configs/`.
-- **Multi-stack Makefile**: `make plan STACK=proxmox` (default: proxmox). All Terraform commands route through `$(STACK)/`.
+- **Config Pipeline**: `hosts.tf` → `module.hosts` → `config-renderer` → `100-pve/configs/lxc-{VMID}-{name}/`.
+- **Multi-stack Makefile**: `make plan SVC=pve` (default: `100-pve`). Aliases: pve, runner, traefik, grafana, elk, glitchtip, supabase, archon, mcphub, oc, synology, staging, cloudflare, github.
 - **Cloud-Init**: Custom snippets via `proxmox_virtual_environment_file`.
 - **Logs**: Filebeat → Logstash:5044 → Elasticsearch (105) → Grafana.
 - **PR Automation**: Use the dedicated `pr-automation` skill for all Pull Request operations.
@@ -170,9 +169,9 @@ terraform/                      # Multi-provider IaC monorepo root
 ssh pve; pct enter {VMID}  # LXC access via PVE
 ssh root@192.168.50.100 'pct exec {VMID} -- bash -c "CMD"'
 bazel build //... && bazel test //...
-make plan                        # Default: proxmox stack
-make plan STACK=proxmox          # Explicit stack selection
-make apply STACK=proxmox         # Apply proxmox stack
+make plan                        # Default: SVC=100-pve
+make plan SVC=pve                # Explicit service (alias)
+make apply SVC=pve               # Apply proxmox stack
 cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
 ```
 
@@ -182,7 +181,7 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
   - **NO manual state edits**. Use `terraform` CLI or OpenTofu.
   - **NO hardcoded IPs** in `main.tf`. Use `module.hosts`.
   - **NO hardcoded module paths**. Use `../modules/{provider}/{module}` relative paths.
-  - **NO hand-editing** of TF-rendered configs in `{service}/tf-configs/`.
+  - **NO hand-editing** of TF-rendered configs in `100-pve/configs/`.
 - **Security**:
   - **NEVER commit .env files**. Use Vault Agent or `.env.example` templates.
   - **NEVER commit API keys**: Protect `antigravity-accounts.json` and signature caches.

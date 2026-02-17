@@ -4,6 +4,7 @@ export interface Env {
   SYNOLOGY_USERNAME: string;
   SYNOLOGY_PASSWORD: string;
   ENVIRONMENT: string;
+  API_KEY: string;
 }
 
 export type HonoEnv = { Bindings: Env };

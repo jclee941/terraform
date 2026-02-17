@@ -2,7 +2,7 @@ formatter: "markdown table"
 
 version: ">= 0.17, < 1.0"
 
-header-from: ""
+header-from: main.tf
 footer-from: ""
 
 recursive:

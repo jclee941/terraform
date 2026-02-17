@@ -1,22 +1,3 @@
-terraform {
-  required_version = ">= 1.7, < 2.0"
-
-  backend "s3" {
-    key = "100-pve/terraform.tfstate"
-  }
-
-  required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "~> 0.94"
-    }
-    vault = {
-      source  = "hashicorp/vault"
-      version = "~> 5.0"
-    }
-  }
-}
-
 provider "proxmox" {
   endpoint  = var.proxmox_endpoint
   api_token = var.proxmox_api_token
@@ -74,7 +55,11 @@ locals {
   }
   mcp_hub_sse_servers = {
     for k, v in local.mcp_hub_servers : k => v
-    if lookup(v, "transport", "stdio") == "sse"
+    if lookup(v, "transport", "stdio") == "sse" && !contains(keys(v), "url")
+  }
+  mcp_hub_external_sse_servers = {
+    for k, v in local.mcp_hub_servers : k => v
+    if lookup(v, "transport", "stdio") == "sse" && contains(keys(v), "url")
   }
   mcp_hub_http_servers = {
     for k, v in local.mcp_hub_servers : k => v
@@ -221,7 +206,7 @@ locals {
   }
 }
 
-# SANDBOX VM (220) - TEMPORARILY DISABLED
+# STAGING VM (220) - TEMPORARILY DISABLED
 # VM 220 was manually created with non-standard 'dfge' datastore.
 # bpg/proxmox provider GRPC crashes on import. Re-enable in vm_definitions
 # when VM is recreated from template 9000 on standard 'local-lvm' storage.
@@ -312,11 +297,11 @@ module "vm_config" {
   ssh_user          = "jclee"
 
   vms = {
-    # sandbox: Disabled — see sandbox VM resource block comment above
-    # sandbox = {
-    #   vmid       = module.hosts.hosts.sandbox.vmid
-    #   hostname   = "sandbox"
-    #   ip_address = module.hosts.hosts.sandbox.ip
+    # staging: Disabled — see staging VM resource block comment above
+    # staging = {
+    #   vmid       = module.hosts.hosts.staging.vmid
+    #   hostname   = "staging"
+    #   ip_address = module.hosts.hosts.staging.ip
     #   deploy     = var.deploy_vm_configs
     #
     #   cloud_init = {
@@ -789,10 +774,13 @@ module "config_renderer" {
       prometheus_datasource_uid = "prometheus"
       sla_target_percentage     = "99.9"
 
-      mcp_catalog_json     = jsonencode(local.mcp_catalog)
-      mcp_hub_servers_json = jsonencode(local.mcp_hub_servers)
-      mcp_hub_stdio_json   = jsonencode(local.mcp_hub_stdio_servers)
-      mcp_hub_sse_json     = jsonencode(local.mcp_hub_sse_servers)
+      mcp_catalog_json          = jsonencode(local.mcp_catalog)
+      mcp_hub_servers_json      = jsonencode(local.mcp_hub_servers)
+      mcp_hub_stdio_json        = jsonencode(local.mcp_hub_stdio_servers)
+      mcp_hub_sse_json          = jsonencode(local.mcp_hub_sse_servers)
+      mcp_hub_external_sse_json = jsonencode(local.mcp_hub_external_sse_servers)
+      mcp_hub_http_json         = jsonencode(local.mcp_hub_http_servers)
+      mcp_host                  = local.mcp_catalog.mcp_host
     }
   )
   output_dir = "${path.module}/configs/rendered"

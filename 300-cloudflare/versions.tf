@@ -12,7 +12,7 @@ terraform {
     }
     github = {
       source  = "integrations/github"
-      version = "~> 6.0"
+      version = "~> 6.6"
     }
     vault = {
       source  = "hashicorp/vault"

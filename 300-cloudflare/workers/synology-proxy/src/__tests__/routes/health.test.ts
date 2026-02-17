@@ -20,6 +20,7 @@ const createEnv = (): Env => {
     SYNOLOGY_USERNAME: 'user',
     SYNOLOGY_PASSWORD: 'pass',
     ENVIRONMENT: 'test',
+    API_KEY: 'test-api-key', // pragma: allowlist secret
   };
 };
 

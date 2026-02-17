@@ -1,6 +1,6 @@
 #cloud-config
-hostname: sandbox
-fqdn: sandbox.jclee.me
+hostname: staging
+fqdn: staging.jclee.me
 manage_etc_hosts: true
 
 users:
@@ -33,6 +33,21 @@ runcmd:
   # QEMU Guest Agent
   - systemctl enable qemu-guest-agent
   - systemctl start qemu-guest-agent
+
+  # Docker CE - install
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || { logger -t cloud-init-docker 'ERROR: Failed to install Docker CE'; exit 1; }
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker jclee
+
+  # Watchtower - automatic container updates (daily at 04:00)
+  - docker run -d --name watchtower --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower --cleanup --schedule "0 0 4 * * *" || { logger -t cloud-init-watchtower 'ERROR: Failed to start Watchtower'; exit 1; }
+
   # Cloudflare WARP - install
   - curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg || { logger -t cloud-init-warp 'ERROR: Failed to fetch WARP GPG key'; exit 1; }
   - echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/cloudflare-client.list
@@ -68,4 +83,4 @@ write_files:
     owner: root:root
     permissions: '0644'
 
-final_message: "Cloud-init completed for sandbox (VM 220) with Cloudflare WARP"
+final_message: "Cloud-init completed for staging (VM 220) with Docker, Watchtower, and Cloudflare WARP"
