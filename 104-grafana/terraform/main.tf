@@ -107,14 +107,14 @@ locals {
     "high-error-rate" = {
       group        = "homelab_logs"
       query        = "_exists_:error_classification AND error_severity:(critical OR high OR medium)"
-      from         = 300
-      threshold    = 100
+      from         = 600
+      threshold    = 500
       condition    = "gt"
       severity     = "warning"
-      for_duration = "2m"
+      for_duration = "5m"
       group_by     = []
       summary      = "High error rate detected"
-      description  = "Error count exceeded threshold (>100) in the last 5 minutes"
+      description  = "Error count exceeded threshold (>500) in the last 10 minutes"
     }
     "critical-error-spike" = {
       group        = "homelab_logs"
@@ -142,27 +142,27 @@ locals {
     }
     "client-errors-spike" = {
       group        = "homelab_logs"
-      query        = "host:traefik AND message:(400 OR 401 OR 403 OR 404 OR 405 OR 429)"
+      query        = "host_name:traefik AND message:(400 OR 401 OR 403 OR 404 OR 405 OR 429)"
       from         = 300
-      threshold    = 100
+      threshold    = 200
       condition    = "gt"
-      severity     = "info"
-      for_duration = "3m"
+      severity     = "warning"
+      for_duration = "5m"
       group_by     = []
       summary      = "Client errors spike (4xx)"
-      description  = "More than 100 client errors (4xx) in 5 minutes"
+      description  = "More than 200 client errors (4xx) in 5 minutes"
     }
     "host-silent" = {
       group        = "homelab_logs"
-      query        = "host:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR oc OR supabase OR archon)"
-      from         = 600
+      query        = "host_name:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR oc OR supabase OR archon)"
+      from         = 900
       threshold    = 5
       condition    = "lt"
       severity     = "warning"
-      for_duration = "5m"
-      group_by     = ["host.keyword"]
+      for_duration = "10m"
+      group_by     = ["host_name.keyword"]
       summary      = "Host silent"
-      description  = "Host {{ $labels.host_keyword }} has fewer than 5 log entries in 10 minutes"
+      description  = "Host {{ $labels.host_name_keyword }} has fewer than 5 log entries in 15 minutes"
     }
     # Group: infrastructure_health (ES rule in mixed group)
     "container-restart-loop" = {
@@ -178,18 +178,6 @@ locals {
       description  = "More than 5 container restart events in 1 hour on {{ $labels.host }}"
     }
     # Group: opencode_alerts
-    "opencode-session-activity" = {
-      group        = "opencode_alerts"
-      query        = "service:opencode OR job:opencode"
-      from         = 300
-      threshold    = 10
-      condition    = "gt"
-      severity     = "info"
-      for_duration = "1m"
-      group_by     = []
-      summary      = "OpenCode session activity"
-      description  = "OpenCode session activity exceeded threshold (>10 events in 5 minutes)"
-    }
     "opencode-errors" = {
       group        = "opencode_alerts"
       query        = "(service:opencode OR job:opencode) AND _exists_:error_classification"
@@ -222,12 +210,12 @@ locals {
     # All in group: infrastructure_health
     "service-down" = {
       group        = "infrastructure_health"
-      expr         = "probe_success == 0"
+      expr         = "probe_success{instance!~\".*:80\"} == 0"
       from         = 300
       threshold    = 0
       condition    = "gt"
       severity     = "critical"
-      for_duration = "0s"
+      for_duration = "2m"
       summary      = "Service down"
       description  = "Blackbox probe failed for {{ $labels.instance }}"
     }
@@ -253,17 +241,6 @@ locals {
       summary      = "Disk usage critical"
       description  = "Disk usage above 90% on {{ $labels.instance }}"
     }
-    "ssl-cert-expiry" = {
-      group        = "infrastructure_health"
-      expr         = "(probe_ssl_earliest_cert_expiry - time()) / 86400"
-      from         = 300
-      threshold    = 7
-      condition    = "lt"
-      severity     = "warning"
-      for_duration = "10m"
-      summary      = "SSL certificate expiring"
-      description  = "SSL certificate for {{ $labels.instance }} expires in less than 7 days"
-    }
     "memory-pressure" = {
       group        = "infrastructure_health"
       expr         = "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100"
@@ -275,38 +252,38 @@ locals {
       summary      = "Memory pressure"
       description  = "Memory usage above 85% on {{ $labels.instance }}"
     }
-    "logstash-down" = {
+    "cpu-usage-high" = {
       group        = "infrastructure_health"
-      expr         = "up{job=\"logstash\"} == 0"
+      expr         = "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
+      from         = 600
+      threshold    = 90
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "10m"
+      summary      = "CPU usage high"
+      description  = "CPU usage above 90% on {{ $labels.instance }} for 10 minutes"
+    }
+    "prometheus-target-down" = {
+      group        = "infrastructure_health"
+      expr         = "up == 0"
       from         = 300
       threshold    = 0
       condition    = "gt"
       severity     = "critical"
-      for_duration = "2m"
-      summary      = "Logstash is down"
-      description  = "Logstash exporter target is unreachable"
+      for_duration = "3m"
+      summary      = "Prometheus target down"
+      description  = "Prometheus scrape target {{ $labels.instance }} (job={{ $labels.job }}) is down"
     }
-    "logstash-pipeline-stall" = {
+    "node-load-high" = {
       group        = "infrastructure_health"
-      expr         = "rate(logstash_node_pipeline_events_in_total{job=\"logstash\"}[10m]) == 0 and up{job=\"logstash\"} == 1"
-      from         = 600
+      expr         = "node_load15 / count without(cpu, mode) (node_cpu_seconds_total{mode=\"idle\"}) > 2"
+      from         = 900
       threshold    = 0
       condition    = "gt"
       severity     = "warning"
-      for_duration = "10m"
-      summary      = "Logstash pipeline stalled"
-      description  = "No events ingested by Logstash in the last 10 minutes while the process is up"
-    }
-    "logstash-high-drop-rate" = {
-      group        = "infrastructure_health"
-      expr         = "(rate(logstash_node_pipeline_events_in_total{job=\"logstash\"}[5m]) - rate(logstash_node_pipeline_events_out_total{job=\"logstash\"}[5m])) / clamp_min(rate(logstash_node_pipeline_events_in_total{job=\"logstash\"}[5m]), 1) > 0.1"
-      from         = 300
-      threshold    = 0
-      condition    = "gt"
-      severity     = "warning"
-      for_duration = "5m"
-      summary      = "Logstash high event drop rate"
-      description  = "More than 10% of Logstash events are being dropped"
+      for_duration = "15m"
+      summary      = "Node load high"
+      description  = "15-min load average is over 2x CPU count on {{ $labels.instance }}"
     }
   }
 
