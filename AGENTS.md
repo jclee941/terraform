@@ -62,7 +62,7 @@ terraform/                      # Multi-provider IaC monorepo root
 ├── data/                       # Local data (gitignored)
 ├── docs/                       # Documentation
 ├── scripts/                    # Utility scripts + n8n-workflows/
-├── .github/workflows/          # CI/CD (21 workflows)
+├── .github/workflows/          # CI/CD (22 workflows)
 └── .archive/                   # Archived services (103, 109-111, 113) — cleaned, README only
 ```
 
@@ -92,7 +92,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | **OpenCode Gen** | `200-oc/opencode/gen/` | Config gen pipeline: 3 variants (anti/claude/copilot), 9 agents, 8 categories. |
 | **Routing** | `102-traefik/templates/` | Dynamic routing templates (traefik-elk, glitchtip, vault, mcphub, n8n, supabase, synology, archon `.yml.tftpl`). Rendered to `100-pve/configs/rendered/`. |
 | **Alerting** | `104-grafana/terraform/main.tf` | 14 rules across 4 groups (Terraform-managed). 2 contact points (n8n-webhook, alert-log-fallback). `alerting.yaml` deprecated. |
-| **CI/CD** | `.github/workflows/` | 21 workflows: terraform-{plan,apply}, terraform-drift, per-service {plan,apply}, internal-service-access, milestone-automation, pr-review, secret-audit, vault-test, worker-deploy. |
+| **CI/CD** | `.github/workflows/` | 22 workflows: terraform-{plan,apply}, terraform-drift, per-service {plan,apply}, internal-service-access, milestone-automation, pr-review, secret-audit, vault-test, worker-deploy, auto-merge. |
 | **Scripts** | `scripts/` | create-pr.sh, production_verification_v2.sh, terraform-drift-check.sh. |
 | **n8n Workflows** | `scripts/n8n-workflows/` + `112-mcphub/n8n-workflows/` | 7 workflow JSON definitions (6 primary + 1 pipeline). |
 | **Runbooks** | `docs/runbooks/` | Incident response and operational guides. |
