@@ -53,7 +53,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.github.com/repos/qws941/proxmox/issues?labels=glitchtip,automated&state=all&per_page=100",
+        "url": "https://api.github.com/repos/qws941/terraform/issues?labels=glitchtip,automated&state=all&per_page=100",
         "options": {
           "response": {
             "response": {
@@ -131,7 +131,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://api.github.com/repos/qws941/proxmox/milestones?state=open&per_page=100",
+        "url": "https://api.github.com/repos/qws941/terraform/milestones?state=open&per_page=100",
         "options": {
           "response": {
             "response": {
@@ -178,7 +178,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.github.com/repos/qws941/proxmox/issues",
+        "url": "https://api.github.com/repos/qws941/terraform/issues",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"title\": \"{{ $json.title }}\",\n  \"body\": \"{{ $json.body }}\",\n  \"labels\": {{ JSON.stringify($json.labels) }}{{ $json.milestoneNumber ? ', \"milestone\": ' + $json.milestoneNumber : '' }}\n}",
@@ -240,7 +240,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "=https://api.github.com/repos/qws941/proxmox/issues/{{ $json.issueNumber }}",
+        "url": "=https://api.github.com/repos/qws941/terraform/issues/{{ $json.issueNumber }}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"state\": \"closed\",\n  \"state_reason\": \"completed\"\n}",
@@ -271,7 +271,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://api.github.com/repos/qws941/proxmox/issues/{{ $json.issueNumber }}/comments",
+        "url": "=https://api.github.com/repos/qws941/terraform/issues/{{ $json.issueNumber }}/comments",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"body\": \"## Auto-closed\\n\\nThis issue was automatically closed because the corresponding GlitchTip issue (ID: {{ $json.glitchtipId }}) has been resolved.\\n\\n> Auto-closed by GlitchTip Sync workflow.\"\n}",

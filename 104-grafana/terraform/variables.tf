@@ -13,7 +13,7 @@ variable "grafana_auth" {
 variable "n8n_webhook_url" {
   description = "n8n webhook URL for alert notifications"
   type        = string
-  sensitive   = true
+  default     = "http://192.168.50.112:5678/webhook/grafana-alert"
 }
 
 locals {

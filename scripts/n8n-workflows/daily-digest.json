@@ -111,7 +111,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.github.com/repos/qws941/proxmox/issues",
+        "url": "https://api.github.com/repos/qws941/terraform/issues",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
