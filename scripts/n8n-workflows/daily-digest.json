@@ -1,5 +1,6 @@
 {
   "name": "Daily Infrastructure Digest",
+  "active": true,
   "nodes": [
     {
       "parameters": {
@@ -36,7 +37,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"size\": 0,\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n        { \"range\": { \"@timestamp\": { \"gte\": \"now-24h\", \"lte\": \"now\" } } },\n        { \"terms\": { \"log.level\": [\"error\", \"ERROR\", \"fatal\", \"FATAL\", \"critical\", \"CRITICAL\"] } }\n      ]\n    }\n  },\n  \"aggs\": {\n    \"by_host\": {\n      \"terms\": { \"field\": \"host.name.keyword\", \"size\": 20 }\n    },\n    \"by_service\": {\n      \"terms\": { \"field\": \"container.labels.com_docker_compose_service.keyword\", \"size\": 20 }\n    },\n    \"by_level\": {\n      \"terms\": { \"field\": \"level.keyword\", \"size\": 10 }\n    },\n    \"top_errors\": {\n      \"terms\": { \"field\": \"message.keyword\", \"size\": 10 }\n    },\n    \"total_errors\": {\n      \"value_count\": { \"field\": \"@timestamp\" }\n    }\n  }\n}",
+        "jsonBody": "{\n  \"size\": 0,\n  \"query\": {\n    \"bool\": {\n      \"must\": [\n        {\n          \"range\": {\n            \"@timestamp\": {\n              \"gte\": \"now-24h\",\n              \"lte\": \"now\"\n            }\n          }\n        },\n        {\n          \"terms\": {\n            \"level\": [\n              \"error\",\n              \"ERROR\",\n              \"fatal\",\n              \"FATAL\",\n              \"critical\",\n              \"CRITICAL\"\n            ]\n          }\n        }\n      ]\n    }\n  },\n  \"aggs\": {\n    \"total_errors\": {\n      \"value_count\": {\n        \"field\": \"level.keyword\"\n      }\n    },\n    \"by_host\": {\n      \"terms\": {\n        \"field\": \"host_name.keyword\",\n        \"size\": 20\n      }\n    },\n    \"by_service\": {\n      \"terms\": {\n        \"field\": \"service.keyword\",\n        \"size\": 20\n      }\n    },\n    \"by_level\": {\n      \"terms\": {\n        \"field\": \"level.keyword\",\n        \"size\": 10\n      }\n    },\n    \"top_errors\": {\n      \"terms\": {\n        \"field\": \"message.keyword\",\n        \"size\": 5,\n        \"order\": {\n          \"_count\": \"desc\"\n        }\n      }\n    }\n  }\n}",
         "options": {}
       },
       "id": "elk-query",
@@ -212,6 +213,9 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
-  }
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "triggerCount": 1
 }
