@@ -56,6 +56,10 @@ terraform/                      # Multi-provider IaC monorepo root
 │   ├── scripts/                # collect, audit, sync, generate-bindings
 │   ├── inventory/secrets.yaml  # Secret metadata SSoT (NO values)
 │   └── docker/cloudflared/     # Tunnel connector on Synology NAS
+├── tests/                      # Integration + module tests
+│   ├── integration/            # Cross-module integration tests
+│   └── modules/proxmox/        # Proxmox module unit tests
+├── data/                       # Local data (gitignored)
 ├── docs/                       # Documentation
 ├── scripts/                    # Utility scripts + n8n-workflows/
 ├── .github/workflows/          # CI/CD (21 workflows)
@@ -126,23 +130,23 @@ terraform/                      # Multi-provider IaC monorepo root
 | github | hub | :8058 | `@modelcontextprotocol/server-github` |
 | git | hub | :8059 | `@cyanheads/git-mcp-server` |
 | kratos | hub | :8060 | `kratos-mcp` |
-| time | hub | :8062 | `@modelcontextprotocol/server-time` |
+| time | hub | :8062 | `mcp-server-time` (uvx) |
 | elk | hub | :8065 | `@awesome-ai/elasticsearch-mcp` |
 | websearch | hub | :8067 | `exa-mcp-server` |
 | context7 | hub | :8068 | `@upstash/context7-mcp` |
 | grafana | hub | :8069 | `@leval/mcp-grafana` |
 | terraform | hub | :8071 | `terraform-mcp-server` |
-| slack | hub | :8072 | `@nicepkg/slack-mcp` |
-| cf-dns | hub | :8073 | `@nicepkg/cloudflare-dns-mcp` |
+| slack | hub | :8072 | `slack-mcp-server` |
+| cf-dns | hub | :8073 | `cloudflare-dns-mcp` |
 | splunk | hub | :8074 | `splunk-mcp` |
 | glitchtip | hub | :8075 | `mcp-glitchtip` |
 | n8n | hub | :5678 | HTTP transport, Bearer auth (env: N8N_MCP_API_KEY) |
-| in-memoria | local | — | CWD-relative storage |
-| bazel | local | — | Project-local |
-| cf-docs | external | — | `docs.mcp.cloudflare.com` |
-| cf-observability | external | — | `observability.mcp.cloudflare.com` |
-| cf-radar | external | — | `radar.mcp.cloudflare.com` |
-| cf-workers | external | — | `bindings.mcp.cloudflare.com` |
+| in-memoria | hub | :8076 | `in-memoria` (persistent memory) |
+| bazel | hub | :8077 | `github:nacgarg/bazel-mcp-server` |
+| cf-docs | hub (external SSE) | — | `docs.mcp.cloudflare.com` |
+| cf-observability | hub (external SSE) | — | `observability.mcp.cloudflare.com` |
+| cf-radar | hub (external SSE) | — | `radar.mcp.cloudflare.com` |
+| cf-workers | hub (external SSE) | — | `bindings.mcp.cloudflare.com` |
 
 **Consumers**: Terraform (`mcp_settings.json.tftpl`), OpenCode gen (`config.py`), validation (`validate_mcps.py`).
 
@@ -153,7 +157,7 @@ terraform/                      # Multi-provider IaC monorepo root
 - **Numbering**: `1-255` = internal infra (maps to `192.168.50.{NNN}`), `300+` = external infra (Cloudflare, AWS, etc.).
 - **Naming**: `{VMID}-{HOSTNAME}` (e.g., `102-traefik`).
 - **Network**: `192.168.50.0/24` (GW: .1). Primary DNS: `.1`.
-- **Terraform**: `bpg/proxmox` (~>0.94), `hashicorp/vault` (~>5.0), `grafana/grafana` (~>4.0), `elastic/elasticstack` (~>0.13), `hashicorp/cloudflare` (~>5.0), `integrations/github` (~>6.6).
+- **Terraform**: `bpg/proxmox` (~>0.94), `hashicorp/vault` (~>5.0), `grafana/grafana` (~>4.0), `elastic/elasticstack` (~>0.13), `cloudflare/cloudflare` (~>5.0), `integrations/github` (~>6.6).
 - **Single Source of Truth (SSoT)**: `100-pve/envs/prod/hosts.tf` defines ALL IPs/ports. No hardcoded IPs in `main.tf`.
 - **Module Sources**: Always use `../modules/{provider}/{module}` relative paths from service dirs.
 - **Template Paths**: `${path.module}/../{NNN}-{svc}/templates/` from workspace to service templates.

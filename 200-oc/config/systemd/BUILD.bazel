@@ -1,0 +1,6 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "units",
+    srcs = glob(["*.service", "*.socket", "*.timer"], allow_empty = True),
+)
