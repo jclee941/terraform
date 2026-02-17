@@ -21,7 +21,7 @@ terraform/                      # Multi-provider IaC monorepo root
 │       ├── vault-secrets/      # HashiCorp Vault secret management
 │       └── vault-agent/        # Vault Agent AppRole auto-auth module
 ├── 100-pve/                    # Proxmox Host + TF workspace (primary)
-│   ├── main.tf                 # Central orchestration (665 lines)
+│   ├── main.tf                 # Central orchestration (810 lines)
 │   ├── variables.tf            # TF variables
 │   ├── terraform.tfvars        # Variable values
 │   └── envs/prod/              # Production environment
@@ -63,7 +63,7 @@ terraform/                      # Multi-provider IaC monorepo root
 ├── docs/                       # Documentation
 ├── scripts/                    # Utility scripts + n8n-workflows/
 ├── .github/workflows/          # CI/CD (21 workflows)
-└── .archive/                   # Archived services (103, 109-111, 113)
+└── .archive/                   # Archived services (103, 109-111, 113) — cleaned, README only
 ```
 
 ## WHERE TO LOOK
@@ -90,11 +90,11 @@ terraform/                      # Multi-provider IaC monorepo root
 | **AI Knowledge Mgmt** | `108-archon/` | Archon AI with MCP server (archon.jclee.me). Standalone TF workspace. |
 | **MCP Hub** | `112-mcphub/` | MCPHub unified MCP management UI (mcphub.jclee.me). SSoT: `mcp_servers.json` (24 servers). |
 | **OpenCode Gen** | `200-oc/opencode/gen/` | Config gen pipeline: 3 variants (anti/claude/copilot), 9 agents, 8 categories. |
-| **Routing** | `102-traefik/config/` | Dynamic routing (elk.yml, glitchtip.yml, mcp.yml, vault.yml, mcphub.yml). |
-| **Alerting** | `104-grafana/alerting.yaml` | 8 alert rules, 2 contact points (email, n8n-webhook). Slack removed. |
+| **Routing** | `102-traefik/templates/` | Dynamic routing templates (traefik-elk, glitchtip, vault, mcphub, n8n, supabase, synology, archon `.yml.tftpl`). Rendered to `100-pve/configs/rendered/`. |
+| **Alerting** | `104-grafana/terraform/main.tf` | 14 rules across 4 groups (Terraform-managed). 2 contact points (n8n-webhook, alert-log-fallback). `alerting.yaml` deprecated. |
 | **CI/CD** | `.github/workflows/` | 21 workflows: terraform-{plan,apply}, terraform-drift, per-service {plan,apply}, internal-service-access, milestone-automation, pr-review, secret-audit, vault-test, worker-deploy. |
 | **Scripts** | `scripts/` | create-pr.sh, production_verification_v2.sh, terraform-drift-check.sh. |
-| **n8n Workflows** | `scripts/n8n-workflows/` + `112-mcphub/n8n-workflows/` | 8 workflow JSON definitions (6 primary + 2 pipeline). |
+| **n8n Workflows** | `scripts/n8n-workflows/` + `112-mcphub/n8n-workflows/` | 7 workflow JSON definitions (6 primary + 1 pipeline). |
 | **Runbooks** | `docs/runbooks/` | Incident response and operational guides. |
 | **Synology NAS** | `215-synology/` | Physical device inventory. IP/port ref only (no TF provisioning). |
 | **Cloudflare Infra** | `300-cloudflare/` | DNS, tunnel, access, R2, secrets, Workers. External provider (300+). |
@@ -201,9 +201,9 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
   - **NO direct SSH** to LXCs (102-106); use `pct exec` via PVE.
 
 ## AUTOMATION PIPELINES (n8n)
-8 workflows on n8n (VM 112, :5678). Login: see Vault `homelab/n8n`.
-- **Primary** (6): `scripts/n8n-workflows/` — error→issue, alert→issue, daily-digest, request-tracker, PR-notify, error-handler.
-- **Pipeline** (2): `112-mcphub/n8n-workflows/` — ELK error pipeline, GlitchTip sync.
+7 workflows on n8n (VM 112, :5678). Login: see Vault `homelab/n8n`.
+- **Primary** (6): `scripts/n8n-workflows/` — error→issue, alert→issue, daily-digest, request-tracker, PR-notify, glitchtip-sync.
+- **Pipeline** (1): `112-mcphub/n8n-workflows/` — GlitchTip sync.
 - **Webhooks**: `/webhook/glitchtip-error`, `/webhook/grafana-alert`, `/webhook/github-issue`, `/webhook/github-pr`.
 
 ## NOTES

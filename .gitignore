@@ -4,8 +4,15 @@
 **/*.log
 **/crash.journal
 
-# Sisyphus (session-specific agent state)
+# Agent state (session-specific, per-developer)
 .sisyphus/
+.openclaw/
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
 
 # Terraform
 **/.terraform/
