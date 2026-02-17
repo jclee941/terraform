@@ -5,20 +5,20 @@
 mock_provider "proxmox" {}
 
 variables {
-  node_name          = "pve"
-  vmid               = 200
-  hostname           = "test-vm"
-  ip_address         = "192.168.50.200"
-  memory             = 2048
-  cores              = 2
-  disk_size          = 32
-  description        = "Test VM"
-  network_gateway    = "192.168.50.1"
-  dns_servers        = ["192.168.50.1"]
-  datastore_id       = "local-lvm"
-  managed_vmid_min   = 100
-  managed_vmid_max   = 999
-  clone_template_id  = 9000
+  node_name         = "pve"
+  vmid              = 200
+  hostname          = "test-vm"
+  ip_address        = "192.168.50.200"
+  memory            = 2048
+  cores             = 2
+  disk_size         = 32
+  description       = "Test VM"
+  network_gateway   = "192.168.50.1"
+  dns_servers       = ["192.168.50.1"]
+  datastore_id      = "local-lvm"
+  managed_vmid_min  = 100
+  managed_vmid_max  = 999
+  clone_template_id = 9000
 }
 
 # --- Valid input tests ---

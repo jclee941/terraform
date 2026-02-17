@@ -6,7 +6,7 @@ on:
     - cron: '0 6 * * 1'  # Weekly Monday 6 AM UTC (15:00 KST)
 
 env:
-  VAULT_ADDR: http://192.168.50.112:8200
+  VAULT_ADDR: ${{ secrets.VAULT_ADDR || 'http://192.168.50.112:8200' }}
 
 jobs:
   test-vault-oidc:

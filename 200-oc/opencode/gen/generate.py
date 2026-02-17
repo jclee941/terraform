@@ -22,7 +22,6 @@ from config import (
     AGENTS,
     ANTIGRAVITY,
     CATEGORIES,
-    DCP,
     FORMATTER,
     GITHUB_COPILOT_MODELS,
     GOOGLE_MODELS,
@@ -128,12 +127,6 @@ def _build_antigravity_json() -> dict:
     return {"$schema": "antigravity.schema.json", **ANTIGRAVITY}
 
 
-def _build_dcp_jsonc() -> dict:
-    return {
-        "$schema": "https://raw.githubusercontent.com/Opencode-DCP/opencode-dynamic-context-pruning/master/dcp.schema.json",
-        **DCP,
-    }
-
 
 # -- Generator ----------------------------------------------------------------
 
@@ -151,7 +144,6 @@ def generate_variant(variant: str, jinja_env: Environment) -> None:
     _write_json(out_dir / "opencode.jsonc", _build_opencode_json(variant, cfg))
     _write_json(out_dir / "oh-my-opencode.json", _build_oh_my_opencode_json(variant))
     _write_json(out_dir / "antigravity.json", _build_antigravity_json())
-    _write_json(out_dir / "dcp.jsonc", _build_dcp_jsonc())
 
     xdg_config_home = f"{OC_PATHS['home']}/.config/opencode-wt-{variant}"
     service = jinja_env.get_template("opencode.service.j2").render(

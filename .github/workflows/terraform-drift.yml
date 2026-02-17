@@ -24,13 +24,16 @@ jobs:
       matrix:
         workspace:
           - name: proxmox
-            dir: 100-pve/envs/prod
-            init_args: "-input=false"
+            dir: 100-pve
+            init_args: "-backend-config=../backend.hcl -input=false"
           - name: grafana
             dir: 104-grafana/terraform
             init_args: "-backend-config=../../backend.hcl -input=false"
           - name: elk
             dir: 105-elk/terraform
+            init_args: "-backend-config=../../backend.hcl -input=false"
+          - name: traefik
+            dir: 102-traefik/terraform
             init_args: "-backend-config=../../backend.hcl -input=false"
           - name: archon
             dir: 108-archon/terraform

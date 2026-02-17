@@ -1,0 +1,5 @@
+filegroup(
+    name = "notify-failure",
+    srcs = ["action.yml"],
+    visibility = ["//visibility:public"],
+)

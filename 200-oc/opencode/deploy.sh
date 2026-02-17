@@ -15,7 +15,6 @@
 #   4. Deploys 3 files via rsync:
 #      - opencode.jsonc
 #      - oh-my-opencode.jsonc
-#      - dcp.jsonc
 
 set -euo pipefail
 
@@ -28,7 +27,7 @@ VM_USER="jclee"
 VM_CONFIG_DIR="/home/${VM_USER}/.config/opencode"
 SSH_OPTS="-o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new"
 
-DEPLOY_FILES=(opencode.jsonc oh-my-opencode.jsonc dcp.jsonc)
+DEPLOY_FILES=(opencode.jsonc oh-my-opencode.jsonc)
 VALID_VARIANTS=(anti claude copilot)
 
 RED='\033[0;31m'
@@ -156,7 +155,7 @@ echo ""
 BACKUP_TS=$(date +%Y%m%d-%H%M%S)
 BACKUP_DIR="${VM_CONFIG_DIR}/.backup/${BACKUP_TS}"
 log "Backing up current config → ${BACKUP_DIR}/"
-ssh $SSH_OPTS "${VM_USER}@${VM_HOST}" "mkdir -p '${BACKUP_DIR}' && cp ${VM_CONFIG_DIR}/opencode.jsonc ${VM_CONFIG_DIR}/oh-my-opencode.jsonc ${VM_CONFIG_DIR}/dcp.jsonc '${BACKUP_DIR}/' 2>/dev/null || true"
+ssh $SSH_OPTS "${VM_USER}@${VM_HOST}" "mkdir -p '${BACKUP_DIR}' && cp ${VM_CONFIG_DIR}/opencode.jsonc ${VM_CONFIG_DIR}/oh-my-opencode.jsonc '${BACKUP_DIR}/' 2>/dev/null || true"
 
 # --- Step 5: Deploy ---
 log "Deploying to ${VM_USER}@${VM_HOST}:${VM_CONFIG_DIR}/..."

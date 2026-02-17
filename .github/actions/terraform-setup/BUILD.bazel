@@ -1,0 +1,5 @@
+filegroup(
+    name = "terraform-setup",
+    srcs = ["action.yml"],
+    visibility = ["//visibility:public"],
+)

@@ -14,14 +14,13 @@ opencode/
 ├── variants/               # Per-variant oh-my-opencode.json overrides
 ├── generated/              # OUTPUT (do not hand-edit)
 │   └── {variant}/          # opencode.jsonc, oh-my-opencode.json, antigravity.json,
-│                           # dcp.jsonc, wrapper script, systemd service
+│                           # wrapper script, systemd service
 ├── bin/                    # Launchers: anti, claude, copilot, opencode-sync
 ├── rules/                  # Agent rules (session-init, cicd-bazel, large-refactor)
 ├── templates/              # Jinja2: opencode.service.j2, opencode-wrapper.sh.j2
 ├── systemd/                # 3 service files (opencode-{anti,claude,copilot})
 ├── opencode.jsonc          # Base config (MCP servers + plugins)
 ├── antigravity.json        # Auth plugin config
-├── dcp.jsonc               # DCP plugin config
 └── supermemory.jsonc        # Supermemory plugin config
 ```
 

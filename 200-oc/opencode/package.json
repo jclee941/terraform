@@ -2,7 +2,6 @@
   "dependencies": {
     "@franlol/opencode-md-table-formatter": "^0.0.3",
     "@opencode-ai/plugin": "1.1.53",
-    "@tarquinen/opencode-dcp": "^2.0.2",
     "oh-my-opencode": "^3.4.0",
     "open-trees": "^1.0.1",
     "opencode-agent-skills": "^0.6.4",

@@ -89,7 +89,6 @@ PLUGINS: list[str] = [
     "opencode-antigravity-auth@latest",
     "@franlol/opencode-md-table-formatter",
     "open-trees",
-    "@tarquinen/opencode-dcp@latest",
     "opencode-pty@0.1.4",
     "opencode-supermemory@0.1.6",
     "oh-my-opencode",
@@ -159,34 +158,6 @@ ANTIGRAVITY = {
     "web_search": {"default_mode": "auto"},
 }
 
-# ---------------------------------------------------------------------------
-# DCP (Dynamic Context Pruning) Config
-# ---------------------------------------------------------------------------
-DCP: dict = {
-    "enabled": True,
-    "debug": False,
-    "pruneNotification": "detailed",
-    "pruneNotificationType": "chat",
-    "commands": {"enabled": True, "protectedTools": []},
-    "turnProtection": {"enabled": False, "turns": 4},
-    "protectedFilePatterns": [],
-    "tools": {
-        "settings": {
-            "nudgeEnabled": True,
-            "nudgeFrequency": 10,
-            "protectedTools": [],
-            "contextLimit": "80%",
-        },
-        "distill": {"permission": "allow", "showDistillation": False},
-        "compress": {"permission": "allow", "showCompression": False},
-        "prune": {"permission": "allow"},
-    },
-    "strategies": {
-        "deduplication": {"enabled": True, "protectedTools": []},
-        "supersedeWrites": {"enabled": False},
-        "purgeErrors": {"enabled": True, "turns": 4, "protectedTools": []},
-    },
-}
 
 # ---------------------------------------------------------------------------
 # Paths on the target VM (200-oc)
