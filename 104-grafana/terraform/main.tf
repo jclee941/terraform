@@ -101,6 +101,7 @@ resource "grafana_notification_policy" "default" {
 
 locals {
   # Elasticsearch-based alert rules (3 data blocks: query → reduce → threshold)
+  # Model uses metrics/bucketAggs/timeField format required by Grafana ES alerting backend.
   es_alert_rules = {
     # Group: homelab_logs
     "high-error-rate" = {
@@ -344,10 +345,16 @@ resource "grafana_rule_group" "homelab_logs" {
 
         model = jsonencode(merge(
           {
-            query  = rule.value.query
-            metric = ["count"]
-          },
-          length(rule.value.group_by) > 0 ? { groupBy = rule.value.group_by } : {}
+            query   = rule.value.query
+            metrics = [{ type = "count", id = "1" }]
+            bucketAggs = length(rule.value.group_by) > 0 ? [
+              { type = "terms", id = "3", field = rule.value.group_by[0], settings = { size = "10", order = "desc", orderBy = "1" } },
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+              ] : [
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+            ]
+            timeField = "@timestamp"
+          }
         ))
       }
 
@@ -391,6 +398,9 @@ resource "grafana_rule_group" "homelab_logs" {
         summary     = rule.value.summary
         description = rule.value.description
       }
+
+      no_data_state  = "OK"
+      exec_err_state = "OK"
     }
   }
 }
@@ -433,6 +443,7 @@ resource "grafana_rule_group" "infrastructure_health" {
         model = jsonencode({
           type       = "threshold"
           conditions = [{ evaluator = { type = rule.value.condition, params = [rule.value.threshold] } }]
+          expression = "A"
         })
       }
 
@@ -444,6 +455,9 @@ resource "grafana_rule_group" "infrastructure_health" {
         summary     = rule.value.summary
         description = rule.value.description
       }
+
+      no_data_state  = "OK"
+      exec_err_state = "OK"
     }
   }
 
@@ -465,10 +479,16 @@ resource "grafana_rule_group" "infrastructure_health" {
 
         model = jsonencode(merge(
           {
-            query  = rule.value.query
-            metric = ["count"]
-          },
-          length(rule.value.group_by) > 0 ? { groupBy = rule.value.group_by } : {}
+            query   = rule.value.query
+            metrics = [{ type = "count", id = "1" }]
+            bucketAggs = length(rule.value.group_by) > 0 ? [
+              { type = "terms", id = "3", field = rule.value.group_by[0], settings = { size = "10", order = "desc", orderBy = "1" } },
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+              ] : [
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+            ]
+            timeField = "@timestamp"
+          }
         ))
       }
 
@@ -512,6 +532,9 @@ resource "grafana_rule_group" "infrastructure_health" {
         summary     = rule.value.summary
         description = rule.value.description
       }
+
+      no_data_state  = "OK"
+      exec_err_state = "OK"
     }
   }
 }
@@ -539,10 +562,16 @@ resource "grafana_rule_group" "opencode_alerts" {
 
         model = jsonencode(merge(
           {
-            query  = rule.value.query
-            metric = ["count"]
-          },
-          length(rule.value.group_by) > 0 ? { groupBy = rule.value.group_by } : {}
+            query   = rule.value.query
+            metrics = [{ type = "count", id = "1" }]
+            bucketAggs = length(rule.value.group_by) > 0 ? [
+              { type = "terms", id = "3", field = rule.value.group_by[0], settings = { size = "10", order = "desc", orderBy = "1" } },
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+              ] : [
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+            ]
+            timeField = "@timestamp"
+          }
         ))
       }
 
@@ -586,6 +615,9 @@ resource "grafana_rule_group" "opencode_alerts" {
         summary     = rule.value.summary
         description = rule.value.description
       }
+
+      no_data_state  = "OK"
+      exec_err_state = "OK"
     }
   }
 }
@@ -613,10 +645,16 @@ resource "grafana_rule_group" "mcp_alerts" {
 
         model = jsonencode(merge(
           {
-            query  = rule.value.query
-            metric = ["count"]
-          },
-          length(rule.value.group_by) > 0 ? { groupBy = rule.value.group_by } : {}
+            query   = rule.value.query
+            metrics = [{ type = "count", id = "1" }]
+            bucketAggs = length(rule.value.group_by) > 0 ? [
+              { type = "terms", id = "3", field = rule.value.group_by[0], settings = { size = "10", order = "desc", orderBy = "1" } },
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+              ] : [
+              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
+            ]
+            timeField = "@timestamp"
+          }
         ))
       }
 
@@ -660,6 +698,9 @@ resource "grafana_rule_group" "mcp_alerts" {
         summary     = rule.value.summary
         description = rule.value.description
       }
+
+      no_data_state  = "OK"
+      exec_err_state = "OK"
     }
   }
 }
