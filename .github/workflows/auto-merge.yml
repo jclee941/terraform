@@ -9,15 +9,67 @@ permissions:
   pull-requests: write
 
 jobs:
-  auto-merge:
-    name: Enable Auto-Merge
+  risk-gate:
+    name: Risk Assessment & Auto-Merge
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # Auto-merge all PRs — required checks (Validate Changes, Terraform Plan)
-    # must pass before merge actually happens (enforced by ruleset)
     steps:
-      - name: Enable auto-merge (squash)
-        run: gh pr merge --auto --squash "$PR_URL"
+      - name: Classify risk tier
+        id: risk
+        run: |
+          CHANGED=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json files --jq '.files[].path')
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          RISK="low"
+
+          # Critical — core infra, shared modules, external providers, reverse proxy
+          if echo "$CHANGED" | grep -qE '^(100-pve/|modules/|300-cloudflare/|301-github/|102-traefik/)'; then
+            RISK="critical"
+          # Medium — service infrastructure
+          elif echo "$CHANGED" | grep -qE '^(105-elk/|107-supabase/|108-archon/|112-mcphub/|200-oc/|220-staging/)'; then
+            RISK="medium"
+          fi
+
+          echo "risk=$RISK" >> "$GITHUB_OUTPUT"
+          echo "Risk tier: $RISK"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
+      - name: Apply risk label
+        run: |
+          for label in risk:critical risk:medium risk:low; do
+            gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+              --remove-label "$label" 2>/dev/null || true
+          done
+          gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --add-label "risk:$RISK"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RISK: ${{ steps.risk.outputs.risk }}
+
+      - name: Enable auto-merge (low risk only)
+        if: steps.risk.outputs.risk == 'low'
+        run: |
+          gh pr merge --auto --squash "$PR_URL"
+          echo "Auto-merge enabled — low risk change"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip auto-merge (medium/critical)
+        if: steps.risk.outputs.risk != 'low'
+        run: |
+          gh pr merge --disable-auto "$PR_URL" 2>/dev/null || true
+          RISK="${{ steps.risk.outputs.risk }}"
+          if [ "$RISK" = "critical" ]; then
+            echo "CRITICAL: Infrastructure change — manual merge required"
+          else
+            echo "MEDIUM: Service change — auto-merge disabled"
+          fi
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
