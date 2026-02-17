@@ -211,7 +211,6 @@
     }
   },
   "settings": {
-    "executionOrder": "v1",
-    "errorWorkflow": "error-handler"
+    "executionOrder": "v1"
   }
 }
