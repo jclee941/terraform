@@ -166,6 +166,7 @@ terraform/                      # Multi-provider IaC monorepo root
 - **Cloud-Init**: Custom snippets via `proxmox_virtual_environment_file`.
 - **Logs**: Filebeat → Logstash:5044 → Elasticsearch (105) → Grafana.
 - **PR Automation**: Use the dedicated `pr-automation` skill for all Pull Request operations.
+- **Branching**: Trunk-based (`master`). Risk-tier auto-merge: critical (100-pve, modules, cloudflare, github, traefik) = manual merge; medium (elk, supabase, archon, mcphub, oc, staging) = manual merge; low (grafana, glitchtip, docs, CI, scripts) = auto-merge. CODEOWNERS enforced via ruleset. Labels: `risk:critical`, `risk:medium`, `risk:low`.
 - **Memory Budget**: Total allocation < 90% physical RAM. Current limit: 54 GB.
 
 ## COMMANDS
