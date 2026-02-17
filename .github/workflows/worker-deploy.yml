@@ -7,6 +7,10 @@ on:
     paths:
       - '300-cloudflare/workers/synology-proxy/**'
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   deploy:
     runs-on: [self-hosted, homelab]
@@ -17,23 +21,43 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Check Cloudflare Secrets
+        id: secrets_check
+        run: |
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] || [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID not configured. Skipping deploy."
+            echo "secrets_ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cloudflare credentials configured"
+            echo "secrets_ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node
+        if: steps.secrets_check.outputs.secrets_ok == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: '20'
 
       - name: Install Dependencies
+        if: steps.secrets_check.outputs.secrets_ok == 'true'
         run: npm ci
 
       - name: Deploy
+        if: steps.secrets_check.outputs.secrets_ok == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: '300-cloudflare/workers/synology-proxy'
 
+      - name: Skip Notice
+        if: steps.secrets_check.outputs.secrets_ok != 'true'
+        run: |
+          echo "## Worker Deploy - Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID not configured." >> $GITHUB_STEP_SUMMARY
+
       - name: Create Issue on Failure
-        if: failure()
+        if: failure() && steps.secrets_check.outputs.secrets_ok == 'true'
         uses: ./.github/actions/notify-failure
         with:
           title-prefix: '[Worker] Deploy failed'
