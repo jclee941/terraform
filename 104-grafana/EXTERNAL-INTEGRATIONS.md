@@ -34,7 +34,7 @@ curl -X POST "$SLACK_WEBHOOK" \
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "*GitHub Actions*\n*Build #123 Failed*\nRepository: qws941/homelab\nBranch: main\nAuthor: @jclee"
+          "text": "*GitHub Actions*\n*Build #123 Failed*\nRepository: qws941/terraform\nBranch: main\nAuthor: @jclee"
         }
       },
       {
@@ -59,7 +59,7 @@ curl -X POST "$SLACK_WEBHOOK" \
               "type": "plain_text",
               "text": "View Run"
             },
-            "url": "https://github.com/qws941/homelab/actions/runs/123"
+            "url": "https://github.com/qws941/terraform/actions/runs/123"
           }
         ]
       }
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run tests
         run: npm test
-      
+
       # On failure, send to Grafana/Slack
       - name: Notify Failure
         if: failure()
@@ -116,7 +116,7 @@ jobs:
 
 Store webhook as GitHub secret:
 ```bash
-gh secret set SLACK_WEBHOOK --body "https://hooks.slack.com/services/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"
+gh secret set SLACK_WEBHOOK --body "https://hooks.slack.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX"
 ```
 
 ---
@@ -189,19 +189,19 @@ import requests
 import json
 from datetime import datetime
 
-SLACK_WEBHOOK = "https://hooks.slack.com/services/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"
+SLACK_WEBHOOK = "https://hooks.slack.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX"
 
 def send_alert(service, severity, summary, description, metadata=None):
     """Send alert to Slack via Grafana"""
-    
+
     emoji_map = {
         "critical": "🚨",
         "warning": "⚠️",
         "info": "ℹ️",
     }
-    
+
     emoji = emoji_map.get(severity, "📢")
-    
+
     blocks = [
         {
             "type": "section",
@@ -211,7 +211,7 @@ def send_alert(service, severity, summary, description, metadata=None):
             }
         }
     ]
-    
+
     if description:
         blocks.append({
             "type": "section",
@@ -220,7 +220,7 @@ def send_alert(service, severity, summary, description, metadata=None):
                 "text": f"_{description}_"
             }
         })
-    
+
     if metadata:
         fields = []
         for key, value in metadata.items():
@@ -232,12 +232,12 @@ def send_alert(service, severity, summary, description, metadata=None):
             "type": "section",
             "fields": fields
         })
-    
+
     payload = {
         "text": f"{emoji} {service} - {severity}",
         "blocks": blocks
     }
-    
+
     response = requests.post(SLACK_WEBHOOK, json=payload)
     response.raise_for_status()
     print(f"Alert sent: {summary}")
@@ -275,7 +275,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    
+
     # On unhealthy, send alert
     labels:
       - "alert.slack.webhook=${SLACK_WEBHOOK}"
@@ -290,7 +290,7 @@ docker events --filter 'type=container' --filter 'status=die' --format '{{json .
 while read -r event; do
   container=$(echo "$event" | jq -r '.Actor.Attributes.name')
   image=$(echo "$event" | jq -r '.Actor.Attributes.image')
-  
+
   curl -X POST "$SLACK_WEBHOOK" \
     -H 'Content-Type: application/json' \
     -d "{
@@ -313,7 +313,7 @@ done
 ### Test webhook with curl
 
 ```bash
-WEBHOOK="https://hooks.slack.com/services/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"
+WEBHOOK="https://hooks.slack.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX"
 
 curl -X POST "$WEBHOOK" \
   -H 'Content-Type: application/json' \
@@ -416,4 +416,3 @@ Where `test-alert.json` is the Prometheus format payload above.
 4. **Tune alert thresholds** to avoid alert fatigue
 5. **Document alert runbooks** for each alert type
 6. **Set up escalation** (e.g., PagerDuty for critical alerts)
-
