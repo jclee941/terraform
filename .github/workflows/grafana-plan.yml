@@ -74,29 +74,33 @@ jobs:
           TF_VAR_n8n_webhook_url: ${{ secrets.TF_VAR_N8N_WEBHOOK_URL }}
 
       - name: Comment Plan on PR
-        if: always() && github.event_name == 'pull_request' && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v8
+        env:
+          PLAN_OUTPUT: ${{ steps.plan.outputs.plan }}
+          PLAN_RESULT: ${{ steps.plan.outputs.result }}
         with:
           script: |
-            const result = '${{ steps.plan.outputs.result }}';
-            const plan = `${{ steps.plan.outputs.plan }}`;
-            const icon = result === 'success' ? '\u2705' : '\u274c';
+            const result = process.env.PLAN_RESULT || 'failure';
+            const plan = process.env.PLAN_OUTPUT || 'No plan output captured';
+            const icon = result === 'success' ? '✅' : '❌';
             const status = result === 'success' ? 'Success' : 'Failed';
 
-            const body = `## ${icon} Grafana Plan ${status}
+            const body = [
+              `## ${icon} Grafana Plan ${status}`,
+              '',
+              '<details><summary>Show Plan Output</summary>',
+              '',
+              '```',
+              plan,
+              '```',
+              '',
+              '</details>',
+              '',
+              `*Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`,
+              `*Working Directory: \`${{ env.TF_WORKING_DIR }}\`*`,
+            ].join('\n');
 
-            <details><summary>Show Plan Output</summary>
-
-            \`\`\`
-            ${plan}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*
-            *Working Directory: \`${{ env.TF_WORKING_DIR }}\`*`;
-
-            // Find existing bot comment to update
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
