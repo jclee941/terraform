@@ -1,6 +1,5 @@
 {
   "name": "Daily Infrastructure Digest",
-  "active": true,
   "nodes": [
     {
       "parameters": {
@@ -62,11 +61,13 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "=Bearer {{ $env.GLITCHTIP_API_TOKEN }}"
+              "value": "Bearer d663f01f380d51ba2881bd942e2b4f0532ca2a29acb81ccfbab1826a63bb1c42"
             }
           ]
         },
-        "options": {}
+        "options": {},
+        "authentication": "none",
+        "genericAuthType": "httpHeaderAuth"
       },
       "id": "glitchtip-query",
       "name": "Query GlitchTip Issues",
@@ -83,8 +84,7 @@
     },
     {
       "parameters": {
-        "mode": "combine",
-        "mergeByFields": {},
+        "mode": "append",
         "options": {}
       },
       "id": "merge-results",
@@ -217,5 +217,5 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "triggerCount": 1
+  "active": true
 }
