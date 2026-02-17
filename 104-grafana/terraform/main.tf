@@ -274,6 +274,39 @@ locals {
       summary      = "Memory pressure"
       description  = "Memory usage above 85% on {{ $labels.instance }}"
     }
+    "logstash-down" = {
+      group        = "infrastructure_health"
+      expr         = "up{job=\"logstash\"} == 0"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "critical"
+      for_duration = "2m"
+      summary      = "Logstash is down"
+      description  = "Logstash exporter target is unreachable"
+    }
+    "logstash-pipeline-stall" = {
+      group        = "infrastructure_health"
+      expr         = "rate(logstash_node_pipeline_events_in_total{job=\"logstash\"}[10m]) == 0 and up{job=\"logstash\"} == 1"
+      from         = 600
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "10m"
+      summary      = "Logstash pipeline stalled"
+      description  = "No events ingested by Logstash in the last 10 minutes while the process is up"
+    }
+    "logstash-high-drop-rate" = {
+      group        = "infrastructure_health"
+      expr         = "(rate(logstash_node_pipeline_events_in_total{job=\"logstash\"}[5m]) - rate(logstash_node_pipeline_events_out_total{job=\"logstash\"}[5m])) / clamp_min(rate(logstash_node_pipeline_events_in_total{job=\"logstash\"}[5m]), 1) > 0.1"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "5m"
+      summary      = "Logstash high event drop rate"
+      description  = "More than 10% of Logstash events are being dropped"
+    }
   }
 
   # Group filters
