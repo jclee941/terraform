@@ -5,7 +5,7 @@
 **Domain:** jclee.me / jclee.win
 
 ## OVERVIEW
-Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orchestrator managing 50+ secrets across CF Secrets Store, GitHub Actions, and HashiCorp Vault for 12+ sibling projects. Includes Cloudflare tunnel, DNS, Access policies, R2 storage, and a Synology FileStation proxy Worker.
+Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orchestrator managing 50+ secrets across CF Secrets Store and GitHub Actions for 12+ sibling projects. Includes Cloudflare tunnel, DNS, Access policies, R2 storage, and a Synology FileStation proxy Worker.
 
 ## STRUCTURE
 ```
@@ -40,14 +40,12 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 | **Access policies** | `access.tf` | CF Access email-based policies |
 | **R2 storage** | `r2.tf` | `synology-cache` bucket (APAC, 7d TTL) |
 | **GitHub secrets** | `github-secrets.tf` | Cross-repo GitHub Actions secrets |
-| **Vault secrets** | `vault-secrets.tf` | HashiCorp Vault KV v2 integration |
 | **Worker** | `workers/synology-proxy/` | Hono TS app with FileStation proxy |
 | **CI** | Migrated from `.github/workflows/ci.yml` | 2 jobs: worker + terraform |
-| **Shared modules** | `../modules/cloudflare/` | Reusable CF modules (8 .tf files) |
 
 ## CONVENTIONS
 - **Numbering**: 300+ = external infrastructure providers (not mapped to `192.168.50.x`).
-- **Providers**: cloudflare ~5.0, github ~6.0, vault ~4.0.
+- **Providers**: cloudflare ~5.0, github ~6.0, 1Password/onepassword ~3.2.
 - **Feature flags**: `enable_cf_store_sync`, `enable_worker_route` in `variables.tf`.
 - **Secret values**: NEVER in code/git. Only in `.tfvars` (gitignored) or env vars.
 - **inventory/secrets.yaml**: Metadata only (name, targets[], description). No values.

@@ -18,8 +18,7 @@ terraform/                      # Multi-provider IaC monorepo root
 │   │   ├── vm-config/          # VM config rendering (templates/)
 │   │   └── config-renderer/    # Template → tf-configs pipeline
 │   └── shared/
-│       ├── vault-secrets/      # HashiCorp Vault secret management
-│       └── vault-agent/        # Vault Agent AppRole auto-auth module
+│       └── onepassword-secrets/ # 1Password secret retrieval via service account
 ├── 100-pve/                    # Proxmox Host + TF workspace (primary)
 │   ├── main.tf                 # Central orchestration (810 lines)
 │   ├── variables.tf            # TF variables
@@ -71,8 +70,7 @@ terraform/                      # Multi-provider IaC monorepo root
 |------|----------|-------|
 | **IaC Definitions** | `100-pve/main.tf` | Manages 101-102, 104-108, 112, 200, 220. |
 | **Terraform Modules** | `modules/proxmox/` | 5 modules (lxc, vm, lxc-config, vm-config, config-renderer). |
-| **Shared Modules** | `modules/shared/vault-secrets/` | Cross-stack modules (Vault secrets). |
-| **Vault Agent Module** | `modules/shared/vault-agent/` | AppRole auto-auth + template engine for runtime secrets. |
+| **Shared Modules** | `modules/shared/onepassword-secrets/` | Cross-stack modules (1Password secrets). |
 | **Grafana App Config** | `104-grafana/terraform/` | Standalone workspace: dashboards, datasources, alerts (grafana provider). |
 | **ELK App Config** | `105-elk/terraform/` | Standalone workspace: ILM policies, index templates (elasticstack provider). |
 | **GitHub Org Mgmt** | `301-github/` | GitHub org, repos, teams, branch protection (github provider). |
@@ -157,7 +155,7 @@ terraform/                      # Multi-provider IaC monorepo root
 - **Numbering**: `1-255` = internal infra (maps to `192.168.50.{NNN}`), `300+` = external infra (Cloudflare, AWS, etc.).
 - **Naming**: `{VMID}-{HOSTNAME}` (e.g., `102-traefik`).
 - **Network**: `192.168.50.0/24` (GW: .1). Primary DNS: `.1`.
-- **Terraform**: `bpg/proxmox` (~>0.94), `hashicorp/vault` (~>5.0), `grafana/grafana` (~>4.0), `elastic/elasticstack` (~>0.13), `cloudflare/cloudflare` (~>5.0), `integrations/github` (~>6.6).
+- **Terraform**: `bpg/proxmox` (~>0.94), `1Password/onepassword` (~>3.2), `grafana/grafana` (~>4.0), `elastic/elasticstack` (~>0.13), `cloudflare/cloudflare` (~>5.0), `integrations/github` (~>6.6).
 - **Single Source of Truth (SSoT)**: `100-pve/envs/prod/hosts.tf` defines ALL IPs/ports. No hardcoded IPs in `main.tf`.
 - **Module Sources**: Always use `../modules/{provider}/{module}` relative paths from service dirs.
 - **Template Paths**: `${path.module}/../{NNN}-{svc}/templates/` from workspace to service templates.
@@ -188,7 +186,7 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
   - **NO hardcoded module paths**. Use `../modules/{provider}/{module}` relative paths.
   - **NO hand-editing** of TF-rendered configs in `100-pve/configs/`.
 - **Security**:
-  - **NEVER commit .env files**. Use Vault Agent or `.env.example` templates.
+  - **NEVER commit .env files**. Use 1Password Service Accounts or `.env.example` templates.
   - **NEVER commit API keys**: Protect `antigravity-accounts.json` and signature caches.
   - **NEVER put tokens** in Splunk `default/*.conf` files.
 - **Development**:
@@ -202,7 +200,7 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
   - **NO direct SSH** to LXCs (102-106); use `pct exec` via PVE.
 
 ## AUTOMATION PIPELINES (n8n)
-7 workflows on n8n (VM 112, :5678). Login: see Vault `homelab/n8n`.
+7 workflows on n8n (VM 112, :5678). Login: see 1Password `Homelab/n8n`.
 - **Primary** (6): `scripts/n8n-workflows/` — error→issue, alert→issue, daily-digest, request-tracker, PR-notify, glitchtip-sync.
 - **Pipeline** (1): `112-mcphub/n8n-workflows/` — GlitchTip sync.
 - **Webhooks**: `/webhook/glitchtip-error`, `/webhook/grafana-alert`, `/webhook/github-issue`, `/webhook/github-pr`.
@@ -210,8 +208,8 @@ cd 100-pve && terraform plan -out=tfplan && terraform apply tfplan
 ## NOTES
 - **n8n**: MCP API key expires 2026-05-11. Workflows must be Published via UI (CLI import doesn't register webhooks).
 - **GlitchTip**: Org `jclee-homelab`, Project `homelab`. Alert rule `n8n-automation` → webhook.
-- **Vault**: vault.jclee.me via Traefik. Vault Agent module at `modules/shared/vault-agent/` (AppRole auto-auth, pilot target: VM 112). Plan-time secrets via `modules/shared/vault-secrets/`. Deprecated vars: `n8n_mcp_config`, `mcp_secrets`.
-- **MCPHub**: Default creds — see Vault `homelab/mcphub`. SSE proxies use sidecar Dockerfiles (`Dockerfile.proxmox`, `Dockerfile.playwright`). Env from `/opt/mcphub/.env`.
+- **1Password**: Secrets managed via `modules/shared/onepassword-secrets/` using `OP_SERVICE_ACCOUNT_TOKEN`. Vault (vault.jclee.me) remains as infrastructure but is no longer the Terraform secret backend. Deprecated vars: `n8n_mcp_config`, `mcp_secrets`.
+- **MCPHub**: Default creds — see 1Password `Homelab/mcphub`. SSE proxies use sidecar Dockerfiles (`Dockerfile.proxmox`, `Dockerfile.playwright`). Env from `/opt/mcphub/.env`.
 - **GPU**: RTX 5070 Ti on VM 200 (IOMMU group 12, PCI 0000:01:00.0). **Archived**: 109-111, 113 → `.archive/`.
 - **Migration**: Migrated from single-provider `~/dev/proxmox/` repo (2026-02-13). Original repo preserved as reference.
 - **Cloudflare**: Migrated from standalone `~/dev/cloudflare/` repo (2026-02-13). Includes Workers, scripts, docker, inventory.

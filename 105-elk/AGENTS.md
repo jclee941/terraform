@@ -47,7 +47,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - `logstash_dlq_size` (1024mb)
 - `elasticsearch_index_pattern` (logs-%{+YYYY.MM.dd})
 - `ilm_delete_after` (30d), `ilm_policy_name` (homelab-logs-30d)
-- `elk_elastic_password`, `elk_kibana_password` (from Vault `homelab/elk`)
+- `elk_elastic_password`, `elk_kibana_password` (from 1Password `Homelab/elk`)
 
 ## CONFIG PIPELINE
 `templates/*.tftpl` → `config-renderer` module → `100-pve/configs/elk/` (local_sensitive_file) → cloud-init `write_files` → LXC `/opt/elk/`
@@ -61,7 +61,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 
 ## SECURITY
 - **xpack.security**: Enabled with HTTP basic auth (no TLS for internal network).
-- **Credentials**: Stored in Vault at `homelab/elk` with fields `elastic_password` and `kibana_password`.
+- **Credentials**: Stored in 1Password at `Homelab/elk` with fields `elastic_password` and `kibana_password`.
 - **Setup Container**: `elk-setup` runs once to set `kibana_system` password via ES Security API.
 - **Auth Flow**: ES uses `ELASTIC_PASSWORD` env var; Kibana uses `kibana_system`; Logstash uses `elastic` for writes.
 - **Traefik**: ES endpoint (`es.jclee.me`) restricted to LAN via `ipAllowList` middleware.
@@ -87,6 +87,6 @@ docker compose -f /opt/elk/docker-compose.yml restart
 # Run ILM Setup
 bash /opt/elk/scripts/setup-ilm.sh
 
-# Store credentials in Vault (one-time setup)
-vault kv put secret/homelab/elk elastic_password="<password>" kibana_password="<password>"
+# Store credentials in 1Password (one-time setup)
+op item edit elk "secrets.elastic_password=<password>" "secrets.kibana_password=<password>" --vault Homelab
 ```

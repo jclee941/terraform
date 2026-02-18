@@ -38,14 +38,14 @@ Self-hosted Supabase instance providing PostgreSQL database, Auth, REST API, Rea
 
 ## CONVENTIONS
 - All configs rendered via Terraform template pipeline
-- Secrets managed via HashiCorp Vault (`modules/shared/vault-secrets/`)
+- Secrets managed via 1Password (`modules/shared/onepassword-secrets/`)
 - No hardcoded credentials — use `.env.tftpl` templates
 - PostgreSQL data persisted on local-zfs storage
 
 ## ANTI-PATTERNS
 - **NO** manual docker-compose edits in `tf-configs/` — edit `templates/` instead
 - **NO** direct database access from outside the homelab network
-- **NO** hardcoded passwords — use Vault
+- **NO** hardcoded passwords — use 1Password
 - **NO** UI changes to LXC resources (managed by Terraform)
 
 ## DEPENDENCIES
