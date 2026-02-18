@@ -14,11 +14,5 @@ terraform {
       source  = "1Password/onepassword"
       version = "~> 3.2"
     }
-    # TEMPORARY: Required to process stale vault_agent resources still in state.
-    # Remove after apply cleans state (see removed block in main.tf).
-    vault = {
-      source  = "hashicorp/vault"
-      version = "~> 5.0"
-    }
   }
 }

@@ -6,21 +6,6 @@ provider "proxmox" {
 
 provider "onepassword" {}
 
-# TEMPORARY: Stub provider for processing removed blocks below.
-# Remove after apply cleans stale vault_agent resources from state.
-provider "vault" {}
-
-# =============================================================================
-# STALE STATE CLEANUP (vault_agent module removed in 1Password migration)
-# This removed block instructs Terraform to forget the entire module and all
-# its instances/resources from state. Remove after first successful apply.
-# =============================================================================
-
-removed {
-  from = module.vault_agent
-  lifecycle { destroy = false }
-}
-
 # =============================================================================
 # DATA SOURCES
 # =============================================================================
