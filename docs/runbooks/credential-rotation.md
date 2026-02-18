@@ -12,7 +12,6 @@
 |-----------|----------|--------|---------|
 | n8n MCP API Key | `/opt/mcphub/.env` on VM 112 | 2026-05-11 | MCPHub |
 | GlitchTip API Token | `/opt/glitchtip/.env` on LXC 106 | No expiry | GlitchTip |
-| Vault Token | `http://192.168.50.112:8200` | Periodic | Vault Agent |
 | GitHub Runner Token | `/opt/runner/.env` on LXC 101 | 30 days | GitHub Actions |
 
 ## Resolution
@@ -47,25 +46,6 @@ curl -s -H "Authorization: Bearer <token>" \
   http://192.168.50.106:8000/api/0/organizations/
 ```
 
-### Vault Token Rotation
-```bash
-# Vault Agent on VM 112 handles auto-renewal
-# Manual rotation only if agent fails:
-
-export VAULT_ADDR="http://192.168.50.112:8200"
-
-# 1. Login with root token
-vault login <root-token>
-
-# 2. Create new periodic token
-vault token create -period=768h -policy=default
-
-# 3. Update Vault Agent config
-ssh root@192.168.50.112
-vim /etc/vault-agent/config.hcl  # Update token
-systemctl restart vault-agent
-```
-
 ### GitHub Actions Runner Token
 ```bash
 # 1. Generate new token at GitHub repo Settings → Actions → Runners
@@ -81,6 +61,5 @@ pct exec 101 -- bash -c '
 
 ## Prevention
 - Set calendar reminders 2 weeks before expiry
-- Vault Agent auto-renews periodic tokens
 - Monitor auth failures in Grafana/ELK dashboards
 - n8n MCP API key expiry: **2026-05-11** — rotate before then

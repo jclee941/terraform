@@ -40,7 +40,7 @@ fi
 if [[ -z "${TF_BACKUP_PASSPHRASE:-}" ]]; then
     echo "ERROR: TF_BACKUP_PASSPHRASE environment variable is not set" >&2
     echo "  Set it via: export TF_BACKUP_PASSPHRASE='your-secure-passphrase'" >&2
-    echo "  Or use Vault: export TF_BACKUP_PASSPHRASE=\$(vault kv get -field=backup_passphrase secret/terraform)" >&2
+    echo "  Or use 1Password: export TF_BACKUP_PASSPHRASE=\$(op read 'op://Homelab/terraform/secrets/backup_passphrase')" >&2
     exit 1
 fi
 

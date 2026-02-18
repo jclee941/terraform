@@ -41,6 +41,9 @@ terraform -chdir=100-pve apply
 
 ## Vault Issues
 
+> **Note:** Vault runs as infrastructure on VM 112 but is no longer the Terraform secret backend.
+> Secrets are managed via 1Password. See [Secret Management](../secret-management.md).
+
 ### Vault Sealed
 ```bash
 ssh root@192.168.50.112
@@ -59,6 +62,28 @@ ssh root@192.168.50.100 'qm status 112'
 ssh root@192.168.50.112 'docker ps | grep vault'
 # Check Vault port
 curl -s http://192.168.50.112:8200/v1/sys/health | jq
+```
+
+## 1Password Issues
+
+### Authentication Failure
+```bash
+# Check service account connectivity
+op whoami
+# If failing, verify token
+echo $OP_SERVICE_ACCOUNT_TOKEN | head -c 20
+# Re-export if needed
+export OP_SERVICE_ACCOUNT_TOKEN="<token>"
+```
+
+### Secret Not Found
+```bash
+# List items in Homelab vault
+op item list --vault Homelab
+# Read specific secret
+op read "op://Homelab/cloudflare/secrets/r2_access_key_id"
+# Check if item/field exists
+op item get cloudflare --vault Homelab --format json | jq '.fields'
 ```
 
 ## Network Issues

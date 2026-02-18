@@ -61,8 +61,7 @@ jobs:
             modules/proxmox/lxc-config
             modules/proxmox/vm-config
             modules/proxmox/config-renderer
-            modules/shared/vault-secrets
-            modules/shared/vault-agent
+            modules/shared/onepassword-secrets
           )
 
           overall_exit=0

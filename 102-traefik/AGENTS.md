@@ -7,10 +7,10 @@
 High-performance edge router and reverse proxy (LXC 102) for the `jclee.me` ecosystem. Acts as the solitary entry point for all subdomains, orchestrating TLS termination (Let's Encrypt/Cloudflare DNS-01), load balancing, and request-level security. Critical dependency for all user-facing services.
 
 ## STRUCTURE
-- `/home/jclee/dev/proxmox/102-traefik/terraform/`: Resource lifecycle and main container config.
-- `/home/jclee/dev/proxmox/102-traefik/templates/`: Jinja2/TF templates for dynamic route generation.
-- `/home/jclee/dev/proxmox/102-traefik/tf-configs/`: **Rendered SSoT**. Final YAMLs generated from `hosts.tf`.
-- `/home/jclee/dev/proxmox/102-traefik/config/`: Static and manually maintained dynamic file provider configs.
+- `terraform/`: Resource lifecycle and main container config.
+- `templates/`: Jinja2/TF templates for dynamic route generation.
+- `tf-configs/`: **Rendered SSoT**. Final YAMLs generated from `hosts.tf`.
+- `config/`: Static and manually maintained dynamic file provider configs.
 
 ## WHERE TO LOOK
 - **Service Routing**: Check `tf-configs/traefik-{service}.yml`. Generated from central inventory.

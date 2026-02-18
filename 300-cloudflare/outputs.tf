@@ -8,11 +8,6 @@ output "managed_github_repos" {
   value       = local.github_repo_names
 }
 
-output "managed_vault_paths" {
-  description = "Vault paths managed by this configuration"
-  value       = local.vault_paths
-}
-
 output "total_secrets_count" {
   description = "Total number of secrets in inventory"
   value       = local.total_secrets_count

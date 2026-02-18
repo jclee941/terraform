@@ -158,24 +158,3 @@ variable "deploy_lxc_configs" {
   type        = bool
   default     = false
 }
-
-# -----------------------------------------------------------------------------
-# Vault Configuration
-# -----------------------------------------------------------------------------
-
-variable "vault_address" {
-  description = "HashiCorp Vault server address"
-  type        = string
-  default     = "http://192.168.50.112:8200"
-
-  validation {
-    condition     = can(regex("^https?://", var.vault_address))
-    error_message = "Vault address must start with http:// or https://."
-  }
-}
-
-variable "vault_token" {
-  description = "Vault authentication token (use terraform-readonly policy)"
-  type        = string
-  sensitive   = true
-}

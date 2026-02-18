@@ -4,9 +4,21 @@ provider "proxmox" {
   insecure  = var.proxmox_insecure
 }
 
-provider "vault" {
-  address = var.vault_address
-  token   = var.vault_token
+provider "onepassword" {}
+
+# TEMPORARY: Stub provider for processing removed blocks below.
+# Remove after apply cleans stale vault_agent resources from state.
+provider "vault" {}
+
+# =============================================================================
+# STALE STATE CLEANUP (vault_agent module removed in 1Password migration)
+# This removed block instructs Terraform to forget the entire module and all
+# its instances/resources from state. Remove after first successful apply.
+# =============================================================================
+
+removed {
+  from = module.vault_agent
+  lifecycle { destroy = false }
 }
 
 # =============================================================================
@@ -32,8 +44,7 @@ module "hosts" {
 # =============================================================================
 
 locals {
-  node_name     = var.node_name
-  vault_version = "1.18.3"
+  node_name = var.node_name
 
   infrastructure_nodes = [
     for name, host in module.hosts.hosts : {
@@ -341,11 +352,7 @@ module "vm_config" {
           "systemctl enable docker",
           "systemctl start docker",
           "mkdir -p /opt/mcphub",
-          "mkdir -p /opt/vault-agent/templates",
-          "curl -fsSL https://releases.hashicorp.com/vault/${local.vault_version}/vault_${local.vault_version}_linux_amd64.zip -o /tmp/vault.zip && unzip -o /tmp/vault.zip -d /usr/local/bin/ && rm /tmp/vault.zip",
           "systemctl daemon-reload",
-          "systemctl enable vault-agent-mcphub",
-          "systemctl start vault-agent-mcphub",
           "cd /opt/mcphub && docker compose build && docker compose up -d"
         ]
         write_files = [
@@ -374,26 +381,12 @@ module "vm_config" {
             owner       = "root:root"
           },
           {
-            path        = module.vault_agent["mcphub"].config_files["vault-agent-config"].path
-            content     = module.vault_agent["mcphub"].config_files["vault-agent-config"].content
-            permissions = "0640"
-            owner       = "root:root"
-          },
-          {
-            path        = module.vault_agent["mcphub"].config_files["vault-agent-service"].path
-            content     = module.vault_agent["mcphub"].config_files["vault-agent-service"].content
-            permissions = "0644"
-            owner       = "root:root"
-          },
-          {
-            path        = "/opt/vault-agent/templates/mcphub.env.ctmpl"
+            path        = "/opt/mcphub/.env"
             content     = <<-EOT
-{{ with secret "secret/data/homelab/mcphub" }}
-MCPHUB_ADMIN_PASSWORD={{ .Data.data.admin_password }}
-N8N_MCP_API_KEY={{ .Data.data.n8n_mcp_api_key }}
-{{ end }}
+MCPHUB_ADMIN_PASSWORD=${module.onepassword_secrets.secrets.mcphub_admin_password}
+N8N_MCP_API_KEY=${module.onepassword_secrets.secrets.mcphub_n8n_mcp_api_key}
 EOT
-            permissions = "0640"
+            permissions = "0600"
             owner       = "root:root"
           }
         ]
@@ -627,43 +620,11 @@ output "lxc_configs" {
 }
 
 # =============================================================================
-# VAULT SECRETS
+# 1PASSWORD SECRETS
 # =============================================================================
 
-module "vault_secrets" {
-  source = "../modules/shared/vault-secrets"
-}
-
-locals {
-  vault_agents = {
-    mcphub = {
-      kv_path                = "homelab/mcphub"
-      create_approle_backend = true
-    }
-  }
-}
-
-module "vault_agent" {
-  source   = "../modules/shared/vault-agent"
-  for_each = local.vault_agents
-
-  service_name           = each.key
-  kv_path                = each.value.kv_path
-  create_approle_backend = try(each.value.create_approle_backend, false)
-  additional_kv_paths    = try(each.value.additional_kv_paths, [])
-
-  template_mappings = {
-    env = {
-      source      = "/opt/vault-agent/templates/${each.key}.env.ctmpl"
-      destination = "/opt/${each.key}/.env"
-      perms       = "0600"
-    }
-  }
-}
-
-moved {
-  from = module.vault_agent_mcphub
-  to   = module.vault_agent["mcphub"]
+module "onepassword_secrets" {
+  source = "../modules/shared/onepassword-secrets"
 }
 
 # =============================================================================
@@ -751,7 +712,7 @@ module "config_renderer" {
   source = "../modules/proxmox/config-renderer"
 
   template_vars = merge(
-    module.vault_secrets.secrets,
+    module.onepassword_secrets.secrets,
     {
       hosts                = module.hosts.hosts
       domain               = "jclee.me"

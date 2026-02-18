@@ -87,26 +87,25 @@ register() {
   SECRET_SOURCE["$name"]="$source"
 }
 
-register AWS_ACCESS_KEY_ID        P0 "vault:secret/homelab/cloudflare:r2_access_key_id"
-register AWS_SECRET_ACCESS_KEY    P0 "vault:secret/homelab/cloudflare:r2_secret_access_key"
+register AWS_ACCESS_KEY_ID        P0 "op:op://Homelab/cloudflare/secrets/r2_access_key_id"
+register AWS_SECRET_ACCESS_KEY    P0 "op:op://Homelab/cloudflare/secrets/r2_secret_access_key"
 register TF_API_TOKEN             P0 "env:TF_API_TOKEN"
 register TF_VAR_PROXMOX_ENDPOINT  P0 "tfvars:100-pve:proxmox_endpoint"
 register TF_VAR_PROXMOX_API_TOKEN P0 "tfvars:100-pve:proxmox_api_token"
 register TF_VAR_PROXMOX_INSECURE  P0 "tfvars:100-pve:proxmox_insecure"
 
-register TF_VAR_GRAFANA_AUTH          P1 "vault:secret/homelab/grafana:service_account_token"
+register TF_VAR_GRAFANA_AUTH          P1 "op:op://Homelab/grafana/secrets/service_account_token"
 register TF_VAR_N8N_WEBHOOK_URL       P1 "derived:http://192.168.50.112:5678/webhook"
-register TF_VAR_SUPABASE_URL          P1 "vault:secret/homelab/supabase:url"
+register TF_VAR_SUPABASE_URL          P1 "op:op://Homelab/supabase/secrets/url"
 register TF_VAR_CLOUDFLARE_ACCOUNT_ID P1 "tfvars:300-cloudflare:cloudflare_account_id"
 register TF_VAR_CLOUDFLARE_ZONE_ID    P1 "tfvars:300-cloudflare:cloudflare_zone_id"
 register TF_VAR_SYNOLOGY_DOMAIN       P1 "tfvars:300-cloudflare:synology_domain"
 register TF_VAR_ACCESS_ALLOWED_EMAILS P1 "tfvars:300-cloudflare:access_allowed_emails"
-register TF_VAR_GITHUB_TOKEN          P1 "vault:secret/homelab/github:personal_access_token"
-register TF_VAR_VAULT_TOKEN           P1 "tfvars:100-pve:vault_token"
+register TF_VAR_GITHUB_TOKEN          P1 "op:op://Homelab/github/secrets/personal_access_token"
 
 register CLOUDFLARE_API_TOKEN    P2 "env:CLOUDFLARE_API_TOKEN"
 register CLOUDFLARE_ACCOUNT_ID   P2 "tfvars:300-cloudflare:cloudflare_account_id"
-register GH_PAT                  P2 "vault:secret/homelab/github:personal_access_token"
+register GH_PAT                  P2 "op:op://Homelab/github/secrets/personal_access_token"
 register CF_ACCESS_CLIENT_ID     P2 "env:CF_ACCESS_CLIENT_ID"
 register CF_ACCESS_CLIENT_SECRET P2 "env:CF_ACCESS_CLIENT_SECRET"
 
@@ -125,21 +124,9 @@ resolve_value() {
       local env_var="${rest}"
       printf "%s" "${!env_var:-}"
       ;;
-    vault)
-      local vault_path="${rest%%:*}"
-      local vault_field="${rest##*:}"
-      if command -v vault >/dev/null 2>&1; then
-        local vault_addr="${VAULT_ADDR:-http://192.168.50.112:8200}"
-        local vault_token="${VAULT_TOKEN:-}"
-        if [[ -z "$vault_token" ]]; then
-          local tfvars_pve="$ROOT_DIR/100-pve/terraform.tfvars"
-          if [[ -f "$tfvars_pve" ]]; then
-            vault_token="$(grep -E '^\s*vault_token\s*=' "$tfvars_pve" | sed 's/.*=\s*"\?\([^"]*\)"\?/\1/' | tr -d '[:space:]')"
-          fi
-        fi
-        if [[ -n "$vault_token" ]]; then
-          VAULT_ADDR="$vault_addr" VAULT_TOKEN="$vault_token" vault kv get -field="$vault_field" "$vault_path" 2>/dev/null || true
-        fi
+    op)
+      if command -v op >/dev/null 2>&1 && [[ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]]; then
+        op read "$rest" 2>/dev/null || true
       fi
       ;;
     derived)

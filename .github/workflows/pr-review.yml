@@ -156,11 +156,8 @@ jobs:
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/config-renderer/'; then
             AFFECTED="$AFFECTED 100-pve"
           fi
-          if echo "$MODULE_CHANGES" | grep -q 'modules/shared/vault-secrets/'; then
+          if echo "$MODULE_CHANGES" | grep -q 'modules/shared/onepassword-secrets/'; then
             AFFECTED="$AFFECTED 100-pve 300-cloudflare"
-          fi
-          if echo "$MODULE_CHANGES" | grep -q 'modules/shared/vault-agent/'; then
-            AFFECTED="$AFFECTED 112-mcphub"
           fi
 
           # Deduplicate

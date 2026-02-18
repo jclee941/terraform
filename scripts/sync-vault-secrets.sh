@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Vault → GitHub Secret Sync
-# Pulls secrets from HashiCorp Vault and registers them as GitHub Actions secrets.
+# 1Password → GitHub Secret Sync
+# Pulls secrets from 1Password and registers them as GitHub Actions secrets.
 # Supports: audit, dry-run, selective sync, and rotation.
 #
 # Usage:
-#   scripts/sync-vault-secrets.sh              # Sync all from Vault
+#   scripts/sync-vault-secrets.sh              # Sync all from 1Password
 #   scripts/sync-vault-secrets.sh --audit      # Check only, no changes
 #   scripts/sync-vault-secrets.sh --dry-run    # Show what would be set
 #   scripts/sync-vault-secrets.sh --force      # Overwrite existing secrets
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO="qws941/terraform"
 
 RED='\033[0;31m'
@@ -27,14 +25,11 @@ DRY_RUN=false
 AUDIT_ONLY=false
 FORCE=false
 
-VAULT_ADDR="${VAULT_ADDR:-http://192.168.50.112:8200}"
-VAULT_TOKEN="${VAULT_TOKEN:-}"
-
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Sync secrets from HashiCorp Vault to GitHub Actions for ${REPO}.
+Sync secrets from 1Password to GitHub Actions for ${REPO}.
 
 Options:
   --audit        Check which secrets need sync (no changes)
@@ -43,15 +38,14 @@ Options:
   -h, --help     Show this help
 
 Environment:
-  VAULT_ADDR     Vault address (default: http://192.168.50.112:8200)
-  VAULT_TOKEN    Vault token (required, or read from 100-pve/terraform.tfvars)
+  OP_SERVICE_ACCOUNT_TOKEN  1Password service account token (required)
 
-Vault Paths:
-  secret/homelab/cloudflare  → R2 credentials, account ID
-  secret/homelab/grafana     → Service account token
-  secret/homelab/github      → Personal access token
-  secret/homelab/n8n         → Webhook config
-  secret/homelab/supabase    → URL and service key
+1Password Paths:
+  op://Homelab/cloudflare/secrets  → R2 credentials, account ID
+  op://Homelab/grafana/secrets     → Service account token
+  op://Homelab/github/secrets      → Personal access token
+  op://Homelab/n8n/secrets         → Webhook config
+  op://Homelab/supabase/secrets    → URL and service key
 EOF
 }
 
@@ -68,8 +62,8 @@ done
 
 # --- Dependency checks ---
 
-if ! command -v vault >/dev/null 2>&1; then
-  printf "${RED}vault CLI required. Install: https://developer.hashicorp.com/vault/install${NC}\n" >&2
+if ! command -v op >/dev/null 2>&1; then
+  printf "${RED}op CLI required. Install: https://developer.1password.com/docs/cli/get-started/${NC}\n" >&2
   exit 1
 fi
 
@@ -83,44 +77,33 @@ if ! gh auth status &>/dev/null; then
   exit 1
 fi
 
-# --- Resolve Vault token ---
+# --- Verify 1Password connectivity ---
 
-if [[ -z "$VAULT_TOKEN" ]]; then
-  TFVARS_PVE="$ROOT_DIR/100-pve/terraform.tfvars"
-  if [[ -f "$TFVARS_PVE" ]]; then
-    VAULT_TOKEN="$(grep -E '^\s*vault_token\s*=' "$TFVARS_PVE" | sed 's/.*=\s*"\?\([^"]*\)"\?/\1/' | tr -d '[:space:]')"
-  fi
-fi
-
-if [[ -z "$VAULT_TOKEN" ]]; then
-  printf "${RED}VAULT_TOKEN not set and not found in terraform.tfvars${NC}\n" >&2
-  printf "Set via: export VAULT_TOKEN='hvs.xxx'\n" >&2
+if [[ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]]; then
+  printf "${RED}OP_SERVICE_ACCOUNT_TOKEN not set${NC}\n" >&2
+  printf "Set via: export OP_SERVICE_ACCOUNT_TOKEN='ops_xxx'\n" >&2
   exit 1
 fi
 
-export VAULT_ADDR VAULT_TOKEN
-
-# --- Verify Vault connectivity ---
-
-if ! vault token lookup &>/dev/null; then
-  printf "${RED}Vault authentication failed at %s${NC}\n" "$VAULT_ADDR" >&2
-  printf "Check VAULT_ADDR and VAULT_TOKEN\n" >&2
+if ! op whoami &>/dev/null; then
+  printf "${RED}1Password authentication failed${NC}\n" >&2
+  printf "Check OP_SERVICE_ACCOUNT_TOKEN\n" >&2
   exit 1
 fi
 
-# --- Secret mapping: GitHub secret name → Vault path + field ---
-# Format: "GITHUB_SECRET_NAME|vault_path|vault_field|priority|description"
+# --- Secret mapping: GitHub secret name → 1Password reference ---
+# Format: "GITHUB_SECRET_NAME|op://Homelab/item/secrets/field|priority|description"
 
-VAULT_SECRETS=(
-  "AWS_ACCESS_KEY_ID|secret/homelab/cloudflare|r2_access_key_id|P0|R2 S3-compatible access key"
-  "AWS_SECRET_ACCESS_KEY|secret/homelab/cloudflare|r2_secret_access_key|P0|R2 S3-compatible secret"
-  "TF_VAR_GRAFANA_AUTH|secret/homelab/grafana|service_account_token|P1|Grafana service account token"
-  "TF_VAR_GITHUB_TOKEN|secret/homelab/github|personal_access_token|P1|GitHub PAT for TF provider"
-  "TF_VAR_SUPABASE_URL|secret/homelab/supabase|url|P1|Supabase project URL"
-  "GH_PAT|secret/homelab/github|personal_access_token|P2|GitHub PAT for workflow automation"
+OP_SECRETS=(
+  "AWS_ACCESS_KEY_ID|op://Homelab/cloudflare/secrets/r2_access_key_id|P0|R2 S3-compatible access key"
+  "AWS_SECRET_ACCESS_KEY|op://Homelab/cloudflare/secrets/r2_secret_access_key|P0|R2 S3-compatible secret"
+  "TF_VAR_GRAFANA_AUTH|op://Homelab/grafana/secrets/service_account_token|P1|Grafana service account token"
+  "TF_VAR_GITHUB_TOKEN|op://Homelab/github/secrets/personal_access_token|P1|GitHub PAT for TF provider"
+  "TF_VAR_SUPABASE_URL|op://Homelab/supabase/secrets/url|P1|Supabase project URL"
+  "GH_PAT|op://Homelab/github/secrets/personal_access_token|P2|GitHub PAT for workflow automation"
 )
 
-# Derived secrets (not from Vault, from known infrastructure)
+# Derived secrets (not from 1Password, from known infrastructure)
 DERIVED_SECRETS=(
   "TF_VAR_N8N_WEBHOOK_URL|http://192.168.50.112:5678/webhook|P1|n8n webhook base URL"
 )
@@ -151,8 +134,7 @@ mask_value() {
 
 # --- Main sync logic ---
 
-printf "${BOLD}Vault → GitHub Secret Sync${NC}\n"
-printf "Vault:  %s\n" "$VAULT_ADDR"
+printf "${BOLD}1Password → GitHub Secret Sync${NC}\n"
 printf "Repo:   %s\n\n" "$REPO"
 
 synced=0
@@ -160,9 +142,9 @@ skipped=0
 failed=0
 total=0
 
-# Process Vault-sourced secrets
-for entry in "${VAULT_SECRETS[@]}"; do
-  IFS='|' read -r name path field priority _ <<< "$entry"
+# Process 1Password-sourced secrets
+for entry in "${OP_SECRETS[@]}"; do
+  IFS='|' read -r name op_ref priority _ <<< "$entry"
   (( ++total ))
 
   # Check if already configured (skip unless --force)
@@ -172,11 +154,11 @@ for entry in "${VAULT_SECRETS[@]}"; do
     continue
   fi
 
-  # Fetch from Vault
-  value="$(vault kv get -field="$field" "$path" 2>/dev/null)" || true
+  # Fetch from 1Password
+  value="$(op read "$op_ref" 2>/dev/null)" || true
 
   if [[ -z "$value" ]]; then
-    printf "${RED}  [!!]${NC} %-35s %s  Vault field missing: %s → %s\n" "$name" "$priority" "$path" "$field"
+    printf "${RED}  [!!]${NC} %-35s %s  1Password ref missing: %s\n" "$name" "$priority" "$op_ref"
     (( ++failed ))
     continue
   fi
@@ -267,7 +249,7 @@ for entry in "${MANUAL_SECRETS[@]}"; do
   IFS='|' read -r name priority source <<< "$entry"
   if ! is_configured "$name"; then
     if (( manual_count == 0 )); then
-      printf "\n${BOLD}Manual secrets (not in Vault):${NC}\n"
+      printf "\n${BOLD}Manual secrets (not in 1Password):${NC}\n"
     fi
     printf "  ${YELLOW}%-35s${NC} %s  %s\n" "$name" "$priority" "$source"
     (( ++manual_count ))

@@ -6,7 +6,7 @@
 
 - Terraform >= 1.5.0
 - SSH access to PVE (`ssh root@192.168.50.100`)
-- Vault access (for secret-dependent services)
+- 1Password access (`OP_SERVICE_ACCOUNT_TOKEN` for secret-dependent services)
 - `gh` CLI authenticated (for GitHub operations)
 
 ## Standard Deployment Flow

@@ -74,7 +74,7 @@
          │
     ┌────┴────────────────┐
     ▼                     ▼
-module.vault_secrets    module.config_renderer
+module.op_secrets       module.config_renderer
     │                     │
     │              renders .tftpl templates
     │                     │
@@ -98,7 +98,7 @@ Proxmox API          cloud-init → /opt/{service}/
     ├── 108-archon/terraform/    (app config only)
     └── 301-github/              (github provider: repos, teams)
 
-300-cloudflare (independent — reads Vault directly)
+300-cloudflare (independent — reads 1Password directly)
 ```
 
 ### Observability Flow
@@ -124,20 +124,19 @@ modules/
 │   └── config-renderer/  # Template → tf-configs pipeline
 ├── cloudflare/           # DNS and tunnel modules (unused by 300-cloudflare)
 └── shared/
-    ├── vault-secrets/    # HashiCorp Vault KV v2 secret retrieval
-    └── vault-agent/      # Vault Agent AppRole auto-auth + template engine
+    └── onepassword-secrets/  # 1Password secret retrieval (service account)
 ```
 
 ## Terraform Workspaces
 
 | Workspace | State Key | Provider(s) | Manages |
 |-----------|-----------|-------------|---------|
-| `100-pve/` | `100-pve/terraform.tfstate` | bpg/proxmox, hashicorp/vault | All LXC lifecycle (101-108), VMs (112, 200, 220), config rendering |
+| `100-pve/` | `100-pve/terraform.tfstate` | bpg/proxmox, 1Password/onepassword | All LXC lifecycle (101-108), VMs (112, 200, 220), config rendering |
 | `102-traefik/terraform/` | `102-traefik/terraform.tfstate` | (none) | App-level config deployment via lxc-config |
 | `104-grafana/terraform/` | `104-grafana/terraform.tfstate` | grafana/grafana | Dashboards, datasources, alerts, contact points |
 | `105-elk/terraform/` | `105-elk/terraform.tfstate` | elastic/elasticstack | ILM policies, index templates |
 | `108-archon/terraform/` | `108-archon/terraform.tfstate` | (none) | App-level config deployment via lxc-config |
-| `300-cloudflare/` | `300-cloudflare/terraform.tfstate` | cloudflare, github, vault | DNS zones, tunnels, Access policies, R2, Workers |
+| `300-cloudflare/` | `300-cloudflare/terraform.tfstate` | cloudflare, github, 1Password/onepassword | DNS zones, tunnels, Access policies, R2, Workers |
 | `301-github/` | `301-github/terraform.tfstate` | integrations/github | Repos, teams, rulesets, Actions config, webhooks |
 
 ## State Backend

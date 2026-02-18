@@ -5,16 +5,16 @@ GitHub Actions secrets for CI/CD workflows in `qws941/terraform`.
 ## Quick Start
 
 ```bash
-# Sync all secrets from Vault → GitHub (recommended)
+# Sync all secrets from 1Password → GitHub (recommended)
 scripts/sync-vault-secrets.sh
 
-# Audit Vault sync state
+# Audit 1Password sync state
 scripts/sync-vault-secrets.sh --audit
 
 # Force rotation (overwrite existing)
 scripts/sync-vault-secrets.sh --force
 
-# Fallback: resolve from .tfvars + Vault + env vars
+# Fallback: resolve from .tfvars + 1Password + env vars
 scripts/setup-github-secrets.sh
 scripts/setup-github-secrets.sh --audit
 ```
@@ -22,11 +22,11 @@ scripts/setup-github-secrets.sh --audit
 ## Architecture
 
 ```
-HashiCorp Vault (192.168.50.112:8200)
-  secret/homelab/cloudflare  → R2 creds, account ID
-  secret/homelab/grafana     → service account token
-  secret/homelab/github      → PAT
-  secret/homelab/supabase    → URL, service key
+1Password (Homelab vault)
+  op://Homelab/cloudflare  → R2 creds, account ID
+  op://Homelab/grafana     → service account token
+  op://Homelab/github      → PAT
+  op://Homelab/supabase    → URL, service key
       │
       ▼
 sync-vault-secrets.sh  ──→  GitHub Actions Secrets (qws941/terraform)
@@ -36,23 +36,39 @@ sync-vault-secrets.sh  ──→  GitHub Actions Secrets (qws941/terraform)
       │                           ├── worker-deploy
       │                           └── secret-audit (weekly)
       │
-setup-github-secrets.sh  ──→  Fallback: .tfvars + Vault + env vars
+setup-github-secrets.sh  ──→  Fallback: .tfvars + 1Password + env vars
       │
 secrets.yaml (300-cloudflare)  ──→  Metadata SSoT for all repos
 ```
 
-## Secret Inventory (17/20 automated)
+## Terraform Secret Backend
 
-### Vault-Sourced (via `sync-vault-secrets.sh`)
+Secrets are consumed at plan-time via the `onepassword-secrets` shared module:
 
-| Secret | Vault Path | Field | Priority |
-|--------|-----------|-------|----------|
-| `AWS_ACCESS_KEY_ID` | `secret/homelab/cloudflare` | `r2_access_key_id` | P0 |
-| `AWS_SECRET_ACCESS_KEY` | `secret/homelab/cloudflare` | `r2_secret_access_key` | P0 |
-| `TF_VAR_GRAFANA_AUTH` | `secret/homelab/grafana` | `service_account_token` | P1 |
-| `TF_VAR_GITHUB_TOKEN` | `secret/homelab/github` | `personal_access_token` | P1 |
-| `TF_VAR_SUPABASE_URL` | `secret/homelab/supabase` | `url` | P1 |
-| `GH_PAT` | `secret/homelab/github` | `personal_access_token` | P2 |
+```hcl
+module "secrets" {
+  source                   = "../modules/shared/onepassword-secrets"
+  op_vault_id              = var.op_vault_id
+  op_service_account_token = var.op_service_account_token
+}
+
+# Access: module.secrets.secrets["grafana_admin_password"]
+```
+
+Provider authentication: `OP_SERVICE_ACCOUNT_TOKEN` environment variable.
+
+## Secret Inventory (17/19 automated)
+
+### 1Password-Sourced (via `sync-vault-secrets.sh`)
+
+| Secret | 1Password Reference | Field | Priority |
+|--------|---------------------|-------|----------|
+| `AWS_ACCESS_KEY_ID` | `op://Homelab/cloudflare/secrets/r2_access_key_id` | `r2_access_key_id` | P0 |
+| `AWS_SECRET_ACCESS_KEY` | `op://Homelab/cloudflare/secrets/r2_secret_access_key` | `r2_secret_access_key` | P0 |
+| `TF_VAR_GRAFANA_AUTH` | `op://Homelab/grafana/secrets/service_account_token` | `service_account_token` | P1 |
+| `TF_VAR_GITHUB_TOKEN` | `op://Homelab/github/secrets/personal_access_token` | `personal_access_token` | P1 |
+| `TF_VAR_SUPABASE_URL` | `op://Homelab/supabase/secrets/url` | `url` | P1 |
+| `GH_PAT` | `op://Homelab/github/secrets/personal_access_token` | `personal_access_token` | P2 |
 
 ### Derived (known infrastructure)
 
@@ -67,7 +83,6 @@ secrets.yaml (300-cloudflare)  ──→  Metadata SSoT for all repos
 | `TF_VAR_PROXMOX_ENDPOINT` | `100-pve/terraform.tfvars` | `proxmox_endpoint` | P0 |
 | `TF_VAR_PROXMOX_API_TOKEN` | `100-pve/terraform.tfvars` | `proxmox_api_token` | P0 |
 | `TF_VAR_PROXMOX_INSECURE` | `100-pve/terraform.tfvars` | `proxmox_insecure` | P0 |
-| `TF_VAR_VAULT_TOKEN` | `100-pve/terraform.tfvars` | `vault_token` | P1 |
 | `TF_VAR_CLOUDFLARE_ACCOUNT_ID` | `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P1 |
 | `TF_VAR_CLOUDFLARE_ZONE_ID` | `300-cloudflare/terraform.tfvars` | `cloudflare_zone_id` | P1 |
 | `TF_VAR_SYNOLOGY_DOMAIN` | `300-cloudflare/terraform.tfvars` | `synology_domain` | P1 |
@@ -75,7 +90,7 @@ secrets.yaml (300-cloudflare)  ──→  Metadata SSoT for all repos
 | `CLOUDFLARE_API_TOKEN` | env / CF dashboard | — | P2 |
 | `CLOUDFLARE_ACCOUNT_ID` | `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P2 |
 
-### Manual (3/20 — not in Vault)
+### Manual (3/19 — not in 1Password)
 
 | Secret | Priority | Source | Used By |
 |--------|----------|--------|---------|
@@ -86,8 +101,9 @@ secrets.yaml (300-cloudflare)  ──→  Metadata SSoT for all repos
 ## Secret Rotation
 
 ```bash
-# 1. Update value in Vault
-vault kv put secret/homelab/cloudflare r2_access_key_id="NEW" r2_secret_access_key="NEW" ...
+# 1. Update value in 1Password
+#    Via UI: 1Password → Homelab vault → item → Edit field
+#    Via CLI: op item edit "cloudflare" "secrets.r2_access_key_id=NEW" --vault Homelab
 
 # 2. Push to GitHub
 scripts/sync-vault-secrets.sh --force
@@ -99,5 +115,5 @@ scripts/setup-github-secrets.sh --audit
 ## Weekly Audit
 
 The `secret-audit.yml` workflow runs every Monday at 09:00 UTC.
-It validates all 20 secrets and reports missing ones.
+It validates all 19 secrets and reports missing ones.
 Trigger manually: Actions → Secret Audit → Run workflow.

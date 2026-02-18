@@ -34,29 +34,6 @@ variable "github_token" {
   default     = ""
 }
 
-variable "vault_address" {
-  description = "Vault server address"
-  type        = string
-  default     = "http://192.168.50.112:8200"
-
-  validation {
-    condition     = can(regex("^https?://", var.vault_address))
-    error_message = "vault_address must be a valid HTTP(S) URL."
-  }
-}
-
-variable "vault_token" {
-  description = "Vault token with write access to target mount/path"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "vault_mount_path" {
-  description = "Vault KV v2 mount path"
-  type        = string
-  default     = "secret"
-}
 
 variable "secret_values" {
   description = "Runtime secret values map, keyed by secret name (never commit)"
@@ -153,5 +130,3 @@ variable "homelab_domain" {
     error_message = "homelab_domain must be a valid domain name."
   }
 }
-
-

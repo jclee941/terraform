@@ -50,7 +50,7 @@ jobs:
           TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
           TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
           TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
-          TF_VAR_vault_token: ${{ secrets.TF_VAR_VAULT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Create Issue on Failure
         if: failure()
@@ -62,7 +62,7 @@ jobs:
 
             ### Checklist
             - [ ] Verify Cloudflare API credentials
-            - [ ] Verify Vault token is valid
+            - [ ] Verify 1Password service account token is valid
             - [ ] Run `terraform plan` locally to diagnose
             - [ ] Fix and re-apply, or revert the commit
           labels: 'terraform-drift,automated,infrastructure'

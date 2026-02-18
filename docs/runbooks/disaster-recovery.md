@@ -12,7 +12,7 @@
 ## Recovery Priority Order
 
 1. **PVE Host** (100) — Hypervisor must be up first
-2. **Vault** (112:8200) — Secrets needed by all services
+2. **Vault** (112:8200) — Infrastructure service (secrets now managed via 1Password)
 3. **Traefik** (102) — Routing for all services
 4. **ELK** (105) — Logging pipeline
 5. **Grafana** (104) — Monitoring/alerting
@@ -44,6 +44,10 @@ pct start 104  # grafana
 ```
 
 ### Vault Recovery
+
+> **Note:** Vault runs as infrastructure on VM 112 but is no longer the Terraform secret backend.
+> Secrets are managed via 1Password (`OP_SERVICE_ACCOUNT_TOKEN`). This section covers Vault infrastructure recovery only.
+
 ```bash
 ssh root@192.168.50.112
 # 1. Check seal status

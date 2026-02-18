@@ -1,11 +1,10 @@
-data "vault_kv_secret_v2" "cloudflare" {
-  mount = var.vault_mount_path
-  name  = "homelab/cloudflare"
+module "onepassword_secrets" {
+  source = "../modules/shared/onepassword-secrets"
 }
 
 provider "cloudflare" {
-  api_key = data.vault_kv_secret_v2.cloudflare.data["api_key"]
-  email   = data.vault_kv_secret_v2.cloudflare.data["email"]
+  api_key = module.onepassword_secrets.secrets.cloudflare_api_key
+  email   = module.onepassword_secrets.secrets.cloudflare_email
 }
 
 provider "github" {
@@ -13,8 +12,4 @@ provider "github" {
   token = var.github_token
 }
 
-provider "vault" {
-  address          = var.vault_address
-  token            = var.vault_token
-  skip_child_token = true
-}
+provider "onepassword" {}

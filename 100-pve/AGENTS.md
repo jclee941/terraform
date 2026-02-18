@@ -1,31 +1,63 @@
-# AGENTS: 100-pve (Proxmox Host)
+# AGENTS: 100-pve — Primary Terraform Workspace
 
 ## OVERVIEW
-Proxmox Virtual Environment (PVE) host node `100`.
-- **IP Address**: `192.168.50.100`
-- **Role**: Primary hypervisor hosting all LXC containers and Virtual Machines for the homelab.
-- **Management**: Manual configuration layer. This node provides the hardware abstraction and virtualization services that the rest of the infrastructure depends on.
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (810 lines) coordinates host inventory, container sizing, validation, and config rendering.
 
 ## STRUCTURE
-- `config/`: Host-level configuration files and templates (e.g., Filebeat).
-- `pve-hacks/`: Manual scripts, workarounds, and maintenance tools for the hypervisor host.
-- `scripts/`: Legacy maintenance tasks (scrubs, backups, thermal monitoring).
+```
+100-pve/
+├── main.tf              # Central orchestration (810 lines)
+├── variables.tf         # Input variables + validation
+├── terraform.tfvars     # Variable values (gitignored)
+├── versions.tf          # Provider + backend config (S3/R2)
+├── envs/prod/
+│   └── hosts.tf         # SSoT: ALL host IPs, ports, roles, VMIDs
+├── configs/             # TF-rendered outputs (NOT hand-editable)
+│   ├── lxc-{VMID}-{name}/  # Per-container rendered configs
+│   └── rendered/        # Traefik dynamic routes, etc.
+├── config/              # Host-level Filebeat configs
+└── pve-hacks/           # Manual hypervisor scripts/workarounds
+```
 
 ## WHERE TO LOOK
-- **Hardware Config**: `/etc/pve/` (Cluster-wide config filesystem).
-- **Network Interface**: `/etc/network/interfaces` (Physical and bridge networking).
-- **Storage Profile**: `/etc/pve/storage.cfg` (ZFS, LVM, and NFS definitions).
-- **Guest Configuration**: `/etc/pve/lxc/*.conf` or `/etc/pve/qemu-server/*.conf`.
-- **System Logs**: `journalctl -f` or `/var/log/syslog` for host-level diagnostics.
+| Task | Location | Notes |
+|------|----------|-------|
+| **All IPs/Ports** | `envs/prod/hosts.tf` | SSoT. `module.hosts.hosts[name].{ip,vmid,ports,roles}`. |
+| **Container Sizing** | `main.tf` → `container_sizing` | Memory, swap, cores, disk. Budget: 16.3 GB + 9.3 GB swap. |
+| **VM Definitions** | `main.tf` → `vm_definitions` | QEMU VMs (mcphub=112). Cloud-init refs in `cloud_init_files`. |
+| **Validation** | `main.tf` check blocks | VMID range, IP subnet, memory (TF 1.5+ checks). |
+| **LXC Provisioning** | `module.lxc` | `../modules/proxmox/lxc` — all 7 containers. |
+| **VM Provisioning** | `module.vm` | `../modules/proxmox/vm` — cloud-init via snippets. |
+| **Config Rendering** | `module.vm_config` | Renders service templates → `configs/`. |
+| **Rendered Outputs** | `configs/lxc-{VMID}-{name}/` | Terraform-generated. Never hand-edit. |
+
+## DATA FLOW
+```
+envs/prod/hosts.tf (SSoT)
+  → module.hosts (exposes IPs/ports/roles)
+    → main.tf locals (merges sizing + inventory)
+      → module.lxc / module.vm (provisions infra)
+      → module.vm_config (renders service configs)
+        → configs/ (outputs pushed to guests)
+```
 
 ## CONVENTIONS
-- **Manual Only**: All changes to the hypervisor host OS and hardware configuration are strictly manual.
-- **No Terraform**: This directory is NOT managed by Terraform. Do not attempt to use IaC for host-level OS tuning.
-- **VMID Mapping**: Guest IDs must correspond to the directory numbering (e.g., Traefik on 102).
-- **Security**: Root SSH access is restricted to the management VLAN/LAN.
+- **No Hardcoded IPs**: All IPs via `module.hosts.hosts[name].ip`.
+- **Module Sources**: `../modules/proxmox/{lxc,vm,*-config}` relative paths.
+- **Template Paths**: `${path.module}/../{NNN}-{svc}/templates/`.
+- **Memory Budget**: Total < 54 GB physical. Sizing in `container_sizing` local.
+- **Providers**: `bpg/proxmox` (~>0.94), `1Password/onepassword` (~>3.2).
 
 ## ANTI-PATTERNS
-- **No Direct TF Application**: Do not attempt to manage host-level packages or kernel parameters via the project's main Terraform orchestration.
-- **No UI Drift**: Avoid changing guest resource allocations via the Proxmox Web UI for guests managed by Terraform (101-220).
-- **No Plaintext Secrets**: Never hardcode credentials in `pve-hacks/` scripts.
-- **No Unshadowed Changes**: Any manual tweak to the host that affects guest automation must be documented here.
+- **NO hand-editing** `configs/` — regenerate via `terraform apply`.
+- **NO hardcoded IPs** in main.tf — use `module.hosts`.
+- **NO UI changes** on TF-managed guests (101-108, 112). Causes drift.
+- **NO direct state edits** — use `terraform import/state mv`.
+
+## COMMANDS
+```bash
+make plan SVC=pve             # Plan changes
+make apply SVC=pve            # Apply
+terraform plan -out=tfplan    # Direct (from 100-pve/)
+terraform apply tfplan
+```

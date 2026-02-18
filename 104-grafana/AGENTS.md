@@ -31,4 +31,4 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 - **NO Manual UI Edits**: Do not save changes directly in the Grafana UI; they will be overwritten by Terraform/Provisioning.
 - **NO Hardcoded Node IPs**: Use Terraform template variables (`${host_ip}`) for all cross-host references.
 - **NO Loki/Promtail**: Deprecated. Use the Elasticsearch datasource for all log-based panels.
-- **NO Local Alert Files**: Keep all alert logic centralized in `alerting.yaml`.
+- **NO Local Alert Files**: Alert rules are Terraform-managed (`terraform/main.tf`). Do not create standalone alert YAML files.
