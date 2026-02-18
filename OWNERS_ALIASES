@@ -1,0 +1,18 @@
+# OWNERS_ALIASES — Team aliases for OWNERS files
+# See https://www.kubernetes.dev/docs/guide/owners/#owners_aliases
+#
+# Usage in OWNERS files:
+#   approvers:
+#     - infra-admins
+#   reviewers:
+#     - infra-reviewers
+
+aliases:
+  infra-admins:
+    - qws941
+  infra-reviewers:
+    - qws941
+  ci-maintainers:
+    - qws941
+  docs-reviewers:
+    - qws941
