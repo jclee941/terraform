@@ -111,7 +111,14 @@ locals {
       }
     }
 
-    # Removed: oc (200) - removed from Terraform management
+    oc = {
+      vmid  = 200
+      ip    = "192.168.50.200"
+      roles = ["dev", "gpu", "opencode"]
+      ports = {
+        opencode = 8090
+      }
+    }
 
     synology = {
       vmid  = 215

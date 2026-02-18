@@ -86,7 +86,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | **Error Tracking** | `106-glitchtip/` | GlitchTip error tracking (glitchtip.jclee.me). |
 | **Supabase BaaS** | `107-supabase/` | Backend-as-a-Service (supabase.jclee.me). |
 | **AI Knowledge Mgmt** | `108-archon/` | Archon AI with MCP server (archon.jclee.me). Standalone TF workspace. |
-| **MCP Hub** | `112-mcphub/` | MCPHub unified MCP management UI (mcphub.jclee.me). SSoT: `mcp_servers.json` (24 servers). |
+| **MCP Hub** | `112-mcphub/` | MCPHub unified MCP management UI (mcphub.jclee.me). SSoT: `mcp_servers.json` (25 servers). |
 | **OpenCode Gen** | `200-oc/opencode/gen/` | Config gen pipeline: 3 variants (anti/claude/copilot), 9 agents, 8 categories. |
 | **Routing** | `102-traefik/templates/` | Dynamic routing templates (traefik-elk, glitchtip, vault, mcphub, n8n, supabase, synology, archon `.yml.tftpl`). Rendered to `100-pve/configs/rendered/`. |
 | **Alerting** | `104-grafana/terraform/main.tf` | 14 rules across 4 groups (Terraform-managed). 2 contact points (n8n-webhook, alert-log-fallback). `alerting.yaml` deprecated. |
@@ -117,7 +117,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | 301 | github | — | GitHub Org/Repos/Teams | Terraform (External) |
 
 ## MCP SERVERS
-**SSoT: `112-mcphub/mcp_servers.json`** — Centralized catalog for all MCP servers. 24 servers total.
+**SSoT: `112-mcphub/mcp_servers.json`** — Centralized catalog for all MCP servers. 25 servers total.
 
 | Server | Location | Port | Notes |
 |--------|----------|------|-------|
@@ -141,6 +141,7 @@ terraform/                      # Multi-provider IaC monorepo root
 | n8n | hub | :5678 | HTTP transport, Bearer auth (env: N8N_MCP_API_KEY) |
 | in-memoria | hub | :8076 | `in-memoria` (persistent memory) |
 | bazel | hub | :8077 | `github:nacgarg/bazel-mcp-server` |
+| telegram-notifier | hub | :8078 | `telegram-notifier-mcp` |
 | cf-docs | hub (external SSE) | — | `docs.mcp.cloudflare.com` |
 | cf-observability | hub (external SSE) | — | `observability.mcp.cloudflare.com` |
 | cf-radar | hub (external SSE) | — | `radar.mcp.cloudflare.com` |

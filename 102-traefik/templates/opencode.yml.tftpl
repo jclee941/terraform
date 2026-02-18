@@ -1,0 +1,16 @@
+http:
+  routers:
+    opencode:
+      rule: Host(`opencode.${domain}`)
+      entryPoints:
+        - websecure
+      service: opencode
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    opencode:
+      loadBalancer:
+        servers:
+          - url: http://${hosts.oc.ip}:${hosts.oc.ports.opencode}

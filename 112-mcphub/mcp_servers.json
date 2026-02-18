@@ -188,6 +188,18 @@
       "port": 8077,
       "description": "Bazel build system operations"
     },
+    "telegram-notifier": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@harnyk/telegram-notifier-mcp"],
+      "port": 8078,
+      "env": {
+        "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}",
+        "TELEGRAM_CHAT_ID": "${TELEGRAM_CHAT_ID}"
+      },
+      "description": "Telegram bot notifications"
+    },
     "cf-docs": {
       "location": "hub",
       "transport": "sse",

@@ -44,13 +44,15 @@ locals {
     supabase  = { subdomain = "supabase" }
     nas       = { subdomain = "nas" }
     n8n       = { subdomain = "n8n" }
+    opencode  = { subdomain = "opencode" }
   }
 
   # Services requiring Cloudflare Access protection
   restricted_services = {
-    vault  = { subdomain = "vault", name = "Vault" }
-    es     = { subdomain = "es", name = "Elasticsearch" }
-    n8n    = { subdomain = "n8n", name = "n8n Automation" }
-    mcphub = { subdomain = "mcphub", name = "MCP Hub" }
+    vault    = { subdomain = "vault", name = "Vault" }
+    es       = { subdomain = "es", name = "Elasticsearch" }
+    n8n      = { subdomain = "n8n", name = "n8n Automation" }
+    mcphub   = { subdomain = "mcphub", name = "MCP Hub" }
+    opencode = { subdomain = "opencode", name = "OpenCode" }
   }
 }
