@@ -11,7 +11,7 @@ updates:
       - "dependencies"
       - "automated"
     commit-message:
-      prefix: "ci"
+      prefix: "chore(deps)"
 
   # Terraform — Primary infrastructure workspace
   - package-ecosystem: "terraform"
@@ -25,7 +25,8 @@ updates:
       - "terraform"
       - "automated"
     commit-message:
-      prefix: "infra(proxmox)"
+      prefix: "chore(deps)"
+      include: "scope"
 
   # Terraform — Grafana app workspace
   - package-ecosystem: "terraform"
@@ -39,7 +40,8 @@ updates:
       - "terraform"
       - "automated"
     commit-message:
-      prefix: "infra(grafana)"
+      prefix: "chore(deps)"
+      include: "scope"
 
   # Terraform — ELK app workspace
   - package-ecosystem: "terraform"
@@ -53,7 +55,8 @@ updates:
       - "terraform"
       - "automated"
     commit-message:
-      prefix: "infra(elk)"
+      prefix: "chore(deps)"
+      include: "scope"
 
   # Terraform — Cloudflare workspace
   - package-ecosystem: "terraform"
@@ -67,7 +70,8 @@ updates:
       - "terraform"
       - "automated"
     commit-message:
-      prefix: "infra(cloudflare)"
+      prefix: "chore(deps)"
+      include: "scope"
 
   # Terraform — GitHub workspace
   - package-ecosystem: "terraform"
@@ -81,4 +85,5 @@ updates:
       - "terraform"
       - "automated"
     commit-message:
-      prefix: "infra(github)"
+      prefix: "chore(deps)"
+      include: "scope"
