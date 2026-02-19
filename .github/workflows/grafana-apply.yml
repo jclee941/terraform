@@ -17,50 +17,20 @@ concurrency:
   group: terraform-apply-grafana
   cancel-in-progress: false
 
-env:
-  TF_WORKING_DIR: 104-grafana/terraform
-
 jobs:
   apply:
-    name: Grafana Apply
-    runs-on: self-hosted
-    timeout-minutes: 30
-    environment: production
-    defaults:
-      run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
+    uses: ./.github/workflows/_terraform-apply.yml
+    with:
+      service-name: Grafana
+      working-directory: 104-grafana/terraform
+      failure-title-prefix: '[Grafana] Apply failed on master'
+      failure-extra-body: |
+        **Workspace:** `104-grafana/terraform`
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Setup Terraform & Init
-        uses: ./.github/actions/terraform-setup
-        with:
-          terraform-version: '1.10.5'
-          working-directory: ${{ env.TF_WORKING_DIR }}
-          init-args: '-input=false'
-        env:
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -no-color
-        env:
-          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
-          TF_VAR_grafana_auth: ${{ secrets.TF_VAR_GRAFANA_AUTH }}
-          TF_VAR_n8n_webhook_url: ${{ secrets.TF_VAR_N8N_WEBHOOK_URL }}
-
-      - name: Create Issue on Failure
-        if: failure()
-        uses: ./.github/actions/notify-failure
-        with:
-          title-prefix: '[Grafana] Apply failed on master'
-          extra-body: |
-            **Workspace:** `104-grafana/terraform`
-
-            ### Checklist
-            - [ ] Verify Grafana API connectivity and auth token
-            - [ ] Run `make plan SVC=104-grafana/terraform` locally to diagnose
-            - [ ] Check if dashboard JSON files are valid
-            - [ ] Fix and re-apply, or revert the commit
-          labels: 'terraform-drift,automated,infrastructure'
+        ### Checklist
+        - [ ] Verify Grafana API connectivity and auth token
+        - [ ] Run `make plan SVC=104-grafana/terraform` locally to diagnose
+        - [ ] Check if dashboard JSON files are valid
+        - [ ] Fix and re-apply, or revert the commit
+      failure-labels: 'terraform-drift,automated,infrastructure'
+    secrets: inherit  # pragma: allowlist secret

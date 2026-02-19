@@ -16,49 +16,20 @@ concurrency:
   group: archon-apply
   cancel-in-progress: false
 
-env:
-  TF_WORKING_DIR: 108-archon/terraform
-
 jobs:
   apply:
-    name: Archon Apply
-    runs-on: self-hosted
-    timeout-minutes: 30
-    environment: production
-    defaults:
-      run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
+    uses: ./.github/workflows/_terraform-apply.yml
+    with:
+      service-name: Archon
+      working-directory: 108-archon/terraform
+      migrate-state: lxc_and_lxc_config
+      failure-title-prefix: '[Archon] Apply failed on master'
+      failure-extra-body: |
+        **Workspace:** `108-archon/terraform`
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Setup Terraform & Init
-        uses: ./.github/actions/terraform-setup
-        with:
-          terraform-version: '1.10.5'
-          working-directory: ${{ env.TF_WORKING_DIR }}
-          init-args: '-input=false'
-
-      - name: Migrate State (one-time)
-        run: |
-          # Remove orphaned resources from previous config deployment era.
-          terraform state rm module.lxc 2>/dev/null || true
-          terraform state rm module.lxc_config 2>/dev/null || true
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -no-color
-
-      - name: Create Issue on Failure
-        if: failure()
-        uses: ./.github/actions/notify-failure
-        with:
-          title-prefix: '[Archon] Apply failed on master'
-          extra-body: |
-            **Workspace:** `108-archon/terraform`
-
-            ### Checklist
-            - [ ] Verify Supabase URL is accessible
-            - [ ] Run `terraform plan` locally to diagnose
-            - [ ] Fix and re-apply, or revert the commit
-          labels: 'terraform-drift,automated,infrastructure'
+        ### Checklist
+        - [ ] Verify Archon container is accessible
+        - [ ] Run `terraform plan` locally to diagnose
+        - [ ] Fix and re-apply, or revert the commit
+      failure-labels: 'terraform-drift,automated,infrastructure'
+    secrets: inherit  # pragma: allowlist secret

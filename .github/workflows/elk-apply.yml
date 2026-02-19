@@ -16,43 +16,19 @@ concurrency:
   group: elk-apply
   cancel-in-progress: false
 
-env:
-  TF_WORKING_DIR: 105-elk/terraform
-
 jobs:
   apply:
-    name: ELK Apply
-    runs-on: self-hosted
-    timeout-minutes: 30
-    environment: production
-    defaults:
-      run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
+    uses: ./.github/workflows/_terraform-apply.yml
+    with:
+      service-name: ELK
+      working-directory: 105-elk/terraform
+      failure-title-prefix: '[ELK] Apply failed on master'
+      failure-extra-body: |
+        **Workspace:** `105-elk/terraform`
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Setup Terraform & Init
-        uses: ./.github/actions/terraform-setup
-        with:
-          terraform-version: '1.10.5'
-          working-directory: ${{ env.TF_WORKING_DIR }}
-          init-args: '-input=false'
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -no-color
-
-      - name: Create Issue on Failure
-        if: failure()
-        uses: ./.github/actions/notify-failure
-        with:
-          title-prefix: '[ELK] Apply failed on master'
-          extra-body: |
-            **Workspace:** `105-elk/terraform`
-
-            ### Checklist
-            - [ ] Verify Elasticsearch connectivity
-            - [ ] Run `terraform plan` locally to diagnose
-            - [ ] Fix and re-apply, or revert the commit
-          labels: 'terraform-drift,automated,infrastructure'
+        ### Checklist
+        - [ ] Verify Elasticsearch connectivity
+        - [ ] Run `terraform plan` locally to diagnose
+        - [ ] Fix and re-apply, or revert the commit
+      failure-labels: 'terraform-drift,automated,infrastructure'
+    secrets: inherit  # pragma: allowlist secret

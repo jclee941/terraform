@@ -16,46 +16,20 @@ concurrency:
   group: github-apply
   cancel-in-progress: false
 
-env:
-  TF_WORKING_DIR: 301-github
-
 jobs:
   apply:
-    name: GitHub Apply
-    runs-on: self-hosted
-    timeout-minutes: 30
-    environment: production
-    defaults:
-      run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
+    uses: ./.github/workflows/_terraform-apply.yml
+    with:
+      service-name: GitHub
+      working-directory: 301-github
+      enable-repository-imports: true
+      failure-title-prefix: '[GitHub] Apply failed on master'
+      failure-extra-body: |
+        **Workspace:** `301-github`
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Setup Terraform & Init
-        uses: ./.github/actions/terraform-setup
-        with:
-          terraform-version: '1.10.5'
-          working-directory: ${{ env.TF_WORKING_DIR }}
-          init-args: '-input=false'
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -no-color
-        env:
-          TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
-          TF_VAR_enable_repository_imports: "true"
-
-      - name: Create Issue on Failure
-        if: failure()
-        uses: ./.github/actions/notify-failure
-        with:
-          title-prefix: '[GitHub] Apply failed on master'
-          extra-body: |
-            **Workspace:** `301-github`
-
-            ### Checklist
-            - [ ] Verify GitHub token has required permissions
-            - [ ] Run `terraform plan` locally to diagnose
-            - [ ] Fix and re-apply, or revert the commit
-          labels: 'terraform-drift,automated,infrastructure'
+        ### Checklist
+        - [ ] Verify GitHub token has required permissions
+        - [ ] Run `terraform plan` locally to diagnose
+        - [ ] Fix and re-apply, or revert the commit
+      failure-labels: 'terraform-drift,automated,infrastructure'
+    secrets: inherit  # pragma: allowlist secret
