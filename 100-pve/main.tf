@@ -367,10 +367,7 @@ module "vm_config" {
           },
           {
             path        = "/opt/mcphub/.env"
-            content     = <<-EOT
-MCPHUB_ADMIN_PASSWORD=${module.onepassword_secrets.secrets.mcphub_admin_password}
-N8N_MCP_API_KEY=${module.onepassword_secrets.secrets.mcphub_n8n_mcp_api_key}
-EOT
+            content     = module.config_renderer.rendered_configs["mcphub_env"]
             permissions = "0600"
             owner       = "root:root"
           }
@@ -668,6 +665,7 @@ locals {
       filebeat       = "filebeat.yml.tftpl"
       docker_compose = "docker-compose.yml.tftpl"
       mcp_settings   = "mcp_settings.json.tftpl"
+      env            = ".env.tftpl"
     } }
   }
 
@@ -703,6 +701,7 @@ module "config_renderer" {
 
   template_vars = merge(
     module.onepassword_secrets.secrets,
+    module.onepassword_secrets.metadata,
     {
       hosts                = module.hosts.hosts
       domain               = "jclee.me"

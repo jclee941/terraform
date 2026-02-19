@@ -4,7 +4,7 @@ module "onepassword_secrets" {
 
 provider "cloudflare" {
   api_key = module.onepassword_secrets.secrets.cloudflare_api_key
-  email   = module.onepassword_secrets.secrets.cloudflare_email
+  email   = module.onepassword_secrets.metadata.cloudflare_email
 }
 
 provider "github" {

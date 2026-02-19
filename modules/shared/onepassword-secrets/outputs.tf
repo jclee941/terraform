@@ -5,8 +5,11 @@
 # Access pattern: section_map["secrets"].field_map["<key>"].value
 # Each 1Password item must have a section named "secrets" with matching field labels.
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
+#
+# Secrets (sensitive=true): API keys, passwords, tokens — 27 keys.
+# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 8 keys.
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge"
+  description = "Flat map of all homelab secrets for template_vars merge (27 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -28,19 +31,12 @@ output "secrets" {
     # Exa (web search)
     exa_api_key = try(data.onepassword_item.exa.section_map["secrets"].field_map["api_key"].value, "")
 
-    # Splunk
-    splunk_username = try(data.onepassword_item.splunk.section_map["secrets"].field_map["username"].value, "")
-    splunk_host     = try(data.onepassword_item.splunk.section_map["secrets"].field_map["host"].value, "")
-    splunk_port     = try(data.onepassword_item.splunk.section_map["secrets"].field_map["port"].value, "")
-
     # Supabase
-    supabase_url                = try(data.onepassword_item.supabase.section_map["secrets"].field_map["url"].value, "")
     supabase_service_key        = try(data.onepassword_item.supabase.section_map["secrets"].field_map["service_key"].value, "")
     supabase_anon_key           = try(data.onepassword_item.supabase.section_map["secrets"].field_map["anon_key"].value, "")
     supabase_service_role_key   = try(data.onepassword_item.supabase.section_map["secrets"].field_map["service_role_key"].value, "")
     supabase_db_password        = try(data.onepassword_item.supabase.section_map["secrets"].field_map["db_password"].value, "")
     supabase_jwt_secret         = try(data.onepassword_item.supabase.section_map["secrets"].field_map["jwt_secret"].value, "")
-    supabase_dashboard_username = try(data.onepassword_item.supabase.section_map["secrets"].field_map["dashboard_username"].value, "")
     supabase_dashboard_password = try(data.onepassword_item.supabase.section_map["secrets"].field_map["dashboard_password"].value, "")
 
     # Archon
@@ -48,10 +44,7 @@ output "secrets" {
     openai_api_key       = try(data.onepassword_item.archon.section_map["secrets"].field_map["openai_api_key"].value, "")
 
     # Cloudflare
-    cloudflare_api_key    = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_key"].value, "")
-    cloudflare_email      = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["email"].value, "")
-    cloudflare_account_id = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["account_id"].value, "")
-    cloudflare_zone_id    = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["zone_id"].value, "")
+    cloudflare_api_key = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_key"].value, "")
 
     # n8n
     n8n_api_key             = try(data.onepassword_item.n8n.section_map["secrets"].field_map["api_key"].value, "")
@@ -67,5 +60,25 @@ output "secrets" {
     # ELK / Elasticsearch
     elk_elastic_password = try(data.onepassword_item.elk.section_map["secrets"].field_map["elastic_password"].value, "")
     elk_kibana_password  = try(data.onepassword_item.elk.section_map["secrets"].field_map["kibana_password"].value, "")
+  }
+}
+
+output "metadata" {
+  description = "Non-secret configuration metadata: usernames, URLs, IDs (8 keys)"
+  sensitive   = false
+  value = {
+    # Splunk
+    splunk_username = try(data.onepassword_item.splunk.section_map["secrets"].field_map["username"].value, "")
+    splunk_host     = try(data.onepassword_item.splunk.section_map["secrets"].field_map["host"].value, "")
+    splunk_port     = try(data.onepassword_item.splunk.section_map["secrets"].field_map["port"].value, "")
+
+    # Supabase
+    supabase_url                = try(data.onepassword_item.supabase.section_map["secrets"].field_map["url"].value, "")
+    supabase_dashboard_username = try(data.onepassword_item.supabase.section_map["secrets"].field_map["dashboard_username"].value, "")
+
+    # Cloudflare
+    cloudflare_email      = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["email"].value, "")
+    cloudflare_account_id = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["account_id"].value, "")
+    cloudflare_zone_id    = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["zone_id"].value, "")
   }
 }
