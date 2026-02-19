@@ -14,10 +14,6 @@ terraform {
       source  = "integrations/github"
       version = "~> 6.6"
     }
-    onepassword = {
-      source  = "1Password/onepassword"
-      version = "~> 3.2"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.0"
