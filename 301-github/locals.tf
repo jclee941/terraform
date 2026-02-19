@@ -13,7 +13,6 @@ locals {
 
   infra_actions_variables = {
     PROXMOX_ENDPOINT = "https://pve.${local.infra_domain}:8006"
-    VAULT_ADDR       = "https://vault.${local.infra_domain}"
     GRAFANA_URL      = try(local.service_urls.grafana_url, "")
     N8N_URL          = try(local.service_urls.n8n_url, "")
   }

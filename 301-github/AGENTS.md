@@ -45,7 +45,7 @@ Terraform workspace managing GitHub resources for `qws941`. Provisions 17 reposi
 ## ANTI-PATTERNS
 - **NO manual repo settings** via GitHub UI for TF-managed repos. Causes drift.
 - **NO plaintext secrets** in tfvars. Use `sensitive = true` variables.
-- **NOTE**: `standard` protection profile is duplicated in `rulesets.tf` (lines 22-47). Needs dedup.
+- **NO duplicate keys** in locals/maps. HCL silently uses last definition — bugs are invisible.
 
 ## COMMANDS
 ```bash

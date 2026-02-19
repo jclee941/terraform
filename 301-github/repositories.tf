@@ -9,23 +9,6 @@ locals {
       protection          = "strict"
       extra_status_checks = ["Terraform Plan"]
     }
-    proxmox = {
-      description    = "Proxmox infrastructure and automation workspace (migrated to terraform/)"
-      visibility     = "private"
-      topics         = ["proxmox", "homelab"]
-      archived       = true
-      default_branch = "master"
-      protection     = "standard"
-    }
-    github = {
-      description    = "GitHub infrastructure as code template"
-      visibility     = "public"
-      topics         = ["github", "automation", "template"]
-      archived       = false
-      default_branch = "main"
-      is_template    = true
-      protection     = "minimal"
-    }
     blacklist = {
       description    = "Blacklist management application"
       visibility     = "public"
@@ -41,22 +24,6 @@ locals {
       archived       = false
       default_branch = "master"
       protection     = "standard"
-    }
-    opencode = {
-      description    = "OpenCode development platform"
-      visibility     = "public"
-      topics         = ["typescript", "ai", "developer-tools"]
-      archived       = false
-      default_branch = "dev"
-      protection     = "standard"
-    }
-    "opencode-slack-notify" = {
-      description    = "OpenCode Slack notification service"
-      visibility     = "public"
-      topics         = ["typescript", "slack", "notifications"]
-      archived       = false
-      default_branch = "master"
-      protection     = "minimal"
     }
     propose = {
       description    = "Proposal management tool"
@@ -90,30 +57,6 @@ locals {
       default_branch = "master"
       protection     = "minimal"
     }
-    cloudflare = {
-      description    = "Cloudflare infrastructure (migrated to terraform/300-cloudflare)"
-      visibility     = "private"
-      topics         = ["cloudflare"]
-      archived       = true
-      default_branch = "master"
-      protection     = "minimal"
-    }
-    "opencode-jclee" = {
-      description    = "OpenCode fork"
-      visibility     = "private"
-      topics         = ["fork"]
-      archived       = false
-      default_branch = "antigravity"
-      protection     = "minimal"
-    }
-    claude = {
-      description    = "Claude AI experiments"
-      visibility     = "private"
-      topics         = ["ai", "shell"]
-      archived       = false
-      default_branch = "master"
-      protection     = "minimal"
-    }
     splunk = {
       description    = "Splunk apps and configurations"
       visibility     = "public"
@@ -126,14 +69,6 @@ locals {
       description    = "Tmux configuration"
       visibility     = "public"
       topics         = ["shell", "tmux"]
-      archived       = false
-      default_branch = "master"
-      protection     = "minimal"
-    }
-    qqq = {
-      description    = "Utility repository"
-      visibility     = "public"
-      topics         = []
       archived       = false
       default_branch = "master"
       protection     = "minimal"

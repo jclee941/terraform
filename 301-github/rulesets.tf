@@ -32,19 +32,6 @@ locals {
       non_fast_forward                  = true
       status_checks                     = ["Validate Changes"]
     }
-    standard = {
-      required_approving_review_count   = 1
-      require_code_owner_review         = false
-      dismiss_stale_reviews_on_push     = true
-      require_last_push_approval        = false
-      required_review_thread_resolution = true
-      required_linear_history           = true
-      required_signatures               = false
-      creation                          = true
-      deletion                          = true
-      non_fast_forward                  = true
-      status_checks                     = ["Validate Changes"]
-    }
     minimal = {
       required_approving_review_count   = 1
       require_code_owner_review         = false

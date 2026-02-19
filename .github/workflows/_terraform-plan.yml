@@ -83,6 +83,15 @@ jobs:
           terraform state rm module.lxc 2>/dev/null || true
           terraform state rm module.lxc_config 2>/dev/null || true
 
+      - name: Create stub remote state for CI
+        if: inputs.enable-repository-imports
+        run: |
+          # The 301-github workspace reads data.terraform_remote_state.infra
+          # from 100-pve/terraform.tfstate. On CI this file doesn't exist.
+          # Create an empty stub so terraform plan/apply can proceed.
+          mkdir -p ../100-pve
+          echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > ../100-pve/terraform.tfstate
+
       - name: Terraform Plan
         id: plan
         run: |

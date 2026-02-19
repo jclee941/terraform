@@ -73,6 +73,36 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
 
+  # Terraform — Traefik workspace
+  - package-ecosystem: "terraform"
+    directory: "/102-traefik/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  # Terraform — Archon workspace
+  - package-ecosystem: "terraform"
+    directory: "/108-archon/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
   # Terraform — GitHub workspace
   - package-ecosystem: "terraform"
     directory: "/301-github"

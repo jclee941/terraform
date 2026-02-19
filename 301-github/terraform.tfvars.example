@@ -29,8 +29,8 @@ repository_actions_variables = {
   }
 }
 
-repository_actions_secrets = {
-  terraform = {
-    VAULT_ADDR = ""
-  }
-}
+# repository_actions_secrets = {
+#   terraform = {
+#     EXAMPLE_SECRET = ""
+#   }
+# }

@@ -14,7 +14,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: terraform-apply-grafana
+  group: grafana-apply
   cancel-in-progress: false
 
 jobs:

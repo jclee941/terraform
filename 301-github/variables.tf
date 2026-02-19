@@ -39,20 +39,12 @@ variable "enable_infra_actions_variables" {
 }
 
 variable "known_repositories" {
-  description = "Known repositories in this workspace scope (github-iac-template renamed to github)."
+  description = "Known repositories in this workspace scope."
   type        = set(string)
   default = [
     "blacklist",
-    "claude",
-    "cloudflare",
-    "github",
     "hycu_fsds",
-    "opencode",
-    "opencode-jclee",
-    "opencode-slack-notify",
     "propose",
-    "proxmox",
-    "qqq",
     "resume",
     "safework2",
     "splunk",
@@ -316,21 +308,15 @@ variable "security_dependabot_enabled" {
   description = "Enable Dependabot security updates by repository."
   type        = map(bool)
   default = {
-    blacklist             = true
-    claude                = true
-    github                = true
-    hycu_fsds             = true
-    opencode              = true
-    opencode-jclee        = true
-    opencode-slack-notify = true
-    propose               = true
-    qqq                   = true
-    resume                = true
-    safework2             = true
-    splunk                = true
-    terraform             = true
-    tmux                  = true
-    youtube               = true
+    blacklist = true
+    hycu_fsds = true
+    propose   = true
+    resume    = true
+    safework2 = true
+    splunk    = true
+    terraform = true
+    tmux      = true
+    youtube   = true
   }
 }
 
@@ -338,21 +324,15 @@ variable "security_code_scanning_tools" {
   description = "Code scanning tools required by ruleset for each repository."
   type        = map(set(string))
   default = {
-    blacklist             = ["CodeQL"]
-    claude                = ["CodeQL"]
-    github                = ["CodeQL"]
-    hycu_fsds             = ["CodeQL"]
-    opencode              = ["CodeQL"]
-    opencode-jclee        = ["CodeQL"]
-    opencode-slack-notify = ["CodeQL"]
-    propose               = ["CodeQL"]
-    qqq                   = ["CodeQL"]
-    resume                = ["CodeQL"]
-    safework2             = ["CodeQL"]
-    splunk                = ["CodeQL"]
-    terraform             = ["CodeQL"]
-    tmux                  = ["CodeQL"]
-    youtube               = ["CodeQL"]
+    blacklist = ["CodeQL"]
+    hycu_fsds = ["CodeQL"]
+    propose   = ["CodeQL"]
+    resume    = ["CodeQL"]
+    safework2 = ["CodeQL"]
+    splunk    = ["CodeQL"]
+    terraform = ["CodeQL"]
+    tmux      = ["CodeQL"]
+    youtube   = ["CodeQL"]
   }
 }
 

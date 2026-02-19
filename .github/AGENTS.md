@@ -1,18 +1,16 @@
 # AGENTS: .github — CI/CD Pipeline
 
 ## OVERVIEW
-27 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Reusable workflow pattern: `_terraform-{plan,apply}.yml` called by 12 service-specific workflows. All TF workflows run on `self-hosted` runner (LXC 101).
+25 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
 
 ## STRUCTURE
 ```
 .github/
 ├── workflows/
-│   ├── _terraform-plan.yml    # Reusable: TF init + plan + PR comment
-│   ├── _terraform-apply.yml   # Reusable: TF init + apply (on merge)
 │   ├── terraform-plan.yml     # 100-pve plan (PR trigger)
 │   ├── terraform-apply.yml    # 100-pve apply (push to master)
 │   ├── terraform-drift.yml    # Daily drift check (7-workspace matrix)
-│   ├── {svc}-plan.yml         # Per-service plan (6 services)
+│   ├── {svc}-plan.yml         # Per-service plan (6 services: archon, cloudflare, elk, github, grafana, traefik)
 │   ├── {svc}-apply.yml        # Per-service apply (6 services)
 │   ├── auto-merge.yml         # Risk-tier labeling + auto-merge (low only)
 │   ├── pr-review.yml          # Automated PR review
@@ -31,17 +29,17 @@
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
-| **Add Service Workflow** | Copy `{svc}-plan.yml` + `{svc}-apply.yml` | Call reusable `_terraform-plan/apply.yml` with service inputs. |
+| **Add Service Workflow** | Copy `{svc}-plan.yml` + `{svc}-apply.yml` | Standalone workflows per service. Each contains full TF init + plan/apply logic (~120 lines). |
 | **Drift Detection** | `terraform-drift.yml` | Matrix: proxmox, grafana, elk, traefik, archon, cloudflare, github. Daily 06:00 UTC. |
 | **Risk Tiers** | `auto-merge.yml` | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, oc, staging), low = auto-merge. |
-| **Reusable Inputs** | `_terraform-plan.yml` | `service-name`, `working-directory`, `init-args`, `terraform-version`, `extra-env`. |
-| **Secrets Pattern** | Reusable workflows | `_SECRETS → jq → TF_VAR_*` auto-export in plan/apply steps. |
+| **Workflow Pattern** | `{svc}-plan.yml` | Each standalone workflow has: TF setup, init, plan/apply, PR comment. No reusable workflow abstraction (consolidation opportunity). |
+| **Secrets Pattern** | Per-workflow steps | `secrets.*` → `TF_VAR_*` env export in plan/apply steps. |
 
 ## CONVENTIONS
 - **Runner**: All TF workflows use `self-hosted` (LXC 101). Non-TF automation uses `ubuntu-latest`.
 - **Backend Config**: All workspaces use local backend. No `-backend-config` needed — `terraform init` uses default local state.
 - **Pin Actions**: All `uses:` pinned to full commit SHA, not version tags.
-- **Services**: archon, cloudflare, elk, github, grafana, traefik each have dedicated plan/apply pairs.
+- **Services**: archon, cloudflare, elk, github, grafana, traefik each have dedicated standalone plan/apply pairs (~120 lines each, significant duplication — consolidation candidate).
 
 ## ANTI-PATTERNS
 - **NO `push` trigger** on plan workflows. Plans run on `pull_request` only.
