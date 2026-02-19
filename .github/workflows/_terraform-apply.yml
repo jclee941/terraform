@@ -1,0 +1,121 @@
+name: Terraform Apply (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: 'Display name of the service (e.g. "Archon", "ELK")'
+        type: string
+        required: true
+      working-directory:
+        description: 'Terraform working directory relative to repo root (e.g. "108-archon/terraform")'
+        type: string
+        required: true
+      terraform-version:
+        description: 'Terraform version to install'
+        type: string
+        default: '1.10.5'
+      migrate-state:
+        description: 'Run state migration to remove orphaned resources. Values: none | lxc_config | lxc_and_lxc_config'
+        type: string
+        default: 'none'
+      enable-repository-imports:
+        description: 'Set TF_VAR_enable_repository_imports=true (github workspace only)'
+        type: boolean
+        default: false
+      failure-title-prefix:
+        description: 'Title prefix for failure issue (e.g. "[Archon] Apply failed on master")'
+        type: string
+        required: true
+      failure-extra-body:
+        description: 'Service-specific checklist content for failure issue body'
+        type: string
+        default: ''
+      failure-labels:
+        description: 'Comma-separated labels for failure issue'
+        type: string
+        default: 'terraform-drift,automated,infrastructure'
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
+      TF_API_TOKEN:
+        required: false
+      TF_VAR_GRAFANA_AUTH:
+        required: false
+      TF_VAR_N8N_WEBHOOK_URL:
+        required: false
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      TF_VAR_CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      TF_VAR_CLOUDFLARE_ZONE_ID:
+        required: false
+      TF_VAR_SYNOLOGY_DOMAIN:
+        required: false
+      TF_VAR_ACCESS_ALLOWED_EMAILS:
+        required: false
+      TF_VAR_GITHUB_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  apply:
+    name: ${{ inputs.service-name }} Apply
+    runs-on: self-hosted
+    timeout-minutes: 30
+    environment: production
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Terraform & Init
+        uses: ./.github/actions/terraform-setup
+        with:
+          terraform-version: ${{ inputs.terraform-version }}
+          working-directory: ${{ inputs.working-directory }}
+          init-args: '-input=false'
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Migrate State — lxc_config only (Traefik)
+        if: inputs.migrate-state == 'lxc_config'
+        run: |
+          terraform state rm module.lxc_config 2>/dev/null || true
+
+      - name: Migrate State — lxc + lxc_config (Archon)
+        if: inputs.migrate-state == 'lxc_and_lxc_config'
+        run: |
+          # Remove orphaned resources from previous config deployment era.
+          terraform state rm module.lxc 2>/dev/null || true
+          terraform state rm module.lxc_config 2>/dev/null || true
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false -no-color
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+          TF_VAR_grafana_auth: ${{ secrets.TF_VAR_GRAFANA_AUTH }}
+          TF_VAR_n8n_webhook_url: ${{ secrets.TF_VAR_N8N_WEBHOOK_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
+          TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
+          TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
+          TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # GitHub workspace only: set to 'true' when enable-repository-imports input is true
+          TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: ${{ inputs.failure-title-prefix }}
+          extra-body: ${{ inputs.failure-extra-body }}
+          labels: ${{ inputs.failure-labels }}

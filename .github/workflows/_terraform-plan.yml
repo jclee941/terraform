@@ -1,0 +1,182 @@
+name: Terraform Plan (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: 'Display name of the service (e.g. "Archon", "ELK")'
+        type: string
+        required: true
+      working-directory:
+        description: 'Terraform working directory relative to repo root (e.g. "108-archon/terraform")'
+        type: string
+        required: true
+      terraform-version:
+        description: 'Terraform version to install'
+        type: string
+        default: '1.10.5'
+      migrate-state:
+        description: 'Run state migration to remove orphaned resources. Values: none | lxc_config | lxc_and_lxc_config'
+        type: string
+        default: 'none'
+      enable-repository-imports:
+        description: 'Set TF_VAR_enable_repository_imports=true (github workspace only)'
+        type: boolean
+        default: false
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
+      TF_API_TOKEN:
+        required: false
+      TF_VAR_GRAFANA_AUTH:
+        required: false
+      TF_VAR_N8N_WEBHOOK_URL:
+        required: false
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      TF_VAR_CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      TF_VAR_CLOUDFLARE_ZONE_ID:
+        required: false
+      TF_VAR_SYNOLOGY_DOMAIN:
+        required: false
+      TF_VAR_ACCESS_ALLOWED_EMAILS:
+        required: false
+      TF_VAR_GITHUB_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan:
+    name: ${{ inputs.service-name }} Plan
+    runs-on: self-hosted
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Terraform & Init
+        uses: ./.github/actions/terraform-setup
+        with:
+          terraform-version: ${{ inputs.terraform-version }}
+          working-directory: ${{ inputs.working-directory }}
+          init-args: '-input=false'
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Migrate State — lxc_config only (Traefik)
+        if: inputs.migrate-state == 'lxc_config'
+        run: |
+          terraform state rm module.lxc_config 2>/dev/null || true
+
+      - name: Migrate State — lxc + lxc_config (Archon)
+        if: inputs.migrate-state == 'lxc_and_lxc_config'
+        run: |
+          # Remove orphaned resources from previous config deployment era.
+          terraform state rm module.lxc 2>/dev/null || true
+          terraform state rm module.lxc_config 2>/dev/null || true
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          set +e
+          terraform plan -input=false -no-color -out=tfplan 2>&1 | tee plan_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "result=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=failure" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Capture plan output for PR comment (truncate if too large)
+          PLAN=$(cat plan_output.txt)
+          if [ ${#PLAN} -gt 65000 ]; then
+            PLAN="${PLAN:0:65000}
+
+            ... (truncated, see workflow run for full output)"
+          fi
+          echo "plan<<EOFPLAN" >> "$GITHUB_OUTPUT"
+          echo "$PLAN" >> "$GITHUB_OUTPUT"
+          echo "EOFPLAN" >> "$GITHUB_OUTPUT"
+
+          exit $EXIT_CODE
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+          TF_VAR_grafana_auth: ${{ secrets.TF_VAR_GRAFANA_AUTH }}
+          TF_VAR_n8n_webhook_url: ${{ secrets.TF_VAR_N8N_WEBHOOK_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
+          TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
+          TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
+          TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # GitHub workspace only: set to 'true' when enable-repository-imports input is true
+          TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
+
+      - name: Comment Plan on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          PLAN_OUTPUT: ${{ steps.plan.outputs.plan }}
+          PLAN_RESULT: ${{ steps.plan.outputs.result }}
+          SERVICE_NAME: ${{ inputs.service-name }}
+          WORKING_DIR: ${{ inputs.working-directory }}
+        with:
+          script: |
+            const result = process.env.PLAN_RESULT || 'failure';
+            const plan = process.env.PLAN_OUTPUT || 'No plan output captured';
+            const serviceName = process.env.SERVICE_NAME;
+            const workingDir = process.env.WORKING_DIR;
+            const icon = result === 'success' ? '✅' : '❌';
+            const status = result === 'success' ? 'Success' : 'Failed';
+
+            const body = [
+              `## ${icon} ${serviceName} Plan ${status}`,
+              '',
+              '<details><summary>Show Plan Output</summary>',
+              '',
+              '```',
+              plan,
+              '```',
+              '',
+              '</details>',
+              '',
+              `*Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`,
+              `*Working Directory: \`${workingDir}\`*`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes(`${serviceName} Plan`)
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
