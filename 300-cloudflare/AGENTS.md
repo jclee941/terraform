@@ -45,7 +45,7 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 
 ## CONVENTIONS
 - **Numbering**: 300+ = external infrastructure providers (not mapped to `192.168.50.x`).
-- **Providers**: cloudflare ~5.0, github ~6.0, 1Password/onepassword ~3.2.
+- **Providers**: cloudflare ~5.0, github ~6.0. Auth via `CLOUDFLARE_API_TOKEN` env var (no 1Password).
 - **Feature flags**: `enable_cf_store_sync`, `enable_worker_route` in `variables.tf`.
 - **Secret values**: NEVER in code/git. Only in `.tfvars` (gitignored) or env vars.
 - **inventory/secrets.yaml**: Metadata only (name, targets[], description). No values.
@@ -53,7 +53,7 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 
 ## ANTI-PATTERNS
 - **NEVER** commit `.tfvars`, `.env`, or `data/` output files.
-- **NEVER** commit `.tfstate` files. Use remote backend.
+- **NEVER** commit `.tfstate` files. Backend is local (state stored on disk).
 - `collect.sh` output files contain `# DO NOT COMMIT` header — respect it.
 - CF Secrets Store sync (`enable_cf_store_sync`) is beta — don't enable without testing.
 - Worker route (`enable_worker_route`) requires Worker deployed via wrangler first.

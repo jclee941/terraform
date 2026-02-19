@@ -9,7 +9,7 @@ Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions
 ├── main.tf              # Central orchestration (810 lines)
 ├── variables.tf         # Input variables + validation
 ├── terraform.tfvars     # Variable values (gitignored)
-├── versions.tf          # Provider + backend config (S3/R2)
+├── versions.tf          # Provider + backend config (local)
 ├── envs/prod/
 │   └── hosts.tf         # SSoT: ALL host IPs, ports, roles, VMIDs
 ├── configs/             # TF-rendered outputs (NOT hand-editable)
