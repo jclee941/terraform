@@ -29,10 +29,10 @@ run "test_valid_cloudflare_workspace" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
   }
 
   assert {
@@ -49,11 +49,11 @@ run "test_valid_vault_address_https" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    vault_address            = "https://vault.example.com"
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    vault_address         = "https://vault.example.com"
   }
 
   assert {
@@ -70,11 +70,11 @@ run "test_valid_synology_port_boundary_low" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    synology_nas_port        = 1
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    synology_nas_port     = 1
   }
 
   assert {
@@ -91,11 +91,11 @@ run "test_valid_synology_port_boundary_high" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    synology_nas_port        = 65535
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    synology_nas_port     = 65535
   }
 
   assert {
@@ -118,10 +118,10 @@ run "test_invalid_account_id_too_short" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
+    cloudflare_account_id = "abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
   }
 
   expect_failures = [
@@ -137,10 +137,10 @@ run "test_invalid_account_id_uppercase" {
   }
 
   variables {
-    cloudflare_account_id    = "ABCDEF0123456789ABCDEF0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
+    cloudflare_account_id = "ABCDEF0123456789ABCDEF0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
   }
 
   expect_failures = [
@@ -156,10 +156,10 @@ run "test_invalid_account_id_special_chars" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef012345678!"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
+    cloudflare_account_id = "abcdef0123456789abcdef012345678!"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
   }
 
   expect_failures = [
@@ -177,10 +177,10 @@ run "test_invalid_zone_id_too_long" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef00"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef00"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
   }
 
   expect_failures = [
@@ -198,11 +198,11 @@ run "test_invalid_vault_address_no_protocol" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    vault_address            = "vault.example.com:8200"
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    vault_address         = "vault.example.com:8200"
   }
 
   expect_failures = [
@@ -218,11 +218,11 @@ run "test_invalid_vault_address_ftp" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    vault_address            = "ftp://vault.example.com"
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    vault_address         = "ftp://vault.example.com"
   }
 
   expect_failures = [
@@ -240,10 +240,10 @@ run "test_invalid_synology_domain_starts_with_dot" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = ".nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = ".nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
   }
 
   expect_failures = [
@@ -259,10 +259,10 @@ run "test_invalid_synology_domain_ends_with_dot" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me."
-    access_allowed_emails    = ["admin@example.com"]
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me."
+    access_allowed_emails = ["admin@example.com"]
   }
 
   expect_failures = [
@@ -280,11 +280,11 @@ run "test_invalid_synology_ip_with_cidr" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    synology_nas_ip          = "192.168.50.215/24"
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    synology_nas_ip       = "192.168.50.215/24"
   }
 
   expect_failures = [
@@ -300,11 +300,11 @@ run "test_invalid_synology_ip_not_ip" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    synology_nas_ip          = "not-an-ip"
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    synology_nas_ip       = "not-an-ip"
   }
 
   expect_failures = [
@@ -322,11 +322,11 @@ run "test_invalid_synology_port_zero" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    synology_nas_port        = 0
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    synology_nas_port     = 0
   }
 
   expect_failures = [
@@ -342,11 +342,11 @@ run "test_invalid_synology_port_too_high" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    synology_nas_port        = 65536
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    synology_nas_port     = 65536
   }
 
   expect_failures = [
@@ -364,11 +364,11 @@ run "test_invalid_homelab_domain_uppercase" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    homelab_domain           = "JCLEE.ME"
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    homelab_domain        = "JCLEE.ME"
   }
 
   expect_failures = [
@@ -386,11 +386,11 @@ run "test_invalid_r2_cache_ttl_zero" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    r2_cache_ttl_days        = 0
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    r2_cache_ttl_days     = 0
   }
 
   expect_failures = [
@@ -406,11 +406,11 @@ run "test_invalid_r2_cache_ttl_negative" {
   }
 
   variables {
-    cloudflare_account_id    = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id       = "1234567890abcdef1234567890abcdef"
-    synology_domain          = "nas.jclee.me"
-    access_allowed_emails    = ["admin@example.com"]
-    r2_cache_ttl_days        = -1
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    r2_cache_ttl_days     = -1
   }
 
   expect_failures = [
@@ -428,10 +428,10 @@ run "test_invalid_secrets_store_id_empty" {
   }
 
   variables {
-    cloudflare_account_id      = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id         = "1234567890abcdef1234567890abcdef"
-    synology_domain            = "nas.jclee.me"
-    access_allowed_emails      = ["admin@example.com"]
+    cloudflare_account_id       = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id          = "1234567890abcdef1234567890abcdef"
+    synology_domain             = "nas.jclee.me"
+    access_allowed_emails       = ["admin@example.com"]
     cloudflare_secrets_store_id = ""
   }
 

@@ -99,7 +99,7 @@ run "test_valid_actions_allowed_all" {
   }
 
   variables {
-    github_token           = "test-token-placeholder"
+    github_token            = "test-token-placeholder"
     actions_allowed_actions = "all"
   }
 
@@ -117,7 +117,7 @@ run "test_valid_actions_allowed_local_only" {
   }
 
   variables {
-    github_token           = "test-token-placeholder"
+    github_token            = "test-token-placeholder"
     actions_allowed_actions = "local_only"
   }
 
@@ -171,8 +171,8 @@ run "test_valid_secret_visibility_all" {
   }
 
   variables {
-    github_token                     = "test-token-placeholder"
-    organization_secret_visibility   = "all"  # pragma: allowlist secret  # pragma: allowlist secret
+    github_token                   = "test-token-placeholder"
+    organization_secret_visibility = "all" # pragma: allowlist secret  # pragma: allowlist secret
   }
 
   assert {
@@ -230,7 +230,7 @@ run "test_invalid_github_owner_too_long" {
 
   variables {
     github_token = "test-token-placeholder"
-    github_owner = "abcdefghijklmnopqrstuvwxyz1234567890abcd"  # pragma: allowlist secret  # pragma: allowlist secret
+    github_owner = "abcdefghijklmnopqrstuvwxyz1234567890abcd" # pragma: allowlist secret  # pragma: allowlist secret
   }
 
   expect_failures = [
@@ -301,7 +301,7 @@ run "test_invalid_actions_allowed_invalid_value" {
   }
 
   variables {
-    github_token           = "test-token-placeholder"
+    github_token            = "test-token-placeholder"
     actions_allowed_actions = "custom"
   }
 
@@ -340,7 +340,7 @@ run "test_invalid_secret_visibility_invalid_value" {
 
   variables {
     github_token                   = "test-token-placeholder"
-    organization_secret_visibility = "public"  # pragma: allowlist secret  # pragma: allowlist secret
+    organization_secret_visibility = "public" # pragma: allowlist secret  # pragma: allowlist secret
   }
 
   expect_failures = [
@@ -392,8 +392,8 @@ run "test_invalid_n8n_webhook_issue_no_protocol" {
   }
 
   variables {
-    github_token                  = "test-token-placeholder"
-    n8n_webhook_github_issue_url  = "n8n.jclee.me/webhook/github-issue"
+    github_token                 = "test-token-placeholder"
+    n8n_webhook_github_issue_url = "n8n.jclee.me/webhook/github-issue"
   }
 
   expect_failures = [
@@ -409,8 +409,8 @@ run "test_invalid_n8n_webhook_pr_no_protocol" {
   }
 
   variables {
-    github_token               = "test-token-placeholder"
-    n8n_webhook_github_pr_url  = "n8n.jclee.me/webhook/github-pr"
+    github_token              = "test-token-placeholder"
+    n8n_webhook_github_pr_url = "n8n.jclee.me/webhook/github-pr"
   }
 
   expect_failures = [
