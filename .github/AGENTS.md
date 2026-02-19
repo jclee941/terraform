@@ -39,7 +39,7 @@
 
 ## CONVENTIONS
 - **Runner**: All TF workflows use `self-hosted` (LXC 101). Non-TF automation uses `ubuntu-latest`.
-- **Backend Config**: Service workflows pass `-backend-config=../backend.hcl` (or `../../backend.hcl` for nested workspaces).
+- **Backend Config**: All workspaces use local backend. No `-backend-config` needed — `terraform init` uses default local state.
 - **Pin Actions**: All `uses:` pinned to full commit SHA, not version tags.
 - **Services**: archon, cloudflare, elk, github, grafana, traefik each have dedicated plan/apply pairs.
 

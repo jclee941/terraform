@@ -16,8 +16,6 @@ permissions:
 
 env:
   TF_WORKING_DIR: 108-archon/terraform
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   plan:
@@ -37,7 +35,7 @@ jobs:
         with:
           terraform-version: '1.10.5'
           working-directory: ${{ env.TF_WORKING_DIR }}
-          init-args: '-backend-config=../../backend.hcl -input=false'
+          init-args: '-input=false'
 
       - name: Migrate State (one-time)
         run: |

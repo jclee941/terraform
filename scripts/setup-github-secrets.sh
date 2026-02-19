@@ -87,8 +87,6 @@ register() {
   SECRET_SOURCE["$name"]="$source"
 }
 
-register AWS_ACCESS_KEY_ID        P0 "op:op://Homelab/cloudflare/secrets/r2_access_key_id"
-register AWS_SECRET_ACCESS_KEY    P0 "op:op://Homelab/cloudflare/secrets/r2_secret_access_key"
 register TF_API_TOKEN             P0 "env:TF_API_TOKEN"
 register TF_VAR_PROXMOX_ENDPOINT  P0 "tfvars:100-pve:proxmox_endpoint"
 register TF_VAR_PROXMOX_API_TOKEN P0 "tfvars:100-pve:proxmox_api_token"

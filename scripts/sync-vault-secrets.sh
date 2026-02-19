@@ -41,7 +41,7 @@ Environment:
   OP_SERVICE_ACCOUNT_TOKEN  1Password service account token (required)
 
 1Password Paths:
-  op://Homelab/cloudflare/secrets  → R2 credentials, account ID
+  op://Homelab/cloudflare/secrets  → Account ID
   op://Homelab/grafana/secrets     → Service account token
   op://Homelab/github/secrets      → Personal access token
   op://Homelab/n8n/secrets         → Webhook config
@@ -95,8 +95,6 @@ fi
 # Format: "GITHUB_SECRET_NAME|op://Homelab/item/secrets/field|priority|description"
 
 OP_SECRETS=(
-  "AWS_ACCESS_KEY_ID|op://Homelab/cloudflare/secrets/r2_access_key_id|P0|R2 S3-compatible access key"
-  "AWS_SECRET_ACCESS_KEY|op://Homelab/cloudflare/secrets/r2_secret_access_key|P0|R2 S3-compatible secret"
   "TF_VAR_GRAFANA_AUTH|op://Homelab/grafana/secrets/service_account_token|P1|Grafana service account token"
   "TF_VAR_GITHUB_TOKEN|op://Homelab/github/secrets/personal_access_token|P1|GitHub PAT for TF provider"
   "TF_VAR_SUPABASE_URL|op://Homelab/supabase/secrets/url|P1|Supabase project URL"

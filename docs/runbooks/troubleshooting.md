@@ -81,7 +81,7 @@ export OP_SERVICE_ACCOUNT_TOKEN="<token>"
 # List items in Homelab vault
 op item list --vault Homelab
 # Read specific secret
-op read "op://Homelab/cloudflare/secrets/r2_access_key_id"
+op read "op://Homelab/cloudflare/secrets/account_id"
 # Check if item/field exists
 op item get cloudflare --vault Homelab --format json | jq '.fields'
 ```

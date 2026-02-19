@@ -23,7 +23,7 @@ scripts/setup-github-secrets.sh --audit
 
 ```
 1Password (Homelab vault)
-  op://Homelab/cloudflare  → R2 creds, account ID
+  op://Homelab/cloudflare  → account ID
   op://Homelab/grafana     → service account token
   op://Homelab/github      → PAT
   op://Homelab/supabase    → URL, service key
@@ -57,14 +57,12 @@ module "secrets" {
 
 Provider authentication: `OP_SERVICE_ACCOUNT_TOKEN` environment variable.
 
-## Secret Inventory (17/19 automated)
+## Secret Inventory (15/17 automated)
 
 ### 1Password-Sourced (via `sync-vault-secrets.sh`)
 
 | Secret | 1Password Reference | Field | Priority |
 |--------|---------------------|-------|----------|
-| `AWS_ACCESS_KEY_ID` | `op://Homelab/cloudflare/secrets/r2_access_key_id` | `r2_access_key_id` | P0 |
-| `AWS_SECRET_ACCESS_KEY` | `op://Homelab/cloudflare/secrets/r2_secret_access_key` | `r2_secret_access_key` | P0 |
 | `TF_VAR_GRAFANA_AUTH` | `op://Homelab/grafana/secrets/service_account_token` | `service_account_token` | P1 |
 | `TF_VAR_GITHUB_TOKEN` | `op://Homelab/github/secrets/personal_access_token` | `personal_access_token` | P1 |
 | `TF_VAR_SUPABASE_URL` | `op://Homelab/supabase/secrets/url` | `url` | P1 |
@@ -90,7 +88,7 @@ Provider authentication: `OP_SERVICE_ACCOUNT_TOKEN` environment variable.
 | `CLOUDFLARE_API_TOKEN` | env / CF dashboard | — | P2 |
 | `CLOUDFLARE_ACCOUNT_ID` | `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P2 |
 
-### Manual (3/19 — not in 1Password)
+### Manual (3/17 — not in 1Password)
 
 | Secret | Priority | Source | Used By |
 |--------|----------|--------|---------|
@@ -103,7 +101,7 @@ Provider authentication: `OP_SERVICE_ACCOUNT_TOKEN` environment variable.
 ```bash
 # 1. Update value in 1Password
 #    Via UI: 1Password → Homelab vault → item → Edit field
-#    Via CLI: op item edit "cloudflare" "secrets.r2_access_key_id=NEW" --vault Homelab
+#    Via CLI: op item edit "cloudflare" "secrets.account_id=NEW" --vault Homelab
 
 # 2. Push to GitHub
 scripts/sync-vault-secrets.sh --force
@@ -115,5 +113,5 @@ scripts/setup-github-secrets.sh --audit
 ## Weekly Audit
 
 The `secret-audit.yml` workflow runs every Monday at 09:00 UTC.
-It validates all 19 secrets and reports missing ones.
+It validates all 17 secrets and reports missing ones.
 Trigger manually: Actions → Secret Audit → Run workflow.

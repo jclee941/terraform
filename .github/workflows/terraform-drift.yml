@@ -10,10 +10,6 @@ permissions:
   contents: read
   issues: write
 
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
 jobs:
   drift-check:
     name: Drift - ${{ matrix.workspace.name }}
@@ -25,25 +21,25 @@ jobs:
         workspace:
           - name: proxmox
             dir: 100-pve
-            init_args: "-backend-config=../backend.hcl -input=false"
+            init_args: "-input=false"
           - name: grafana
             dir: 104-grafana/terraform
-            init_args: "-backend-config=../../backend.hcl -input=false"
+            init_args: "-input=false"
           - name: elk
             dir: 105-elk/terraform
-            init_args: "-backend-config=../../backend.hcl -input=false"
+            init_args: "-input=false"
           - name: traefik
             dir: 102-traefik/terraform
-            init_args: "-backend-config=../../backend.hcl -input=false"
+            init_args: "-input=false"
           - name: archon
             dir: 108-archon/terraform
-            init_args: "-backend-config=../../backend.hcl -input=false"
+            init_args: "-input=false"
           - name: cloudflare
             dir: 300-cloudflare
-            init_args: "-backend-config=../backend.hcl -input=false"
+            init_args: "-input=false"
           - name: github
             dir: 301-github
-            init_args: "-backend-config=../backend.hcl -input=false"
+            init_args: "-input=false"
 
     defaults:
       run:

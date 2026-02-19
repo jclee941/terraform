@@ -1,9 +1,7 @@
 terraform {
   required_version = ">= 1.7, < 2.0"
 
-  backend "s3" {
-    key = "300-cloudflare/terraform.tfstate"
-  }
+  backend "local" {}
 
   required_providers {
     cloudflare = {

@@ -1,4 +1,4 @@
-.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration docs deploy-opencode deploy-opencode-dry gen-opencode pre-commit-install pre-commit-run help
+.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration docs deploy-opencode deploy-opencode-dry gen-opencode pre-commit-install pre-commit-run setup help
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
@@ -25,11 +25,6 @@ ALIAS_github     := 301-github
 # Resolve alias: if ALIAS_$(SVC) is defined, use it; otherwise use SVC as-is
 TF_DIR := $(or $(ALIAS_$(SVC)),$(SVC))
 
-# Backend config path (relative to TF_DIR depth)
-# Single-level dirs (100-pve) → ../backend.hcl
-# Nested dirs (104-grafana/terraform) → ../../backend.hcl
-BACKEND_HCL := $(shell echo "$(TF_DIR)" | awk -F/ '{for(i=1;i<=NF;i++) printf "../"; print "backend.hcl"}')
-
 # Validate TF_DIR exists before running terraform commands
 define check_svc_dir
 	@if [ ! -d "$(TF_DIR)" ]; then \
@@ -45,7 +40,7 @@ endef
 
 init: ## Initialize Terraform (SVC=100-pve)
 	$(check_svc_dir)
-	cd $(TF_DIR) && terraform init -backend-config=$(BACKEND_HCL)
+	cd $(TF_DIR) && terraform init
 
 plan: ## Create Terraform plan (SVC=100-pve)
 	$(check_svc_dir)
@@ -62,6 +57,16 @@ fmt: ## Format all Terraform files
 validate: ## Validate Terraform configuration (SVC=100-pve)
 	$(check_svc_dir)
 	cd $(TF_DIR) && terraform init -backend=false && terraform validate
+
+## Setup
+
+setup: ## Load local credentials from 1Password
+	@printf "Load 1Password credentials into current shell:\n"
+	@printf "  source scripts/setup-local-env.sh\n\n"
+	@printf "To persist credentials to .env.local:\n"
+	@printf "  source scripts/setup-local-env.sh --save\n\n"
+	@printf "To validate only:\n"
+	@printf "  source scripts/setup-local-env.sh --check\n"
 
 ## Linting targets
 

@@ -1,26 +1,26 @@
 # State Locking Runbook
 
-**Last Updated:** 2026-02-18
+**Last Updated:** 2026-02-19
 
 ## Current State Backend
 
-All workspaces use Cloudflare R2 via the S3-compatible backend:
+All workspaces use local backend (state files stored alongside each workspace):
 
-| Workspace | State Key |
-|-----------|-----------|
+| Workspace | State File |
+|-----------|------------|
 | 100-pve | `100-pve/terraform.tfstate` |
+| 102-traefik | `102-traefik/terraform/terraform.tfstate` |
+| 104-grafana | `104-grafana/terraform/terraform.tfstate` |
+| 105-elk | `105-elk/terraform/terraform.tfstate` |
+| 108-archon | `108-archon/terraform/terraform.tfstate` |
 | 300-cloudflare | `300-cloudflare/terraform.tfstate` |
 | 301-github | `301-github/terraform.tfstate` |
-| 102-traefik | `102-traefik/terraform.tfstate` |
-| 104-grafana | `104-grafana/terraform.tfstate` |
-| 105-elk | `105-elk/terraform.tfstate` |
-| 108-archon | `108-archon/terraform.tfstate` |
 
-Bucket: `jclee-tf-state` (R2, endpoint `*.r2.cloudflarestorage.com`).
+Init: `terraform init` (no `-backend-config` needed).
 
 ## Limitation: No Native State Locking
 
-Cloudflare R2 does **not** support DynamoDB-style state locking. The S3 backend's `dynamodb_table` parameter is not available with R2.
+Local backend does **not** support state locking. There is no lock file mechanism to prevent concurrent writes.
 
 **Risk**: Concurrent `terraform apply` runs against the same workspace can corrupt state.
 
@@ -35,28 +35,21 @@ Cloudflare R2 does **not** support DynamoDB-style state locking. The S3 backend'
 If state corruption occurs (e.g., two applies ran simultaneously):
 
 1. **Stop all operations**: Cancel any running CI workflows.
-2. **Download current state**:
+2. **Backup current state**:
    ```bash
    cd <workspace-dir>
-   terraform state pull > state-backup.json
+   cp terraform.tfstate terraform.tfstate.backup
    ```
 3. **Inspect the state** for resource duplicates or missing entries:
    ```bash
    terraform state list | sort | uniq -d
    ```
-4. **Recover from R2 versioning** (if enabled):
+4. **Recover from backup**:
    ```bash
-   # List object versions
-   aws s3api list-object-versions \
-     --bucket jclee-tf-state \
-     --prefix "<workspace>/terraform.tfstate" \
-     --endpoint-url https://<account-id>.r2.cloudflarestorage.com
+   # Restore from the most recent known-good backup
+   cp terraform.tfstate.backup terraform.tfstate
    ```
-5. **Restore a known-good version**:
-   ```bash
-   terraform state push state-backup.json
-   ```
-6. **Verify** with `terraform plan` — expect zero changes if state is correct.
+5. **Verify** with `terraform plan` — expect zero changes if state is correct.
 
 ## Future: Adding State Locking
 
@@ -65,8 +58,7 @@ To add locking, choose one of:
 | Option | Effort | Notes |
 |--------|--------|-------|
 | Migrate to Terraform Cloud / HCP | Low | Built-in locking, free tier covers 5 workspaces |
-| Add DynamoDB (AWS) | Medium | Requires AWS account, `dynamodb_table` in backend config |
 | Use `consul` backend | Medium | Self-hosted Consul cluster required |
-| Terraform 1.10+ `use_lockfile` | Low | File-based locking if/when R2 supports conditional writes |
+| Use S3 + DynamoDB (AWS) | Medium | Requires AWS account |
 
 For this homelab, the CI concurrency groups provide adequate protection. Revisit if the team grows beyond a single operator.

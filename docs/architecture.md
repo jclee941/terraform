@@ -60,7 +60,7 @@
 
 | ID | Provider | Workspace | Purpose |
 |----|----------|-----------|---------|
-| 300 | Cloudflare | `300-cloudflare/` | DNS, tunnels, Access, R2, Workers, secrets |
+| 300 | Cloudflare | `300-cloudflare/` | DNS, tunnels, Access, Workers, secrets |
 | 301 | GitHub | `301-github/` | Repos, teams, rulesets, Actions, webhooks |
 
 ## Data Flows
@@ -136,15 +136,15 @@ modules/
 | `104-grafana/terraform/` | `104-grafana/terraform.tfstate` | grafana/grafana | Dashboards, datasources, alerts, contact points |
 | `105-elk/terraform/` | `105-elk/terraform.tfstate` | elastic/elasticstack | ILM policies, index templates |
 | `108-archon/terraform/` | `108-archon/terraform.tfstate` | (none) | App-level config deployment via lxc-config |
-| `300-cloudflare/` | `300-cloudflare/terraform.tfstate` | cloudflare, github, 1Password/onepassword | DNS zones, tunnels, Access policies, R2, Workers |
+| `300-cloudflare/` | `300-cloudflare/terraform.tfstate` | cloudflare, github, 1Password/onepassword | DNS zones, tunnels, Access policies, Workers |
 | `301-github/` | `301-github/terraform.tfstate` | integrations/github | Repos, teams, rulesets, Actions config, webhooks |
 
 ## State Backend
 
-All workspaces use Cloudflare R2 as S3-compatible backend:
-- Bucket: `jclee-tf-state`
-- Config: `backend.hcl` (shared)
-- Init: `terraform init -backend-config=../backend.hcl`
+All workspaces use local backend (state files stored alongside each workspace):
+- State file: `<workspace>/terraform.tfstate`
+- Init: `terraform init`
+- No remote locking — CI concurrency groups provide serialization
 
 ## Build System
 
