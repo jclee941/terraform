@@ -41,13 +41,13 @@ Archon AI Knowledge Management system with MCP server integration. Provides AI-p
 ## CONVENTIONS
 - App-config workspace; LXC lifecycle owned by 100-pve/main.tf
 - Uses `terraform_remote_state.infra` for host IP/VMID resolution from 100-pve
-- Secrets via `.env` file (Vault Agent or manual)
+- Secrets via 1Password (`homelab/archon`) rendered into `.env`
 - Docker Compose profiles: default (server+mcp+frontend), `agents` (opt-in)
 
 ## ANTI-PATTERNS
 - **NO** manual docker-compose edits in `tf-configs/` — edit `templates/` instead
 - **NO** Docker socket mounting (CVE-2025-9074, CVSS 9.3)
-- **NO** hardcoded Supabase credentials — use Vault or .env template
+- **NO** hardcoded Supabase credentials — use 1Password or .env template
 - **NO** UI changes to LXC resources (managed by Terraform)
 
 ## DEPENDENCIES

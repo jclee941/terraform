@@ -26,6 +26,7 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 - **Code-Only Dashboards**: All visual modifications must occur in repo JSON files. Manual UI changes are ephemeral and will be overwritten.
 - **Provider Mapping**: Uses Grafana's filesystem provider to sync `dashboards/` to the web interface.
 - **Static UIDs**: Every dashboard JSON must include a persistent `uid` to prevent ID collisions.
+- **Secrets**: `grafana_admin_password`, `grafana_service_account_token` from 1Password (`homelab/grafana`) via `onepassword-secrets` module.
 - **Alert Routing**: All alerts trigger POST requests to the `n8n-webhook` on `112-mcphub` for automated GitHub Issue creation.
 
 ## ANTI-PATTERNS

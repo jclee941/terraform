@@ -26,6 +26,7 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 - Keep secrets as `${ENV_VAR}` placeholders in catalog/templates.
 - Keep port assignments unique for hub transports; validate with `python3 validate_mcps.py`.
 - Treat the Archon MCP endpoint as catalog data, not inline Terraform literals.
+- Secrets from 1Password (`homelab/mcphub`) via `onepassword-secrets` module. 7 keys including proxmox tokens, admin password, and API keys.
 
 ## ANTI-PATTERNS
 - Never hand-edit rendered deployment outputs (`tf-configs/`, `100-pve/configs/...`).

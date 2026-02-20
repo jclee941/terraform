@@ -5,7 +5,7 @@
 **IP:** 192.168.50.101
 
 ## OVERVIEW
-Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user. Orchestrates registration across 8+ repositories (blacklist, claude, propose, proxmox, resume, safework2, splunk, terraform) using JIT-config. Provides direct access to homelab services (Proxmox, Vault, ELK) for integration testing and automated deployments. Includes Terraform and Bazel for infrastructure CI/CD.
+Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user. Orchestrates registration across 8+ repositories (blacklist, claude, propose, proxmox, resume, safework2, splunk, terraform) using JIT-config. Provides direct access to homelab services (Proxmox, ELK) for integration testing and automated deployments. Includes Terraform and Bazel for infrastructure CI/CD.
 
 ## STRUCTURE
 ```
@@ -46,7 +46,7 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 ## ANTI-PATTERNS
 - **NO manual config** inside LXC. Use scripts or Terraform remote-exec.
 - **NO shared state** between repos. Each runner instance is independent.
-- **NO plaintext tokens**. Use environment variables or Vault integration.
+- **NO plaintext tokens**. Use environment variables or 1Password integration.
 - **NO direct SSH**. Use `ssh root@pve 'pct exec 101 -- bash'` from PVE host.
 - **NO persistent storage** in work dirs. Cleaned by `unregister-all.sh`.
 - **NO remote registration**. Do not run registration scripts from non-runner hosts.

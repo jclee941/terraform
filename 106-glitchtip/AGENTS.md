@@ -28,13 +28,13 @@ Orchestrated via **Docker Compose** with Terraform-rendered configs.
 | Component | Location | Notes |
 |-----------|----------|-------|
 | **Deployment** | `tf-configs/docker-compose.yml` | Managed via Terraform |
-| **Environment** | `tf-configs/glitchtip.env` | Secrets sourced from Vault |
+| **Environment** | `tf-configs/glitchtip.env` | Secrets from 1Password (`homelab/glitchtip`) |
 | **Ingress** | `102-traefik/config/glitchtip.yml` | Reverse proxy routing |
 | **Automation** | `112-mcphub/n8n-workflows/` | Error to GitHub Issue pipelines |
 
 ## CONVENTIONS
 - **Governance**: Managed by Terraform. Do not use GlitchTip UI for infrastructure settings.
-- **Secrets**: High-entropy secrets (Postgres/Redis passwords) are fetched from Vault Agent (VM 112).
+- **Secrets**: High-entropy secrets (Postgres/Redis passwords) sourced from 1Password (`homelab/glitchtip`) via `onepassword-secrets` module.
 - **User Registration**: `ENABLE_USER_REGISTRATION` is set to `false`. Admin accounts must be created via Django CLI.
 - **Alerting**: Configured via `n8n-automation` rule sending webhooks to n8n (112).
 - **Log Source**: Sentry SDKs point to `https://glitchtip.jclee.me`.
@@ -56,4 +56,3 @@ docker compose logs -f
 # Create a new superuser account
 docker compose exec web ./manage.py createsuperuser
 ```
-
