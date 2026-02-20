@@ -88,37 +88,8 @@ services:
       timeout: 5s
       retries: 3
 
-  node-exporter:
-    image: prom/node-exporter:v1.10.2
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9100/metrics || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: '0.25'
-    logging:
-      driver: json-file
-      options:
-        max-size: "50m"
-        max-file: "5"
-    restart: unless-stopped
-    networks:
-      - monitoring
+  # node-exporter removed: Proxmox built-in prometheus-node already
+  # binds port 9100 and is scraped by infrastructure-nodes job.
 
   tempo:
     image: grafana/tempo:2.7.2
