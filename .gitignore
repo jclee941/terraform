@@ -36,7 +36,11 @@ tests/integration/tmp/
 
 # Terraform plan files
 *.tfplan
-tfplan
+tfplan*
+
+# Python
+__pycache__/
+*.pyc
 
 # IDE
 .idea/
