@@ -1,5 +1,0 @@
-filegroup(
-    name = "templates",
-    srcs = glob(["**/*.j2"]),
-    visibility = ["//visibility:public"],
-)
