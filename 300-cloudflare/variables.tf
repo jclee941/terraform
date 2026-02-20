@@ -13,7 +13,7 @@ variable "cloudflare_account_id" {
 variable "cloudflare_secrets_store_id" {
   description = "Existing Cloudflare Secrets Store ID"
   type        = string
-  default     = "88dc5de305594f08aeb9bc04dad2f8cf"
+  default     = "88dc5de305594f08aeb9bc04dad2f8cf" # pragma: allowlist secret
 
   validation {
     condition     = can(regex("^[0-9a-f]{32}$", var.cloudflare_secrets_store_id))
@@ -117,7 +117,7 @@ variable "r2_cache_ttl_days" {
 }
 
 # ============================================
-# Homelab Tunnel Variables
+# homelab tunnel variables
 # ============================================
 
 variable "homelab_domain" {

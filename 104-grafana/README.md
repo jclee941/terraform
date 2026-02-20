@@ -4,7 +4,7 @@
 - **Service Name**: Observability Suite (Grafana, Prometheus)
 - **Host IP**: `192.168.50.104` (LXC)
 - **Purpose**: The "Single Pane of Glass" for the `jclee.me` homelab. It aggregates metrics, logs, and alerts from all active infrastructure nodes.
-- **Current Status**: **Online**. Active dashboards include Homelab Overview, MCP Logs, and Infrastructure Metrics.
+- **Current Status**: **Online**. Active dashboards include homelab overview, MCP Logs, and Infrastructure Metrics.
 - **Components**:
   - **Grafana** (Port 3000): Visualization and alerting UI.
   - **Prometheus** (Port 9090): Time-series metrics database.

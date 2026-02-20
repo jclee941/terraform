@@ -43,7 +43,7 @@ test_result() {
     local test_num=$1
     local test_name=$2
     local result=$3
-    
+
     if [ $result -eq 0 ]; then
         echo -e "${GREEN}✅ Test $test_num PASSED${NC}: $test_name"
         ((PASSED+=1))
@@ -67,7 +67,7 @@ fi
 # Test 2: Grafana HTTP response
 echo "Test 2: Checking Grafana HTTP..."
 GRAFANA_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://192.168.50.104:3000/api/health || echo "000")
-test_result 2 "Grafana HTTP (expecting 200, got $GRAFANA_STATUS)" $([ "$GRAFANA_STATUS" = "200" ] && echo 0 || echo 1)
+test_result 2 "Grafana HTTP (expecting 200, got $GRAFANA_STATUS)" "$([ "$GRAFANA_STATUS" = "200" ] && echo 0 || echo 1)"
 
 # Test 3: N8N webhooks responding
 echo "Test 3: Checking N8N webhook endpoints..."
@@ -87,19 +87,19 @@ test_result 3 "N8N webhooks (Skipped)" 0
 # Test 4: Load test (100 requests)
 echo "Test 4: Running load test (100 requests)..."
 SUCCESS_COUNT=0
-for i in {1..100}; do
+for _ in {1..100}; do
     STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "http://192.168.50.104:3000/api/health" 2>/dev/null)
     if [ "$STATUS" = "200" ]; then
         ((SUCCESS_COUNT+=1))
     fi
 done
 echo "  Load test: $SUCCESS_COUNT/100 successful"
-test_result 4 "Load test success rate" $([ $SUCCESS_COUNT -ge 95 ] && echo 0 || echo 1)
+test_result 4 "Load test success rate" "$([ $SUCCESS_COUNT -ge 95 ] && echo 0 || echo 1)"
 
 # Test 5: PostgreSQL connection
 echo "Test 5: Checking PostgreSQL connection..."
 PSQL_TEST=$(psql -h 192.168.50.100 -U postgres -d postgres -c "SELECT 1" 2>&1 | grep -c "1 row" || true)
-test_result 5 "PostgreSQL connection" $([ "$PSQL_TEST" -gt 0 ] && echo 0 || echo 1)
+test_result 5 "PostgreSQL connection" "$([ "$PSQL_TEST" -gt 0 ] && echo 0 || echo 1)"
 
 # Test 6: Alert rules count
 echo "Test 6: Checking alert rules..."
@@ -107,19 +107,19 @@ if [ -n "$GRAFANA_TOKEN" ]; then
     ALERT_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
         http://192.168.50.104:3000/api/ruler/grafana/rules | jq '[.[] | .rules[]] | length' 2>/dev/null || echo 0)
     echo "  Alert rules: $ALERT_COUNT found"
-    test_result 6 "Alert rules config" $([ "$ALERT_COUNT" -ge 1 ] && echo 0 || echo 1)
+    test_result 6 "Alert rules config" "$([ "$ALERT_COUNT" -ge 1 ] && echo 0 || echo 1)"
 else
     echo "  (Skipping - No Token)"
     test_result 6 "Alert rules config (Skipped)" 0
 fi
-test_result 6 "Alert rules (expecting ≥14)" $([ $ALERT_COUNT -ge 14 ] && echo 0 || echo 1)
+test_result 6 "Alert rules (expecting ≥14)" "$([ $ALERT_COUNT -ge 14 ] && echo 0 || echo 1)"
 
 # Test 7: Contact points
 echo "Test 7: Checking contact points..."
 if [ -n "$GRAFANA_TOKEN" ]; then
     CONTACT_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" http://192.168.50.104:3000/api/v1/provisioning/contact-points 2>/dev/null | jq 'length' || echo 0)
     echo "  Contact points: $CONTACT_COUNT found"
-    test_result 7 "Contact points (expecting ≥2)" $([ $CONTACT_COUNT -ge 2 ] && echo 0 || echo 1)
+    test_result 7 "Contact points (expecting ≥2)" "$([ $CONTACT_COUNT -ge 2 ] && echo 0 || echo 1)"
 else
     test_result 7 "Contact points (Skipped)" 0
 fi
@@ -127,16 +127,16 @@ fi
 # Test 8: Prometheus metrics
 echo "Test 8: Checking metrics in Prometheus..."
 METRICS=$(curl -s "http://192.168.50.104:9090/api/v1/query?query=up" | jq '.data.result | length')
-test_result 8 "Prometheus metrics" $([ $METRICS -gt 0 ] && echo 0 || echo 1)
+test_result 8 "Prometheus metrics" "$([ $METRICS -gt 0 ] && echo 0 || echo 1)"
 
 # Test 9: SLA Dashboard exists
 echo "Test 9: Checking SLA Dashboard..."
 if [ -n "$GRAFANA_TOKEN" ]; then
     DASHBOARD=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
         "http://192.168.50.104:3000/api/search?query=homelab-overview" 2>/dev/null | jq 'length' || echo 0)
-    test_result 9 "Homelab Dashboard exists" $([ $DASHBOARD -gt 0 ] && echo 0 || echo 1)
+    test_result 9 "homelab dashboard exists" "$([ $DASHBOARD -gt 0 ] && echo 0 || echo 1)"
 else
-    test_result 9 "Homelab Dashboard exists (Skipped)" 0
+    test_result 9 "homelab dashboard exists (Skipped)" 0
     DASHBOARD=0
 fi
 
@@ -146,8 +146,8 @@ if [ -n "$GRAFANA_TOKEN" ] && [ $DASHBOARD -gt 0 ]; then
     DASHBOARD_UID=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" "http://192.168.50.104:3000/api/search?query=homelab-overview" 2>/dev/null | jq -r '.[0].uid' || echo "")
     if [ ! -z "$DASHBOARD_UID" ]; then
         PANEL_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" "http://192.168.50.104:3000/api/dashboards/uid/$DASHBOARD_UID" 2>/dev/null | jq '.dashboard.panels | length' || echo 0)
-        echo "  Homelab Dashboard panels: $PANEL_COUNT"
-        test_result 10 "Dashboard panels (expecting >0)" $([ $PANEL_COUNT -gt 0 ] && echo 0 || echo 1)
+        echo "  homelab dashboard panels: $PANEL_COUNT"
+        test_result 10 "Dashboard panels (expecting >0)" "$([ $PANEL_COUNT -gt 0 ] && echo 0 || echo 1)"
     else
         test_result 10 "Dashboard panels" 1
     fi

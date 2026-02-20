@@ -1,5 +1,5 @@
 # ============================================
-# DNS Records for Homelab Services
+# DNS records for homelab services
 # ============================================
 
 resource "cloudflare_dns_record" "homelab" {

@@ -1,5 +1,5 @@
 output "folder_uid_homelab" {
-  description = "UID of the Homelab Grafana folder"
+  description = "UID of the homelab Grafana folder"
   value       = grafana_folder.homelab.uid
 }
 

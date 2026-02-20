@@ -23,7 +23,7 @@ resource "cloudflare_zero_trust_access_policy" "synology_email" {
 }
 
 # ============================================
-# Cloudflare Access for Restricted Homelab Services
+# Cloudflare Access for restricted homelab services
 # ============================================
 
 resource "cloudflare_zero_trust_access_application" "homelab" {

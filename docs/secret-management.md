@@ -22,11 +22,11 @@ scripts/setup-github-secrets.sh --audit
 ## Architecture
 
 ```
-1Password (Homelab vault)
-  op://Homelab/cloudflare  → account ID
-  op://Homelab/grafana     → service account token
-  op://Homelab/github      → PAT
-  op://Homelab/supabase    → URL, service key
+1Password (homelab vault)
+  op://homelab/cloudflare  → account ID
+  op://homelab/grafana     → service account token
+  op://homelab/github      → PAT
+  op://homelab/supabase    → URL, service key
       │
       ▼
 sync-vault-secrets.sh  ──→  GitHub Actions Secrets (qws941/terraform)
@@ -63,10 +63,10 @@ Provider authentication: `OP_SERVICE_ACCOUNT_TOKEN` environment variable.
 
 | Secret | 1Password Reference | Field | Priority |
 |--------|---------------------|-------|----------|
-| `TF_VAR_GRAFANA_AUTH` | `op://Homelab/grafana/secrets/service_account_token` | `service_account_token` | P1 |
-| `TF_VAR_GITHUB_TOKEN` | `op://Homelab/github/secrets/personal_access_token` | `personal_access_token` | P1 |
-| `TF_VAR_SUPABASE_URL` | `op://Homelab/supabase/secrets/url` | `url` | P1 |
-| `GH_PAT` | `op://Homelab/github/secrets/personal_access_token` | `personal_access_token` | P2 |
+| `TF_VAR_GRAFANA_AUTH` | `op://homelab/grafana/secrets/service_account_token` | `service_account_token` | P1 |
+| `TF_VAR_GITHUB_TOKEN` | `op://homelab/github/secrets/personal_access_token` | `personal_access_token` | P1 |
+| `TF_VAR_SUPABASE_URL` | `op://homelab/supabase/secrets/url` | `url` | P1 |
+| `GH_PAT` | `op://homelab/github/secrets/personal_access_token` | `personal_access_token` | P2 |
 
 ### Derived (known infrastructure)
 
@@ -100,8 +100,8 @@ Provider authentication: `OP_SERVICE_ACCOUNT_TOKEN` environment variable.
 
 ```bash
 # 1. Update value in 1Password
-#    Via UI: 1Password → Homelab vault → item → Edit field
-#    Via CLI: op item edit "cloudflare" "secrets.account_id=NEW" --vault Homelab
+#    Via UI: 1Password → homelab vault → item → Edit field
+#    Via CLI: op item edit "cloudflare" "secrets.account_id=NEW" --vault homelab
 
 # 2. Push to GitHub
 scripts/sync-vault-secrets.sh --force

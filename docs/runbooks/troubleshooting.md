@@ -78,12 +78,12 @@ export OP_SERVICE_ACCOUNT_TOKEN="<token>"
 
 ### Secret Not Found
 ```bash
-# List items in Homelab vault
-op item list --vault Homelab
+# List items in homelab vault
+op item list --vault homelab
 # Read specific secret
-op read "op://Homelab/cloudflare/secrets/account_id"
+op read "op://homelab/cloudflare/secrets/account_id"
 # Check if item/field exists
-op item get cloudflare --vault Homelab --format json | jq '.fields'
+op item get cloudflare --vault homelab --format json | jq '.fields'
 ```
 
 ## Network Issues

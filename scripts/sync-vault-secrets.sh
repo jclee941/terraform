@@ -41,11 +41,11 @@ Environment:
   OP_SERVICE_ACCOUNT_TOKEN  1Password service account token (required)
 
 1Password Paths:
-  op://Homelab/cloudflare/secrets  → Account ID
-  op://Homelab/grafana/secrets     → Service account token
-  op://Homelab/github/secrets      → Personal access token
-  op://Homelab/n8n/secrets         → Webhook config
-  op://Homelab/supabase/secrets    → URL and service key
+  op://homelab/cloudflare/secrets  → Account ID
+  op://homelab/grafana/secrets     → Service account token
+  op://homelab/github/secrets      → Personal access token
+  op://homelab/n8n/secrets         → Webhook config
+  op://homelab/supabase/secrets    → URL and service key
 EOF
 }
 
@@ -92,13 +92,13 @@ if ! op whoami &>/dev/null; then
 fi
 
 # --- Secret mapping: GitHub secret name → 1Password reference ---
-# Format: "GITHUB_SECRET_NAME|op://Homelab/item/secrets/field|priority|description"
+# Format: "GITHUB_SECRET_NAME|op://homelab/item/secrets/field|priority|description"
 
 OP_SECRETS=(
-  "TF_VAR_GRAFANA_AUTH|op://Homelab/grafana/secrets/service_account_token|P1|Grafana service account token"
-  "TF_VAR_GITHUB_TOKEN|op://Homelab/github/secrets/personal_access_token|P1|GitHub PAT for TF provider"
-  "TF_VAR_SUPABASE_URL|op://Homelab/supabase/secrets/url|P1|Supabase project URL"
-  "GH_PAT|op://Homelab/github/secrets/personal_access_token|P2|GitHub PAT for workflow automation"
+  "TF_VAR_GRAFANA_AUTH|op://homelab/grafana/secrets/service_account_token|P1|Grafana service account token"
+  "TF_VAR_GITHUB_TOKEN|op://homelab/github/secrets/personal_access_token|P1|GitHub PAT for TF provider"
+  "TF_VAR_SUPABASE_URL|op://homelab/supabase/secrets/url|P1|Supabase project URL"
+  "GH_PAT|op://homelab/github/secrets/personal_access_token|P2|GitHub PAT for workflow automation"
 )
 
 # Derived secrets (not from 1Password, from known infrastructure)

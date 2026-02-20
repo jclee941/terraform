@@ -42,7 +42,7 @@ data "cloudflare_zero_trust_tunnel_cloudflared_token" "synology" {
 }
 
 # ============================================
-# Cloudflare Tunnel for Homelab Services
+# Cloudflare tunnel for homelab services
 # ============================================
 
 resource "random_password" "homelab_tunnel_secret" {

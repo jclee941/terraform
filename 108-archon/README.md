@@ -142,8 +142,8 @@ Or use direct TCP connection (if exposed):
 {
   "mcpServers": {
     "archon": {
-      "url": "http://192.168.50.107:8051",
-      "transport": "sse"
+      "url": "http://192.168.50.108:8051/mcp",
+      "type": "streamable-http"
     }
   }
 }

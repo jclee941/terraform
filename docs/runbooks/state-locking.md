@@ -27,7 +27,7 @@ Local backend does **not** support state locking. There is no lock file mechanis
 ## Current Mitigations
 
 1. **CI serialization**: GitHub Actions workflows use `concurrency` groups per workspace, ensuring only one plan/apply runs at a time per stack.
-2. **Single operator**: Homelab is single-operator, reducing concurrent access risk.
+2. **Single operator**: homelab is single-operator, reducing concurrent access risk.
 3. **Plan-then-apply**: All CI workflows use `terraform plan -out=tfplan` followed by gated `terraform apply tfplan`, preventing interleaved operations.
 
 ## Resolving State Conflicts

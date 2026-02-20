@@ -28,7 +28,7 @@ locals {
   total_secrets_count = length(local.all_secrets)
 
   # ============================================
-  # Homelab Services exposed via Cloudflare Tunnel
+  # homelab services exposed via Cloudflare Tunnel
   # All traffic routes through Traefik (192.168.50.102)
   # ============================================
 

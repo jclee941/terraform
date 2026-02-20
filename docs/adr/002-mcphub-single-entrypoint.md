@@ -1,7 +1,7 @@
 # ADR-002: MCPHub as Single MCP Entrypoint
 
-**Status:** Accepted  
-**Date:** 2026-02-14  
+**Status:** Accepted
+**Date:** 2026-02-14
 
 ## Context
 
@@ -10,10 +10,10 @@ AI development tools (OpenCode) required access to 24 MCP servers. Managing indi
 ## Decision
 
 Use MCPHub (VM 112:3000) as a single gateway for all MCP servers:
-- Clients configure ONE endpoint: `http://192.168.50.112:3000/sse`
+- Clients configure ONE endpoint: `http://192.168.50.112:3000/mcp`
 - All server definitions in `mcp_servers.json` (SSoT)
 - Local-only servers (bazel, in-memoria) remain client-side
-- SSE + StreamableHTTP support
+- StreamableHTTP support (legacy SSE compatibility at the gateway)
 
 ## Alternatives Considered
 

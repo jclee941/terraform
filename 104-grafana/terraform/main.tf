@@ -1,6 +1,6 @@
 
 resource "grafana_folder" "homelab" {
-  title = "Homelab"
+  title = "homelab"
 }
 
 resource "grafana_folder" "alerts" {
@@ -180,7 +180,7 @@ locals {
     # Group: opencode_alerts
     "opencode-errors" = {
       group        = "opencode_alerts"
-      query        = "(service:opencode OR job:opencode) AND _exists_:error_classification"
+      query        = "(service:opencode OR job:opencode) AND _exists_:error_classification AND NOT error_severity:low"
       from         = 300
       threshold    = 5
       condition    = "gt"
@@ -193,7 +193,7 @@ locals {
     # Group: mcp_alerts
     "mcp-error-logs" = {
       group        = "mcp_alerts"
-      query        = "(service:mcp OR service:mcphub OR job:mcp) AND _exists_:error_classification"
+      query        = "(service:mcp OR service:mcphub OR job:mcp) AND _exists_:error_classification AND NOT error_severity:low"
       from         = 600
       threshold    = 5
       condition    = "gt"

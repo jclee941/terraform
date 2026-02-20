@@ -19,7 +19,7 @@ output "index_template_filebeat" {
 }
 
 output "kibana_space_id" {
-  description = "ID of the Homelab Kibana space"
+  description = "ID of the homelab Kibana space"
   value       = elasticstack_kibana_space.homelab.space_id
 }
 

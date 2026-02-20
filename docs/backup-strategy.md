@@ -1,4 +1,4 @@
-# Backup Strategy for jclee.me Homelab
+# Backup Strategy for jclee.me homelab
 
 **Document Version:** 1.0
 **Last Updated:** 2026-02-11

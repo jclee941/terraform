@@ -3,9 +3,9 @@
 ## 1. Service Overview
 - **Service Name**: Proxmox VE (PVE)
 - **Host IP**: `192.168.50.100`
-- **Purpose**: Central hypervisor node for the `jclee.me` homelab. It orchestrates LXC containers (102-106) and virtual machines (112, 200, 220).
+- **Purpose**: Central hypervisor node for the `jclee.me` homelab. It orchestrates Terraform-managed LXC containers (101, 102, 104-108) and VM 112 (MCPHub).
 - **Current Status**: **Online**. Hosting critical infrastructure including Traefik, ELK, and MCPHub.
-- **Hardware Profile**: 
+- **Hardware Profile**:
   - **CPU**: Ryzen 9800X3D (8-Core/16-Thread)
   - **RAM**: 60GB DDR5
   - **Storage**: local (ISO/Templates), local-lvm (VM/CT Disks)
@@ -46,7 +46,7 @@ qm shutdown <VMID>            # Graceful ACPI shutdown
 ## 4. Dependencies
 As the host node, 100-pve is the foundation for:
 - **102-traefik**: Provides ingress to all web services.
-- **terraform**: Manages the state of containers 102-106 and VMs 112, 200, 220 on this host.
+- **terraform**: Manages containers 101, 102, 104-108 and VM 112 on this host.
 - **112-mcphub**: MCP Hub + AI/Tools (VM).
 - **Network**: Depends on the physical gateway at `192.168.50.1`.
 

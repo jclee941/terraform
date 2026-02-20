@@ -81,8 +81,8 @@ resource "elasticstack_elasticsearch_index_lifecycle" "filebeat_90d" {
 
 resource "elasticstack_kibana_space" "homelab" {
   space_id    = "homelab"
-  name        = "Homelab"
-  description = "Homelab infrastructure monitoring"
+  name        = "homelab"
+  description = "homelab infrastructure monitoring"
   color       = "#0077CC"
   initials    = "HL"
 }
