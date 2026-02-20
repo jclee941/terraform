@@ -215,3 +215,56 @@ run "test_cloud_init_paths_output" {
     error_message = "cloud_init_paths output should map each VM to its generated cloud-init file"
   }
 }
+
+run "test_deploy_requires_ssh_key_when_enabled" {
+  command = plan
+
+  module {
+    source = "../../../modules/proxmox/vm-config"
+  }
+
+  variables {
+    vms = {
+      sandbox = {
+        vmid       = 220
+        hostname   = "sandbox"
+        ip_address = "192.168.50.220"
+        deploy     = false
+      }
+    }
+
+    deploy_vm_configs = true
+    ssh_private_key   = "   "
+  }
+
+  expect_failures = [
+    check.deploy_requires_ssh_key,
+  ]
+}
+
+run "test_deploy_with_ssh_key_passes_check" {
+  command = plan
+
+  module {
+    source = "../../../modules/proxmox/vm-config"
+  }
+
+  variables {
+    vms = {
+      sandbox = {
+        vmid       = 220
+        hostname   = "sandbox"
+        ip_address = "192.168.50.220"
+        deploy     = false
+      }
+    }
+
+    deploy_vm_configs = true
+    ssh_private_key   = "mock-ssh-key-for-testing-only" # pragma: allowlist secret
+  }
+
+  assert {
+    condition     = length(keys(output.vm_configs)) == 1
+    error_message = "deploy_vm_configs=true with ssh_private_key should pass deploy_requires_ssh_key check"
+  }
+}

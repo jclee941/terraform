@@ -317,3 +317,58 @@ run "test_docker_compose_null" {
     error_message = "container without docker_compose should return null docker_compose output"
   }
 }
+
+run "test_deploy_requires_ssh_key_when_enabled" {
+  command = plan
+
+  module {
+    source = "../../../modules/proxmox/lxc-config"
+  }
+
+  variables {
+    lxc_containers = {
+      runner = {
+        vmid       = 101
+        hostname   = "runner"
+        ip_address = "192.168.50.101"
+        deploy     = false
+      }
+    }
+
+    mcp_host           = "192.168.50.112"
+    deploy_lxc_configs = true
+    ssh_private_key    = ""
+  }
+
+  expect_failures = [
+    check.deploy_requires_ssh_key,
+  ]
+}
+
+run "test_deploy_with_ssh_key_passes_check" {
+  command = plan
+
+  module {
+    source = "../../../modules/proxmox/lxc-config"
+  }
+
+  variables {
+    lxc_containers = {
+      runner = {
+        vmid       = 101
+        hostname   = "runner"
+        ip_address = "192.168.50.101"
+        deploy     = false
+      }
+    }
+
+    mcp_host           = "192.168.50.112"
+    deploy_lxc_configs = true
+    ssh_private_key    = "mock-ssh-key-for-testing-only" # pragma: allowlist secret
+  }
+
+  assert {
+    condition     = length(keys(output.lxc_configs)) == 1
+    error_message = "deploy_lxc_configs=true with ssh_private_key should pass deploy_requires_ssh_key check"
+  }
+}

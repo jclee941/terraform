@@ -8,7 +8,7 @@ mock_provider "onepassword" {
     target = data.onepassword_vault.this
     values = {
       uuid = "mock-vault-uuid"
-      name = "Homelab"
+      name = "homelab"
     }
   }
 
@@ -120,7 +120,7 @@ run "test_secrets_default_to_empty_string" {
   }
 
   variables {
-    vault_name = "Homelab"
+    vault_name = "homelab"
   }
 
   # Secrets output
@@ -149,6 +149,26 @@ run "test_secrets_default_to_empty_string" {
     error_message = "Proxmox api_token_value should default to empty string"
   }
 
+  assert {
+    condition     = output.secrets.proxmox_ssh_private_key == ""
+    error_message = "Proxmox ssh_private_key should default to empty string"
+  }
+
+  assert {
+    condition     = output.secrets.mcphub_op_service_account_token == ""
+    error_message = "MCPHub OP service account token should default to empty string"
+  }
+
+  assert {
+    condition     = output.secrets.slack_mcp_xoxp_token == ""
+    error_message = "Slack MCP XOXP token should default to empty string"
+  }
+
+  assert {
+    condition     = output.secrets.slack_mcp_xoxb_token == ""
+    error_message = "Slack MCP XOXB token should default to empty string"
+  }
+
   # Metadata output
   assert {
     condition     = output.metadata.splunk_host == ""
@@ -171,7 +191,6 @@ run "test_secrets_default_to_empty_string" {
   }
 }
 
-# Verify secrets output contains expected key count (31 secret keys)
 run "test_secrets_key_count" {
   command = plan
 
@@ -180,12 +199,12 @@ run "test_secrets_key_count" {
   }
 
   variables {
-    vault_name = "Homelab"
+    vault_name = "homelab"
   }
 
   assert {
-    condition     = length(output.secrets) == 27
-    error_message = "Secrets output should contain exactly 27 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 31
+    error_message = "Secrets output should contain exactly 31 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
@@ -198,7 +217,7 @@ run "test_metadata_key_count" {
   }
 
   variables {
-    vault_name = "Homelab"
+    vault_name = "homelab"
   }
 
   assert {
@@ -216,7 +235,7 @@ run "test_no_key_overlap" {
   }
 
   variables {
-    vault_name = "Homelab"
+    vault_name = "homelab"
   }
 
   assert {
@@ -233,10 +252,10 @@ run "test_default_vault_name" {
     source = "../../../modules/shared/onepassword-secrets"
   }
 
-  # No variables block — vault_name defaults to "Homelab"
+  # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 35
-    error_message = "Total keys (secrets + metadata) should equal 35"
+    condition     = length(output.secrets) + length(output.metadata) == 39
+    error_message = "Total keys (secrets + metadata) should equal 39"
   }
 }
