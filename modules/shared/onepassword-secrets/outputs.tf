@@ -6,10 +6,10 @@
 # Each 1Password item must have a section named "secrets" with matching field labels.
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
 #
-# Secrets (sensitive=true): API keys, passwords, tokens — 27 keys.
+# Secrets (sensitive=true): API keys, passwords, tokens — 31 keys.
 # Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 8 keys.
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (27 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (31 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -24,6 +24,7 @@ output "secrets" {
 
     # Proxmox
     proxmox_api_token_value = try(data.onepassword_item.proxmox.section_map["secrets"].field_map["api_token_value"].value, "")
+    proxmox_ssh_private_key = try(data.onepassword_item.proxmox.section_map["secrets"].field_map["ssh_private_key"].value, "")
 
     # GitHub
     github_personal_access_token = try(data.onepassword_item.github.section_map["secrets"].field_map["personal_access_token"].value, "")
@@ -52,10 +53,13 @@ output "secrets" {
     n8n_glitchtip_api_token = try(data.onepassword_item.n8n.section_map["secrets"].field_map["glitchtip_api_token"].value, "")
 
     # MCPHub
-    mcphub_proxmox_token_name  = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["proxmox_token_name"].value, "")
-    mcphub_proxmox_token_value = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["proxmox_token_value"].value, "")
-    mcphub_admin_password      = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["admin_password"].value, "")
-    mcphub_n8n_mcp_api_key     = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["n8n_mcp_api_key"].value, "")
+    mcphub_proxmox_token_name       = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["proxmox_token_name"].value, "")
+    mcphub_proxmox_token_value      = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["proxmox_token_value"].value, "")
+    mcphub_admin_password           = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["admin_password"].value, "")
+    mcphub_n8n_mcp_api_key          = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["n8n_mcp_api_key"].value, "")
+    mcphub_op_service_account_token = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["op_service_account_token"].value, "")
+    slack_mcp_xoxp_token            = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxp_token"].value, "")
+    slack_mcp_xoxb_token            = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "")
 
     # ELK / Elasticsearch
     elk_elastic_password = try(data.onepassword_item.elk.section_map["secrets"].field_map["elastic_password"].value, "")

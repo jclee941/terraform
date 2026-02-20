@@ -10,7 +10,7 @@ terraform {
 }
 
 # Look up the 1Password vault by name.
-# Default vault name is "Homelab" — override via var.vault_name.
+# Default vault name is "homelab" — override via var.vault_name.
 data "onepassword_vault" "this" {
   name = var.vault_name
 }

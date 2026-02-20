@@ -5,15 +5,15 @@
 mock_provider "onepassword" {}
 
 variables {
-  vault_name = "Homelab"
+  vault_name = "homelab"
 }
 
 run "default_vault_name" {
   command = plan
 
   assert {
-    condition     = data.onepassword_vault.this.name == "Homelab"
-    error_message = "Default vault_name should be 'Homelab'."
+    condition     = data.onepassword_vault.this.name == "homelab"
+    error_message = "Default vault_name should be 'homelab'."
   }
 }
 
