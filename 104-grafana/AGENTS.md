@@ -10,7 +10,8 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 - `provisioning/`: Standard Grafana configuration for datasources (ES/Prometheus) and dashboard providers.
 - `tf-configs/`: Terraform-rendered outputs (Prometheus scrape targets, interpolated dashboard JSON).
 - `templates/`: `.tftpl` sources for dynamic configuration rendering.
-- `alerting.yaml`: Deprecated. Alert rules are now managed via Terraform (`terraform/main.tf`): 14 rules across 4 groups (homelab_logs, infrastructure_health, opencode_alerts, mcp_alerts).
+- `terraform/`: Standalone Grafana provider workspace. Alert rules (14 rules, 4 groups), dashboard folders, notification policies.
+- `alerting.yaml`: Deprecated. Alert rules now managed in `terraform/main.tf`.
 
 ## WHERE TO LOOK
 | Task | Location | Notes |

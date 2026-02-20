@@ -6,29 +6,12 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 ## STRUCTURE
 ```
 105-elk/
-├── templates/                    # TF template sources (SSoT)
-│   ├── docker-compose.yml.tftpl  # Full ELK stack definition
-│   ├── logstash.conf.tftpl       # Logstash pipeline config
-│   ├── logstash.yml.tftpl        # Logstash settings (DLQ, monitoring)
-│   ├── filebeat.yml.tftpl        # Local filebeat config
-│   ├── ilm-policy.json.tftpl     # Index Lifecycle Management policy
-│   ├── setup-ilm.sh.tftpl        # ILM bootstrap script
-│   └── Dockerfile.logstash.tftpl # Logstash Dockerfile (templatized)
-├── config/                       # Production config (reference/manual)
-│   ├── logstash.conf             # Production logstash pipeline
-│   ├── logstash.yml              # Production logstash settings
-│   ├── Dockerfile.logstash       # Custom logstash with prometheus plugin
-│   └── filebeat.yml              # Local filebeat config
-├── scripts/                      # Operational scripts
-│   ├── setup-ilm.sh              # ILM policy bootstrap
-│   ├── install-filebeat.sh       # Filebeat installer
-│   └── remove-promtail.sh        # Legacy cleanup
-├── docker-compose.yml            # Production docker-compose (reference)
-├── ilm-policy.json               # Production ILM policy (reference)
-├── .env.example                  # Environment template
-├── AGENTS.md                     # This file
-├── BUILD.bazel
-└── OWNERS
+├── templates/          # TF template sources (SSoT) — 7 tftpl files
+├── config/             # Production config (reference/manual)
+├── scripts/            # Operational (ILM bootstrap, filebeat install, promtail cleanup)
+├── terraform/          # Standalone elasticstack provider workspace
+├── docker-compose.yml  # Production stack (reference)
+└── .env.example        # Environment template
 ```
 
 ## WHERE TO LOOK
@@ -38,11 +21,10 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 | **Docker Stack** | `templates/docker-compose.yml.tftpl` (source) |
 | **Index Management** | `templates/ilm-policy.json.tftpl` (source) |
 | **Logstash Settings** | `templates/logstash.yml.tftpl` (source) |
-| **ILM Bootstrap** | `templates/setup-ilm.sh.tftpl` (source) |
+| **ILM Bootstrap** | `scripts/setup-ilm.sh` |
+| **Filebeat Setup** | `scripts/install-filebeat.sh` |
 | **Deployment** | `100-pve/main.tf` (cloud-init wiring) |
-| **ILM Script** | `scripts/setup-ilm.sh` (operational bootstrap) |
-| **Filebeat Setup** | `scripts/install-filebeat.sh` (host shipper bootstrap) |
-| **Promtail Cleanup** | `scripts/remove-promtail.sh` (legacy migration) |
+| **ELK Provider Resources** | `terraform/main.tf` (ILM, index templates, Kibana spaces) |
 
 ## TEMPLATE VARIABLES (from env-config module)
 - `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`
@@ -80,18 +62,8 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 
 ## COMMANDS
 ```bash
-# Verify ES Health (requires auth)
-curl -u elastic:$ELASTIC_PASSWORD localhost:9200/_cluster/health?pretty
-
-# Test Logstash Pipeline
-docker exec -it logstash bin/logstash -t -f /usr/share/logstash/pipeline/logstash.conf
-
-# Restart Stack
-docker compose -f /opt/elk/docker-compose.yml restart
-
-# Run ILM Setup
-bash /opt/elk/scripts/setup-ilm.sh
-
-# Store credentials in 1Password (one-time setup)
-op item edit elk "secrets.elastic_password=<password>" "secrets.kibana_password=<password>" --vault homelab
+curl -u elastic:$ELASTIC_PASSWORD localhost:9200/_cluster/health?pretty  # ES health
+docker exec -it logstash bin/logstash -t -f /usr/share/logstash/pipeline/logstash.conf  # Test pipeline
+docker compose -f /opt/elk/docker-compose.yml restart  # Restart stack
+bash /opt/elk/scripts/setup-ilm.sh  # ILM bootstrap
 ```
