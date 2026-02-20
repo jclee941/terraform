@@ -34,7 +34,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8055/sse || exit 1"]
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8055,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -53,7 +53,7 @@ services:
     environment:
       - PLAYWRIGHT_MCP_HEADLESS=true
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8056/sse || exit 1"]
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8056,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
       interval: 30s
       timeout: 10s
       retries: 3

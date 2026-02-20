@@ -4,39 +4,13 @@
   "mcp_host": "192.168.50.112",
   "mcp_timeout": 60000,
   "servers": {
-    "sqlite": {
+    "git": {
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "mcp-server-sqlite"],
-      "port": 8054,
-      "description": "SQLite database operations"
-    },
-    "proxmox": {
-      "location": "hub",
-      "transport": "sse",
-      "port": 8055,
-      "sidecar": true,
-      "docker_service": "mcp-proxmox",
-      "dockerfile": "Dockerfile.proxmox",
-      "description": "Proxmox VE cluster management"
-    },
-    "playwright": {
-      "location": "hub",
-      "transport": "sse",
-      "port": 8056,
-      "sidecar": true,
-      "docker_service": "mcp-playwright",
-      "dockerfile": "Dockerfile.playwright",
-      "description": "Browser automation via Playwright"
-    },
-    "sequential-thinking": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "port": 8057,
-      "description": "Sequential reasoning and chain-of-thought"
+      "args": ["-y", "@cyanheads/git-mcp-server@latest"],
+      "port": 8059,
+      "description": "Git repository operations"
     },
     "github": {
       "location": "hub",
@@ -49,13 +23,18 @@
       },
       "description": "GitHub API operations"
     },
-    "git": {
+    "glitchtip": {
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@cyanheads/git-mcp-server@latest"],
-      "port": 8059,
-      "description": "Git repository operations"
+      "args": ["-y", "mcp-glitchtip"],
+      "port": 8075,
+      "env": {
+        "GLITCHTIP_TOKEN": "${GLITCHTIP_TOKEN}",
+        "GLITCHTIP_ORGANIZATION": "${GLITCHTIP_ORGANIZATION}",
+        "GLITCHTIP_BASE_URL": "${GLITCHTIP_BASE_URL}"
+      },
+      "description": "GlitchTip error tracking"
     },
     "kratos": {
       "location": "hub",
@@ -65,48 +44,27 @@
       "port": 8060,
       "description": "Ory Kratos identity management"
     },
-    "time": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "uvx",
-      "args": ["mcp-server-time"],
-      "port": 8062,
-      "description": "Time and timezone utilities"
-    },
-    "elk": {
+    "onepassword": {
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@awesome-ai/elasticsearch-mcp"],
-      "port": 8065,
-      "description": "Elasticsearch query and management"
-    },
-    "websearch": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "exa-mcp-server"],
-      "port": 8067,
+      "args": ["-y", "@takescake/1password-mcp"],
+      "port": 8077,
       "env": {
-        "EXA_API_KEY": "${EXA_API_KEY}"
+        "OP_SERVICE_ACCOUNT_TOKEN": "${OP_SERVICE_ACCOUNT_TOKEN}"
       },
-      "description": "Web search via Exa"
+      "description": "1Password vault access for infrastructure secrets"
     },
-    "context7": {
+    "supabase": {
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "port": 8068,
-      "description": "Library documentation lookup"
-    },
-    "grafana": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@leval/mcp-grafana"],
-      "port": 8069,
-      "description": "Grafana dashboard and alerting"
+      "args": ["-y", "@supabase/mcp-server-supabase"],
+      "port": 8076,
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      },
+      "description": "Supabase database and API management"
     },
     "terraform": {
       "location": "hub",
@@ -116,113 +74,45 @@
       "port": 8071,
       "description": "Terraform plan and state inspection"
     },
+    "archon": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://192.168.50.108:8051/mcp",
+        "--allow-http",
+        "--transport",
+        "http-only"
+      ],
+      "port": 8078,
+      "description": "Archon AI knowledge management"
+    },
+    "elk": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@awesome-ai/elasticsearch-mcp"],
+      "port": 8065,
+      "env": {
+        "ES_HOST": "${ES_HOST}",
+        "ES_USERNAME": "${ES_USERNAME}",
+        "ES_PASSWORD": "${ES_PASSWORD}"
+      },
+      "description": "Elasticsearch query and management"
+    },
     "slack": {
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "slack-mcp-server"],
-      "port": 8072,
+      "args": ["-y", "slack-mcp-server@latest", "--transport", "stdio"],
+      "port": 8079,
       "env": {
+        "SLACK_MCP_XOXP_TOKEN": "${SLACK_MCP_XOXP_TOKEN}",
         "SLACK_MCP_XOXB_TOKEN": "${SLACK_MCP_XOXB_TOKEN}"
       },
-      "description": "Slack messaging and channel management"
-    },
-    "cf-dns": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "cloudflare-dns-mcp"],
-      "port": 8073,
-      "env": {
-        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}"
-      },
-      "description": "Cloudflare DNS management"
-    },
-    "splunk": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "splunk-mcp"],
-      "port": 8074,
-      "description": "Splunk search and analysis"
-    },
-    "glitchtip": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "mcp-glitchtip"],
-      "port": 8075,
-      "description": "GlitchTip error tracking"
-    },
-    "n8n": {
-      "location": "hub",
-      "transport": "http",
-      "port": 5678,
-      "path": "/mcp-server/http",
-      "auth": {
-        "type": "bearer",
-        "env_var": "N8N_MCP_API_KEY"
-      },
-      "description": "n8n workflow automation"
-    },
-    "in-memoria": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "in-memoria", "server"],
-      "port": 8076,
-      "env": {
-        "IN_MEMORIA_BATCH_SIZE": "25",
-        "IN_MEMORIA_MAX_CONCURRENT": "5",
-        "IN_MEMORIA_LOG_LEVEL": "warn",
-        "IN_MEMORIA_DB_FILENAME": "/data/in-memoria.db",
-        "IN_MEMORIA_VECTOR_DB_PATH": "/data/in-memoria-vectors.db"
-      },
-      "description": "Persistent memory and context management"
-    },
-    "bazel": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "github:nacgarg/bazel-mcp-server"],
-      "port": 8077,
-      "description": "Bazel build system operations"
-    },
-    "telegram-notifier": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@harnyk/telegram-notifier-mcp"],
-      "port": 8078,
-      "env": {
-        "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}",
-        "TELEGRAM_CHAT_ID": "${TELEGRAM_CHAT_ID}"
-      },
-      "description": "Telegram bot notifications"
-    },
-    "cf-docs": {
-      "location": "hub",
-      "transport": "sse",
-      "url": "https://docs.mcp.cloudflare.com/sse",
-      "description": "Cloudflare developer documentation"
-    },
-    "cf-observability": {
-      "location": "hub",
-      "transport": "sse",
-      "url": "https://observability.mcp.cloudflare.com/mcp",
-      "description": "Cloudflare observability and analytics"
-    },
-    "cf-radar": {
-      "location": "hub",
-      "transport": "sse",
-      "url": "https://radar.mcp.cloudflare.com/mcp",
-      "description": "Cloudflare Radar internet intelligence"
-    },
-    "cf-workers": {
-      "location": "hub",
-      "transport": "sse",
-      "url": "https://bindings.mcp.cloudflare.com/mcp",
-      "description": "Cloudflare Workers and bindings"
+      "description": "Slack workspace operations"
     }
   }
 }
