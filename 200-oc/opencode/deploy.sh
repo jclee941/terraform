@@ -19,7 +19,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GEN_DIR="${SCRIPT_DIR}/gen"
 GENERATED_DIR="${SCRIPT_DIR}/generated"
 
 VM_HOST="192.168.50.200"
@@ -82,9 +81,8 @@ VARIANT_DIR="${GENERATED_DIR}/${VARIANT}"
 
 # --- Step 1: Generate ---
 log "Generating config for variant '${VARIANT}'..."
-cd "$GEN_DIR"
-python3 generate.py
 cd "$SCRIPT_DIR"
+python3 -m gen.generate
 
 if [[ ! -d "$VARIANT_DIR" ]]; then
   err "Generated directory not found: $VARIANT_DIR"

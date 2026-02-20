@@ -8,13 +8,18 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
-from model_id import AgentSpec
+try:
+    from .model_id import AgentSpec
+except ImportError:
+    import importlib
+    AgentSpec = importlib.import_module("model_id").AgentSpec
 
 # ---------------------------------------------------------------------------
 # Agents
 # ---------------------------------------------------------------------------
-AGENTS: dict[str, AgentSpec] = {
+AGENTS = {
     "sisyphus": AgentSpec("claude-opus-4-6-thinking", "anthropic", thinking_budget="max"),
     "prometheus": AgentSpec("claude-opus-4-6-thinking", "anthropic", thinking_budget="max"),
     "metis": AgentSpec("claude-opus-4-6-thinking", "anthropic", thinking_budget="max"),
@@ -29,7 +34,7 @@ AGENTS: dict[str, AgentSpec] = {
 # ---------------------------------------------------------------------------
 # Categories
 # ---------------------------------------------------------------------------
-CATEGORIES: dict[str, AgentSpec] = {
+CATEGORIES = {
     "visual-engineering": AgentSpec("gemini-3-pro", "google"),
     "ultrabrain": AgentSpec("gpt-5.3-codex", "openai", thinking_budget="xhigh"),
     "deep": AgentSpec("gpt-5.3-codex", "openai", thinking_budget="medium"),
@@ -43,7 +48,7 @@ CATEGORIES: dict[str, AgentSpec] = {
 # ---------------------------------------------------------------------------
 # Variants
 # ---------------------------------------------------------------------------
-VARIANTS: dict[str, dict] = {
+VARIANTS: dict[str, dict[str, int]] = {
     "anti": {"port": 3001},
     "claude": {"port": 3002},
     "copilot": {"port": 3003},
@@ -55,7 +60,7 @@ VARIANTS: dict[str, dict] = {
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "112-mcphub" / "mcp_servers.json"
 
 
-def _load_catalog() -> dict:
+def _load_catalog() -> dict[str, Any]:
     with open(CATALOG_PATH, encoding="utf-8") as f:
         return json.load(f)
 
@@ -68,7 +73,7 @@ MCP_TIMEOUT = _catalog.get("mcp_timeout", 60000)
 MCPHUB_URL = f"http://{MCP_HOST}:3000/mcp"
 
 # ---------------------------------------------------------------------------
-LOCAL_MCPS: dict[str, dict] = {
+LOCAL_MCPS: dict[str, dict[str, Any]] = {
     name: server
     for name, server in _catalog["servers"].items()
     if server["location"] == "local"
@@ -86,13 +91,14 @@ LOCAL_MCP_ENV_OVERRIDES: dict[str, dict[str, str]] = {
 # Plugins
 # ---------------------------------------------------------------------------
 PLUGINS: list[str] = [
-    "opencode-antigravity-auth@latest",
-    "@franlol/opencode-md-table-formatter",
-    "open-trees",
-    "opencode-pty@0.1.4",
-    "opencode-supermemory@0.1.6",
+    "opencode-antigravity-auth",
+    "opencode-supermemory",
     "oh-my-opencode",
+    "open-trees",
     "opencode-agent-skills",
+    "opencode-plugin-preload-skills",
+    "opencode-snippets",
+    "opencode-pilot",
 ]
 
 # ---------------------------------------------------------------------------
@@ -124,7 +130,7 @@ OPENCODE_BASE = {
 # ---------------------------------------------------------------------------
 # Formatter (per-extension commands, no $FILE placeholder)
 # ---------------------------------------------------------------------------
-FORMATTER: dict[str, dict] = {
+FORMATTER: dict[str, dict[str, list[str]]] = {
     ".ts": {"command": ["prettier", "--write"]},
     ".tsx": {"command": ["prettier", "--write"]},
     ".js": {"command": ["prettier", "--write"]},
@@ -171,7 +177,7 @@ OC_PATHS = {
 # ---------------------------------------------------------------------------
 # Antigravity Google Models (defined in provider.google.models)
 # ---------------------------------------------------------------------------
-GOOGLE_MODELS: dict[str, dict] = {
+GOOGLE_MODELS: dict[str, dict[str, Any]] = {
     "antigravity-gemini-3-pro": {
         "name": "Gemini 3 Pro (Antigravity)",
         "limit": {"context": 1048576, "output": 65535},
@@ -235,7 +241,7 @@ GOOGLE_MODELS: dict[str, dict] = {
 # ---------------------------------------------------------------------------
 # GitHub Copilot Models (defined in provider.github-copilot.models)
 # ---------------------------------------------------------------------------
-GITHUB_COPILOT_MODELS: dict[str, dict] = {
+GITHUB_COPILOT_MODELS: dict[str, dict[str, Any]] = {
     "claude-haiku-4.5": {
         "name": "Claude Haiku 4.5 (GitHub Copilot)",
         "limit": {"context": 200000, "output": 64000},

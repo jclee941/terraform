@@ -27,16 +27,4 @@ mkdir -p "${TARGET}"
 cp "${GEN_DIR}/${VARIANT}/opencode.jsonc" "${TARGET}/"
 cp "${GEN_DIR}/${VARIANT}/antigravity.json" "${TARGET}/"
 
-# systemd service
-SYSTEMD_DIR="${HOME}/.config/systemd/user"
-mkdir -p "${SYSTEMD_DIR}"
-cp "${GEN_DIR}/${VARIANT}/opencode-${VARIANT}.service" "${SYSTEMD_DIR}/"
-systemctl --user daemon-reload
-
-# Wrapper script
-BIN_DIR="${HOME}/.local/bin"
-mkdir -p "${BIN_DIR}"
-cp "${GEN_DIR}/${VARIANT}/opencode-${VARIANT}" "${BIN_DIR}/"
-chmod +x "${BIN_DIR}/opencode-${VARIANT}"
-
-echo "✓ Deployed. Restart with: systemctl --user restart opencode-${VARIANT}"
+echo "✓ Deployed config files only"

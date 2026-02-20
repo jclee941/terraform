@@ -9,13 +9,14 @@
   ],
 
   "plugin": [
-    "opencode-antigravity-auth@latest",
-    "@franlol/opencode-md-table-formatter",
-    "open-trees",
-    "opencode-pty@0.1.4",
-    "opencode-supermemory@0.1.6",
+    "opencode-antigravity-auth",
+    "opencode-supermemory",
     "oh-my-opencode",
-    "opencode-agent-skills"
+    "open-trees",
+    "opencode-agent-skills",
+    "opencode-plugin-preload-skills",
+    "opencode-snippets",
+    "opencode-pilot"
   ],
 
   "provider": {

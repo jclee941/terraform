@@ -1,24 +1,10 @@
-"""Generate opencode config files for all variants.
-
-Reads agent/category definitions from config.py, resolves model IDs via
-model_id.py, and writes JSON configs + rendered Jinja2 templates to
-``generated/{variant}/``.
-
-Usage::
-
-    python3 gen/generate.py            # Generate all variants
-"""
-
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).parent))
-
-from config import (
+from .config import (
     AGENTS,
     ANTIGRAVITY,
     CATEGORIES,
@@ -29,33 +15,21 @@ from config import (
     LOCAL_MCPS,
     MCPHUB_URL,
     MCP_TIMEOUT,
-    OC_PATHS,
     OPENCODE_BASE,
     PLUGINS,
     VARIANTS,
 )
-from model_id import resolve_agents, resolve_categories
-
-try:
-    from jinja2 import Environment, FileSystemLoader
-except ImportError:
-    print("ERROR: jinja2 not installed. Run: pip3 install jinja2", file=sys.stderr)
-    sys.exit(1)
+from .model_id import resolve_agents, resolve_categories
 
 
 ROOT = Path(__file__).resolve().parent.parent
-TEMPLATE_DIR = ROOT / "templates"
 OUTPUT_DIR = ROOT / "generated"
-
-
-def _expand_tilde(s: str) -> str:
-    return s.replace("~", OC_PATHS["home"])
 
 
 # -- JSON builders -----------------------------------------------------------
 
 
-def _build_opencode_json(variant: str, cfg: dict) -> dict:
+def _build_opencode_json(variant: str, cfg: dict[str, Any]) -> dict[str, Any]:
     # -- MCP servers ----------------------------------------------------------
     mcp: dict[str, Any] = {}
 
@@ -111,7 +85,7 @@ def _build_opencode_json(variant: str, cfg: dict) -> dict:
     }
 
 
-def _build_oh_my_opencode_json(variant: str) -> dict:
+def _build_oh_my_opencode_json(variant: str) -> dict[str, Any]:
     """Build oh-my-opencode.json for a variant using resolved model IDs."""
     agents = resolve_agents(variant, AGENTS)
     categories = resolve_categories(variant, CATEGORIES)
@@ -123,7 +97,7 @@ def _build_oh_my_opencode_json(variant: str) -> dict:
     }
 
 
-def _build_antigravity_json() -> dict:
+def _build_antigravity_json() -> dict[str, Any]:
     return {"$schema": "antigravity.schema.json", **ANTIGRAVITY}
 
 
@@ -131,13 +105,12 @@ def _build_antigravity_json() -> dict:
 # -- Generator ----------------------------------------------------------------
 
 
-def _write_json(path: Path, data: dict) -> None:
+def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def generate_variant(variant: str, jinja_env: Environment) -> None:
+def generate_variant(variant: str) -> None:
     cfg = VARIANTS[variant]
-    port = cfg["port"]
     out_dir = OUTPUT_DIR / variant
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -145,36 +118,10 @@ def generate_variant(variant: str, jinja_env: Environment) -> None:
     _write_json(out_dir / "oh-my-opencode.json", _build_oh_my_opencode_json(variant))
     _write_json(out_dir / "antigravity.json", _build_antigravity_json())
 
-    xdg_config_home = f"{OC_PATHS['home']}/.config/opencode-wt-{variant}"
-    service = jinja_env.get_template("opencode.service.j2").render(
-        variant=variant,
-        xdg_config_home=xdg_config_home,
-        nvm_path=_expand_tilde(OC_PATHS["nvm_bin"]),
-        opencode_bin=_expand_tilde(OC_PATHS["opencode_bin"]),
-        port=port,
-    )
-    (out_dir / f"opencode-{variant}.service").write_text(service)
-
-    wrapper = jinja_env.get_template("opencode-wrapper.sh.j2").render(
-        variant=variant,
-        port=port,
-    )
-    wrapper_path = out_dir / f"opencode-{variant}"
-    wrapper_path.write_text(wrapper)
-    wrapper_path.chmod(0o755)
-
-
 def main() -> None:
-    jinja_env = Environment(
-        loader=FileSystemLoader(str(TEMPLATE_DIR)),
-        keep_trailing_newline=True,
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-
     print(f"Generating configs into {OUTPUT_DIR}/")
     for variant in VARIANTS:
-        generate_variant(variant, jinja_env)
+        generate_variant(variant)
         print(f"  \u2713 {variant}")
     print("Done.")
 

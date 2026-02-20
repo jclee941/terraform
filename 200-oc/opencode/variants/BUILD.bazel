@@ -2,5 +2,9 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "all_variants",
-    srcs = glob(["**/*.json"]),
+    srcs = [
+        "//200-oc/opencode/variants/anti:config",
+        "//200-oc/opencode/variants/claude:config",
+        "//200-oc/opencode/variants/copilot:config",
+    ],
 )

@@ -9,7 +9,6 @@ Primary GPU-accelerated development VM (RTX 5070 Ti) dedicated to LLM research a
 ├── config/             # System-level configs (cloud-init, systemd)
 ├── opencode/           # Configuration Generation Pipeline
 │   ├── gen/            # Logic scripts (config.py, generate.py)
-│   ├── templates/      # Jinja2 templates for 9 agents/8 categories
 │   ├── generated/      # OUTPUT: Rendered variants (anti, claude, copilot)
 │   └── rules/          # Context-specific agent behavior rules
 └── scripts/            # VM maintenance and GPU diagnostic tools
@@ -24,7 +23,7 @@ Primary GPU-accelerated development VM (RTX 5070 Ti) dedicated to LLM research a
 | **Agent Rules** | `opencode/rules/` | Behavior guidelines injected into sessions |
 
 ## CONVENTIONS
-- **3 Variants**: 
+- **3 Variants**:
     - `anti`: Full Antigravity/Google3 integration (default).
     - `claude`: Vanilla Anthropic integration for pure-reasoning tasks.
     - `copilot`: Hybrid variant optimized for VS Code/IDE extensions.
@@ -36,4 +35,3 @@ Primary GPU-accelerated development VM (RTX 5070 Ti) dedicated to LLM research a
 - **NO relative symlinks**: Symlinks for `opencode.jsonc` must use absolute targets to prevent breakage across shell environments.
 - **NO local agent config**: Do not edit `~/.config/opencode/` manually; use the pipeline to deploy changes from this repository.
 - **NO GPU over-allocation**: Local inference must respect the VRAM limits (16GB) of the RTX 5070 Ti.
-

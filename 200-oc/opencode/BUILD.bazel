@@ -2,12 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "gen",
-    srcs = glob(["gen/**"]),
-)
-
-filegroup(
-    name = "templates",
-    srcs = glob(["templates/**"]),
+    srcs = ["//200-oc/opencode/gen:sources"],
 )
 
 filegroup(
@@ -17,19 +12,18 @@ filegroup(
 
 filegroup(
     name = "rules",
-    srcs = glob(["rules/**"]),
+    srcs = ["//200-oc/opencode/rules:rules"],
 )
 
 filegroup(
     name = "variants",
-    srcs = glob(["variants/**"]),
+    srcs = ["//200-oc/opencode/variants:all_variants"],
 )
 
 filegroup(
     name = "configs",
     srcs = [
         "antigravity.json",
-        "dcp.jsonc",
         "opencode.jsonc",
         "supermemory.jsonc",
     ],
@@ -37,7 +31,7 @@ filegroup(
 
 filegroup(
     name = "bin",
-    srcs = glob(["bin/*"]),
+    srcs = ["//200-oc/opencode/bin:scripts"],
 )
 
 filegroup(
@@ -48,7 +42,6 @@ filegroup(
         ":gen",
         ":generated",
         ":rules",
-        ":templates",
         ":variants",
         "OWNERS",
     ],

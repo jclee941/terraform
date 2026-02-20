@@ -14,11 +14,8 @@ opencode/
 ├── variants/               # Per-variant oh-my-opencode.json overrides
 ├── generated/              # OUTPUT (do not hand-edit)
 │   └── {variant}/          # opencode.jsonc, oh-my-opencode.json, antigravity.json,
-│                           # wrapper script, systemd service
-├── bin/                    # Launchers: anti, claude, copilot, opencode-sync
+├── bin/                    # Sync helper: opencode-sync
 ├── rules/                  # Agent rules (session-init, cicd-bazel, large-refactor)
-├── templates/              # Jinja2: opencode.service.j2, opencode-wrapper.sh.j2
-├── systemd/                # 3 service files (opencode-{anti,claude,copilot})
 ├── opencode.jsonc          # Base config (MCP servers + plugins)
 ├── antigravity.json        # Auth plugin config
 └── supermemory.jsonc        # Supermemory plugin config
@@ -28,7 +25,7 @@ opencode/
 `config.py` (SoT) → `generate.py` → `generated/{variant}/` → Terraform `vm-config` → VM 200
 
 - **config.py**: Defines 9 agents (`AgentSpec`), 8 categories, MCP servers, plugins, variant overrides. Replaces old TF `variables.tf` data.
-- **generate.py**: Resolves model IDs via `model_id.py`, renders Jinja2 templates, writes JSON configs + systemd + wrappers.
+- **generate.py**: Resolves model IDs via `model_id.py`, writes JSON configs.
 - **model_id.py**: Maps `(model_name, provider)` → full model ID. Tested via `model_id_test.py`.
 
 ## WHERE TO LOOK
@@ -37,13 +34,12 @@ opencode/
 | Add/change agent model | `gen/config.py` → `AGENTS` dict |
 | Add MCP server | `gen/config.py` → MCP section |
 | Add new variant | `variants/{name}/oh-my-opencode.json` + update `config.py` |
-| Modify systemd service | `templates/opencode.service.j2` |
 | Add agent rule | `rules/{name}.md` |
 
 ## COMMANDS
 ```bash
-python3 gen/generate.py                          # Generate all variants
-N8N_MCP_API_KEY=xxx python3 gen/generate.py      # With n8n token
+python3 -m gen.generate                          # Generate all variants
+N8N_MCP_API_KEY=xxx python3 -m gen.generate      # With n8n token
 python3 -m pytest gen/model_id_test.py           # Run tests
 bazel test //200-oc/opencode/...                 # Bazel test
 ```
