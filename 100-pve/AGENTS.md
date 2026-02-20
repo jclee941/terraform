@@ -1,12 +1,12 @@
 # AGENTS: 100-pve — Primary Terraform Workspace
 
 ## OVERVIEW
-Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (810 lines) coordinates host inventory, container sizing, validation, and config rendering.
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (844 lines) coordinates host inventory, container sizing, validation, and config rendering.
 
 ## STRUCTURE
 ```
 100-pve/
-├── main.tf              # Central orchestration (810 lines)
+├── main.tf              # Central orchestration (844 lines)
 ├── variables.tf         # Input variables + validation
 ├── terraform.tfvars     # Variable values (gitignored)
 ├── versions.tf          # Provider + backend config (local)

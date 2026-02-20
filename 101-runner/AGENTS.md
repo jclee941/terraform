@@ -31,6 +31,8 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 | **Troubleshoot logs**| `config/filebeat.yml` | Verified against Logstash:5044 |
 | **Base dependencies**| `scripts/setup-runner.sh` | Python, Docker, Terraform, Bazel |
 | **Service Control** | `README.md` | systemd templates: `github-runner@<repo>` |
+| **Single repo register** | `scripts/register-repo.sh` | Targeted registration for one repo |
+| **Safe cleanup** | `scripts/unregister-all.sh` | Token revocation and cleanup |
 
 ## CONVENTIONS
 - **Governance**: Managed by Terraform (`module.lxc["runner"]`). VMID 101 is fixed.
@@ -38,6 +40,8 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 - **Labels**: Jobs MUST use `runs-on: [self-hosted, homelab]` to target this runner.
 - **Networking**: Unprivileged LXC with `nesting=1` enabled for Docker-in-Docker support.
 - **Naming**: Follows `{VMID}-{HOSTNAME}` (101-runner) for Proxmox and GitHub identifiers.
+- **Script Safety**: Keep scripts repeatable and safe for reruns during recovery.
+- **Repo Alignment**: Keep repository lists aligned with `301-github` governance.
 
 ## ANTI-PATTERNS
 - **NO manual config** inside LXC. Use scripts or Terraform remote-exec.
@@ -45,3 +49,4 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 - **NO plaintext tokens**. Use environment variables or Vault integration.
 - **NO direct SSH**. Use `ssh root@pve 'pct exec 101 -- bash'` from PVE host.
 - **NO persistent storage** in work dirs. Cleaned by `unregister-all.sh`.
+- **NO remote registration**. Do not run registration scripts from non-runner hosts.

@@ -19,7 +19,7 @@ High-performance edge router and reverse proxy (LXC 102) for the `jclee.me` ecos
 - **Access Logs**: `/var/log/traefik/access.log` (monitored via Filebeat).
 
 ## CONVENTIONS
-- **MCP Ingress**: All MCP servers are routed via `https://mcphub.jclee.me/sse/{server}`.
+- **MCP Ingress**: MCP traffic is routed through `https://mcphub.jclee.me/mcp`.
 - **Resilience**: All internal/MCP routes MUST include the `mcp-resilient` middleware chain (Retry-5 + Circuit Breaker).
 - **Subdomains**: Standard format is `https://{service}.jclee.me`.
 - **Backend IPs**: Never hardcode. Always inject via `module.hosts` from `100-pve/envs/prod/hosts.tf`.

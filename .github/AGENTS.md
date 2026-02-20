@@ -1,12 +1,14 @@
 # AGENTS: .github — CI/CD Pipeline
 
 ## OVERVIEW
-25 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
+28 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
 
 ## STRUCTURE
 ```
 .github/
 ├── workflows/
+│   ├── _terraform-plan.yml    # Reusable plan template (called by service workflows)
+│   ├── _terraform-apply.yml   # Reusable apply template (called by service workflows)
 │   ├── terraform-plan.yml     # 100-pve plan (PR trigger)
 │   ├── terraform-apply.yml    # 100-pve apply (push to master)
 │   ├── terraform-drift.yml    # Daily drift check (7-workspace matrix)
@@ -21,9 +23,11 @@
 │   ├── stale.yml              # Close stale issues/PRs
 │   ├── onepassword-test.yml   # 1Password connectivity test
 │   ├── worker-deploy.yml      # Cloudflare Worker deployment
+│   ├── opencode.yml           # OpenCode dev VM config deployment
 │   └── internal-service-access.yml
 └── actions/
-    └── terraform-setup/       # Composite action: install TF + init
+    ├── terraform-setup/       # Composite action: install TF + init
+    └── notify-failure/        # Composite action: issue creation + dedup
 ```
 
 ## WHERE TO LOOK
@@ -34,6 +38,7 @@
 | **Risk Tiers** | `auto-merge.yml` | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, oc, staging), low = auto-merge. |
 | **Workflow Pattern** | `{svc}-plan.yml` | Each standalone workflow has: TF setup, init, plan/apply, PR comment. No reusable workflow abstraction (consolidation opportunity). |
 | **Secrets Pattern** | Per-workflow steps | `secrets.*` → `TF_VAR_*` env export in plan/apply steps. |
+| **Custom action contracts** | `.github/actions/AGENTS.md` | Shared inputs and anti-patterns for composite actions. |
 
 ## CONVENTIONS
 - **Runner**: All TF workflows use `self-hosted` (LXC 101). Non-TF automation uses `ubuntu-latest`.

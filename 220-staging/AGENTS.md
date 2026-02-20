@@ -1,16 +1,16 @@
-# 220-sandbox: Development Sandbox
+# 220-staging: Development Sandbox
 
 **VMID:** 220 | **IP:** 192.168.50.220 | **Status:** Ephemeral
 **Specs:** 4GB RAM, 2 cores, 50GB disk (q35/OVMF)
 
 ## OVERVIEW
-The `220-sandbox` is a dedicated environment for experimental development and transient workloads. It features an automated Cloudflare WARP integration for secure, outbound-only connectivity without exposing the homelab network.
+The `220-staging` VM is a dedicated environment for experimental development and transient workloads. It features an automated Cloudflare WARP integration for secure, outbound-only connectivity without exposing the homelab network.
 
 ## STRUCTURE
 ```text
-220-sandbox/
+220-staging/
 ├── cloud-init/
-│   └── sandbox-user-data.yaml  # Cloud-init definition (WARP, tools)
+│   └── staging-user-data.yaml  # Cloud-init definition (WARP, tools)
 ├── AGENTS.md                   # This file (Operational SoT)
 ├── BUILD.bazel                # Bazel monorepo target
 ├── OWNERS                      # Directory ownership
@@ -23,7 +23,7 @@ The `220-sandbox` is a dedicated environment for experimental development and tr
 | **IaC Definition** | `terraform/main.tf` | Search for `proxmox_virtual_environment_vm.sandbox` |
 | **IP / Host SoT** | `terraform/envs/prod/hosts.tf` | Centralized IP management (Source of Truth) |
 | **Config Module** | `terraform/modules/vm-config/` | Shared VM configuration patterns |
-| **Cloud-Init** | `220-sandbox/cloud-init/` | Automated package/service setup (WARP, tools) |
+| **Cloud-Init** | `220-staging/cloud-init/` | Automated package/service setup (WARP, tools) |
 
 ## CONVENTIONS
 - **Ephemeral Lifecycle**: The VM is designed to be destroyed and recreated via Terraform (`terraform destroy/apply -target=...`).
