@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Terraform Documentation
+    url: https://developer.hashicorp.com/terraform/docs
+    about: Official Terraform documentation
+  - name: Proxmox Documentation
+    url: https://pve.proxmox.com/wiki/Main_Page
+    about: Proxmox VE documentation for LXC/VM management

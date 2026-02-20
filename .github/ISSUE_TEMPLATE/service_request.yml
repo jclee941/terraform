@@ -1,0 +1,89 @@
+name: New Service Request
+description: Request a new service (LXC container or VM) on the homelab
+labels: ["service-request", "terraform"]
+body:
+  - type: input
+    id: service-name
+    attributes:
+      label: Service Name
+      description: "Short identifier for the service (e.g., n8n, vaultwarden, nextcloud)"
+      placeholder: my-service
+    validations:
+      required: true
+  - type: input
+    id: container-id
+    attributes:
+      label: Proposed Container/VM ID
+      description: |
+        Next available ID in the 100-255 range (internal) or 300+ (external).
+        Current allocations: 100(PVE), 101(runner), 102(traefik), 104(grafana),
+        105(elk), 106(glitchtip), 107(supabase), 108(archon), 112(mcphub),
+        200(oc), 215(synology), 220(staging).
+      placeholder: "109"
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Deployment Type
+      options:
+        - LXC Container (preferred)
+        - VM (QEMU)
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Service Description
+      description: What does this service do? Why do we need it?
+    validations:
+      required: true
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resource Requirements
+      description: Estimated resource needs.
+      value: |
+        - CPU cores: 2
+        - RAM: 2048 MB
+        - Disk: 16 GB
+        - Network: DHCP or static IP (192.168.50.{ID})
+    validations:
+      required: true
+  - type: textarea
+    id: docker-compose
+    attributes:
+      label: Docker Compose / Config
+      description: If the service runs via Docker, provide the compose file or config.
+      render: yaml
+    validations:
+      required: false
+  - type: checkboxes
+    id: requirements
+    attributes:
+      label: Infrastructure Requirements
+      options:
+        - label: Needs Traefik ingress (external HTTPS access)
+        - label: Needs 1Password secrets integration
+        - label: Needs Grafana monitoring dashboard
+        - label: Needs Cloudflare DNS record
+        - label: Needs CI/CD plan/apply workflows
+        - label: Needs MCP server registration (mcphub)
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk Tier
+      description: What risk tier should this service belong to?
+      options:
+        - Critical (manual merge required)
+        - Medium (review required)
+        - Low (auto-merge eligible)
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Links, references, similar deployments, etc.
+    validations:
+      required: false

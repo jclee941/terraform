@@ -1,8 +1,8 @@
 # Auto-label configuration for actions/labeler
 # Maps file path patterns to PR labels
-# This is a GENERIC config — repos can override with their own .github/labeler.yml
 
-# Documentation changes
+# === Content Type Labels ===
+
 documentation:
   - changed-files:
       - any-glob-to-any-file:
@@ -11,7 +11,6 @@ documentation:
           - 'README*'
           - 'CHANGELOG*'
 
-# CI/CD changes
 ci:
   - changed-files:
       - any-glob-to-any-file:
@@ -20,7 +19,6 @@ ci:
           - '*.yaml'
           - 'Makefile'
 
-# Infrastructure / Terraform
 terraform:
   - changed-files:
       - any-glob-to-any-file:
@@ -28,7 +26,6 @@ terraform:
           - '**/*.tfvars'
           - '**/.terraform.lock.hcl'
 
-# Docker changes
 docker:
   - changed-files:
       - any-glob-to-any-file:
@@ -36,7 +33,6 @@ docker:
           - '**/docker-compose*.yml'
           - '**/.dockerignore'
 
-# Python changes
 python:
   - changed-files:
       - any-glob-to-any-file:
@@ -46,7 +42,6 @@ python:
           - 'setup.py'
           - 'setup.cfg'
 
-# TypeScript / JavaScript changes
 typescript:
   - changed-files:
       - any-glob-to-any-file:
@@ -57,14 +52,12 @@ typescript:
           - 'package.json'
           - 'tsconfig*.json'
 
-# Shell scripts
 shell:
   - changed-files:
       - any-glob-to-any-file:
           - '**/*.sh'
           - '**/*.bash'
 
-# Configuration files
 config:
   - changed-files:
       - any-glob-to-any-file:
@@ -74,3 +67,93 @@ config:
           - '**/*.cfg'
           - '.editorconfig'
           - '.gitignore'
+
+# === Risk Tier Labels (aligned with auto-merge.yml) ===
+
+risk:critical:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '100-pve/**'
+          - 'modules/**'
+          - '300-cloudflare/**'
+          - '301-github/**'
+          - '102-traefik/**'
+
+risk:medium:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '105-elk/**'
+          - '107-supabase/**'
+          - '108-archon/**'
+          - '112-mcphub/**'
+          - '200-oc/**'
+          - '220-staging/**'
+
+# === Service Labels ===
+
+svc:pve:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '100-pve/**'
+
+svc:runner:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '101-runner/**'
+
+svc:traefik:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '102-traefik/**'
+
+svc:grafana:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '104-grafana/**'
+
+svc:elk:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '105-elk/**'
+
+svc:glitchtip:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '106-glitchtip/**'
+
+svc:supabase:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '107-supabase/**'
+
+svc:archon:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '108-archon/**'
+
+svc:mcphub:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '112-mcphub/**'
+
+svc:cloudflare:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '300-cloudflare/**'
+
+svc:github:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '301-github/**'
+
+# === Scope Labels ===
+
+modules:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'modules/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
