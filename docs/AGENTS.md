@@ -9,7 +9,7 @@ docs/
 ├── runbooks/                     # Operational procedures (incident response)
 ├── cloudflare-token-rotation.md  # Security rotation procedures
 ├── backup-strategy.md            # Restic/Borg backup policies
-└── ALERTING-REFERENCE.md         # Explanations of Grafana/ElastAlert rules
+└── ALERTING-REFERENCE.md         # Explanations of Grafana alert rules
 ```
 
 ## WHERE TO LOOK

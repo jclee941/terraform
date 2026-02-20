@@ -42,7 +42,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - **DLQ**: Enabled by default (1024mb max) to capture failed document mappings.
 - **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu.
 - **Naming**: Use `logs-{service}-{env}` prefix for automatic pattern matching in Kibana.
-- **Alerting**: Grafana (104-grafana/alerting.yaml) handles all alerting. ElastAlert2 was removed.
+- **Alerting**: Grafana (`104-grafana/terraform/main.tf`) handles all alerting. ElastAlert2 was removed.
 - **Script Alignment**: Keep operational scripts aligned with Terraform-defined service topology.
 
 ## SECURITY

@@ -60,20 +60,10 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 
 ## COMMANDS
 ```bash
-# Terraform
-cd 300-cloudflare && terraform init
-terraform plan
-terraform apply
-
-# Worker
-cd 300-cloudflare/workers/synology-proxy
-npm install && npm run dev    # wrangler dev
-npm test                      # vitest
-npm run deploy                # wrangler deploy
-
-# Scripts
-./300-cloudflare/scripts/collect.sh   # harvest secrets
-./300-cloudflare/scripts/audit.sh     # check drift
+terraform init && terraform plan && terraform apply   # TF workspace
+cd workers/synology-proxy && npm run dev               # Worker dev
+cd workers/synology-proxy && npm test && npm run deploy # Worker CI
+./scripts/collect.sh && ./scripts/audit.sh             # Secret harvest + drift
 ```
 
 ## NOTES
