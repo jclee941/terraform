@@ -14,4 +14,9 @@ data "terraform_remote_state" "infra" {
   config = {
     path = "${path.module}/../../100-pve/terraform.tfstate"
   }
+
+  # Defaults allow CI to plan without the 100-pve state file present.
+  defaults = {
+    host_inventory = {}
+  }
 }

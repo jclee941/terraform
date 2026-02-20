@@ -20,5 +20,6 @@ jobs:
     with:
       service-name: Traefik
       working-directory: 102-traefik/terraform
+      needs-infra-state: true
       migrate-state: lxc_config
     secrets: inherit  # pragma: allowlist secret

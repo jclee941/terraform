@@ -23,6 +23,7 @@ jobs:
     with:
       service-name: Grafana
       working-directory: 104-grafana/terraform
+      needs-infra-state: true
       failure-title-prefix: '[Grafana] Apply failed on master'
       failure-extra-body: |
         **Workspace:** `104-grafana/terraform`

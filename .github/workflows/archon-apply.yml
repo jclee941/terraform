@@ -22,6 +22,7 @@ jobs:
     with:
       service-name: Archon
       working-directory: 108-archon/terraform
+      needs-infra-state: true
       migrate-state: lxc_and_lxc_config
       failure-title-prefix: '[Archon] Apply failed on master'
       failure-extra-body: |

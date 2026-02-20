@@ -21,4 +21,5 @@ jobs:
     with:
       service-name: Grafana
       working-directory: 104-grafana/terraform
+      needs-infra-state: true
     secrets: inherit  # pragma: allowlist secret

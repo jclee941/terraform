@@ -22,6 +22,7 @@ jobs:
     with:
       service-name: Traefik
       working-directory: 102-traefik/terraform
+      needs-infra-state: true
       migrate-state: lxc_config
       failure-title-prefix: '[Traefik] Apply failed on master'
       failure-extra-body: |

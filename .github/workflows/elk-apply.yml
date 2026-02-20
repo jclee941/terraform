@@ -22,6 +22,7 @@ jobs:
     with:
       service-name: ELK
       working-directory: 105-elk/terraform
+      needs-infra-state: true
       failure-title-prefix: '[ELK] Apply failed on master'
       failure-extra-body: |
         **Workspace:** `105-elk/terraform`

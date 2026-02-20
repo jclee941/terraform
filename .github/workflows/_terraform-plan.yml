@@ -23,6 +23,10 @@ on:
         description: 'Set TF_VAR_enable_repository_imports=true (github workspace only)'
         type: boolean
         default: false
+      needs-infra-state:
+        description: 'Create stub 100-pve state file for workspaces that read terraform_remote_state.infra'
+        type: boolean
+        default: false
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: false
@@ -84,13 +88,14 @@ jobs:
           terraform state rm module.lxc_config 2>/dev/null || true
 
       - name: Create stub remote state for CI
-        if: inputs.enable-repository-imports
+        if: inputs.enable-repository-imports || inputs.needs-infra-state
         run: |
-          # The 301-github workspace reads data.terraform_remote_state.infra
-          # from 100-pve/terraform.tfstate. On CI this file doesn't exist.
+          # Workspaces that read data.terraform_remote_state.infra need
+          # 100-pve/terraform.tfstate to exist. On CI this file doesn't exist.
           # Create an empty stub so terraform plan/apply can proceed.
-          mkdir -p ../100-pve
-          echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > ../100-pve/terraform.tfstate
+          # Use $GITHUB_WORKSPACE for correct path regardless of working-directory depth.
+          mkdir -p $GITHUB_WORKSPACE/100-pve
+          echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > $GITHUB_WORKSPACE/100-pve/terraform.tfstate
 
       - name: Terraform Plan
         id: plan

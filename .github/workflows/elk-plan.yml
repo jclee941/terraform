@@ -20,4 +20,5 @@ jobs:
     with:
       service-name: ELK
       working-directory: 105-elk/terraform
+      needs-infra-state: true
     secrets: inherit  # pragma: allowlist secret

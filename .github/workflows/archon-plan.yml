@@ -20,5 +20,6 @@ jobs:
     with:
       service-name: Archon
       working-directory: 108-archon/terraform
+      needs-infra-state: true
       migrate-state: lxc_and_lxc_config
     secrets: inherit  # pragma: allowlist secret
