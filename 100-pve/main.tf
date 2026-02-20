@@ -179,6 +179,20 @@ check "deploy_ssh_key_required" {
   }
 }
 
+check "no_placeholder_secrets" {
+  assert {
+    condition     = length(local.placeholder_template_secret_keys) == 0
+    error_message = "1Password secrets contain placeholder values that must be replaced with real credentials: ${join(", ", local.placeholder_template_secret_keys)}"
+  }
+}
+
+check "no_placeholder_metadata" {
+  assert {
+    condition     = length(local.placeholder_template_metadata_keys) == 0
+    error_message = "1Password metadata contain placeholder values consumed by templates: ${join(", ", local.placeholder_template_metadata_keys)}"
+  }
+}
+
 # =============================================================================
 # CONTAINER MODULES
 # =============================================================================
@@ -675,6 +689,22 @@ locals {
   missing_required_template_secret_keys = [
     for k in local.required_template_secret_keys :
     k if length(trimspace(lookup(module.onepassword_secrets.secrets, k, ""))) == 0
+  ]
+
+  placeholder_template_secret_keys = [
+    for k in local.required_template_secret_keys :
+    k if can(regex("(?i)placeholder", lookup(module.onepassword_secrets.secrets, k, "")))
+  ]
+
+  # Metadata keys consumed by service templates (must not be placeholder)
+  required_template_metadata_keys = [
+    "supabase_url",
+    "supabase_dashboard_username",
+  ]
+
+  placeholder_template_metadata_keys = [
+    for k in local.required_template_metadata_keys :
+    k if can(regex("(?i)placeholder", lookup(module.onepassword_secrets.metadata, k, "")))
   ]
 }
 

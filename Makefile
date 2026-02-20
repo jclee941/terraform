@@ -95,10 +95,12 @@ lint-tflint: ## Run tflint on all workspaces
 
 test: ## Run Terraform module tests
 	cd tests/modules/proxmox && terraform init -backend=false && terraform test
+	cd tests/modules/shared && terraform init -backend=false && terraform test
 	cd tests/integration && terraform init -backend=false && terraform test
 
 test-unit: ## Run unit tests only
 	cd tests/modules/proxmox && terraform init -backend=false && terraform test
+	cd tests/modules/shared && terraform init -backend=false && terraform test
 
 test-integration: ## Run integration tests only
 	cd tests/integration && terraform init -backend=false && terraform test

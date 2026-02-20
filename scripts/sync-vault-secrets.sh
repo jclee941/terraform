@@ -161,6 +161,12 @@ for entry in "${OP_SECRETS[@]}"; do
     continue
   fi
 
+  if [[ "$value" =~ ^[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr] ]] || [[ "$value" == "PLACEHOLDER_NEEDS_REAL_TOKEN" ]]; then
+    printf "${YELLOW}  [PH]${NC} %-35s %s  placeholder value — skipped\n" "$name" "$priority"
+    (( ++skipped ))
+    continue
+  fi
+
   if $AUDIT_ONLY; then
     if is_configured "$name"; then
       printf "${YELLOW}  [~~]${NC} %-35s %s  would rotate: %s\n" "$name" "$priority" "$(mask_value "$value")"
