@@ -59,3 +59,16 @@ variable "health_check_delay" {
   type        = number
   default     = 3
 }
+
+variable "ssh_private_key" {
+  description = "SSH private key content for LXC remote provisioners"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "ssh_user" {
+  description = "SSH user for LXC remote provisioners"
+  type        = string
+  default     = "root"
+}

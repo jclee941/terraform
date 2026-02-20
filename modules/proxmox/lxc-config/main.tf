@@ -14,6 +14,8 @@ terraform {
 }
 
 locals {
+  ssh_private_key = trimspace(replace(replace(var.ssh_private_key, "\r\n", "\n"), "\\n", "\n"))
+
   systemd_services = flatten([
     for lxc_name, lxc in var.lxc_containers : [
       for svc_name, svc in lxc.systemd_services : {
@@ -74,6 +76,13 @@ locals {
   }
 }
 
+check "deploy_requires_ssh_key" {
+  assert {
+    condition     = !var.deploy_lxc_configs || length(local.ssh_private_key) > 0
+    error_message = "deploy_lxc_configs=true requires non-empty ssh_private_key content."
+  }
+}
+
 resource "local_file" "systemd_services" {
   for_each = local.systemd_services_map
 
@@ -110,9 +119,11 @@ resource "null_resource" "deploy_systemd_services" {
     destination = "/tmp/${each.value.svc_name}.service"
 
     connection {
-      type = "ssh"
-      host = each.value.lxc_ip
-      user = "root"
+      type        = "ssh"
+      host        = each.value.lxc_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 
@@ -125,9 +136,11 @@ resource "null_resource" "deploy_systemd_services" {
     ]
 
     connection {
-      type = "ssh"
-      host = each.value.lxc_ip
-      user = "root"
+      type        = "ssh"
+      host        = each.value.lxc_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 
@@ -151,9 +164,11 @@ resource "null_resource" "health_check_systemd" {
     ]
 
     connection {
-      type = "ssh"
-      host = each.value.lxc_ip
-      user = "root"
+      type        = "ssh"
+      host        = each.value.lxc_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 
@@ -172,9 +187,11 @@ resource "null_resource" "deploy_config_files" {
     destination = "/tmp/${each.value.cfg_name}"
 
     connection {
-      type = "ssh"
-      host = each.value.lxc_ip
-      user = "root"
+      type        = "ssh"
+      host        = each.value.lxc_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 
@@ -186,9 +203,11 @@ resource "null_resource" "deploy_config_files" {
     ]
 
     connection {
-      type = "ssh"
-      host = each.value.lxc_ip
-      user = "root"
+      type        = "ssh"
+      host        = each.value.lxc_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 

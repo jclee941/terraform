@@ -14,6 +14,8 @@ terraform {
 }
 
 locals {
+  ssh_private_key = trimspace(replace(replace(var.ssh_private_key, "\r\n", "\n"), "\\n", "\n"))
+
   cloud_init_configs = {
     for name, vm in var.vms : name => templatefile("${path.module}/templates/cloud-init.yaml.tftpl", {
       hostname    = vm.hostname
@@ -47,6 +49,32 @@ locals {
   ])
 
   systemd_services_map = { for svc in local.systemd_services : svc.key => svc }
+
+  vm_write_files = flatten([
+    for vm_name, vm in var.vms : [
+      for idx, wf in try(vm.cloud_init.write_files, []) : {
+        key         = "${vm_name}-${idx}"
+        vm_name     = vm_name
+        vm_ip       = vm.ip_address
+        path        = wf.path
+        content     = wf.content
+        permissions = wf.permissions
+        owner       = wf.owner
+        owner_user  = split(":", wf.owner)[0]
+        owner_group = length(split(":", wf.owner)) > 1 ? split(":", wf.owner)[1] : split(":", wf.owner)[0]
+        deploy      = vm.deploy
+      }
+    ]
+  ])
+
+  vm_write_files_map = { for wf in local.vm_write_files : wf.key => wf }
+}
+
+check "deploy_requires_ssh_key" {
+  assert {
+    condition     = !var.deploy_vm_configs || length(local.ssh_private_key) > 0
+    error_message = "deploy_vm_configs=true requires non-empty ssh_private_key content."
+  }
 }
 
 resource "local_file" "cloud_init" {
@@ -77,9 +105,11 @@ resource "null_resource" "deploy_systemd_services" {
     destination = "/tmp/${each.value.svc_name}.service"
 
     connection {
-      type = "ssh"
-      host = each.value.vm_ip
-      user = var.ssh_user
+      type        = "ssh"
+      host        = each.value.vm_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 
@@ -92,13 +122,54 @@ resource "null_resource" "deploy_systemd_services" {
     ]
 
     connection {
-      type = "ssh"
-      host = each.value.vm_ip
-      user = var.ssh_user
+      type        = "ssh"
+      host        = each.value.vm_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 
   depends_on = [local_file.systemd_services]
+}
+
+resource "null_resource" "deploy_vm_write_files" {
+  for_each = var.deploy_vm_configs ? { for k, v in local.vm_write_files_map : k => v if v.deploy } : {}
+
+  triggers = {
+    content_hash = sha256(each.value.content)
+    path         = each.value.path
+    permissions  = each.value.permissions
+    owner        = each.value.owner
+  }
+
+  provisioner "file" {
+    content     = each.value.content
+    destination = "/tmp/${each.value.key}.tmp"
+
+    connection {
+      type        = "ssh"
+      host        = each.value.vm_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
+    }
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo install -D -m ${each.value.permissions} -o ${each.value.owner_user} -g ${each.value.owner_group} /tmp/${each.value.key}.tmp ${each.value.path}",
+      "rm -f /tmp/${each.value.key}.tmp"
+    ]
+
+    connection {
+      type        = "ssh"
+      host        = each.value.vm_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
+    }
+  }
 }
 
 # Health check: verify systemd services are active after deployment
@@ -118,11 +189,16 @@ resource "null_resource" "health_check_systemd" {
     ]
 
     connection {
-      type = "ssh"
-      host = each.value.vm_ip
-      user = var.ssh_user
+      type        = "ssh"
+      host        = each.value.vm_ip
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
     }
   }
 
-  depends_on = [null_resource.deploy_systemd_services]
+  depends_on = [
+    null_resource.deploy_systemd_services,
+    null_resource.deploy_vm_write_files,
+  ]
 }

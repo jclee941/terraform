@@ -4,7 +4,9 @@ provider "proxmox" {
   insecure  = var.proxmox_insecure
 }
 
-provider "onepassword" {}
+provider "onepassword" {
+  service_account_token = trimspace(var.op_service_account_token)
+}
 
 # =============================================================================
 # DATA SOURCES
@@ -29,7 +31,13 @@ module "hosts" {
 # =============================================================================
 
 locals {
-  node_name = var.node_name
+  node_name                  = var.node_name
+  proxmox_endpoint_no_scheme = trimprefix(var.proxmox_endpoint, "https://")
+  proxmox_endpoint_no_slash  = trimsuffix(local.proxmox_endpoint_no_scheme, "/")
+  proxmox_endpoint_parts     = split(":", local.proxmox_endpoint_no_slash)
+  proxmox_host               = local.proxmox_endpoint_parts[0]
+  proxmox_port               = length(local.proxmox_endpoint_parts) > 1 ? local.proxmox_endpoint_parts[1] : "8006"
+  proxmox_ssl_mode           = var.proxmox_insecure ? "insecure" : "strict"
 
   infrastructure_nodes = [
     for name, host in module.hosts.hosts : {
@@ -146,6 +154,28 @@ check "memory_requirements" {
     error_message = join("\n", [
       for k, v in local.memory_validation : v.message if !(v.sufficient && v.divisible && v.swap_valid)
     ])
+  }
+}
+
+check "mcphub_required_secrets" {
+  assert {
+    condition = alltrue([
+      for k in [
+        "mcphub_admin_password",
+        "mcphub_n8n_mcp_api_key",
+        "mcphub_op_service_account_token",
+        "mcphub_proxmox_token_name",
+        "mcphub_proxmox_token_value",
+      ] : length(trimspace(lookup(module.onepassword_secrets.secrets, k, ""))) > 0
+    ])
+    error_message = "MCPHub required 1Password fields are missing. Required keys: mcphub_admin_password, mcphub_n8n_mcp_api_key, mcphub_op_service_account_token, mcphub_proxmox_token_name, mcphub_proxmox_token_value"
+  }
+}
+
+check "deploy_ssh_key_required" {
+  assert {
+    condition     = !(var.deploy_lxc_configs || var.deploy_vm_configs) || length(trimspace(lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", ""))) > 0
+    error_message = "deploy_lxc_configs/deploy_vm_configs requires onepassword secret key 'proxmox_ssh_private_key' in item 'proxmox' section 'secrets'."
   }
 }
 
@@ -290,7 +320,8 @@ module "vm_config" {
   source = "../modules/proxmox/vm-config"
 
   deploy_vm_configs = var.deploy_vm_configs
-  ssh_user          = "jclee"
+  ssh_user          = "root"
+  ssh_private_key   = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
   vms = {
     # staging: Disabled — see staging VM resource block comment above
@@ -382,6 +413,8 @@ module "lxc_config" {
 
   deploy_lxc_configs = var.deploy_lxc_configs
   mcp_host           = module.hosts.hosts.mcphub.ip
+  ssh_user           = "root"
+  ssh_private_key    = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
   lxc_containers = {
     runner = {
@@ -610,7 +643,39 @@ output "lxc_configs" {
 # =============================================================================
 
 module "onepassword_secrets" {
-  source = "../modules/shared/onepassword-secrets"
+  source     = "../modules/shared/onepassword-secrets"
+  vault_name = var.onepassword_vault_name
+}
+
+locals {
+  required_template_secret_keys = [
+    "elk_elastic_password",
+    "elk_kibana_password",
+    "github_personal_access_token",
+    "glitchtip_api_token",
+    "glitchtip_django_secret_key",
+    "glitchtip_postgres_password",
+    "glitchtip_redis_password",
+    "mcphub_admin_password",
+    "mcphub_n8n_mcp_api_key",
+    "mcphub_op_service_account_token",
+    "mcphub_proxmox_token_name",
+    "mcphub_proxmox_token_value",
+    "openai_api_key",
+    "proxmox_ssh_private_key",
+    "slack_mcp_xoxb_token",
+    "slack_mcp_xoxp_token",
+    "supabase_anon_key",
+    "supabase_dashboard_password",
+    "supabase_db_password",
+    "supabase_jwt_secret",
+    "supabase_service_role_key",
+  ]
+
+  missing_required_template_secret_keys = [
+    for k in local.required_template_secret_keys :
+    k if length(trimspace(lookup(module.onepassword_secrets.secrets, k, ""))) == 0
+  ]
 }
 
 # =============================================================================
@@ -731,6 +796,9 @@ module "config_renderer" {
       mcp_hub_external_sse_json = jsonencode(local.mcp_hub_external_sse_servers)
       mcp_hub_http_json         = jsonencode(local.mcp_hub_http_servers)
       mcp_host                  = local.mcp_catalog.mcp_host
+      proxmox_host              = local.proxmox_host
+      proxmox_port              = local.proxmox_port
+      proxmox_ssl_mode          = local.proxmox_ssl_mode
     }
   )
   output_dir = "${path.module}/configs/rendered"
@@ -744,6 +812,22 @@ module "config_renderer" {
 output "rendered_configs" {
   description = "Paths to rendered configuration files"
   value       = module.config_renderer.rendered_files
+}
+
+output "required_template_secrets_validation" {
+  description = "Fail-fast validation for required 1Password secret keys consumed by rendered templates"
+  value       = true
+
+  precondition {
+    condition = length(local.missing_required_template_secret_keys) == 0
+    error_message = format(
+      "Missing required 1Password secret keys for template rendering: %s",
+      join(
+        ", ",
+        sort(nonsensitive(local.missing_required_template_secret_keys)),
+      ),
+    )
+  }
 }
 
 output "host_inventory" {

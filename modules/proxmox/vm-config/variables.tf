@@ -68,5 +68,12 @@ variable "health_check_delay" {
 variable "ssh_user" {
   description = "SSH user for VM connections"
   type        = string
-  default     = "jclee"
+  default     = "root"
+}
+
+variable "ssh_private_key" {
+  description = "SSH private key content for VM remote provisioners"
+  type        = string
+  sensitive   = true
+  default     = ""
 }

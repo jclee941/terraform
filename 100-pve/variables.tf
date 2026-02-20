@@ -37,6 +37,18 @@ variable "proxmox_insecure" {
   default     = true
 }
 
+variable "op_service_account_token" {
+  description = "1Password service account token for provider authentication"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "onepassword_vault_name" {
+  description = "1Password vault name for shared infrastructure secrets"
+  type        = string
+  default     = "homelab"
+}
 
 # -----------------------------------------------------------------------------
 # Infrastructure Configuration
