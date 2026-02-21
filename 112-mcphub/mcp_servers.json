@@ -8,7 +8,7 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@cyanheads/git-mcp-server@latest"],
+      "args": ["-y", "@mseep/git-mcp-server"],
       "port": 8059,
       "description": "Git repository operations"
     },
