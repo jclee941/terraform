@@ -1,51 +1,64 @@
 # ELK Stack (LXC 105)
 
 ## OVERVIEW
-Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline), and **Kibana** (visualization) to provide a unified telemetry sink. Ingests data from Filebeat agents across all containers and VMs. Alerting is handled by Grafana (104-grafana).
+
+Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests data from **Filebeat** agents deployed across all 7 LXC containers and VM 112 via Docker autodiscovery. Alerting is handled by Grafana (104-grafana).
 
 ## STRUCTURE
+
 ```
 105-elk/
-├── templates/          # TF template sources (SSoT) — 7 tftpl files
+├── templates/          # TF template sources (SSoT) — 9 tftpl files
 ├── config/             # Production config (reference/manual)
 ├── scripts/            # Operational (ILM bootstrap, filebeat install, promtail cleanup)
-├── terraform/          # Standalone elasticstack provider workspace
+├── terraform/          # Standalone elasticstack provider workspace (tfstate tracked in git)
 ├── docker-compose.yml  # Production stack (reference)
 └── .env.example        # Environment template
 ```
 
 ## WHERE TO LOOK
-| Task | File Path |
-|------|-----------|
-| **Edit Pipeline** | `templates/logstash.conf.tftpl` (source) |
-| **Docker Stack** | `templates/docker-compose.yml.tftpl` (source) |
-| **Index Management** | `templates/ilm-policy.json.tftpl` (source) |
-| **Logstash Settings** | `templates/logstash.yml.tftpl` (source) |
-| **ILM Bootstrap** | `scripts/setup-ilm.sh` |
-| **Filebeat Setup** | `scripts/install-filebeat.sh` |
-| **Deployment** | `100-pve/main.tf` (cloud-init wiring) |
-| **ELK Provider Resources** | `terraform/main.tf` (ILM, index templates, Kibana spaces) |
+
+| Task                       | File Path                                                          |
+| -------------------------- | ------------------------------------------------------------------ |
+| **Edit Pipeline**          | `templates/logstash.conf.tftpl` (source)                           |
+| **Docker Stack**           | `templates/docker-compose.yml.tftpl` (source)                      |
+| **Index Management**       | `templates/ilm-policy.json.tftpl` (source)                         |
+| **Logstash Settings**      | `templates/logstash.yml.tftpl` (source)                            |
+| **Logstash Exporter**      | `templates/Dockerfile.logstash.tftpl` (custom image with exporter) |
+| **ILM Bootstrap**          | `scripts/setup-ilm.sh`, `templates/setup-ilm.sh.tftpl`             |
+| **Filebeat Setup**         | `scripts/install-filebeat.sh`                                      |
+| **Deployment**             | `100-pve/main.tf` (cloud-init wiring + filebeat provisioner)       |
+| **ELK Provider Resources** | `terraform/main.tf` (ILM, index templates, Kibana spaces)          |
+| **ELK Provider Outputs**   | `terraform/outputs.tf` (exported state for downstream consumers)   |
 
 ## TEMPLATE VARIABLES (from env-config module)
+
 - `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`
 - `elk_version` (8.12.0), `es_heap` (2g), `logstash_heap` (512m)
 - `logstash_dlq_size` (1024mb)
-- `elasticsearch_index_pattern` (logs-%{+YYYY.MM.dd})
+- `elasticsearch_index_pattern` (logs-{service}-YYYY.MM.dd)
 - `ilm_delete_after` (30d), `ilm_policy_name` (homelab-logs-30d)
 - `elk_elastic_password`, `elk_kibana_password` (from 1Password `homelab/elk`)
 
 ## CONFIG PIPELINE
+
 `templates/*.tftpl` → `config-renderer` module → `100-pve/configs/elk/` (local_sensitive_file) → cloud-init `write_files` → LXC `/opt/elk/`
 
 ## CONVENTIONS
-- **ILM Policy**: All indices governed by `ilm-policy.json`. Standard retention: 30 days.
+
+- **3-Tier ILM**: Service indices use tiered rollover: hot (active writes) → warm (read-only, force-merge) → delete (30d retention).
+- **Logstash Exporter**: Sidecar container exposes Logstash metrics at `:9198/metrics` for Prometheus scraping.
+- **Filebeat Autodiscovery**: All LXC hosts run Filebeat with Docker autodiscovery. New containers are auto-indexed via `logs-{container.name}-*` pattern.
+- **Service Index Split**: Each service gets a dedicated index pattern (`logs-{service}-*`) for independent ILM lifecycle and Kibana filtering.
 - **DLQ**: Enabled by default (1024mb max) to capture failed document mappings.
 - **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu.
 - **Naming**: Use `logs-{service}-{env}` prefix for automatic pattern matching in Kibana.
 - **Alerting**: Grafana (`104-grafana/terraform/main.tf`) handles all alerting. ElastAlert2 was removed.
 - **Script Alignment**: Keep operational scripts aligned with Terraform-defined service topology.
+- **State Tracking**: `terraform/terraform.tfstate` is committed to git (exception to global rule) for CI apply reliability with elasticstack provider.
 
 ## SECURITY
+
 - **xpack.security**: Enabled with HTTP basic auth (no TLS for internal network).
 - **Credentials**: Stored in 1Password at `homelab/elk` with fields `elastic_password` and `kibana_password`.
 - **Setup Container**: `elk-setup` runs once to set `kibana_system` password via ES Security API.
@@ -53,16 +66,20 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - **Traefik**: ES endpoint (`es.jclee.me`) restricted to LAN via `ipAllowList` middleware.
 
 ## ANTI-PATTERNS
+
 - **NO Public 9200**: Elasticsearch API must never be exposed beyond `192.168.50.0/24`.
 - **NO Manual Config Updates**: Do not hand-edit `tf-configs/` or use Kibana Console for settings.
 - **NO Single-Point-of-Failure**: Do not disable ILM rollover (risk of disk saturation).
 - **NO Plaintext Secrets**: GlitchTip/Sentry keys via Docker env vars only.
 - **NO Disabling xpack.security**: Once enabled, do not disable; all clients depend on auth.
 - **NO Untargeted Scripts**: Do not run migration/cleanup scripts on unintended hosts.
+- **NO Disabling Logstash Exporter**: Prometheus alerting depends on exporter metrics.
 
 ## COMMANDS
+
 ```bash
 curl -u elastic:$ELASTIC_PASSWORD localhost:9200/_cluster/health?pretty  # ES health
+curl -s localhost:9198/metrics | head -20  # Logstash exporter metrics
 docker exec -it logstash bin/logstash -t -f /usr/share/logstash/pipeline/logstash.conf  # Test pipeline
 docker compose -f /opt/elk/docker-compose.yml restart  # Restart stack
 bash /opt/elk/scripts/setup-ilm.sh  # ILM bootstrap
