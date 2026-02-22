@@ -34,6 +34,13 @@ variable "github_token" {
   default     = ""
 }
 
+variable "op_service_account_token" {
+  description = "1Password service account token for runtime secret reads"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 
 variable "secret_values" {
   description = "Runtime secret values map, keyed by secret name (never commit)"
