@@ -60,6 +60,9 @@
 - **Pin Actions**: All `uses:` pinned to full commit SHA, not version tags.
 - **Services**: archon, cloudflare, elk, github, grafana, traefik each have dedicated standalone plan/apply pairs (~120 lines each, significant duplication — consolidation candidate).
 - **Issue Templates**: Use YAML forms (not markdown) for structured input and automatic labeling.
+- **Pre-deploy Verification**: `_terraform-plan.yml` runs `terraform validate` + `terraform fmt -check -recursive` before every plan. Gates propagate to all service workflows.
+- **Post-deploy Verification**: `_terraform-apply.yml` runs `terraform validate` before apply and post-apply output validation after apply.
+- **Manual Deploy Blocked**: `make apply` is disabled (exits 1). All applies must go through CI/CD workflows. `deploy-worker.sh` and `wrangler deploy` are also blocked.
 
 ## ANTI-PATTERNS
 

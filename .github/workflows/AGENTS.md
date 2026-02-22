@@ -10,6 +10,7 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
 ├── _terraform-plan.yml / _terraform-apply.yml   # Reusable workflow contracts
 ├── {svc}-plan.yml / {svc}-apply.yml             # Service workflow pairs
 ├── terraform-drift.yml                           # Matrix drift checks
+├── mcp-health-check.yml                          # MCP port health + issue dedup
 └── auto-merge.yml + security/automation flows    # Risk-tier + governance
 ```
 
@@ -36,9 +37,23 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
 - Do not move Terraform jobs off `self-hosted` for homelab-dependent operations.
 - Do not change risk-tier rules without updating docs in `.github/AGENTS.md`.
 
+## NOTES
+
+- `terraform-plan.yml` / `terraform-apply.yml` (100-pve) are **intentionally standalone** — not wrappers around `_terraform-*` reusable workflows. Reasons:
+  - Proxmox-specific secrets (`PROXMOX_ENDPOINT`, `PROXMOX_API_TOKEN`, `PROXMOX_INSECURE`) are absent from the reusable template's secret contract.
+  - Apply pipeline includes a unique Proxmox resource import script (7 LXC + 1 VM) with show→import→skip-if-managed logic that has no equivalent in the reusable template.
+  - Plan workflow uploads `tfplan` artifact (7-day retention) for plan-then-apply-from-file flow, vs reusable's `-auto-approve`.
+  - Path triggers span `100-pve/**`, `modules/**`, and 13 service-template directories across all services.
+- All 7 Terraform workspaces use `backend "local" {}`. State locking is enforced via:
+  - GHA `concurrency` groups with `cancel-in-progress: false` on all apply workflows — prevents parallel applies to same workspace.
+  - Local `make apply` is disabled (`exit 1`) — all applies route through CI.
+  - `.tfstate` files tracked in git for CI reliability (single-writer model via concurrency).
+- Drift detection (`terraform-drift.yml`) runs on push to master AND weekday schedule (Mon-Fri 00:00 UTC). Matrix covers all 7 workspaces with `fail-fast: false`.
+
 ## COMMANDS
 ```bash
 make plan SVC=pve
 make plan SVC=cloudflare
-make apply SVC=pve
+# make apply is DISABLED locally — all applies go through CI/CD workflows
+# Trigger apply by merging PR to master (terraform-apply.yml / {svc}-apply.yml)
 ```
