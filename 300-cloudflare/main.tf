@@ -7,7 +7,7 @@ module "onepassword_secrets" {
 }
 
 provider "cloudflare" {
-  api_token = trimspace(module.onepassword_secrets.secrets.cloudflare_api_key)
+  api_token = trimspace(coalesce(module.onepassword_secrets.secrets.cloudflare_api_key, ""))
 }
 
 provider "github" {

@@ -45,7 +45,10 @@ output "secrets" {
     openai_api_key       = try(data.onepassword_item.archon.section_map["secrets"].field_map["openai_api_key"].value, "")
 
     # Cloudflare
-    cloudflare_api_key = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_key"].value, "")
+    cloudflare_api_key = try(
+      data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_token"].value,
+      try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_key"].value, "")
+    )
 
     # n8n
     n8n_api_key             = try(data.onepassword_item.n8n.section_map["secrets"].field_map["api_key"].value, "")
