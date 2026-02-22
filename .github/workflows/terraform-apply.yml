@@ -60,6 +60,13 @@ jobs:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
       - name: Import existing Proxmox resources
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+          TF_VAR_proxmox_endpoint: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
+          TF_VAR_proxmox_api_token: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
+          TF_VAR_proxmox_insecure: ${{ secrets.TF_VAR_PROXMOX_INSECURE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          TF_VAR_op_service_account_token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           python3 - <<'PY'
           import subprocess
