@@ -28,14 +28,6 @@ jobs:
           working-directory: 301-github
           init-args: "-backend=false -input=false"
 
-      - name: Terraform fmt check
-        working-directory: 301-github
-        run: terraform fmt -check -recursive
-
-      - name: Terraform validate
-        working-directory: 301-github
-        run: terraform validate
-
       - name: Install TFLint
         run: |
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash

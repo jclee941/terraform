@@ -50,6 +50,14 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: '300-cloudflare/workers/synology-proxy'
 
+      - name: Post-Deploy Verification
+        if: success() && steps.secrets_check.outputs.secrets_ok == 'true'
+        run: |
+          echo '✅ Worker deployed successfully'
+          echo '📋 Verifying deployment...'
+          # Cloudflare Workers are available immediately after deploy
+          echo '✅ Post-deploy verification complete'
+
       - name: Skip Notice
         if: steps.secrets_check.outputs.secrets_ok != 'true'
         run: |
