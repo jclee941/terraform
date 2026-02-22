@@ -46,13 +46,13 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 
 ## CONVENTIONS
 
-- **3-Tier ILM**: Service indices use tiered rollover: hot (active writes) → warm (read-only, force-merge) → delete (30d retention).
+- **2-Tier ILM**: Service indices use tiered lifecycle: hot (active writes, priority 100) → delete (configurable retention: 30d default, 90d critical, 7d ephemeral). No warm phase.
 - **Logstash Exporter**: Sidecar container exposes Logstash metrics at `:9198/metrics` for Prometheus scraping.
-- **Filebeat Autodiscovery**: All LXC hosts run Filebeat with Docker autodiscovery. New containers are auto-indexed via `logs-{container.name}-*` pattern.
-- **Service Index Split**: Each service gets a dedicated index pattern (`logs-{service}-*`) for independent ILM lifecycle and Kibana filtering.
+- **Filebeat Autodiscovery**: All LXC hosts run Filebeat with Docker autodiscovery. New containers are auto-indexed via `logs-{service}-YYYY.MM.dd` pattern.
+- **Service Index Split**: Each service gets a dedicated daily index (`logs-{service}-YYYY.MM.dd`) for independent ILM lifecycle and Kibana filtering. Three tiers: `logs-critical` (archon/elk/supabase/grafana, 90d), `logs-ephemeral` (unknown/debug/runner, 7d), `logs-template` (everything else, 30d).
 - **DLQ**: Enabled by default (1024mb max) to capture failed document mappings.
 - **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu.
-- **Naming**: Use `logs-{service}-{env}` prefix for automatic pattern matching in Kibana.
+- **Naming**: Index pattern is `logs-{service}-YYYY.MM.dd`. Service is extracted by Logstash from filebeat fields, Docker Compose labels, or parsed JSON. Fallback: `unknown`.
 - **Alerting**: Grafana (`104-grafana/terraform/main.tf`) handles all alerting. ElastAlert2 was removed.
 - **Script Alignment**: Keep operational scripts aligned with Terraform-defined service topology.
 - **State Tracking**: `terraform/terraform.tfstate` is committed to git (exception to global rule) for CI apply reliability with elasticstack provider.
