@@ -12,19 +12,19 @@ on:
         type: string
         required: true
       terraform-version:
-        description: 'Terraform version to install'
+        description: "Terraform version to install"
         type: string
-        default: '1.10.5'
+        default: "1.10.5"
       migrate-state:
-        description: 'Run state migration to remove orphaned resources. Values: none | lxc_config | lxc_and_lxc_config'
+        description: "Run state migration to remove orphaned resources. Values: none | lxc_config | lxc_and_lxc_config"
         type: string
-        default: 'none'
+        default: "none"
       enable-repository-imports:
-        description: 'Set TF_VAR_enable_repository_imports=true (github workspace only)'
+        description: "Set TF_VAR_enable_repository_imports=true (github workspace only)"
         type: boolean
         default: false
       needs-infra-state:
-        description: 'Create stub 100-pve state file for workspaces that read terraform_remote_state.infra'
+        description: "Create stub 100-pve state file for workspaces that read terraform_remote_state.infra"
         type: boolean
         default: false
       failure-title-prefix:
@@ -32,13 +32,13 @@ on:
         type: string
         required: true
       failure-extra-body:
-        description: 'Service-specific checklist content for failure issue body'
+        description: "Service-specific checklist content for failure issue body"
         type: string
-        default: ''
+        default: ""
       failure-labels:
-        description: 'Comma-separated labels for failure issue'
+        description: "Comma-separated labels for failure issue"
         type: string
-        default: 'terraform-drift,automated,infrastructure'
+        default: "terraform-drift,automated,infrastructure"
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         required: false
@@ -78,13 +78,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          clean: false
 
       - name: Setup Terraform & Init
         uses: ./.github/actions/terraform-setup
         with:
           terraform-version: ${{ inputs.terraform-version }}
           working-directory: ${{ inputs.working-directory }}
-          init-args: '-input=false'
+          init-args: "-input=false"
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
