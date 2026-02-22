@@ -59,6 +59,44 @@ jobs:
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 
+      - name: Import existing Proxmox resources
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          import sys
+
+          resources = [
+            ('module.lxc["runner"].proxmox_virtual_environment_container.this', 'pve3/101'),
+            ('module.lxc["traefik"].proxmox_virtual_environment_container.this', 'pve3/102'),
+            ('module.lxc["grafana"].proxmox_virtual_environment_container.this', 'pve3/104'),
+            ('module.lxc["elk"].proxmox_virtual_environment_container.this', 'pve3/105'),
+            ('module.lxc["glitchtip"].proxmox_virtual_environment_container.this', 'pve3/106'),
+            ('module.lxc["supabase"].proxmox_virtual_environment_container.this', 'pve3/107'),
+            ('module.lxc["archon"].proxmox_virtual_environment_container.this', 'pve3/108'),
+            ('module.vm["mcphub"].proxmox_virtual_environment_vm.this', 'pve3/112'),
+          ]
+
+          def run(cmd):
+            return subprocess.run(cmd, text=True, capture_output=True)
+
+          for address, import_id in resources:
+            show = run(["terraform", "state", "show", address])
+            if show.returncode == 0:
+              print(f"already managed: {address}")
+              continue
+
+            imp = run(["terraform", "import", "-input=false", address, import_id])
+            output = (imp.stdout or "") + (imp.stderr or "")
+            if imp.returncode == 0:
+              print(f"imported {address} <- {import_id}")
+              continue
+            if "already managed by Terraform" in output:
+              print(f"already managed: {address}")
+              continue
+            print(output)
+            sys.exit(imp.returncode)
+          PY
+
       - name: Terraform Plan
         run: terraform plan -input=false -no-color -out=tfplan
         env:
