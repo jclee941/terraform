@@ -234,5 +234,5 @@ docker compose --profile agents up -d
 1. **Scheduled monitoring:** `terraform-drift.yml` runs Mon-Fri 00:00 UTC and catches state drift across all 7 workspaces.
 2. **Catalog validation:** Run `python3 112-mcphub/validate_mcps.py` before any MCPHub config change.
 3. **Credential rotation:** Follow `docs/runbooks/credential-rotation.md` for scheduled token renewal.
-4. **1Password CI test:** `onepassword-test.yml` runs on PR to verify vault connectivity and all 12 expected items.
+4. **1Password CI test:** `onepassword-test.yml` runs on PR, `workflow_dispatch`, and after `mcp-health-check.yml` to verify vault connectivity and all 12 expected items.
 5. **Health check workflow:** `.github/workflows/mcp-health-check.yml` provides on-demand MCP service verification.
