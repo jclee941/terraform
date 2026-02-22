@@ -361,10 +361,11 @@ module "vm_config" {
     # }
 
     mcphub = {
-      vmid       = module.hosts.hosts.mcphub.vmid
-      hostname   = "mcphub"
-      ip_address = module.hosts.hosts.mcphub.ip
-      deploy     = var.deploy_vm_configs
+      vmid           = module.hosts.hosts.mcphub.vmid
+      hostname       = "mcphub"
+      ip_address     = module.hosts.hosts.mcphub.ip
+      deploy         = var.deploy_vm_configs
+      setup_filebeat = true
 
       cloud_init = {
         packages = [

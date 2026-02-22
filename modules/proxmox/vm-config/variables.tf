@@ -29,7 +29,8 @@ variable "vms" {
       wanted_by   = optional(string, "multi-user.target")
     })), {})
 
-    deploy = optional(bool, false)
+    setup_filebeat = optional(bool, false)
+    deploy         = optional(bool, false)
   }))
 
   default = {
