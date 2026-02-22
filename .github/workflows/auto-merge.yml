@@ -66,7 +66,7 @@ jobs:
           gh pr merge --disable-auto "$PR_URL" 2>/dev/null || true
           RISK="${{ steps.risk.outputs.risk }}"
           if [ "$RISK" = "critical" ]; then
-            echo "CRITICAL: Infrastructure change — manual merge required"
+            echo "CRITICAL: Infrastructure change — auto-merge blocked by policy"
           else
             echo "MEDIUM: Service change — auto-merge disabled"
           fi
