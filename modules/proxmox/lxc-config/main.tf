@@ -213,3 +213,44 @@ resource "null_resource" "deploy_config_files" {
 
   depends_on = [local_sensitive_file.config_files]
 }
+
+resource "null_resource" "install_filebeat" {
+  for_each = var.deploy_lxc_configs ? {
+    for k, v in var.lxc_containers : k => v if v.setup_filebeat
+  } : {}
+
+  triggers = {
+    script_hash = sha256(file("${path.module}/../../../scripts/setup-filebeat.sh"))
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/../../../scripts/setup-filebeat.sh"
+    destination = "/tmp/setup-filebeat.sh"
+
+    connection {
+      type        = "ssh"
+      host        = each.value.ip_address
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
+    }
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/setup-filebeat.sh",
+      "sudo bash /tmp/setup-filebeat.sh",
+      "rm /tmp/setup-filebeat.sh"
+    ]
+
+    connection {
+      type        = "ssh"
+      host        = each.value.ip_address
+      user        = var.ssh_user
+      private_key = local.ssh_private_key
+      agent       = false
+    }
+  }
+
+  depends_on = [null_resource.deploy_config_files]
+}

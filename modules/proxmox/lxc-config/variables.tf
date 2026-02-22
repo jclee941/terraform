@@ -31,7 +31,8 @@ variable "lxc_containers" {
       content = string
     }))
 
-    deploy = optional(bool, false)
+    deploy         = optional(bool, false)
+    setup_filebeat = optional(bool, false)
   }))
 
   default = {}
