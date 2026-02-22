@@ -416,6 +416,12 @@ module "vm_config" {
             content     = module.config_renderer.rendered_configs["mcphub_env"]
             permissions = "0600"
             owner       = "root:root"
+          },
+          {
+            path        = "/etc/filebeat/filebeat.yml"
+            content     = module.config_renderer.rendered_configs["mcphub_filebeat"]
+            permissions = "0644"
+            owner       = "root:root"
           }
         ]
       }
