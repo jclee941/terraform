@@ -432,10 +432,11 @@ module "lxc_config" {
 
   lxc_containers = {
     runner = {
-      vmid       = module.hosts.hosts.runner.vmid
-      hostname   = "runner"
-      ip_address = module.hosts.hosts.runner.ip
-      deploy     = var.deploy_lxc_configs
+      vmid           = module.hosts.hosts.runner.vmid
+      hostname       = "runner"
+      ip_address     = module.hosts.hosts.runner.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
 
       config_files = {
         "filebeat.yml" = {
@@ -446,10 +447,11 @@ module "lxc_config" {
     }
 
     traefik = {
-      vmid       = module.hosts.hosts.traefik.vmid
-      hostname   = "traefik"
-      ip_address = module.hosts.hosts.traefik.ip
-      deploy     = var.deploy_lxc_configs
+      vmid           = module.hosts.hosts.traefik.vmid
+      hostname       = "traefik"
+      ip_address     = module.hosts.hosts.traefik.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
 
       config_files = {
         "traefik.yml" = {
@@ -500,10 +502,11 @@ module "lxc_config" {
     }
 
     grafana = {
-      vmid       = module.hosts.hosts.grafana.vmid
-      hostname   = "grafana"
-      ip_address = module.hosts.hosts.grafana.ip
-      deploy     = var.deploy_lxc_configs
+      vmid           = module.hosts.hosts.grafana.vmid
+      hostname       = "grafana"
+      ip_address     = module.hosts.hosts.grafana.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
 
       config_files = {
         "prometheus.yml" = {
@@ -532,10 +535,11 @@ module "lxc_config" {
     }
 
     elk = {
-      vmid       = module.hosts.hosts.elk.vmid
-      hostname   = "elk"
-      ip_address = module.hosts.hosts.elk.ip
-      deploy     = var.deploy_lxc_configs
+      vmid           = module.hosts.hosts.elk.vmid
+      hostname       = "elk"
+      ip_address     = module.hosts.hosts.elk.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
 
       docker_compose = {
         path    = "/opt/elk/docker-compose.yml"
@@ -571,10 +575,11 @@ module "lxc_config" {
     }
 
     glitchtip = {
-      vmid       = module.hosts.hosts.glitchtip.vmid
-      hostname   = "glitchtip"
-      ip_address = module.hosts.hosts.glitchtip.ip
-      deploy     = var.deploy_lxc_configs
+      vmid           = module.hosts.hosts.glitchtip.vmid
+      hostname       = "glitchtip"
+      ip_address     = module.hosts.hosts.glitchtip.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
 
       docker_compose = {
         path    = "/opt/glitchtip/docker-compose.yml"
@@ -594,10 +599,11 @@ module "lxc_config" {
     }
 
     supabase = {
-      vmid       = module.hosts.hosts.supabase.vmid
-      hostname   = "supabase"
-      ip_address = module.hosts.hosts.supabase.ip
-      deploy     = var.deploy_lxc_configs
+      vmid           = module.hosts.hosts.supabase.vmid
+      hostname       = "supabase"
+      ip_address     = module.hosts.hosts.supabase.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
 
       docker_compose = {
         path    = "/opt/supabase/docker-compose.yml"
@@ -617,10 +623,11 @@ module "lxc_config" {
     }
 
     archon = {
-      vmid       = module.hosts.hosts.archon.vmid
-      hostname   = "archon"
-      ip_address = module.hosts.hosts.archon.ip
-      deploy     = var.deploy_lxc_configs
+      vmid           = module.hosts.hosts.archon.vmid
+      hostname       = "archon"
+      ip_address     = module.hosts.hosts.archon.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
 
       docker_compose = {
         path    = "/opt/archon/docker-compose.yml"
