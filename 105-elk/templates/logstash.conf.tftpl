@@ -256,6 +256,10 @@ filter {
     }
   }
 
+  # Default tier/classification for non-error events (required for Prometheus labels)
+  if ![tier] {
+    mutate { add_field => { "tier" => "0" "error_classification" => "NONE" } }
+  }
   # Set default service if not set
   if ![service] {
     mutate { add_field => { "service" => "unknown" } }
@@ -282,7 +286,7 @@ output {
     hosts => ["elasticsearch:9200"]
     user => "$${ELASTICSEARCH_USERNAME}"
     password => "$${ELASTICSEARCH_PASSWORD}"
-    index => "${elasticsearch_index_pattern}"
+    index => "logs-%%{[service]}-%%{+YYYY.MM.dd}"
     retry_on_conflict => 3
     retry_initial_interval => 2
     retry_max_interval => 64
@@ -293,6 +297,31 @@ output {
     file {
       path => "/var/log/logstash/dead_letter_queue/failed-%%{+YYYY-MM-dd}.json"
       codec => json_lines
+    }
+  }
+
+
+  # Prometheus metrics for Grafana monitoring
+  prometheus {
+    port => 9198
+    host => "0.0.0.0"
+    counter {
+      name => "logstash_events_total"
+      description => "Total events processed by Logstash"
+      labels => {
+        service => "%%{[service]}"
+        level => "%%{[level]}"
+        host_name => "%%{[host_name]}"
+      }
+    }
+    counter {
+      name => "logstash_errors_total"
+      description => "Total error-level events by classification"
+      labels => {
+        service => "%%{[service]}"
+        tier => "%%{[tier]}"
+        error_classification => "%%{[error_classification]}"
+      }
     }
   }
 }

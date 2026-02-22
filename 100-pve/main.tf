@@ -819,9 +819,11 @@ module "config_renderer" {
       es_heap                     = "3g"
       logstash_heap               = "512m"
       logstash_dlq_size           = "1024mb"
-      elasticsearch_index_pattern = "logs-%%{+YYYY.MM.dd}"
+      elasticsearch_index_pattern = "logs-%%{[service]}-%%{+YYYY.MM.dd}"
       ilm_delete_after            = "30d"
       ilm_policy_name             = "homelab-logs-30d"
+      ilm_critical_delete_after   = "90d"
+      ilm_ephemeral_delete_after  = "7d"
 
       prometheus_datasource_uid = "prometheus"
       sla_target_percentage     = "99.9"

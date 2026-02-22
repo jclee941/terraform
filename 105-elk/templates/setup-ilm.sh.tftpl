@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Managed by Terraform — do not edit manually
-# Sets up ILM policy and index template for log retention
+# Sets up tiered ILM policies and index templates for log retention
+#
+# Tiers:
+#   critical  (90d) — core infrastructure: elk, supabase, grafana
+#   standard  (30d) — application services: traefik, archon, mcphub, glitchtip, runner
+#   ephemeral  (7d) — debug, unknown, temporary
 set -euo pipefail
 
 ES_HOST="http://localhost:${hosts.elk.ports.elasticsearch}"
 ES_AUTH="elastic:${elk_elastic_password}"
-POLICY_NAME="${ilm_policy_name}"
-TEMPLATE_NAME="logs-template"
-INDEX_ALIAS="logs"
-INDEX_PATTERN="${elasticsearch_index_pattern}"
 
 echo "Waiting for Elasticsearch..."
 until curl -sf -u "$${ES_AUTH}" "$${ES_HOST}/_cluster/health" > /dev/null 2>&1; do
@@ -16,47 +17,83 @@ until curl -sf -u "$${ES_AUTH}" "$${ES_HOST}/_cluster/health" > /dev/null 2>&1; 
 done
 echo "Elasticsearch is ready."
 
-# Create/update ILM policy
-echo "Creating ILM policy: $${POLICY_NAME}"
-curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_ilm/policy/$${POLICY_NAME}" \
-  -H 'Content-Type: application/json' \
-  -d @/opt/elk/config/ilm-policy.json
-echo
+# —— ILM Policies ————————————————————————————————————————————————
 
-# Create/update index template
-echo "Creating index template: $${TEMPLATE_NAME}"
-curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_index_template/$${TEMPLATE_NAME}" \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "index_patterns": ["logs-*"],
-  "priority": 200,
-  "template": {
-    "settings": {
-      "number_of_shards": 1,
-      "number_of_replicas": 0,
-      "index.lifecycle.name": "'"$${POLICY_NAME}"'",
-      "index.lifecycle.rollover_alias": "'"$${INDEX_ALIAS}"'"
-    }
-  }
-}'
-echo
-
-
-# Bootstrap initial index if it doesn't exist
-if ! curl -sf -u "$${ES_AUTH}" "$${ES_HOST}/logs-000001" > /dev/null 2>&1; then
-  echo "Creating initial index: logs-000001"
-  curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/logs-000001" \
+create_ilm_policy() {
+  local name="$1" delete_after="$2"
+  echo "Creating ILM policy: $${name} (delete after $${delete_after})"
+  curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_ilm/policy/$${name}" \
     -H 'Content-Type: application/json' \
     -d '{
-    "aliases": {
-      "'"$${INDEX_ALIAS}"'": {
-        "is_write_index": true
+    "policy": {
+      "phases": {
+        "hot": {
+          "min_age": "0ms",
+          "actions": {
+            "set_priority": { "priority": 100 }
+          }
+        },
+        "delete": {
+          "min_age": "'"$${delete_after}"'",
+          "actions": {
+            "delete": {}
+          }
+        }
       }
     }
   }'
   echo
-else
-  echo "Initial index logs-000001 already exists, skipping."
-fi
+}
 
-echo "ILM setup complete."
+create_ilm_policy "homelab-logs-critical-90d"  "${ilm_critical_delete_after}"
+create_ilm_policy "homelab-logs-30d"           "${ilm_delete_after}"
+create_ilm_policy "homelab-logs-ephemeral-7d"  "${ilm_ephemeral_delete_after}"
+
+# —— Index Templates —————————————————————————————————————————————
+# Priority determines which template wins when multiple patterns match.
+# Higher priority = takes precedence.
+#   critical  (300) — specific critical service patterns
+#   ephemeral (250) — specific ephemeral patterns
+#   standard  (200) — catch-all logs-* (default tier)
+
+create_index_template() {
+  local name="$1" policy="$2" priority="$3"
+  shift 3
+  # Remaining args are index patterns
+  local patterns
+  patterns=$(printf '"%s",' "$@")
+  patterns="[$${patterns%,}]"
+
+  echo "Creating index template: $${name} (policy=$${policy}, priority=$${priority})"
+  curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_index_template/$${name}" \
+    -H 'Content-Type: application/json' \
+    -d '{
+    "index_patterns": '"$${patterns}"',
+    "priority": '"$${priority}"',
+    "template": {
+      "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0,
+        "index.lifecycle.name": "'"$${policy}"'"
+      }
+    }
+  }'
+  echo
+}
+
+# Critical tier: core infrastructure services (90d retention)
+create_index_template "logs-critical" "homelab-logs-critical-90d" 300 \
+  "logs-elk-*" "logs-supabase-*" "logs-grafana-*"
+
+# Ephemeral tier: debug and unknown sources (7d retention)
+create_index_template "logs-ephemeral" "homelab-logs-ephemeral-7d" 250 \
+  "logs-unknown-*" "logs-debug-*"
+
+# Standard tier: catch-all for remaining services (30d retention)
+create_index_template "logs-standard" "homelab-logs-30d" 200 \
+  "logs-*"
+
+echo "ILM setup complete. Three tiers configured:"
+echo "  critical  (90d): elk, supabase, grafana"
+echo "  standard  (30d): all other services (default)"
+echo "  ephemeral  (7d): unknown, debug"
