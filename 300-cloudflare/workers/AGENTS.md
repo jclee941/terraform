@@ -31,5 +31,5 @@ Boundary guidance for Cloudflare Worker implementations under `300-cloudflare/wo
 ```bash
 cd 300-cloudflare/workers/synology-proxy && npm run dev
 cd 300-cloudflare/workers/synology-proxy && npm test
-cd 300-cloudflare/workers/synology-proxy && npm run deploy
+cd 300-cloudflare/workers/synology-proxy && npm run deploy  # DISABLED — use worker-deploy.yml CI workflow
 ```

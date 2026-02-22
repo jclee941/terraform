@@ -10,7 +10,7 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 | Sync to targets | `sync.sh` | Pushes secret values to CF/GitHub/Vault targets. |
 | Inventory drift checks | `audit.sh` | Compares registry to target stores. |
 | Worker secret bindings | `generate-bindings.sh` | Generates Wrangler binding declarations from inventory metadata. |
-| Worker deployment wrapper | `deploy-worker.sh` | Deployment orchestration helper for worker lifecycle. |
+| Worker deployment wrapper | `deploy-worker.sh` | **DISABLED** — prints error and exits 1. Deploy via `worker-deploy.yml` CI workflow only. |
 
 ## CONVENTIONS
 - Keep `inventory/secrets.yaml` as metadata-only SSoT for secret targets.

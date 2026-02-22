@@ -1,6 +1,6 @@
 # PROJECT KNOWLEDGE BASE: 300-CLOUDFLARE
 
-**Updated:** 2026-02-13
+**Updated:** 2026-02-22
 **Provider:** External (Cloudflare)
 **Domain:** jclee.me / jclee.win
 
@@ -53,16 +53,16 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 
 ## ANTI-PATTERNS
 - **NEVER** commit `.tfvars`, `.env`, or `data/` output files.
-- **NEVER** commit `.tfstate` files. Backend is local (state stored on disk).
+- **NEVER** commit `.tfstate` files. Backend is local (state tracked in git for CI reliability).
 - `collect.sh` output files contain `# DO NOT COMMIT` header — respect it.
 - CF Secrets Store sync (`enable_cf_store_sync`) is beta — don't enable without testing.
 - Worker route (`enable_worker_route`) requires Worker deployed via wrangler first.
 
 ## COMMANDS
 ```bash
-terraform init && terraform plan && terraform apply   # TF workspace
+terraform init && terraform plan                                # TF workspace (apply via CI only)
 cd workers/synology-proxy && npm run dev               # Worker dev
-cd workers/synology-proxy && npm test && npm run deploy # Worker CI
+cd workers/synology-proxy && npm test                            # Worker test (deploy via CI only)
 ./scripts/collect.sh && ./scripts/audit.sh             # Secret harvest + drift
 ```
 
