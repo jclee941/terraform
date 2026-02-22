@@ -3,7 +3,7 @@
 Retrieves secrets from 1Password at plan time via the
 [1Password Terraform provider](https://registry.terraform.io/providers/1Password/onepassword/latest).
 Drop-in replacement for `modules/shared/vault-secrets` with an identical
-`secrets` output map.
+`secrets` and `metadata` output maps.
 
 ## 1Password Item Structure
 
@@ -65,6 +65,7 @@ the provider configuration in the consuming workspace.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (31 keys) |
+| <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (8 keys) |
 
 <!-- END_TF_DOCS -->
