@@ -1,4 +1,4 @@
-.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration docs pre-commit-install pre-commit-run setup help
+.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration test-workspace docs pre-commit-install pre-commit-run setup help
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
@@ -94,10 +94,13 @@ lint-tflint: ## Run tflint on all workspaces
 
 ## Testing
 
-test: ## Run Terraform module tests
+test: ## Run all Terraform tests (module + integration + workspace)
 	cd tests/modules/proxmox && terraform init -backend=false && terraform test
 	cd tests/modules/shared && terraform init -backend=false && terraform test
 	cd tests/integration && terraform init -backend=false && terraform test
+	cd tests/workspaces/pve && terraform init -backend=false && terraform test
+	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
+	terraform -chdir=301-github init -backend=false && terraform -chdir=301-github test
 
 test-unit: ## Run unit tests only
 	cd tests/modules/proxmox && terraform init -backend=false && terraform test
@@ -105,6 +108,11 @@ test-unit: ## Run unit tests only
 
 test-integration: ## Run integration tests only
 	cd tests/integration && terraform init -backend=false && terraform test
+
+test-workspace: ## Run workspace validation tests only
+	cd tests/workspaces/pve && terraform init -backend=false && terraform test
+	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
+	terraform -chdir=301-github init -backend=false && terraform -chdir=301-github test
 
 ## Verification & Backup
 

@@ -1,13 +1,14 @@
 # AGENTS: tests/workspaces - Workspace Validation Tests
 
 ## OVERVIEW
-Workspace-level variable validation tests for standalone stacks (`300-cloudflare`, `301-github`) using mock providers and negative assertions.
+Workspace-level variable validation tests for standalone stacks (`100-pve`, `300-cloudflare`, `301-github`) using mock providers and negative assertions.
 
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|
-| Cloudflare workspace validation | `cloudflare_test.tftest.hcl` | Input format/range checks with `expect_failures`. |
-| GitHub workspace validation | `github_test.tftest.hcl` | Owner/webhook/policy validation and override data setup. |
+| Cloudflare workspace validation | `cloudflare/cloudflare_test.tftest.hcl` | Input format/range checks with `expect_failures`. |
+| GitHub workspace validation | `301-github/tests/github_test.tftest.hcl` | Owner/webhook/policy validation. Tests live in-workspace due to `import.tf` root-module constraint. |
+| PVE workspace validation | `pve/pve_test.tftest.hcl` | Endpoint/token/node/network/VMID range/SSH key validation with `override_module` for secrets. |
 
 ## CONVENTIONS
 - Keep all tests `plan`-only and provider-mocked.

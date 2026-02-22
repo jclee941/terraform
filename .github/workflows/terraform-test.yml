@@ -1,0 +1,103 @@
+name: Terraform Test
+
+on:
+  pull_request:
+    paths:
+      - "modules/**"
+      - "tests/**"
+      - "100-pve/variables.tf"
+      - "300-cloudflare/variables.tf"
+      - "301-github/variables.tf"
+  push:
+    branches: [master]
+    paths:
+      - "modules/**"
+      - "tests/**"
+      - "100-pve/variables.tf"
+      - "300-cloudflare/variables.tf"
+      - "301-github/variables.tf"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    name: Unit Tests (Modules)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - {name: proxmox, path: tests/modules/proxmox}
+          - {name: shared, path: tests/modules/shared}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e7592db471057e0ee48b3049224e37e95 # v4
+
+      - name: Setup Terraform
+        uses: ./.github/actions/terraform-setup
+        with:
+          working-directory: ${{ matrix.suite.path }}
+
+      - name: Run ${{ matrix.suite.name }} tests
+        working-directory: ${{ matrix.suite.path }}
+        run: terraform test
+
+  workspace-tests:
+    name: Workspace Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: pve
+            path: tests/workspaces/pve
+            use_chdir: false
+          - name: cloudflare
+            path: tests/workspaces/cloudflare
+            use_chdir: false
+          - name: github
+            path: 301-github
+            use_chdir: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e7592db471057e0ee48b3049224e37e95 # v4
+
+      - name: Setup Terraform
+        uses: ./.github/actions/terraform-setup
+        with:
+          working-directory: ${{ matrix.path }}
+
+      - name: Run ${{ matrix.name }} workspace tests
+        if: ${{ !matrix.use_chdir }}
+        working-directory: ${{ matrix.path }}
+        run: terraform test
+
+      - name: Run ${{ matrix.name }} workspace tests (chdir)
+        if: ${{ matrix.use_chdir }}
+        run: terraform -chdir=${{ matrix.path }} test -test-directory=${{ matrix.test_dir }}
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e7592db471057e0ee48b3049224e37e95 # v4
+
+      - name: Setup Terraform
+        uses: ./.github/actions/terraform-setup
+        with:
+          working-directory: tests/integration
+
+      - name: Run integration tests
+        working-directory: tests/integration
+        run: terraform test
