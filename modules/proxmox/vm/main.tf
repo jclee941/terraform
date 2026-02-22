@@ -94,6 +94,7 @@ resource "proxmox_virtual_environment_vm" "this" {
     }
 
     ignore_changes = [
+      clone,
       network_device[0].mac_address,
       agent,
       operating_system,
