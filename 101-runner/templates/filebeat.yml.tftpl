@@ -9,7 +9,7 @@ filebeat.inputs:
       - /var/log/*.log
       - /var/log/syslog
     fields:
-      service: system
+      service: runner
       host_role: runner
     fields_under_root: false
 
@@ -19,22 +19,32 @@ filebeat.inputs:
     paths:
       - /home/runner/runners/*/_diag/*.log
     fields:
-      service: github-runner
+      service: runner
       host_role: runner
     fields_under_root: false
+
+  # Auth logs
+  - type: filestream
+    id: auth-logs
+    paths:
+      - /var/log/auth.log
+    fields:
+      service: auth
+      host_role: runner
+    fields_under_root: false
+
+processors:
+  - add_host_metadata: ~
 
 output.logstash:
   hosts: ["${hosts.elk.ip}:${hosts.elk.ports.logstash_beat}"]
 
-processors:
-  - add_host_metadata: ~
-  - add_cloud_metadata: ~
+filebeat.registry.path: /var/lib/filebeat/registry
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
 
-logging:
-  level: info
-  to_files: true
-  files:
-    path: /var/log/filebeat
-    name: filebeat
-    keepfiles: 7
-    permissions: 0644
+max_message_bytes: 999999

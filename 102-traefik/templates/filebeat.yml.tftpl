@@ -1,8 +1,26 @@
 # Filebeat configuration for 102-traefik (Reverse Proxy)
 # Rendered by Terraform - DO NOT EDIT MANUALLY
 
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
 filebeat.inputs:
-  # System logs (exclude traefik logs to avoid duplication)
+  # Docker container logs
+  - type: filestream
+    id: docker-containers
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    parsers:
+      - container: {}
+    prospector.scanner.symlinks: true
+    fields:
+      service: traefik
+      host_role: traefik
+    fields_under_root: false
+
+  # System logs
   - type: filestream
     id: system-logs
     paths:
@@ -12,16 +30,6 @@ filebeat.inputs:
       - 'traefik.*\.log'
     fields:
       service: system
-      host_role: traefik
-    fields_under_root: false
-
-  # Traefik application logs
-  - type: filestream
-    id: traefik-logs
-    paths:
-      - /var/log/traefik.log
-    fields:
-      service: traefik
       host_role: traefik
     fields_under_root: false
 
@@ -35,18 +43,20 @@ filebeat.inputs:
       host_role: traefik
     fields_under_root: false
 
+processors:
+  - add_host_metadata: ~
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
 output.logstash:
   hosts: ["${hosts.elk.ip}:${hosts.elk.ports.logstash_beat}"]
 
-processors:
-  - add_host_metadata: ~
-  - add_cloud_metadata: ~
+filebeat.registry.path: /var/lib/filebeat/registry
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
 
-logging:
-  level: info
-  to_files: true
-  files:
-    path: /var/log/filebeat
-    name: filebeat
-    keepfiles: 7
-    permissions: 0644
+max_message_bytes: 999999
