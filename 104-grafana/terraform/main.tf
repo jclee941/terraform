@@ -285,6 +285,17 @@ locals {
       summary      = "Node load high"
       description  = "15-min load average is over 2x CPU count on {{ $labels.instance }}"
     }
+    "logstash-collection-stop" = {
+      group        = "infrastructure_health"
+      expr         = "sum(rate(logstash_events_total[5m])) == 0"
+      from         = 600
+      threshold    = 0
+      condition    = "lt"
+      severity     = "critical"
+      for_duration = "10m"
+      summary      = "Log collection stopped"
+      description  = "Logstash has received zero events for 10 minutes — filebeat or pipeline may be down"
+    }
   }
 
   # Group filters
