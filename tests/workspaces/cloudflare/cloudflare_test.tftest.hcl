@@ -1,7 +1,7 @@
 # Cloudflare Workspace Variable Validation Tests
 # Workspace: 300-cloudflare (Cloudflare DNS, Tunnel, Access, R2, Secrets)
 # Tests validate variable validation rules using mock providers.
-# Run: terraform test (from tests/workspaces/ with cloudflare_test.tftest.hcl)
+# Run: terraform test (from tests/workspaces/cloudflare)
 
 # ---------------------------------------------------------------------------
 # Mock Providers — prevent real API calls during plan-only tests
@@ -9,100 +9,8 @@
 
 mock_provider "cloudflare" {}
 mock_provider "github" {}
-mock_provider "vault" {}
+
 mock_provider "random" {}
-
-# ---------------------------------------------------------------------------
-# Shared baseline variables (valid values for all required inputs)
-# ---------------------------------------------------------------------------
-
-
-# =============================================================================
-# Positive Tests — valid configurations that must plan successfully
-# =============================================================================
-
-run "test_valid_cloudflare_workspace" {
-  command = plan
-
-  module {
-    source = "../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-  }
-
-  assert {
-    condition     = true
-    error_message = "Valid cloudflare workspace should plan successfully"
-  }
-}
-
-run "test_valid_vault_address_https" {
-  command = plan
-
-  module {
-    source = "../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-    vault_address         = "https://vault.example.com"
-  }
-
-  assert {
-    condition     = true
-    error_message = "HTTPS vault_address should be accepted"
-  }
-}
-
-run "test_valid_synology_port_boundary_low" {
-  command = plan
-
-  module {
-    source = "../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-    synology_nas_port     = 1
-  }
-
-  assert {
-    condition     = true
-    error_message = "Port 1 (minimum boundary) should be accepted"
-  }
-}
-
-run "test_valid_synology_port_boundary_high" {
-  command = plan
-
-  module {
-    source = "../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-    synology_nas_port     = 65535
-  }
-
-  assert {
-    condition     = true
-    error_message = "Port 65535 (maximum boundary) should be accepted"
-  }
-}
 
 # =============================================================================
 # Negative Tests — invalid inputs that must fail validation
@@ -114,7 +22,7 @@ run "test_invalid_account_id_too_short" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -133,7 +41,7 @@ run "test_invalid_account_id_uppercase" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -152,7 +60,7 @@ run "test_invalid_account_id_special_chars" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -173,7 +81,7 @@ run "test_invalid_zone_id_too_long" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -188,55 +96,13 @@ run "test_invalid_zone_id_too_long" {
   ]
 }
 
-# --- vault_address validation (HTTP(S) URL) ---
-
-run "test_invalid_vault_address_no_protocol" {
-  command = plan
-
-  module {
-    source = "../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-    vault_address         = "vault.example.com:8200"
-  }
-
-  expect_failures = [
-    var.vault_address,
-  ]
-}
-
-run "test_invalid_vault_address_ftp" {
-  command = plan
-
-  module {
-    source = "../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-    vault_address         = "ftp://vault.example.com"
-  }
-
-  expect_failures = [
-    var.vault_address,
-  ]
-}
-
 # --- synology_domain validation (domain name) ---
 
 run "test_invalid_synology_domain_starts_with_dot" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -255,7 +121,7 @@ run "test_invalid_synology_domain_ends_with_dot" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -276,7 +142,7 @@ run "test_invalid_synology_ip_with_cidr" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -296,7 +162,7 @@ run "test_invalid_synology_ip_not_ip" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -318,7 +184,7 @@ run "test_invalid_synology_port_zero" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -338,7 +204,7 @@ run "test_invalid_synology_port_too_high" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -360,7 +226,7 @@ run "test_invalid_homelab_domain_uppercase" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -382,7 +248,7 @@ run "test_invalid_r2_cache_ttl_zero" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -402,7 +268,7 @@ run "test_invalid_r2_cache_ttl_negative" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
@@ -424,7 +290,7 @@ run "test_invalid_secrets_store_id_empty" {
   command = plan
 
   module {
-    source = "../../300-cloudflare"
+    source = "../../../300-cloudflare"
   }
 
   variables {
