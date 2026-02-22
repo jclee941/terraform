@@ -17,15 +17,6 @@ locals {
     N8N_URL          = try(local.service_urls.n8n_url, "")
   }
 
-  common_tags = {
-    managed_by = "terraform"
-    workspace  = "301-github"
-    owner      = var.github_owner
-  }
-
-  naming = {
-    prefix = "gh"
-  }
 
   repository_defaults = {
     visibility                  = "public"

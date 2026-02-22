@@ -112,11 +112,6 @@ variable "organization_secret_visibility" {
   }
 }
 
-variable "organization_secret_selected_repositories" {
-  description = "Selected repositories for each organization secret when visibility is selected."
-  type        = map(set(string))
-  default     = {}
-}
 
 variable "organization_actions_variables" {
   description = "Organization Actions variables as a map(variable_name => value)."
@@ -342,11 +337,6 @@ variable "enable_repository_rulesets" {
   default     = true
 }
 
-variable "enable_enterprise_branch_name_pattern" {
-  description = "Enable branch_name_pattern rule for enterprise owners only."
-  type        = bool
-  default     = false
-}
 
 variable "enable_repository_imports" {
   description = "Enable import blocks for existing repositories."
