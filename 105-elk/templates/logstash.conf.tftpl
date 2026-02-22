@@ -302,26 +302,32 @@ output {
 
 
   # Prometheus metrics for Grafana monitoring
-  prometheus {
-    port => 9198
-    host => "0.0.0.0"
-    counter {
-      name => "logstash_events_total"
-      description => "Total events processed by Logstash"
-      labels => {
-        service => "%%{[service]}"
-        level => "%%{[level]}"
-        host_name => "%%{[host_name]}"
-      }
-    }
-    counter {
-      name => "logstash_errors_total"
-      description => "Total error-level events by classification"
-      labels => {
-        service => "%%{[service]}"
-        tier => "%%{[tier]}"
-        error_classification => "%%{[error_classification]}"
-      }
-    }
-  }
+  # NOTE: logstash-output-prometheus v0.1.3 crashes in LXC/JRuby environments
+  # (jnr.netdb.Protocol.getProtocolByNumber stack trace from WEBrick).
+  # Correct syntax preserved below for reference. Consider logstash-exporter
+  # sidecar container as an alternative when Prometheus metrics are needed.
+  #
+  # prometheus {
+  #   port => 9198
+  #   increment => {
+  #     "logstash_events_total" => {
+  #       description => "Total events processed by Logstash"
+  #       type => "counter"
+  #       labels => {
+  #         service => "%%{[service]}"
+  #         level => "%%{[level]}"
+  #         host_name => "%%{[host_name]}"
+  #       }
+  #     }
+  #     "logstash_errors_total" => {
+  #       description => "Total error-level events by classification"
+  #       type => "counter"
+  #       labels => {
+  #         service => "%%{[service]}"
+  #         tier => "%%{[tier]}"
+  #         error_classification => "%%{[error_classification]}"
+  #       }
+  #     }
+  #   }
+  # }
 }
