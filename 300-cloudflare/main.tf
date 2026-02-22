@@ -9,13 +9,13 @@ module "onepassword_secrets" {
 locals {
   cloudflare_secret = trimspace(coalesce(module.onepassword_secrets.secrets.cloudflare_api_key, ""))
   cloudflare_email  = trimspace(coalesce(module.onepassword_secrets.metadata.cloudflare_email, ""))
-  is_api_token      = startswith(local.cloudflare_secret, "v1.0-")
+  is_global_api_key = can(regex("^[0-9a-f]{37}$", local.cloudflare_secret))
 }
 
 provider "cloudflare" {
-  api_token = local.is_api_token ? local.cloudflare_secret : null
-  api_key   = local.is_api_token ? null : local.cloudflare_secret
-  email     = local.is_api_token ? null : local.cloudflare_email
+  api_token = local.is_global_api_key ? null : local.cloudflare_secret
+  api_key   = local.is_global_api_key ? local.cloudflare_secret : null
+  email     = local.is_global_api_key ? local.cloudflare_email : null
 }
 
 provider "github" {
