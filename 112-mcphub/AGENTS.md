@@ -7,7 +7,7 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 ## ARCHITECTURE
 
 - **SSoT Catalog:** `mcp_servers.json` is the canonical MCP server registry.
-- **Consumers:** `100-pve/main.tf` parses the catalog for Terraform rendering.
+- **Consumers:** `100-pve/main.tf` parses the catalog for Terraform rendering. `mcp-health-check.yml` validates port reachability.
 - **Runtime Split:** Catalog defines 9 active servers (9 `stdio`). Docker sidecars (`Dockerfile.proxmox`, `Dockerfile.playwright`) are infra assets, not catalog entries.
 
 ## GENERATED VS SOURCE
@@ -45,5 +45,5 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 ```bash
 python3 112-mcphub/validate_mcps.py
 make plan SVC=pve
-make apply SVC=pve
+# make apply is DISABLED locally — all applies go through CI/CD workflows
 ```
