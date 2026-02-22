@@ -65,7 +65,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(logstash_events_total[5m]))",
+          "expr": "sum(rate(logstash_events_in_total[5m]))",
           "legendFormat": "events/s",
           "refId": "A"
         }
@@ -108,7 +108,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "count(count by (service)(rate(logstash_events_total[5m]) > 0))",
+          "expr": "count(count by (service)(rate(logstash_events_in_total[5m]) > 0))",
           "legendFormat": "services",
           "refId": "A"
         }
@@ -151,7 +151,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "count(count by (host_name)(rate(logstash_events_total[5m]) > 0))",
+          "expr": "count(count by (host_name)(rate(logstash_events_in_total[5m]) > 0))",
           "legendFormat": "hosts",
           "refId": "A"
         }
@@ -256,7 +256,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (service)(rate(logstash_events_total[5m]))",
+          "expr": "sum by (service)(rate(logstash_events_in_total[5m]))",
           "legendFormat": "{{service}}",
           "refId": "A"
         }
@@ -311,7 +311,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (host_name)(rate(logstash_events_total[5m]))",
+          "expr": "sum by (host_name)(rate(logstash_events_in_total[5m]))",
           "legendFormat": "{{host_name}}",
           "refId": "A"
         }
@@ -366,7 +366,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (level)(rate(logstash_events_total[5m]))",
+          "expr": "sum by (level)(rate(logstash_events_in_total[5m]))",
           "legendFormat": "{{level}}",
           "refId": "A"
         }
@@ -575,7 +575,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (service)(rate(logstash_events_total[5m]))",
+          "expr": "sum by (service)(rate(logstash_events_in_total[5m]))",
           "format": "table",
           "instant": true,
           "legendFormat": "",

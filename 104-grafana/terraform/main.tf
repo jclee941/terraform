@@ -299,9 +299,9 @@ locals {
     }
     "logstash-collection-stop" = {
       group        = "infrastructure_health"
-      expr         = "sum(rate(logstash_events_total[5m])) == 0"
+      expr         = "sum(rate(logstash_events_in_total[5m]))"
       from         = 600
-      threshold    = 0
+      threshold    = 0.001
       condition    = "lt"
       severity     = "critical"
       for_duration = "10m"

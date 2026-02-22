@@ -1,11 +1,4 @@
 FROM docker.elastic.co/logstash/logstash:${elk_version}
 
-# Install prometheus output plugin
-RUN logstash-plugin install logstash-output-prometheus
-
-# Install webrick into Logstash's Bundler-managed vendor bundle
-# (webrick removed from Ruby 3.0+ bundled gems, required by prometheus plugin's rack server)
-# Must add to Gemfile so Bundler's classloader can find it
-RUN echo 'gem "webrick", "~> 1.9"' >> /usr/share/logstash/Gemfile && \
-    cd /usr/share/logstash && \
-    /usr/share/logstash/bin/ruby -S bundle install --no-deployment
+# Prometheus metrics are exposed via the logstash-exporter sidecar (port 9198).
+# Keep the base image unmodified to avoid JRuby plugin instability in LXC.
