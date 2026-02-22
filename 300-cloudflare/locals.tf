@@ -51,7 +51,6 @@ locals {
   restricted_services = {
     vault    = { subdomain = "vault", name = "Vault" }
     es       = { subdomain = "es", name = "Elasticsearch" }
-    n8n      = { subdomain = "n8n", name = "n8n Automation" }
     mcphub   = { subdomain = "mcphub", name = "MCP Hub" }
     opencode = { subdomain = "opencode", name = "OpenCode" }
   }
