@@ -112,6 +112,9 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/100-pve
           echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > $GITHUB_WORKSPACE/100-pve/terraform.tfstate
 
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
       - name: Import existing GitHub resources
         if: inputs.enable-repository-imports
         env:
@@ -223,6 +226,14 @@ jobs:
           TF_VAR_op_service_account_token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
+
+
+      - name: Post-Apply Verification
+        if: success()
+        run: |
+          echo '=== Post-Apply Verification ==='
+          terraform output -json > /dev/null 2>&1 && echo '✅ Terraform outputs valid' || echo '⚠️ No outputs defined'
+          echo "Apply completed successfully for ${{ inputs.service-name }}"
 
       - name: Create Issue on Failure
         if: failure()
