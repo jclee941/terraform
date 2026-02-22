@@ -3,23 +3,20 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "0 0 * * *"
-            }
-          ]
-        }
+        "path": "daily-digest",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
       },
-      "id": "cron-trigger",
-      "name": "Daily 09:00 KST",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
       "position": [
         250,
         300
-      ]
+      ],
+      "webhookId": "daily-digest"
     },
     {
       "parameters": {
@@ -61,7 +58,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer d663f01f380d51ba2881bd942e2b4f0532ca2a29acb81ccfbab1826a63bb1c42"
+              "value": "=Bearer {{ $env.GLITCHTIP_TOKEN }}"
             }
           ]
         },
@@ -151,7 +148,7 @@
     }
   ],
   "connections": {
-    "Daily 09:00 KST": {
+    "Webhook Trigger": {
       "main": [
         [
           {

@@ -10,7 +10,7 @@ Operational automation scripts for the `proxmox` infrastructure. Includes produc
 scripts/
 ├── create-pr.sh                  # PR automation wrapper (gh cli + custom logic)
 ├── production_verification_v2.sh # Live health check suite (Prometheus, Grafana, N8N)
-├── terraform-drift-check.sh      # Daily drift detection (cron)
+├── terraform-drift-check.sh      # DEPRECATED — use terraform-drift.yml workflow
 ├── setup-backups.sh              # Backup configuration (Restic/Borg)
 ├── setup-filebeat.sh             # Idempotent Filebeat install for LXC/VM hosts
 ├── sync-vault-secrets.sh         # Vault secret synchronization
@@ -43,10 +43,10 @@ scripts/
 
 ### `terraform-drift-check.sh`
 
-**Drift Detection.**
+**DEPRECATED — Replaced by `terraform-drift.yml` GitHub Actions workflow.**
 
-- **Purpose**: Runs `terraform plan -detailed-exitcode` across modules.
-- **Output**: Reports drift to GlitchTip/Slack via n8n webhook.
+- **Status**: Script body replaced with deprecation notice. Drift detection is now event-driven via `.github/workflows/terraform-drift.yml`.
+- **Migration**: 7-workspace matrix runs on push/PR events and `workflow_dispatch`.
 
 ### `setup-filebeat.sh`
 
@@ -68,13 +68,15 @@ scripts/
 | ------------------ | ------------------------------- | ------------------------------------- |
 | Verify Prod Health | `production_verification_v2.sh` | Run after ANY deploy                  |
 | Create PR          | `create-pr.sh`                  | Enforces naming conventions           |
-| Check Drift        | `terraform-drift-check.sh`      | Runs on schedule                      |
+| Check Drift        | `terraform-drift-check.sh`      | DEPRECATED — use `terraform-drift.yml` |
 | Restore Backups    | `setup-backups.sh`              | Restic/Borg config                    |
 | Deploy Filebeat    | `setup-filebeat.sh`             | Idempotent, called by TF provisioners |
 | Sync Vault         | `sync-vault-secrets.sh`         | 1Password → Vault sync                |
+| Manage n8n flows   | `n8n-workflows/AGENTS.md`       | Workflow JSON SSoT and sync rules     |
 
 ## ANTI-PATTERNS
 
 - **NO manual PR creation**: Use `create-pr.sh` to ensure correct labelling.
 - **NO ignoring verification failures**: If `production_verification_v2.sh` fails, rollback or fix immediately.
-- **NO running setup-filebeat.sh directly**: Use Terraform provisioner (`make apply SVC=pve`) for consistent deployment.
+- **NO running setup-filebeat.sh directly**: Use Terraform provisioner via CI/CD for consistent deployment.
+- **NO running `make apply` locally**: `make apply` is disabled. All applies go through CI/CD (`terraform-apply.yml` or `{svc}-apply.yml`).
