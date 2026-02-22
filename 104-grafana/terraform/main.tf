@@ -203,6 +203,18 @@ locals {
       summary      = "MCP error logs"
       description  = "More than 5 MCP error events in 10 minutes"
     }
+    "service-log-gap" = {
+      group        = "homelab_logs"
+      query        = "fields.service:(traefik OR grafana OR elk OR glitchtip OR supabase OR archon OR mcphub OR runner)"
+      from         = 3600
+      threshold    = 1
+      condition    = "lt"
+      severity     = "warning"
+      for_duration = "10m"
+      group_by     = []
+      summary      = "Service log collection gap detected"
+      description  = "Service has sent fewer than 1 log events in the past 60 minutes — filebeat may be down or misconfigured"
+    }
   }
 
   # Prometheus-based alert rules (2 data blocks: expr → threshold)
