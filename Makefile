@@ -45,9 +45,11 @@ plan: ## Create Terraform plan (SVC=100-pve)
 	$(check_svc_dir)
 	cd $(TF_DIR) && terraform plan -out=tfplan
 
-apply: ## Apply Terraform plan (SVC=100-pve)
-	$(check_svc_dir)
-	cd $(TF_DIR) && terraform apply tfplan
+apply: ## Apply Terraform plan — DISABLED (use CI/CD)
+	@echo '\033[31mERROR: Manual apply is disabled. Deploy via CI/CD:\033[0m'
+	@echo '  Push to master branch to trigger automated apply.'
+	@echo '  See: https://github.com/qws941/terraform/actions'
+	@exit 1
 
 fmt: ## Format all Terraform files
 	find . -maxdepth 1 -type d -name '[0-9]*' -exec terraform fmt -recursive {} +
@@ -112,8 +114,12 @@ verify: ## Run production verification
 backup: ## Create encrypted Terraform state backup
 	./scripts/backup-tfstate.sh
 
-drift-check: ## Check for Terraform drift
-	./scripts/terraform-drift-check.sh
+drift-check: ## Check for Terraform drift — DISABLED (use CI/CD)
+	@echo '\033[31mERROR: Local drift-check is disabled. Use GitHub Actions:\033[0m'
+	@echo '  Drift detection runs automatically Mon-Fri 00:00 UTC.'
+	@echo '  Manual trigger: gh workflow run terraform-drift.yml'
+	@echo '  See: https://github.com/qws941/terraform/actions/workflows/terraform-drift.yml'
+	@exit 1
 
 ## Pre-commit
 

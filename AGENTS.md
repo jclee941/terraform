@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-02-22 20:16:00 Asia/Seoul
-**Commit:** e1f0d41
+**Generated:** 2026-02-22 23:35:00 Asia/Seoul
+**Commit:** 70149a2
 **Branch:** master
 **Style:** Google3 Monorepo (Bazel)
 
@@ -61,6 +61,7 @@ terraform/
 | Self-hosted runner            | `101-runner/AGENTS.md`                                                        | GitHub Actions runner on LXC 101; multi-repo registration.                            |
 | Reverse proxy                 | `102-traefik/AGENTS.md`                                                       | Traefik ingress, TLS, MCP resilient middleware.                                       |
 | Observability stack           | `104-grafana/AGENTS.md`                                                       | Prometheus + Grafana (16 dashboards) + TF-managed alerts.                             |
+| Dashboard catalog             | `104-grafana/dashboards/AGENTS.md`                                            | Dashboard JSON SSoT, UID/title discipline, and panel edit rules.                      |
 | Logging stack                 | `105-elk/AGENTS.md`                                                           | ES 8.17.0 + Logstash + Kibana; 3-tier ILM, filebeat autodiscovery, logstash-exporter. |
 | Error tracking                | `106-glitchtip/AGENTS.md`                                                     | GlitchTip (Sentry alternative) on LXC 106.                                            |
 | Supabase service              | `107-supabase/AGENTS.md`                                                      | Self-hosted Supabase (PostgreSQL, Auth, Realtime).                                    |
@@ -79,7 +80,9 @@ terraform/
 | Integration tests             | `tests/integration/AGENTS.md`                                                 | Config pipeline end-to-end test strategy.                                             |
 | Workspace tests               | `tests/workspaces/AGENTS.md`                                                  | Workspace variable-validation test strategy.                                          |
 | Operational docs              | `docs/AGENTS.md`                                                              | Runbooks, ADRs, token rotation, architecture docs.                                    |
+| Runbook execution guides      | `docs/runbooks/AGENTS.md`                                                     | Incident and operations procedures; command-first and rollback-ready.                 |
 | Utility scripts               | `scripts/AGENTS.md`                                                           | Production verification, PR automation, drift check, filebeat setup.                  |
+| n8n workflow JSONs            | `scripts/n8n-workflows/AGENTS.md`                                             | Exported automation SSoT; runtime workflows must mirror committed JSON.               |
 | Filebeat deployment           | `scripts/setup-filebeat.sh`                                                   | Idempotent filebeat install across LXC/VM hosts.                                      |
 | GitHub issue/PR templates     | `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`                 | Bug, feature, service request templates + PR template.                                |
 | Architecture decisions        | `docs/adr/`                                                                   | Architecture Decision Records.                                                        |
@@ -101,15 +104,14 @@ terraform/
 - NEVER hand-edit Terraform-rendered outputs under `100-pve/configs/` or service `tf-configs/` directories.
 - NEVER hardcode IPs in workspace logic; route through `module.hosts` inventory.
 - NEVER perform manual Terraform state edits outside Terraform CLI workflows.
-- NEVER commit `.env`, `.tfvars`, API keys, or runtime secret dumps. `.tfstate` is gitignored globally except `105-elk/terraform/terraform.tfstate` (tracked intentionally for CI apply reliability).
+- NEVER commit `.env`, `.tfvars`, API keys, or runtime secret dumps. `.tfstate` is tracked in git for CI apply reliability across all workspaces: `100-pve/`, `102-traefik/terraform/`, `104-grafana/terraform/`, `105-elk/terraform/`, `108-archon/terraform/`, `300-cloudflare/`, `301-github/`.
 - NEVER use `as any`, `@ts-ignore`, `@ts-expect-error`, or empty catch blocks.
 - NEVER SSH directly into Terraform-managed LXCs for config mutation; use IaC or `pct exec` for diagnostics only.
 
 ## COMMANDS
 
 ```bash
-make plan SVC=pve
-make apply SVC=pve
+make plan SVC=pve                                # plan only (apply via CI)
 make plan SVC=cloudflare
 python3 112-mcphub/validate_mcps.py
 make test
@@ -126,14 +128,18 @@ bazel build //... && bazel test //...
 - Module scopes: `modules/AGENTS.md`, `modules/proxmox/AGENTS.md`, `modules/proxmox/lxc/AGENTS.md`, `modules/proxmox/vm/AGENTS.md`, `modules/proxmox/lxc-config/AGENTS.md`, `modules/proxmox/vm-config/AGENTS.md`, `modules/proxmox/config-renderer/AGENTS.md`, `modules/shared/AGENTS.md`, `modules/shared/onepassword-secrets/AGENTS.md`
 - Test scopes: `tests/AGENTS.md`, `tests/modules/proxmox/AGENTS.md`, `tests/modules/shared/AGENTS.md`, `tests/integration/AGENTS.md`, `tests/workspaces/AGENTS.md`
 - Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
+- Dashboard scope: `104-grafana/dashboards/AGENTS.md`
 - Dev/staging scopes: `215-synology/AGENTS.md`, `220-staging/AGENTS.md`
 - External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`
-- Operational scopes: `docs/AGENTS.md`, `scripts/AGENTS.md`
+- Operational scopes: `docs/AGENTS.md`, `docs/runbooks/AGENTS.md`, `scripts/AGENTS.md`, `scripts/n8n-workflows/AGENTS.md`
 
 ## NOTES
 
 - Risk-tier merge policy: critical and medium paths require manual merge; low-risk paths can auto-merge.
 - Self-hosted runner (101) is required for Terraform workflows with homelab network dependencies.
 - n8n webhook workflows must be published via UI after import.
-- `105-elk/terraform/terraform.tfstate` is tracked in git (exception to global rule) to fix CI apply failures with elasticstack provider.
+- All 7 workspace `.tfstate` files are tracked in git intentionally for CI reliability (local backend).
+- State locking: all workspaces use `backend "local" {}` with no remote locking. Concurrent apply is prevented by GHA `concurrency` groups (`cancel-in-progress: false`) and disabled local `make apply`.
+- 100-pve workflows (`terraform-plan.yml`, `terraform-apply.yml`) are intentionally standalone (not using `_terraform-*` reusable templates) due to Proxmox-specific secrets, resource import scripts, and plan-file-based apply flow.
+- Drift detection runs on push to master AND on a weekday schedule (Mon-Fri 00:00 UTC / 09:00 KST).
 - Filebeat Docker autodiscovery is enabled on all LXC hosts; new Docker services are auto-indexed.
