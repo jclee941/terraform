@@ -33,7 +33,7 @@ filter {
   # Truncate oversized messages to prevent OOM (Defense in depth)
   if [message] {
     truncate {
-      length_bytes => 1048576
+      length_bytes => 999999
       add_tag => ["truncated"]
     }
   }
@@ -42,6 +42,29 @@ filter {
   if [fields][service] {
     mutate {
       add_field => { "service" => "%%{[fields][service]}" }
+    }
+  }
+
+  # Fallback service extraction from Docker Compose label when filebeat fields are absent.
+  if ![service] and [container][labels][com_docker_compose_service] {
+    mutate {
+      add_field => { "service" => "%%{[container][labels][com_docker_compose_service]}" }
+    }
+  }
+
+  # Strip ANSI color/control sequences so term queries and aggregations stay clean.
+  if [message] {
+    mutate {
+      gsub => [
+        "message", "\u001B\\[[0-9;]*[A-Za-z]", ""
+      ]
+    }
+  }
+  if [event][original] {
+    mutate {
+      gsub => [
+        "[event][original]", "\u001B\\[[0-9;]*[A-Za-z]", ""
+      ]
     }
   }
 
@@ -145,6 +168,14 @@ filter {
         add_field => {
           "tier" => "4"
           "error_classification" => "RATE_LIMIT_TRANSIENT"
+          "error_severity" => "low"
+        }
+      }
+    } else if [message] =~ /(?i)(MCP error -32602|invalid arguments for (tool|prompt)|structured content does not match the tool's output schema)/ {
+      mutate {
+        add_field => {
+          "tier" => "4"
+          "error_classification" => "MCP_CLIENT_REQUEST_ERROR"
           "error_severity" => "low"
         }
       }
