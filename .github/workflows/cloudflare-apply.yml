@@ -5,9 +5,7 @@ on:
     branches:
       - master
     paths:
-      - '300-cloudflare/**'
-  workflow_dispatch:
-
+      - "300-cloudflare/**"
 permissions:
   contents: read
   issues: write
@@ -22,7 +20,7 @@ jobs:
     with:
       service-name: Cloudflare
       working-directory: 300-cloudflare
-      failure-title-prefix: '[Cloudflare] Apply failed on master'
+      failure-title-prefix: "[Cloudflare] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `300-cloudflare`
 
@@ -31,5 +29,5 @@ jobs:
         - [ ] Verify 1Password service account token is valid
         - [ ] Run `terraform plan` locally to diagnose
         - [ ] Fix and re-apply, or revert the commit
-      failure-labels: 'terraform-drift,automated,infrastructure'
-    secrets: inherit  # pragma: allowlist secret
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret

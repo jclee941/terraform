@@ -5,9 +5,7 @@ on:
     branches:
       - master
     paths:
-      - '105-elk/**'
-  workflow_dispatch:
-
+      - "105-elk/**"
 permissions:
   contents: read
   issues: write
@@ -23,7 +21,7 @@ jobs:
       service-name: ELK
       working-directory: 105-elk/terraform
       needs-infra-state: true
-      failure-title-prefix: '[ELK] Apply failed on master'
+      failure-title-prefix: "[ELK] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `105-elk/terraform`
 
@@ -31,5 +29,5 @@ jobs:
         - [ ] Verify Elasticsearch connectivity
         - [ ] Run `terraform plan` locally to diagnose
         - [ ] Fix and re-apply, or revert the commit
-      failure-labels: 'terraform-drift,automated,infrastructure'
-    secrets: inherit  # pragma: allowlist secret
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret

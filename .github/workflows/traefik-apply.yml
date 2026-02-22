@@ -5,9 +5,7 @@ on:
     branches:
       - master
     paths:
-      - '102-traefik/terraform/**'
-  workflow_dispatch:
-
+      - "102-traefik/terraform/**"
 permissions:
   contents: read
   issues: write
@@ -24,12 +22,12 @@ jobs:
       working-directory: 102-traefik/terraform
       needs-infra-state: true
       migrate-state: lxc_config
-      failure-title-prefix: '[Traefik] Apply failed on master'
+      failure-title-prefix: "[Traefik] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `102-traefik/terraform`
 
         ### Checklist
         - [ ] Run `terraform plan` locally to diagnose
         - [ ] Fix and re-apply, or revert the commit
-      failure-labels: 'terraform-drift,automated,infrastructure'
-    secrets: inherit  # pragma: allowlist secret
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret

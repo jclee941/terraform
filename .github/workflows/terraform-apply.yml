@@ -21,7 +21,6 @@ on:
       - "112-mcphub/mcp_servers.json"
       - "112-mcphub/Dockerfile.proxmox"
       - "112-mcphub/Dockerfile.playwright"
-  workflow_dispatch:
 
 permissions:
   contents: read

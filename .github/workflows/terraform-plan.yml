@@ -1,25 +1,24 @@
 name: Terraform Plan
 
 on:
-  workflow_dispatch:
   pull_request:
     paths:
-      - '100-pve/**'
-      - 'modules/**'
+      - "100-pve/**"
+      - "modules/**"
       # Service template dirs consumed by 100-pve/main.tf _svc_tpl
-      - '101-runner/templates/**'
-      - '102-traefik/templates/**'
-      - '102-traefik/config/**'
-      - '104-grafana/templates/**'
-      - '105-elk/templates/**'
-      - '106-glitchtip/templates/**'
-      - '107-supabase/templates/**'
-      - '108-archon/templates/**'
-      - '112-mcphub/templates/**'
+      - "101-runner/templates/**"
+      - "102-traefik/templates/**"
+      - "102-traefik/config/**"
+      - "104-grafana/templates/**"
+      - "105-elk/templates/**"
+      - "106-glitchtip/templates/**"
+      - "107-supabase/templates/**"
+      - "108-archon/templates/**"
+      - "112-mcphub/templates/**"
       # Direct file refs from 100-pve/main.tf
-      - '112-mcphub/mcp_servers.json'
-      - '112-mcphub/Dockerfile.proxmox'
-      - '112-mcphub/Dockerfile.playwright'
+      - "112-mcphub/mcp_servers.json"
+      - "112-mcphub/Dockerfile.proxmox"
+      - "112-mcphub/Dockerfile.playwright"
 
 concurrency:
   group: terraform-plan-${{ github.event.pull_request.number || github.run_id }}
@@ -48,9 +47,9 @@ jobs:
       - name: Setup Terraform & Init
         uses: ./.github/actions/terraform-setup
         with:
-          terraform-version: '1.10.5'
+          terraform-version: "1.10.5"
           working-directory: ${{ env.TF_WORKING_DIR }}
-          init-args: '-input=false'
+          init-args: "-input=false"
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
 

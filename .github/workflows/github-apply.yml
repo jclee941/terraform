@@ -5,8 +5,7 @@ on:
     branches:
       - master
     paths:
-      - '301-github/**'
-  workflow_dispatch:
+      - "301-github/**"
 
 permissions:
   contents: read
@@ -27,9 +26,9 @@ jobs:
       - name: Setup Terraform & Init (backend=false)
         uses: ./.github/actions/terraform-setup
         with:
-          terraform-version: '1.10.5'
+          terraform-version: "1.10.5"
           working-directory: 301-github
-          init-args: '-backend=false -input=false'
+          init-args: "-backend=false -input=false"
 
       - name: Terraform fmt check
         working-directory: 301-github
@@ -56,7 +55,7 @@ jobs:
       service-name: GitHub
       working-directory: 301-github
       enable-repository-imports: true
-      failure-title-prefix: '[GitHub] Apply failed on master'
+      failure-title-prefix: "[GitHub] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `301-github`
 
@@ -64,5 +63,5 @@ jobs:
         - [ ] Verify GitHub token has required permissions
         - [ ] Run `terraform plan` locally to diagnose
         - [ ] Fix and re-apply, or revert the commit
-      failure-labels: 'terraform-drift,automated,infrastructure'
-    secrets: inherit  # pragma: allowlist secret
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret

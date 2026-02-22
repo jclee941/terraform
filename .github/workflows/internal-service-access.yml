@@ -1,9 +1,24 @@
 name: Internal Service Access Test
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 6 * * 1'  # Weekly Monday 6 AM UTC
+  push:
+    branches:
+      - master
+    paths:
+      - "102-traefik/**"
+      - "104-grafana/**"
+      - "105-elk/**"
+      - "108-archon/**"
+      - "112-mcphub/**"
+      - ".github/workflows/internal-service-access.yml"
+  pull_request:
+    paths:
+      - "102-traefik/**"
+      - "104-grafana/**"
+      - "105-elk/**"
+      - "108-archon/**"
+      - "112-mcphub/**"
+      - ".github/workflows/internal-service-access.yml"
 
 jobs:
   test-internal-services:
@@ -152,8 +167,8 @@ jobs:
         if: failure() && steps.secrets_check.outputs.secrets_ok == 'true'
         uses: ./.github/actions/notify-failure
         with:
-          title-prefix: 'Service health check failed'
+          title-prefix: "Service health check failed"
           extra-body: |
             One or more internal services failed their health check.
             Please review the workflow run for details on which services are down.
-          labels: 'bug,monitoring'
+          labels: "bug,monitoring"

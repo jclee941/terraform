@@ -5,10 +5,8 @@ on:
     branches:
       - master
     paths:
-      - '104-grafana/terraform/**'
-      - '104-grafana/dashboards/**'
-  workflow_dispatch:
-
+      - "104-grafana/terraform/**"
+      - "104-grafana/dashboards/**"
 permissions:
   contents: read
   issues: write
@@ -24,7 +22,7 @@ jobs:
       service-name: Grafana
       working-directory: 104-grafana/terraform
       needs-infra-state: true
-      failure-title-prefix: '[Grafana] Apply failed on master'
+      failure-title-prefix: "[Grafana] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `104-grafana/terraform`
 
@@ -33,5 +31,5 @@ jobs:
         - [ ] Run `make plan SVC=104-grafana/terraform` locally to diagnose
         - [ ] Check if dashboard JSON files are valid
         - [ ] Fix and re-apply, or revert the commit
-      failure-labels: 'terraform-drift,automated,infrastructure'
-    secrets: inherit  # pragma: allowlist secret
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret

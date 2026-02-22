@@ -1,22 +1,10 @@
 name: Milestone Automation
 
 on:
-  schedule:
-    - cron: '0 0 * * 1'   # Monday 09:00 KST (UTC 00:00)
-    - cron: '0 9 * * 5'   # Friday 18:00 KST (UTC 09:00)
   issues:
     types: [closed]
   pull_request:
     types: [opened, reopened]
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Action to perform'
-        type: choice
-        options:
-          - create-milestone
-          - close-and-rollover
-          - sync-all-repos
 
 permissions:
   issues: write
@@ -29,13 +17,10 @@ env:
 jobs:
   # ──────────────────────────────────────────────
   # Job 1: Create weekly milestone across ALL repos
-  # Runs: Monday 09:00 KST | manual trigger
+  # Runs: On PR open/reopen events
   # ──────────────────────────────────────────────
   create-weekly-milestone:
-    if: >-
-      github.event.schedule == '0 0 * * 1' ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'create-milestone') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'sync-all-repos')
+    if: github.event_name == 'pull_request'
     runs-on: [self-hosted, homelab]
     timeout-minutes: 10
     permissions:
@@ -109,18 +94,15 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
-          title-prefix: '[Milestone] Weekly creation failed'
-          labels: 'bug,automation'
+          title-prefix: "[Milestone] Weekly creation failed"
+          labels: "bug,automation"
 
   # ──────────────────────────────────────────────
   # Job 2: Close milestone + rollover across ALL repos
-  # Runs: Friday 18:00 KST | manual trigger
+  # Runs: On issue closed events
   # ──────────────────────────────────────────────
   close-and-rollover:
-    if: >-
-      github.event.schedule == '0 9 * * 5' ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'close-and-rollover') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'sync-all-repos')
+    if: github.event_name == 'issues' && github.event.action == 'closed'
     runs-on: [self-hosted, homelab]
     timeout-minutes: 10
     permissions:
@@ -220,8 +202,8 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
-          title-prefix: '[Milestone] Close and rollover failed'
-          labels: 'bug,automation'
+          title-prefix: "[Milestone] Close and rollover failed"
+          labels: "bug,automation"
 
   # ──────────────────────────────────────────────
   # Job 3: Auto-assign PR to current week milestone

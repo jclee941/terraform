@@ -1,10 +1,9 @@
 name: GitHub Plan
 
 on:
-  workflow_dispatch:
   pull_request:
     paths:
-      - '301-github/**'
+      - "301-github/**"
 
 concurrency:
   group: github-plan-${{ github.event.pull_request.number || github.run_id }}
@@ -25,9 +24,9 @@ jobs:
       - name: Setup Terraform & Init (backend=false)
         uses: ./.github/actions/terraform-setup
         with:
-          terraform-version: '1.10.5'
+          terraform-version: "1.10.5"
           working-directory: 301-github
-          init-args: '-backend=false -input=false'
+          init-args: "-backend=false -input=false"
 
       - name: Terraform fmt check
         working-directory: 301-github
@@ -54,4 +53,4 @@ jobs:
       service-name: GitHub
       working-directory: 301-github
       enable-repository-imports: true
-    secrets: inherit  # pragma: allowlist secret
+    secrets: inherit # pragma: allowlist secret

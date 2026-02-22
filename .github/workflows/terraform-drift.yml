@@ -1,10 +1,16 @@
 name: Terraform Drift Detection
 
 on:
-  schedule:
-    # Run daily at 06:00 UTC (15:00 KST)
-    - cron: '0 6 * * *'
-  workflow_dispatch: {}
+  push:
+    branches:
+      - master
+    paths:
+      - "100-pve/**"
+      - "102-traefik/**"
+      - "104-grafana/**"
+      - "105-elk/**"
+      - "modules/**"
+      - ".github/workflows/terraform-drift.yml"
 
 permissions:
   contents: read
@@ -52,7 +58,7 @@ jobs:
       - name: Setup Terraform & Init
         uses: ./.github/actions/terraform-setup
         with:
-          terraform-version: '1.10.5'
+          terraform-version: "1.10.5"
           working-directory: ${{ matrix.workspace.dir }}
           init-args: ${{ matrix.workspace.init_args }}
         env:
