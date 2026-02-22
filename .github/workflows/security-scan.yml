@@ -108,12 +108,13 @@ jobs:
 
       - name: Setup Checkov
         run: |
-          export PATH="${HOME}/.local/bin:${PATH}"
-          if ! command -v checkov &>/dev/null; then
-            python3 -m pip install --quiet --break-system-packages checkov
+          CHECKOV_VENV="${HOME}/.checkov-venv"
+          if [ ! -f "${CHECKOV_VENV}/bin/checkov" ]; then
+            python3 -m venv "${CHECKOV_VENV}"
+            "${CHECKOV_VENV}/bin/pip" install --quiet 'checkov>=3.2,<4'
           fi
-          checkov --version
-          echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+          "${CHECKOV_VENV}/bin/checkov" --version
+          echo "${CHECKOV_VENV}/bin" >> "$GITHUB_PATH"
 
       - name: Checkov Scan
         id: checkov
