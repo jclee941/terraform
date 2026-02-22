@@ -1,6 +1,7 @@
 # Disk Full: Cleanup and Expansion
 
 ## Symptoms
+
 - Services failing with "No space left on device"
 - Grafana alert: `DiskSpaceWarning` or `DiskSpaceCritical`
 - Container/VM unresponsive or read-only filesystem
@@ -23,6 +24,7 @@ pct exec {VMID} -- docker system df
 ## Resolution
 
 ### 1. Docker Cleanup (inside container)
+
 ```bash
 pct exec {VMID} -- bash -c '
   docker system prune -af --volumes
@@ -33,10 +35,11 @@ pct exec {VMID} -- bash -c '
 ### 2. Log Cleanup
 
 **Logstash/Elasticsearch (105):**
+
 ```bash
 pct exec 105 -- bash -c '
   # Remove old indices (older than 30 days)
-  curl -s -X DELETE "localhost:9200/filebeat-*-$(date -d "-30 days" +%Y.%m)*"
+  curl -s -X DELETE "localhost:9200/logs-*-$(date -d "-30 days" +%Y.%m)*"
 
   # Check index sizes
   curl -s "localhost:9200/_cat/indices?v&s=store.size:desc" | head -20
@@ -47,6 +50,7 @@ pct exec 105 -- bash -c '
 ```
 
 **General log cleanup:**
+
 ```bash
 pct exec {VMID} -- bash -c '
   # Truncate large log files
@@ -60,6 +64,7 @@ pct exec {VMID} -- bash -c '
 ### 3. Disk Expansion
 
 **LXC Container:**
+
 ```bash
 ssh pve
 
@@ -71,6 +76,7 @@ pct exec {VMID} -- df -h /
 ```
 
 **VM Disk:**
+
 ```bash
 ssh pve
 
@@ -85,6 +91,7 @@ ssh root@192.168.50.{IP} -- bash -c '
 ```
 
 ## Prevention
+
 - Elasticsearch ILM policy should auto-delete indices >30 days
 - Docker log rotation: configure `max-size: 10m` and `max-file: 3` in daemon.json
 - Grafana alert at 80% disk usage threshold

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Terraform Drift Detection
 # Runs `terraform plan -detailed-exitcode` and alerts on drift.
-# Deploy as systemd timer on the host where terraform runs (200-oc).
+# Deploy as systemd timer on the host where Terraform runs.
 #
 # Exit codes from terraform plan -detailed-exitcode:
 #   0 = No changes (no drift)

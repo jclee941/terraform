@@ -8,11 +8,6 @@ output "folder_uid_alerts" {
   value       = grafana_folder.alerts.uid
 }
 
-output "folder_uid_opencode" {
-  description = "UID of the OpenCode Grafana folder"
-  value       = grafana_folder.opencode.uid
-}
-
 output "folder_uid_mcp_alerts" {
   description = "UID of the MCP Alerts Grafana folder"
   value       = grafana_folder.mcp_alerts.uid
@@ -48,7 +43,6 @@ output "rule_group_names" {
   value = [
     grafana_rule_group.homelab_logs.name,
     grafana_rule_group.infrastructure_health.name,
-    grafana_rule_group.opencode_alerts.name,
     grafana_rule_group.mcp_alerts.name,
   ]
 }

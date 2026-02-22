@@ -24,20 +24,3 @@ datasources:
       logMessageField: message
       logLevelField: level
     editable: false
-
-  - name: Elasticsearch-Filebeat
-    type: elasticsearch
-    access: proxy
-    url: http://${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}
-    database: "filebeat-*"
-    isDefault: false
-    basicAuth: true
-    basicAuthUser: elastic
-    secureJsonData:
-      basicAuthPassword: "${elk_elastic_password}"
-    jsonData:
-      timeField: "@timestamp"
-      esVersion: "8.0.0"
-      logMessageField: message
-      logLevelField: log.level
-    editable: false

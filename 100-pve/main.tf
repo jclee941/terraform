@@ -497,10 +497,6 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/vault.yml"
           content = module.config_renderer.rendered_configs.traefik_vault
         }
-        "traefik-opencode.yml" = {
-          path    = "/etc/traefik/dynamic/opencode.yml"
-          content = module.config_renderer.rendered_configs.traefik_opencode
-        }
         "filebeat.yml" = {
           path    = "/etc/filebeat/filebeat.yml"
           content = module.config_renderer.rendered_configs.traefik_filebeat
@@ -740,7 +736,6 @@ locals {
       archon    = "archon.yml.tftpl"
       supabase  = "supabase.yml.tftpl"
       vault     = "vault.yml.tftpl"
-      opencode  = "opencode.yml.tftpl"
       filebeat  = "filebeat.yml.tftpl"
     } }
     "104-grafana" = { prefix = "grafana", files = {

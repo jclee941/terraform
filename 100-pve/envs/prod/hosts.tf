@@ -111,15 +111,6 @@ locals {
       }
     }
 
-    oc = {
-      vmid  = 200
-      ip    = "192.168.50.200"
-      roles = ["dev", "gpu", "opencode", "unmanaged"]
-      ports = {
-        opencode = 8090
-      }
-    }
-
     synology = {
       vmid  = 215
       ip    = "192.168.50.215"

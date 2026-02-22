@@ -11,47 +11,47 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 
 ### What Gets Backed Up
 
-| VMID | Name | Type | Backup Schedule | Purpose |
-|------|------|------|-----------------|---------|
-| 102 | traefik | LXC | 02:00 UTC daily | Reverse proxy / edge router |
-| 104 | grafana | LXC | 02:00 UTC daily | Observability stack |
-| 105 | elk | LXC | 02:00 UTC daily | ELK logging / Elasticsearch |
-| 106 | glitchtip | LXC | 02:00 UTC daily | Error tracking |
-| 107 | supabase | LXC | 02:00 UTC daily | Supabase BaaS (PostgreSQL, Auth, Storage) |
-| 108 | archon | LXC | 02:00 UTC daily | AI Knowledge Management (Archon) |
-| 112 | mcphub | VM | 03:00 UTC daily | MCP Hub + n8n automation |
+| VMID | Name      | Type | Backup Schedule | Purpose                                   |
+| ---- | --------- | ---- | --------------- | ----------------------------------------- |
+| 102  | traefik   | LXC  | 02:00 UTC daily | Reverse proxy / edge router               |
+| 104  | grafana   | LXC  | 02:00 UTC daily | Observability stack                       |
+| 105  | elk       | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch               |
+| 106  | glitchtip | LXC  | 02:00 UTC daily | Error tracking                            |
+| 107  | supabase  | LXC  | 02:00 UTC daily | Supabase BaaS (PostgreSQL, Auth, Storage) |
+| 108  | archon    | LXC  | 02:00 UTC daily | AI Knowledge Management (Archon)          |
+| 112  | mcphub    | VM   | 03:00 UTC daily | MCP Hub + n8n automation                  |
 
 ### What's NOT Backed Up (Non-Critical)
 
 - **100-pve**: Proxmox host itself (system-level config)
 - **101-runner**: GitHub Actions runner (ephemeral, re-deployable via Terraform)
-- **200-oc**: Dev environment (rebuild from cloud-init)
 - **220-sandbox**: Sandbox (ephemeral)
 
 ## Backup Storage & Infrastructure
 
-| Setting | Value | Notes |
-|---------|-------|-------|
-| **Storage Location** | `local` (PVE host) | `/var/lib/vz/dump/` |
-| **Compression** | zstd | Modern, space-efficient |
-| **Mode** | snapshot | Consistent point-in-time backups, zero downtime |
-| **Frequency** | Daily | Automated via Proxmox scheduler |
-| **Full vs Incremental** | Full | Simplifies restore workflow |
+| Setting                 | Value              | Notes                                           |
+| ----------------------- | ------------------ | ----------------------------------------------- |
+| **Storage Location**    | `local` (PVE host) | `/var/lib/vz/dump/`                             |
+| **Compression**         | zstd               | Modern, space-efficient                         |
+| **Mode**                | snapshot           | Consistent point-in-time backups, zero downtime |
+| **Frequency**           | Daily              | Automated via Proxmox scheduler                 |
+| **Full vs Incremental** | Full               | Simplifies restore workflow                     |
 
 ## Retention Policy
 
 Backups are automatically pruned based on age and frequency to balance storage and recovery window:
 
-| Policy | Value | Rationale |
-|--------|-------|-----------|
-| **Keep Last** | 7 daily | 1 week of daily backups for immediate restore |
-| **Keep Weekly** | 4 weeks | 1 month rolling window via weekly snapshots |
-| **Keep Monthly** | 3 months | Quarterly recovery option for audit/compliance |
-| **Total Retention** | ~90 days | Balanced storage vs recovery window |
+| Policy              | Value    | Rationale                                      |
+| ------------------- | -------- | ---------------------------------------------- |
+| **Keep Last**       | 7 daily  | 1 week of daily backups for immediate restore  |
+| **Keep Weekly**     | 4 weeks  | 1 month rolling window via weekly snapshots    |
+| **Keep Monthly**    | 3 months | Quarterly recovery option for audit/compliance |
+| **Total Retention** | ~90 days | Balanced storage vs recovery window            |
 
 ### Retention Examples
 
 Given today is 2026-02-11:
+
 - **Daily backups kept**: 2026-02-11, 2026-02-10, ..., 2026-02-05 (7 days)
 - **Weekly kept**: 2026-02-11, 2026-02-04, 2026-01-28, 2026-01-21
 - **Monthly kept**: 2026-02-11, 2026-01-11, 2025-12-11
@@ -64,6 +64,7 @@ Oldest backup automatically deleted: ~2025-11-11 (90 days old)
 
 **Schedule**: Daily at **02:00 UTC** (9:00 PM UTC-5)
 **Command**:
+
 ```bash
 pvesh create /cluster/backup \
   --vmid 102,104,105,106,107,108 \
@@ -78,6 +79,7 @@ pvesh create /cluster/backup \
 ```
 
 **Benefits**:
+
 - `--mode snapshot`: Quiescent snapshots, zero downtime during backup
 - `--compress zstd`: Modern compression (better than gzip/lzo)
 - Notification to root upon completion/failure
@@ -86,6 +88,7 @@ pvesh create /cluster/backup \
 
 **Schedule**: Daily at **03:00 UTC** (10:00 PM UTC-5)
 **Command**:
+
 ```bash
 pvesh create /cluster/backup \
   --vmid 112 \
@@ -106,16 +109,19 @@ pvesh create /cluster/backup \
 ### On PVE Host (192.168.50.100)
 
 1. **SSH to PVE**:
+
    ```bash
    ssh root@192.168.50.100
    ```
 
 2. **Run backup setup script**:
+
    ```bash
    bash scripts/setup-backups.sh
    ```
 
 3. **Verify jobs created**:
+
    ```bash
    pvesh get /cluster/backup --output-format json-pretty
    ```
@@ -129,35 +135,43 @@ pvesh create /cluster/backup \
 ### LXC Container Restore (e.g., 104-grafana)
 
 **Prerequisites**:
+
 - Backup file located at `/var/lib/vz/dump/`
 - Target VMID available or specify new VMID
 
 **Procedure**:
 
 1. **List available backups**:
+
    ```bash
    ls -lah /var/lib/vz/dump/ | grep 104
    ```
+
    Example output:
+
    ```
    -rw-r--r-- 1 root root 2.1G Feb 11 02:15 vzdump-lxc-104-2026_02_11-02_15_00.tar.zst
    ```
 
 2. **Restore to new container (105-new)**:
+
    ```bash
    pvesh create /nodes/pve/lxc \
       --vmid 150 \
       --hostname grafana-restored \
      --archive /var/lib/vz/dump/vzdump-lxc-104-2026_02_11-02_15_00.tar.zst
    ```
+
    Or via GUI: Datacenter → Backup → select backup → Restore
 
 3. **Start restored container**:
+
    ```bash
     pct start 150
    ```
 
 4. **Verify network & services**:
+
    ```bash
    pct exec 109 -- ip a
    pct exec 109 -- systemctl status grafana-server
@@ -177,23 +191,28 @@ pvesh create /cluster/backup \
 **Procedure**:
 
 1. **List available backups**:
+
    ```bash
    ls -lah /var/lib/vz/dump/ | grep 112
    ```
 
 2. **Restore to new VM**:
+
    ```bash
    qmrestore /var/lib/vz/dump/vzdump-qemu-112-2026_02_11-03_15_00.vma.zst 113 \
      --storage local-lvm
    ```
+
    Or via GUI: Datacenter → Backup → select backup → Restore
 
 3. **Start restored VM**:
+
    ```bash
    qm start 113
    ```
 
 4. **Verify QEMU guest agent**:
+
    ```bash
    qm agent 113 ping
    ```
@@ -209,6 +228,7 @@ pvesh create /cluster/backup \
 If you only need to restore a subset of files:
 
 1. **Mount backup archive**:
+
    ```bash
    mkdir /tmp/restore
    tar -xf /var/lib/vz/dump/vzdump-lxc-104-2026_02_11-02_15_00.tar.zst \
@@ -216,6 +236,7 @@ If you only need to restore a subset of files:
    ```
 
 2. **Extract specific files**:
+
    ```bash
    cp /tmp/restore/etc/grafana/grafana.ini /tmp/grafana.ini.bak
    ```
@@ -230,23 +251,27 @@ If you only need to restore a subset of files:
 ### Automated Verification
 
 Backups are verified post-creation by Proxmox:
+
 - `--mode snapshot` includes implicit verification
 - Failed backups trigger email to `root@pve`
 
 ### Manual Verification
 
 **Check backup file integrity**:
+
 ```bash
 cd /var/lib/vz/dump/
 tar -tzf vzdump-lxc-104-2026_02_11-02_15_00.tar.zst | head -20
 ```
 
 **Estimate restore time** (dry-run):
+
 ```bash
 tar -tzf vzdump-lxc-104-2026_02_11-02_15_00.tar.zst | wc -l
 ```
 
 **Monthly restore test** (recommended):
+
 - On the 1st of each month, restore latest backup to test VMID
 - Verify service startup and network connectivity
 - Destroy test VMID after verification
@@ -272,7 +297,7 @@ Backups are stored locally on PVE, so restoration depends on PVE availability:
 
 2. **If PVE is destroyed**:
    - Backups are lost (single point of failure)
-   - *Mitigation*: Implement offsite backup replication (future)
+   - _Mitigation_: Implement offsite backup replication (future)
 
 **RTO**: Depends on PVE recovery | **RPO**: 24 hours
 
@@ -290,6 +315,7 @@ Backups are stored locally on PVE, so restoration depends on PVE availability:
 ### Email Notifications
 
 Backups send completion/failure emails to `root@pve`. Check:
+
 ```bash
 tail -50 /var/mail/root
 # or
@@ -299,6 +325,7 @@ journalctl -u postfix -f
 ### Grafana Alerts
 
 Two backup-related alert rules (in 104-grafana/alerting.yaml):
+
 - **Host Silent**: Triggers if a host stops sending logs (possible backup failure)
 - **Disk Usage High**: Alerts if `/var/lib/vz/dump/` exceeds 80% capacity
 
@@ -323,14 +350,14 @@ tail -f /var/log/syslog | grep vzdump
 
 Estimated daily backup sizes (with zstd compression):
 
-| VMID | Service | Uncompressed | Compressed (zstd) | Daily Growth |
-|------|---------|--------------|-------------------|--------------|
-| 102 | traefik | ~500 MB | ~150 MB | 150 MB |
-| 104 | grafana | ~1.5 GB | ~400 MB | 400 MB |
-| 105 | elk | ~4.0 GB | ~1.2 GB | 1.2 GB |
-| 106 | glitchtip | ~800 MB | ~250 MB | 250 MB |
-| 112 | mcphub | ~2.0 GB | ~600 MB | 600 MB |
-| **Total** | | **8.8 GB** | **~2.6 GB** | **~2.6 GB** |
+| VMID      | Service   | Uncompressed | Compressed (zstd) | Daily Growth |
+| --------- | --------- | ------------ | ----------------- | ------------ |
+| 102       | traefik   | ~500 MB      | ~150 MB           | 150 MB       |
+| 104       | grafana   | ~1.5 GB      | ~400 MB           | 400 MB       |
+| 105       | elk       | ~4.0 GB      | ~1.2 GB           | 1.2 GB       |
+| 106       | glitchtip | ~800 MB      | ~250 MB           | 250 MB       |
+| 112       | mcphub    | ~2.0 GB      | ~600 MB           | 600 MB       |
+| **Total** |           | **8.8 GB**   | **~2.6 GB**       | **~2.6 GB**  |
 
 ### Retention Storage
 
@@ -345,6 +372,7 @@ With 90-day retention (21 daily + 4 weekly + 3 monthly snapshots):
 ### Future Scaling
 
 When storage reaches 80%:
+
 1. Reduce retention to `keep-last=3,keep-weekly=2,keep-monthly=2` (~40 GB)
 2. Or: Implement offsite replication (S3/MinIO) and delete local after 30 days
 

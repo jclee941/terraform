@@ -228,13 +228,13 @@ run "test_vm_ip_passthrough" {
 
   variables {
     node_name         = "pve"
-    vmid              = 200
-    hostname          = "oc"
-    ip_address        = "192.168.50.200"
+    vmid              = 101
+    hostname          = "runner"
+    ip_address        = "192.168.50.101"
     memory            = 16384
     cores             = 8
     disk_size         = 64
-    description       = "Dev VM"
+    description       = "Runner VM"
     network_gateway   = "192.168.50.1"
     dns_servers       = ["192.168.50.1"]
     managed_vmid_min  = 100
@@ -244,7 +244,7 @@ run "test_vm_ip_passthrough" {
   }
 
   assert {
-    condition     = output.ip_address == "192.168.50.200"
+    condition     = output.ip_address == "192.168.50.101"
     error_message = "IP address must be passed through to output"
   }
 }

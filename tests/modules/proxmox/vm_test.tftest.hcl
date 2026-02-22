@@ -74,13 +74,13 @@ run "test_ip_address_passthrough" {
 
   variables {
     node_name         = "pve"
-    vmid              = 200
-    hostname          = "oc"
-    ip_address        = "192.168.50.200"
+    vmid              = 101
+    hostname          = "runner"
+    ip_address        = "192.168.50.101"
     memory            = 16384
     cores             = 8
     disk_size         = 64
-    description       = "Dev GPU VM"
+    description       = "Runner VM"
     network_gateway   = "192.168.50.1"
     dns_servers       = ["192.168.50.1"]
     managed_vmid_min  = 100
@@ -90,7 +90,7 @@ run "test_ip_address_passthrough" {
   }
 
   assert {
-    condition     = output.ip_address == "192.168.50.200"
+    condition     = output.ip_address == "192.168.50.101"
     error_message = "IP address must be passed through to output"
   }
 }
@@ -178,13 +178,13 @@ run "test_valid_machine_q35" {
 
   variables {
     node_name         = "pve"
-    vmid              = 200
-    hostname          = "oc"
-    ip_address        = "192.168.50.200"
+    vmid              = 101
+    hostname          = "runner"
+    ip_address        = "192.168.50.101"
     memory            = 8192
     cores             = 4
     disk_size         = 64
-    description       = "Dev VM with q35 machine type"
+    description       = "Runner VM with q35 machine type"
     network_gateway   = "192.168.50.1"
     dns_servers       = ["192.168.50.1"]
     managed_vmid_min  = 100
@@ -195,7 +195,7 @@ run "test_valid_machine_q35" {
   }
 
   assert {
-    condition     = output.vmid == 200
+    condition     = output.vmid == 101
     error_message = "VMID must be passed through to output"
   }
 }

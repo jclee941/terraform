@@ -8,30 +8,32 @@
 ## WORKSPACE ENTRY POINTS
 
 ### PRIMARY ORCHESTRATOR
-| Workspace | Entry Point | Role | Modules Used |
-|-----------|------------|------|--------------|
+
+| Workspace   | Entry Point           | Role              | Modules Used                                                         |
+| ----------- | --------------------- | ----------------- | -------------------------------------------------------------------- |
 | **100-pve** | `main.tf` (844 lines) | Central infra hub | lxc, vm, vm-config, lxc-config, config-renderer, onepassword-secrets |
 
 ### SECONDARY WORKSPACES (Terraform-managed)
-| Workspace | Entry Point | Role | Modules Used | Providers |
-|-----------|------------|------|--------------|-----------|
-| **102-traefik** | `terraform/main.tf` | Reverse proxy config | None (direct resources) | None (template-only) |
-| **104-grafana** | `terraform/main.tf` | Observability dashboards | None | grafana ~>3.0 |
-| **105-elk** | `terraform/main.tf` | Log aggregation | None | elasticstack ~>0.10 |
-| **108-archon** | `terraform/main.tf` | AI knowledge mgmt | None | None (LXC-managed) |
-| **300-cloudflare** | `main.tf` | External DNS/tunnel | None | cloudflare ~>4.0, github ~>6.0 |
-| **301-github** | `main.tf` | GitHub org/repo mgmt | None | github ~>6.0 |
+
+| Workspace          | Entry Point         | Role                     | Modules Used            | Providers                      |
+| ------------------ | ------------------- | ------------------------ | ----------------------- | ------------------------------ |
+| **102-traefik**    | `terraform/main.tf` | Reverse proxy config     | None (direct resources) | None (template-only)           |
+| **104-grafana**    | `terraform/main.tf` | Observability dashboards | None                    | grafana ~>3.0                  |
+| **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.10            |
+| **108-archon**     | `terraform/main.tf` | AI knowledge mgmt        | None                    | None (LXC-managed)             |
+| **300-cloudflare** | `main.tf`           | External DNS/tunnel      | None                    | cloudflare ~>4.0, github ~>6.0 |
+| **301-github**     | `main.tf`           | GitHub org/repo mgmt     | None                    | github ~>6.0                   |
 
 ### TEMPLATE-ONLY WORKSPACES (No Terraform)
-| Workspace | Purpose | Templates | Rendered By |
-|-----------|---------|-----------|-------------|
-| **101-runner** | GitHub Actions runner | filebeat.yml.tftpl | 100-pve/module.config_renderer |
-| **106-glitchtip** | Error tracking | 3x .tftpl | 100-pve/module.config_renderer |
-| **107-supabase** | Backend-as-a-Service | 3x .tftpl | 100-pve/module.config_renderer |
-| **112-mcphub** | MCP server hub | 4x .tftpl | 100-pve/module.config_renderer |
-| **200-oc** | Dev VM + Claude Code | None (config generation) | Python script |
-| **215-synology** | NAS inventory | None (data only) | Manual |
-| **220-staging** | Staging VM | None (reserved) | Manual |
+
+| Workspace         | Purpose               | Templates          | Rendered By                    |
+| ----------------- | --------------------- | ------------------ | ------------------------------ |
+| **101-runner**    | GitHub Actions runner | filebeat.yml.tftpl | 100-pve/module.config_renderer |
+| **106-glitchtip** | Error tracking        | 3x .tftpl          | 100-pve/module.config_renderer |
+| **107-supabase**  | Backend-as-a-Service  | 3x .tftpl          | 100-pve/module.config_renderer |
+| **112-mcphub**    | MCP server hub        | 4x .tftpl          | 100-pve/module.config_renderer |
+| **215-synology**  | NAS inventory         | None (data only)   | Manual                         |
+| **220-staging**   | Staging VM            | None (reserved)    | Manual                         |
 
 ---
 
@@ -131,45 +133,44 @@ modules/shared/
 
 ### By Workspace
 
-| Workspace | Template | Purpose | Rendered By | Output Path |
-|-----------|----------|---------|-------------|------------|
-| **101-runner** | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/lxc-101-runner/filebeat.yml |
-| **102-traefik** | archon.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/archon.yml |
-| | glitchtip.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/glitchtip.yml |
-| | supabase.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/supabase.yml |
-| | opencode.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/opencode.yml |
-| | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/lxc-102-traefik/filebeat.yml |
-| | synology.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/synology.yml |
-| | traefik-elk.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/traefik-elk.yml |
-| | vault.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/vault.yml |
-| | mcphub.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/mcphub.yml |
-| | n8n.yml.tftpl | Traefik route | config-renderer | configs/rendered/traefik/n8n.yml |
-| **104-grafana** | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/lxc-104-grafana/filebeat.yml |
-| | grafana-datasources.yml.tftpl | Grafana datasources | config-renderer | configs/lxc-104-grafana/grafana-datasources.yml |
-| | prometheus.yml.tftpl | Prometheus config | config-renderer | configs/lxc-104-grafana/prometheus.yml |
-| **105-elk** | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/lxc-105-elk/filebeat.yml |
-| | Dockerfile.logstash.tftpl | Logstash container | config-renderer | configs/lxc-105-elk/Dockerfile.logstash |
-| | setup-ilm.sh.tftpl | ILM setup script | config-renderer | configs/lxc-105-elk/setup-ilm.sh |
-| | ilm-policy.json.tftpl | ILM policy | config-renderer | configs/lxc-105-elk/ilm-policy.json |
-| | docker-compose.yml.tftpl | ELK stack | config-renderer | configs/lxc-105-elk/docker-compose.yml |
-| | logstash.conf.tftpl | Logstash pipeline | config-renderer | configs/lxc-105-elk/logstash.conf |
-| | logstash.yml.tftpl | Logstash config | config-renderer | configs/lxc-105-elk/logstash.yml |
-| **106-glitchtip** | glitchtip.env.tftpl | Env vars | config-renderer | configs/lxc-106-glitchtip/glitchtip.env |
-| | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/lxc-106-glitchtip/filebeat.yml |
-| | docker-compose.yml.tftpl | GlitchTip stack | config-renderer | configs/lxc-106-glitchtip/docker-compose.yml |
-| **107-supabase** | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/lxc-107-supabase/filebeat.yml |
-| | docker-compose.yml.tftpl | Supabase stack | config-renderer | configs/lxc-107-supabase/docker-compose.yml |
-| | .env.tftpl | Env vars | config-renderer | configs/lxc-107-supabase/.env |
-| **108-archon** | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/lxc-108-archon/filebeat.yml |
-| | docker-compose.yml.tftpl | Archon stack | config-renderer | configs/lxc-108-archon/docker-compose.yml |
-| | .env.tftpl | Env vars | config-renderer | configs/lxc-108-archon/.env |
-| **112-mcphub** | filebeat.yml.tftpl | Filebeat config | config-renderer | configs/vm-112-mcphub/filebeat.yml |
-| | docker-compose.yml.tftpl | MCPHub stack | config-renderer | configs/vm-112-mcphub/docker-compose.yml |
-| | mcp_settings.json.tftpl | MCP server catalog | config-renderer | configs/rendered/mcphub/mcp_settings.json |
-| | .env.tftpl | Env vars | config-renderer | configs/vm-112-mcphub/.env |
-| **modules/proxmox/vm-config** | cloud-init.yaml.tftpl | Cloud-init | vm-config module | (inline in VM resource) |
-| | systemd.service.tftpl | Systemd service | vm-config module | (inline in VM resource) |
-| **modules/proxmox/lxc-config** | lxc-systemd.service.tftpl | Systemd service | lxc-config module | (inline in LXC resource) |
+| Workspace                      | Template                      | Purpose             | Rendered By       | Output Path                                     |
+| ------------------------------ | ----------------------------- | ------------------- | ----------------- | ----------------------------------------------- |
+| **101-runner**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-101-runner/filebeat.yml             |
+| **102-traefik**                | archon.yml.tftpl              | Traefik route       | config-renderer   | configs/rendered/traefik/archon.yml             |
+|                                | glitchtip.yml.tftpl           | Traefik route       | config-renderer   | configs/rendered/traefik/glitchtip.yml          |
+|                                | supabase.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/supabase.yml           |
+|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-102-traefik/filebeat.yml            |
+|                                | synology.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/synology.yml           |
+|                                | traefik-elk.yml.tftpl         | Traefik route       | config-renderer   | configs/rendered/traefik/traefik-elk.yml        |
+|                                | vault.yml.tftpl               | Traefik route       | config-renderer   | configs/rendered/traefik/vault.yml              |
+|                                | mcphub.yml.tftpl              | Traefik route       | config-renderer   | configs/rendered/traefik/mcphub.yml             |
+|                                | n8n.yml.tftpl                 | Traefik route       | config-renderer   | configs/rendered/traefik/n8n.yml                |
+| **104-grafana**                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-104-grafana/filebeat.yml            |
+|                                | grafana-datasources.yml.tftpl | Grafana datasources | config-renderer   | configs/lxc-104-grafana/grafana-datasources.yml |
+|                                | prometheus.yml.tftpl          | Prometheus config   | config-renderer   | configs/lxc-104-grafana/prometheus.yml          |
+| **105-elk**                    | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-105-elk/filebeat.yml                |
+|                                | Dockerfile.logstash.tftpl     | Logstash container  | config-renderer   | configs/lxc-105-elk/Dockerfile.logstash         |
+|                                | setup-ilm.sh.tftpl            | ILM setup script    | config-renderer   | configs/lxc-105-elk/setup-ilm.sh                |
+|                                | ilm-policy.json.tftpl         | ILM policy          | config-renderer   | configs/lxc-105-elk/ilm-policy.json             |
+|                                | docker-compose.yml.tftpl      | ELK stack           | config-renderer   | configs/lxc-105-elk/docker-compose.yml          |
+|                                | logstash.conf.tftpl           | Logstash pipeline   | config-renderer   | configs/lxc-105-elk/logstash.conf               |
+|                                | logstash.yml.tftpl            | Logstash config     | config-renderer   | configs/lxc-105-elk/logstash.yml                |
+| **106-glitchtip**              | glitchtip.env.tftpl           | Env vars            | config-renderer   | configs/lxc-106-glitchtip/glitchtip.env         |
+|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-106-glitchtip/filebeat.yml          |
+|                                | docker-compose.yml.tftpl      | GlitchTip stack     | config-renderer   | configs/lxc-106-glitchtip/docker-compose.yml    |
+| **107-supabase**               | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-107-supabase/filebeat.yml           |
+|                                | docker-compose.yml.tftpl      | Supabase stack      | config-renderer   | configs/lxc-107-supabase/docker-compose.yml     |
+|                                | .env.tftpl                    | Env vars            | config-renderer   | configs/lxc-107-supabase/.env                   |
+| **108-archon**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-108-archon/filebeat.yml             |
+|                                | docker-compose.yml.tftpl      | Archon stack        | config-renderer   | configs/lxc-108-archon/docker-compose.yml       |
+|                                | .env.tftpl                    | Env vars            | config-renderer   | configs/lxc-108-archon/.env                     |
+| **112-mcphub**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/vm-112-mcphub/filebeat.yml              |
+|                                | docker-compose.yml.tftpl      | MCPHub stack        | config-renderer   | configs/vm-112-mcphub/docker-compose.yml        |
+|                                | mcp_settings.json.tftpl       | MCP server catalog  | config-renderer   | configs/rendered/mcphub/mcp_settings.json       |
+|                                | .env.tftpl                    | Env vars            | config-renderer   | configs/vm-112-mcphub/.env                      |
+| **modules/proxmox/vm-config**  | cloud-init.yaml.tftpl         | Cloud-init          | vm-config module  | (inline in VM resource)                         |
+|                                | systemd.service.tftpl         | Systemd service     | vm-config module  | (inline in VM resource)                         |
+| **modules/proxmox/lxc-config** | lxc-systemd.service.tftpl     | Systemd service     | lxc-config module | (inline in LXC resource)                        |
 
 ### Template Variables (from 100-pve/main.tf)
 
@@ -200,17 +201,17 @@ template_vars = {
 
 ### By Workspace
 
-| Workspace | Provider | Version | Auth Method | Purpose |
-|-----------|----------|---------|-------------|---------|
-| **100-pve** | bpg/proxmox | ~>0.94 | API token (env) | LXC/VM provisioning |
-| | 1Password/onepassword | ~>3.2 | Service account (env) | Secret fetching |
-| **102-traefik** | None | — | — | Template-only |
-| **104-grafana** | grafana/grafana | ~>3.0 | API token (env) | Dashboard/alert mgmt |
-| **105-elk** | elastic/elasticstack | ~>0.10 | API key (env) | Index/ILM/space mgmt |
-| **108-archon** | None | — | — | LXC-managed |
-| **300-cloudflare** | cloudflare/cloudflare | ~>4.0 | API token (env) | DNS/tunnel/access |
-| | github/github | ~>6.0 | Token (env) | Repo/secret mgmt |
-| **301-github** | github/github | ~>6.0 | Token (env) | Org/repo/team mgmt |
+| Workspace          | Provider              | Version | Auth Method           | Purpose              |
+| ------------------ | --------------------- | ------- | --------------------- | -------------------- |
+| **100-pve**        | bpg/proxmox           | ~>0.94  | API token (env)       | LXC/VM provisioning  |
+|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching      |
+| **102-traefik**    | None                  | —       | —                     | Template-only        |
+| **104-grafana**    | grafana/grafana       | ~>3.0   | API token (env)       | Dashboard/alert mgmt |
+| **105-elk**        | elastic/elasticstack  | ~>0.10  | API key (env)         | Index/ILM/space mgmt |
+| **108-archon**     | None                  | —       | —                     | LXC-managed          |
+| **300-cloudflare** | cloudflare/cloudflare | ~>4.0   | API token (env)       | DNS/tunnel/access    |
+|                    | github/github         | ~>6.0   | Token (env)           | Repo/secret mgmt     |
+| **301-github**     | github/github         | ~>6.0   | Token (env)           | Org/repo/team mgmt   |
 
 ### Environment Variables (Required for CI/Local)
 
@@ -234,16 +235,16 @@ export GITHUB_TOKEN="ghp_..."
 
 ## DATA SOURCES USED
 
-| Data Source | Workspace | Purpose |
-|-------------|-----------|---------|
-| `data "proxmox_virtual_environment_nodes"` | 100-pve | Validate Proxmox node availability |
-| `data "onepassword_vault"` | 100-pve (via module) | Resolve vault UUID by name |
-| `data "onepassword_item"` | 100-pve (via module) | Fetch 12 service secrets |
-| `data "grafana_data_source"` | 104-grafana | Reference Prometheus/Elasticsearch datasources |
-| `data "github_repository"` | 301-github | Reference existing repos for team assignment |
-| `data "github_user"` | 301-github | Resolve GitHub usernames |
-| `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare | Fetch tunnel token |
-| `data "terraform_remote_state"` | (none currently) | Cross-workspace state reference (reserved) |
+| Data Source                                             | Workspace            | Purpose                                        |
+| ------------------------------------------------------- | -------------------- | ---------------------------------------------- |
+| `data "proxmox_virtual_environment_nodes"`              | 100-pve              | Validate Proxmox node availability             |
+| `data "onepassword_vault"`                              | 100-pve (via module) | Resolve vault UUID by name                     |
+| `data "onepassword_item"`                               | 100-pve (via module) | Fetch 12 service secrets                       |
+| `data "grafana_data_source"`                            | 104-grafana          | Reference Prometheus/Elasticsearch datasources |
+| `data "github_repository"`                              | 301-github           | Reference existing repos for team assignment   |
+| `data "github_user"`                                    | 301-github           | Resolve GitHub usernames                       |
+| `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare       | Fetch tunnel token                             |
+| `data "terraform_remote_state"`                         | (none currently)     | Cross-workspace state reference (reserved)     |
 
 ---
 

@@ -1,4 +1,4 @@
-.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration docs deploy-opencode deploy-opencode-dry gen-opencode pre-commit-install pre-commit-run setup help
+.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration docs pre-commit-install pre-commit-run setup help
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
@@ -16,7 +16,6 @@ ALIAS_glitchtip  := 106-glitchtip
 ALIAS_supabase   := 107-supabase
 ALIAS_archon     := 108-archon/terraform
 ALIAS_mcphub     := 112-mcphub
-ALIAS_oc         := 200-oc
 ALIAS_synology   := 215-synology
 ALIAS_staging    := 220-staging
 ALIAS_cloudflare := 300-cloudflare
@@ -31,7 +30,7 @@ define check_svc_dir
 		echo "Error: workspace directory '$(TF_DIR)' does not exist."; \
 		echo "Available workspaces:"; \
 		echo "  Direct: $$(ls -d [0-9]*/ | tr -d '/' | tr '\n' ' ')"; \
-		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub oc synology staging cloudflare github"; \
+		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub synology staging cloudflare github"; \
 		exit 1; \
 	fi
 endef
@@ -115,19 +114,6 @@ backup: ## Create encrypted Terraform state backup
 
 drift-check: ## Check for Terraform drift
 	./scripts/terraform-drift-check.sh
-
-## OpenCode Config
-
-VARIANT ?= copilot
-
-deploy-opencode: ## Deploy OpenCode config to VM 200 (VARIANT=copilot)
-	./200-oc/opencode/deploy.sh $(VARIANT)
-
-deploy-opencode-dry: ## Dry-run OpenCode deploy (VARIANT=copilot)
-	./200-oc/opencode/deploy.sh $(VARIANT) --dry-run
-
-gen-opencode: ## Generate OpenCode config only (VARIANT=copilot)
-	./200-oc/opencode/deploy.sh $(VARIANT) --gen
 
 ## Pre-commit
 

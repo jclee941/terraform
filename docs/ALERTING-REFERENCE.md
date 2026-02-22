@@ -7,7 +7,7 @@ Complete reference for the homelab error handling and alerting pipeline.
 ## Architecture
 
 ```
-Hosts (100, 101, 102, 104, 105, 106, 112, 200)
+Hosts (100, 101, 102, 104, 105, 106, 112)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
@@ -24,16 +24,15 @@ Hosts (100, 101, 102, 104, 105, 106, 112, 200)
 
 Each host runs a static Filebeat config at `{host}/config/filebeat.yml`.
 
-| Host | VMID | Inputs | fields_under_root |
-|------|------|--------|-------------------|
-| pve | 100 | system, ceph, proxmox | true |
-| runner | 101 | system, github-runner | true |
-| traefik | 102 | system, traefik, traefik-access | true |
-| grafana | 104 | system, grafana | true |
-| elk | 105 | system, elk-docker, mcp | true |
-| glitchtip | 106 | system, glitchtip (Docker container) | true |
-| mcphub | 112 | mcphub (Docker JSON), system | true |
-| oc | 200 | system, auth, opencode | true |
+| Host      | VMID | Inputs                               | fields_under_root |
+| --------- | ---- | ------------------------------------ | ----------------- |
+| pve       | 100  | system, ceph, proxmox                | true              |
+| runner    | 101  | system, github-runner                | true              |
+| traefik   | 102  | system, traefik, traefik-access      | true              |
+| grafana   | 104  | system, grafana                      | true              |
+| elk       | 105  | system, elk-docker, mcp              | true              |
+| glitchtip | 106  | system, glitchtip (Docker container) | true              |
+| mcphub    | 112  | mcphub (Docker JSON), system         | true              |
 
 > **Requirement**: All inputs **must** use `fields_under_root: true` — Logstash filters reference `[service]` at root level.
 
@@ -45,26 +44,27 @@ Template: `105-elk/templates/logstash.conf.tftpl`
 
 **Fields created by Logstash:**
 
-| Field | Description | Values |
-|-------|-------------|--------|
-| `error_classification` | Error category | CRITICAL_FAILURE, RESOURCE_EXHAUSTION, CONNECTIVITY_FAILURE, GATEWAY_ERROR, AUTH_FAILURE, DATA_ERROR, APPLICATION_ERROR, DEPRECATION, WARNING |
-| `error_severity` | Severity level | critical, high, medium, low |
-| `service` | Source service name | mcphub, grafana, traefik, system, etc. |
-| `level` | Log level (normalized) | error, warn, info |
-| `log_message` | Parsed log content | "Connection refused" |
-| `error_message` | Error-specific message | "ECONNREFUSED" |
-| `error_code` | Error code if present | -32601 |
+| Field                  | Description            | Values                                                                                                                                        |
+| ---------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error_classification` | Error category         | CRITICAL_FAILURE, RESOURCE_EXHAUSTION, CONNECTIVITY_FAILURE, GATEWAY_ERROR, AUTH_FAILURE, DATA_ERROR, APPLICATION_ERROR, DEPRECATION, WARNING |
+| `error_severity`       | Severity level         | critical, high, medium, low                                                                                                                   |
+| `service`              | Source service name    | mcphub, grafana, traefik, system, etc.                                                                                                        |
+| `level`                | Log level (normalized) | error, warn, info                                                                                                                             |
+| `log_message`          | Parsed log content     | "Connection refused"                                                                                                                          |
+| `error_message`        | Error-specific message | "ECONNREFUSED"                                                                                                                                |
+| `error_code`           | Error code if present  | -32601                                                                                                                                        |
 
 **Tier Mapping:**
 
-| Tier | Classifications | Severity | Triggers |
-|------|----------------|----------|----------|
-| 1 | CRITICAL_FAILURE, RESOURCE_EXHAUSTION | critical | fatal, panic, oom |
-| 2 | CONNECTIVITY_FAILURE, GATEWAY_ERROR | high | connection refused, timeout, 502, 503 |
-| 3 | AUTH_FAILURE, DATA_ERROR, APPLICATION_ERROR | medium | unauthorized, 401, 403, parse error |
-| 4 | DEPRECATION, WARNING | low | deprecated, warning |
+| Tier | Classifications                             | Severity | Triggers                              |
+| ---- | ------------------------------------------- | -------- | ------------------------------------- |
+| 1    | CRITICAL_FAILURE, RESOURCE_EXHAUSTION       | critical | fatal, panic, oom                     |
+| 2    | CONNECTIVITY_FAILURE, GATEWAY_ERROR         | high     | connection refused, timeout, 502, 503 |
+| 3    | AUTH_FAILURE, DATA_ERROR, APPLICATION_ERROR | medium   | unauthorized, 401, 403, parse error   |
+| 4    | DEPRECATION, WARNING                        | low      | deprecated, warning                   |
 
 **Query Examples:**
+
 ```
 _exists_:error_classification                               # All classified errors
 error_severity:critical                                      # Critical only
@@ -73,6 +73,7 @@ error_classification:GATEWAY_ERROR                           # Gateway errors
 ```
 
 **Error handling:**
+
 - Retry: initial=2s, max=64s, on_conflict=3
 - DLQ: Failed events written to `/usr/share/logstash/dlq/failed-{date}.json`
 - Native DLQ enabled in `logstash.yml`
@@ -81,12 +82,12 @@ error_classification:GATEWAY_ERROR                           # Gateway errors
 
 Rules directory: `105-elk/config/elastalert-rules/`
 
-| Rule | Type | Threshold | Filter | Destination |
-|------|------|-----------|--------|-------------|
-| `high-error-rate` | frequency | 50 events / 5 min | `level:error` | GlitchTip (Sentry API) |
-| `critical-error-spike` | frequency | 5 events / 1 min | `level:critical OR level:fatal` | GlitchTip (Sentry API) |
-| `gateway-errors` | frequency | 10 events / 5 min | `message:502 OR message:503` | GlitchTip (Sentry API) |
-| `mcp-errors` | frequency | 20 events / 5 min | `service:["mcp","mcphub"] AND level:error` | GlitchTip (Sentry API) |
+| Rule                   | Type      | Threshold         | Filter                                     | Destination            |
+| ---------------------- | --------- | ----------------- | ------------------------------------------ | ---------------------- |
+| `high-error-rate`      | frequency | 50 events / 5 min | `level:error`                              | GlitchTip (Sentry API) |
+| `critical-error-spike` | frequency | 5 events / 1 min  | `level:critical OR level:fatal`            | GlitchTip (Sentry API) |
+| `gateway-errors`       | frequency | 10 events / 5 min | `message:502 OR message:503`               | GlitchTip (Sentry API) |
+| `mcp-errors`           | frequency | 20 events / 5 min | `service:["mcp","mcphub"] AND level:error` | GlitchTip (Sentry API) |
 
 All rules post to GlitchTip via Sentry protocol at `http://192.168.50.106:8000`.
 
@@ -99,44 +100,37 @@ Config: `104-grafana/alerting.yaml`
 **Routing policies:**
 
 | Severity | Group Wait | Repeat Interval |
-|----------|-----------|-----------------|
-| critical | 10s | 1h |
-| warning | 1m | 4h |
-| info | 2m | 12h |
+| -------- | ---------- | --------------- |
+| critical | 10s        | 1h              |
+| warning  | 1m         | 4h              |
+| info     | 2m         | 12h             |
 
-**Alert rules (12 total, 4 groups):**
+**Alert rules (10 total, 3 groups):**
 
 #### homelab-logs (folder: Alerting, eval: 1m)
 
-| Rule | Severity | Source | Condition |
-|------|----------|--------|-----------|
-| `high-error-rate` | warning | ES | >100 errors in 5 min |
-| `critical-error-spike` | critical | ES | >5 fatal/panic/critical in 1 min |
-| `gateway-errors` | warning | ES | >10 502/503 from traefik in 5 min |
-| `client-errors-spike` | info | ES | >100 4xx from traefik in 5 min |
-| `host-silent` | warning | ES | <5 unique hosts reporting in 10 min |
-
-#### opencode-alerts (folder: OpenCode, eval: 1m)
-
-| Rule | Severity | Source | Condition |
-|------|----------|--------|-----------|
-| `opencode-session-activity` | info | ES | >10 opencode logs in 5 min |
-| `opencode-errors` | warning | ES | >5 opencode errors in 5 min |
+| Rule                   | Severity | Source | Condition                           |
+| ---------------------- | -------- | ------ | ----------------------------------- |
+| `high-error-rate`      | warning  | ES     | >100 errors in 5 min                |
+| `critical-error-spike` | critical | ES     | >5 fatal/panic/critical in 1 min    |
+| `gateway-errors`       | warning  | ES     | >10 502/503 from traefik in 5 min   |
+| `client-errors-spike`  | info     | ES     | >100 4xx from traefik in 5 min      |
+| `host-silent`          | warning  | ES     | <5 unique hosts reporting in 10 min |
 
 #### mcp-alerts (folder: MCP Alerts, eval: 1m)
 
-| Rule | Severity | Source | Condition |
-|------|----------|--------|-----------|
-| `mcp_error_logs` | warning | ES | >5 MCP errors in 10 min |
+| Rule             | Severity | Source | Condition               |
+| ---------------- | -------- | ------ | ----------------------- |
+| `mcp_error_logs` | warning  | ES     | >5 MCP errors in 10 min |
 
 #### infrastructure-health (folder: Alerting, eval: 1m)
 
-| Rule | Severity | Source | Condition |
-|------|----------|--------|-----------|
-| `service-down` | critical | Prometheus | probe_success == 0 for 2 min |
-| `disk-usage-high` | warning | Prometheus | >80% disk usage for 5 min |
-| `disk-usage-critical` | critical | Prometheus | >90% disk usage for 2 min |
-| `ssl-cert-expiry` | warning | Prometheus | SSL cert expires in <7 days |
+| Rule                  | Severity | Source     | Condition                    |
+| --------------------- | -------- | ---------- | ---------------------------- |
+| `service-down`        | critical | Prometheus | probe_success == 0 for 2 min |
+| `disk-usage-high`     | warning  | Prometheus | >80% disk usage for 5 min    |
+| `disk-usage-critical` | critical | Prometheus | >90% disk usage for 2 min    |
+| `ssl-cert-expiry`     | warning  | Prometheus | SSL cert expires in <7 days  |
 
 **Query improvements** (2026-02-12): All ES-based rules now use structured Logstash fields (`error_classification`, `error_severity`) instead of raw text matching, eliminating false positives from noise exclusion patterns.
 
@@ -144,10 +138,10 @@ Config: `104-grafana/alerting.yaml`
 
 n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 
-| Webhook Path | Source | Labels |
-|--------------|--------|--------|
-| `/webhook/grafana-alert` | Grafana | `automated, infrastructure, alert` |
-| `/webhook/glitchtip-error` | GlitchTip | `bug, glitchtip, automated` |
+| Webhook Path               | Source    | Labels                             |
+| -------------------------- | --------- | ---------------------------------- |
+| `/webhook/grafana-alert`   | Grafana   | `automated, infrastructure, alert` |
+| `/webhook/glitchtip-error` | GlitchTip | `bug, glitchtip, automated`        |
 
 ### 6. Error Tracking (GlitchTip)
 
@@ -158,21 +152,21 @@ n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 
 ## Datasource UIDs (Grafana)
 
-| Datasource | UID |
-|------------|-----|
+| Datasource    | UID                 |
+| ------------- | ------------------- |
 | Elasticsearch | `P31C819B24CF3C3C7` |
-| Prometheus | `PBFA97CFB590B2093` |
+| Prometheus    | `PBFA97CFB590B2093` |
 
 ## File Locations
 
-| Component | Path |
-|-----------|------|
-| Filebeat configs | `{host}/config/filebeat.yml` |
+| Component         | Path                                    |
+| ----------------- | --------------------------------------- |
+| Filebeat configs  | `{host}/config/filebeat.yml`            |
 | Logstash template | `105-elk/templates/logstash.conf.tftpl` |
-| Logstash config | `105-elk/config/logstash.yml` |
-| ElastAlert rules | `105-elk/config/elastalert-rules/*.yml` |
-| Grafana alerting | `104-grafana/alerting.yaml` |
-| n8n workflows | `scripts/n8n-workflows/` |
+| Logstash config   | `105-elk/config/logstash.yml`           |
+| ElastAlert rules  | `105-elk/config/elastalert-rules/*.yml` |
+| Grafana alerting  | `104-grafana/alerting.yaml`             |
+| n8n workflows     | `scripts/n8n-workflows/`                |
 
 ## Known Issues
 

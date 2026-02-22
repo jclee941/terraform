@@ -1,19 +1,20 @@
 # Monitoring Gaps: Adding New Alert Rules
 
 ## Symptoms
+
 - New service deployed without monitoring
 - Known failure mode not covered by alerts
 - False negatives — issues occurring without alerts firing
 
 ## Current Alerting Setup
 
-| Component | Location | Rules |
-|-----------|----------|-------|
-| Grafana Alerting | `104-grafana/alerting.yaml` | 12 rules, 3 groups |
-| ElastAlert | `105-elk/config/elastalert-rules/` | Per-rule YAML files |
-| Contact Point | n8n-webhook | Routes to GitHub Issues |
+| Component        | Location                           | Rules                   |
+| ---------------- | ---------------------------------- | ----------------------- |
+| Grafana Alerting | `104-grafana/alerting.yaml`        | 10 rules, 2 groups      |
+| ElastAlert       | `105-elk/config/elastalert-rules/` | Per-rule YAML files     |
+| Contact Point    | n8n-webhook                        | Routes to GitHub Issues |
 
-Alert groups: `homelab-logs`, `opencode-alerts`, `mcp-alerts`
+Alert groups: `homelab-logs`, `mcp-alerts`
 
 ## Adding a Grafana Alert Rule
 
@@ -28,7 +29,7 @@ Edit `104-grafana/alerting.yaml` and add under the appropriate group:
   data:
     - refId: A
       relativeTimeRange:
-        from: 300  # 5 minutes
+        from: 300 # 5 minutes
         to: 0
       datasourceUid: prometheus
       model:
@@ -55,6 +56,7 @@ Edit `104-grafana/alerting.yaml` and add under the appropriate group:
 ```
 
 ### 2. Deploy
+
 ```bash
 # Apply via Grafana provisioning
 pct exec 104 -- docker compose -f /opt/grafana/docker-compose.yml restart grafana
@@ -73,7 +75,7 @@ Create `105-elk/config/elastalert-rules/{rule-name}.yml`:
 ```yaml
 name: "Rule Name"
 type: frequency
-index: filebeat-*
+index: logs-*
 num_events: 5
 timeframe:
   minutes: 10
@@ -90,6 +92,7 @@ command:
 ```
 
 ### 2. Deploy
+
 ```bash
 pct exec 105 -- docker compose -f /opt/elk/docker-compose.yml restart elastalert
 ```
@@ -98,7 +101,7 @@ pct exec 105 -- docker compose -f /opt/elk/docker-compose.yml restart elastalert
 
 ```bash
 # 1. Trigger: Generate a test error in ELK
-pct exec 105 -- curl -s -X POST "localhost:9200/filebeat-test/_doc" \
+pct exec 105 -- curl -s -X POST "localhost:9200/logs-test-$(date +%Y.%m.%d)/_doc" \
   -H 'Content-Type: application/json' \
   -d '{"message": "test error", "level": "error", "service": "test"}'
 
@@ -114,6 +117,7 @@ gh issue list --repo jclee-homelab/proxmox --label automated
 ```
 
 ## Prevention
+
 - Every new service must have corresponding alerting rule
 - Review `alerting.yaml` quarterly for stale/missing rules
 - Document alert thresholds in service's AGENTS.md

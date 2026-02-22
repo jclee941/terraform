@@ -51,10 +51,10 @@ run "test_vm_with_systemd_services" {
 
   variables {
     vms = {
-      oc = {
-        vmid       = 200
-        hostname   = "oc"
-        ip_address = "192.168.50.200"
+      runner = {
+        vmid       = 101
+        hostname   = "runner"
+        ip_address = "192.168.50.101"
         cloud_init = {
           packages = ["qemu-guest-agent", "curl", "git"]
         }
@@ -79,21 +79,21 @@ run "test_vm_with_systemd_services" {
 
   assert {
     condition = (
-      try(output.vm_configs.oc.vmid, 0) == 200 &&
-      try(output.vm_configs.oc.hostname, "") == "oc" &&
-      try(output.vm_configs.oc.ip_address, "") == "192.168.50.200" &&
-      endswith(try(output.vm_configs.oc.cloud_init, ""), "/configs/vm-200-oc/cloud-init.yaml") &&
-      length(try(output.vm_configs.oc.systemd_services, [])) == 2 &&
-      toset([for svc in output.vm_configs.oc.systemd_services : svc.name]) == toset(["opencode-agent", "nvidia-persistenced"]) &&
+      try(output.vm_configs.runner.vmid, 0) == 101 &&
+      try(output.vm_configs.runner.hostname, "") == "runner" &&
+      try(output.vm_configs.runner.ip_address, "") == "192.168.50.101" &&
+      endswith(try(output.vm_configs.runner.cloud_init, ""), "/configs/vm-101-runner/cloud-init.yaml") &&
+      length(try(output.vm_configs.runner.systemd_services, [])) == 2 &&
+      toset([for svc in output.vm_configs.runner.systemd_services : svc.name]) == toset(["opencode-agent", "nvidia-persistenced"]) &&
       length([
-        for svc in output.vm_configs.oc.systemd_services : svc
-        if svc.name == "opencode-agent" && endswith(svc.path, "/configs/vm-200-oc/opencode-agent.service")
+        for svc in output.vm_configs.runner.systemd_services : svc
+        if svc.name == "opencode-agent" && endswith(svc.path, "/configs/vm-101-runner/opencode-agent.service")
       ]) == 1 &&
       length([
-        for svc in output.vm_configs.oc.systemd_services : svc
-        if svc.name == "nvidia-persistenced" && endswith(svc.path, "/configs/vm-200-oc/nvidia-persistenced.service")
+        for svc in output.vm_configs.runner.systemd_services : svc
+        if svc.name == "nvidia-persistenced" && endswith(svc.path, "/configs/vm-101-runner/nvidia-persistenced.service")
       ]) == 1 &&
-      endswith(try(output.cloud_init_paths.oc, ""), "/configs/vm-200-oc/cloud-init.yaml")
+      endswith(try(output.cloud_init_paths.runner, ""), "/configs/vm-101-runner/cloud-init.yaml")
     )
     error_message = "VM with systemd services should expose both service names and generated paths"
   }
@@ -143,10 +143,10 @@ run "test_multiple_vms" {
 
   variables {
     vms = {
-      oc = {
-        vmid       = 200
-        hostname   = "oc"
-        ip_address = "192.168.50.200"
+      runner = {
+        vmid       = 101
+        hostname   = "runner"
+        ip_address = "192.168.50.101"
         deploy     = false
       }
       sandbox = {
@@ -163,11 +163,11 @@ run "test_multiple_vms" {
   assert {
     condition = (
       length(keys(output.vm_configs)) == 2 &&
-      contains(keys(output.vm_configs), "oc") &&
+      contains(keys(output.vm_configs), "runner") &&
       contains(keys(output.vm_configs), "sandbox") &&
-      try(output.vm_configs.oc.vmid, 0) == 200 &&
-      try(output.vm_configs.oc.hostname, "") == "oc" &&
-      try(output.vm_configs.oc.ip_address, "") == "192.168.50.200" &&
+      try(output.vm_configs.runner.vmid, 0) == 101 &&
+      try(output.vm_configs.runner.hostname, "") == "runner" &&
+      try(output.vm_configs.runner.ip_address, "") == "192.168.50.101" &&
       try(output.vm_configs.sandbox.vmid, 0) == 220 &&
       try(output.vm_configs.sandbox.hostname, "") == "sandbox" &&
       try(output.vm_configs.sandbox.ip_address, "") == "192.168.50.220"
@@ -185,10 +185,10 @@ run "test_cloud_init_paths_output" {
 
   variables {
     vms = {
-      oc = {
-        vmid       = 200
-        hostname   = "oc"
-        ip_address = "192.168.50.200"
+      runner = {
+        vmid       = 101
+        hostname   = "runner"
+        ip_address = "192.168.50.101"
         deploy     = false
       }
       sandbox = {
@@ -205,11 +205,11 @@ run "test_cloud_init_paths_output" {
   assert {
     condition = (
       length(keys(output.cloud_init_paths)) == 2 &&
-      contains(keys(output.cloud_init_paths), "oc") &&
+      contains(keys(output.cloud_init_paths), "runner") &&
       contains(keys(output.cloud_init_paths), "sandbox") &&
-      endswith(try(output.cloud_init_paths.oc, ""), "/configs/vm-200-oc/cloud-init.yaml") &&
+      endswith(try(output.cloud_init_paths.runner, ""), "/configs/vm-101-runner/cloud-init.yaml") &&
       endswith(try(output.cloud_init_paths.sandbox, ""), "/configs/vm-220-sandbox/cloud-init.yaml") &&
-      endswith(try(output.vm_configs.oc.cloud_init, ""), "/configs/vm-200-oc/cloud-init.yaml") &&
+      endswith(try(output.vm_configs.runner.cloud_init, ""), "/configs/vm-101-runner/cloud-init.yaml") &&
       endswith(try(output.vm_configs.sandbox.cloud_init, ""), "/configs/vm-220-sandbox/cloud-init.yaml")
     )
     error_message = "cloud_init_paths output should map each VM to its generated cloud-init file"

@@ -7,10 +7,6 @@ resource "grafana_folder" "alerts" {
   title = "Alerts"
 }
 
-resource "grafana_folder" "opencode" {
-  title = "OpenCode"
-}
-
 resource "grafana_folder" "mcp_alerts" {
   title = "MCP Alerts"
 }
@@ -21,10 +17,6 @@ data "grafana_data_source" "prometheus" {
 
 data "grafana_data_source" "elasticsearch_logs" {
   name = "Elasticsearch"
-}
-
-data "grafana_data_source" "elasticsearch_filebeat" {
-  name = "Elasticsearch-Filebeat"
 }
 
 locals {
@@ -154,7 +146,7 @@ locals {
     }
     "host-silent" = {
       group        = "homelab_logs"
-      query        = "host_name:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR oc OR supabase OR archon)"
+      query        = "host_name:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR supabase OR archon OR oc)"
       from         = 900
       threshold    = 5
       condition    = "lt"
@@ -177,19 +169,6 @@ locals {
       summary      = "Container restart loop"
       description  = "More than 5 container restart events in 1 hour on {{ $labels.host }}"
     }
-    # Group: opencode_alerts
-    "opencode-errors" = {
-      group        = "opencode_alerts"
-      query        = "(service:opencode OR job:opencode) AND _exists_:error_classification AND NOT error_severity:low"
-      from         = 300
-      threshold    = 5
-      condition    = "gt"
-      severity     = "warning"
-      for_duration = "2m"
-      group_by     = []
-      summary      = "OpenCode errors detected"
-      description  = "More than 5 OpenCode error events in 5 minutes"
-    }
     # Group: mcp_alerts
     "mcp-error-logs" = {
       group        = "mcp_alerts"
@@ -205,7 +184,7 @@ locals {
     }
     "service-log-gap" = {
       group        = "homelab_logs"
-      query        = "fields.service:(traefik OR grafana OR elk OR glitchtip OR supabase OR archon OR mcphub OR runner)"
+      query        = "fields.service:(traefik OR grafana OR elk OR glitchtip OR supabase OR archon OR mcphub OR runner OR opencode)"
       from         = 3600
       threshold    = 1
       condition    = "lt"
@@ -314,7 +293,6 @@ locals {
   homelab_logs_es   = { for k, v in local.es_alert_rules : k => v if v.group == "homelab_logs" }
   infra_health_es   = { for k, v in local.es_alert_rules : k => v if v.group == "infrastructure_health" }
   infra_health_prom = { for k, v in local.prometheus_alert_rules : k => v if v.group == "infrastructure_health" }
-  opencode_es       = { for k, v in local.es_alert_rules : k => v if v.group == "opencode_alerts" }
   mcp_es            = { for k, v in local.es_alert_rules : k => v if v.group == "mcp_alerts" }
 }
 
@@ -463,89 +441,6 @@ resource "grafana_rule_group" "infrastructure_health" {
 
   dynamic "rule" {
     for_each = local.infra_health_es
-    content {
-      name      = rule.key
-      condition = "C"
-      for       = rule.value.for_duration
-
-      data {
-        ref_id         = "A"
-        datasource_uid = data.grafana_data_source.elasticsearch_logs.uid
-
-        relative_time_range {
-          from = rule.value.from
-          to   = 0
-        }
-
-        model = jsonencode(merge(
-          {
-            query   = rule.value.query
-            metrics = [{ type = "count", id = "1" }]
-            bucketAggs = length(rule.value.group_by) > 0 ? [
-              { type = "terms", id = "3", field = rule.value.group_by[0], settings = { size = "10", order = "desc", orderBy = "1" } },
-              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
-              ] : [
-              { type = "date_histogram", id = "2", field = "@timestamp", settings = { interval = "auto" } }
-            ]
-            timeField = "@timestamp"
-          }
-        ))
-      }
-
-      data {
-        ref_id         = "B"
-        datasource_uid = "-100"
-
-        relative_time_range {
-          from = 0
-          to   = 0
-        }
-
-        model = jsonencode({
-          type       = "reduce"
-          reducer    = "sum"
-          expression = "A"
-        })
-      }
-
-      data {
-        ref_id         = "C"
-        datasource_uid = "-100"
-
-        relative_time_range {
-          from = 0
-          to   = 0
-        }
-
-        model = jsonencode({
-          type       = "threshold"
-          conditions = [{ evaluator = { type = rule.value.condition, params = [rule.value.threshold] } }]
-          expression = "B"
-        })
-      }
-
-      labels = {
-        severity = rule.value.severity
-      }
-
-      annotations = {
-        summary     = rule.value.summary
-        description = rule.value.description
-      }
-
-      no_data_state  = "OK"
-      exec_err_state = "OK"
-    }
-  }
-}
-
-resource "grafana_rule_group" "opencode_alerts" {
-  name             = "opencode-alerts"
-  folder_uid       = grafana_folder.opencode.uid
-  interval_seconds = 60
-
-  dynamic "rule" {
-    for_each = local.opencode_es
     content {
       name      = rule.key
       condition = "C"

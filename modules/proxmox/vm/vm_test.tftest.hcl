@@ -6,9 +6,9 @@ mock_provider "proxmox" {}
 
 variables {
   node_name         = "pve"
-  vmid              = 200
+  vmid              = 101
   hostname          = "test-vm"
-  ip_address        = "192.168.50.200"
+  ip_address        = "192.168.50.101"
   memory            = 2048
   cores             = 2
   disk_size         = 32
@@ -32,7 +32,7 @@ run "valid_defaults" {
   }
 
   assert {
-    condition     = proxmox_virtual_environment_vm.this.vm_id == 200
+    condition     = proxmox_virtual_environment_vm.this.vm_id == 101
     error_message = "VM ID should match vmid variable."
   }
 
