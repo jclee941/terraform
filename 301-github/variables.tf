@@ -38,21 +38,6 @@ variable "enable_infra_actions_variables" {
   default     = false
 }
 
-variable "known_repositories" {
-  description = "Known repositories in this workspace scope."
-  type        = set(string)
-  default = [
-    "blacklist",
-    "hycu_fsds",
-    "propose",
-    "resume",
-    "safework2",
-    "splunk",
-    "terraform",
-    "tmux",
-    "youtube",
-  ]
-}
 
 variable "actions_allowed_actions" {
   description = "Organization-level allowed actions policy: all, local_only, selected."

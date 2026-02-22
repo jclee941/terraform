@@ -75,7 +75,6 @@ locals {
     }
   }
 
-  known_repositories = toset(var.known_repositories)
 }
 
 resource "github_repository" "repos" {
