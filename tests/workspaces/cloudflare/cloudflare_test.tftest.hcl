@@ -9,15 +9,28 @@
 
 mock_provider "cloudflare" {}
 mock_provider "github" {}
-
 mock_provider "random" {}
+mock_provider "onepassword" {}
 
+override_module {
+  target = module.onepassword_secrets
+  outputs = {
+    secrets = {
+      github_personal_access_token = "mock-github-token" # pragma: allowlist secret
+    }
+    metadata = {
+      vault_name = "homelab"
+    }
+  }
+}
 
 # =============================================================================
 # Negative Tests — invalid inputs that must fail validation
 # =============================================================================
 
-# --- cloudflare_account_id validation (hex32) ---
+# --- cloudflare_account_id validation (hex32, via runtime precondition) ---
+# Validation moved from variable block to terraform_data.validate_credentials
+# precondition since 1Password integration makes the variable optional.
 
 run "test_invalid_account_id_too_short" {
   command = plan
@@ -34,7 +47,7 @@ run "test_invalid_account_id_too_short" {
   }
 
   expect_failures = [
-    var.cloudflare_account_id,
+    terraform_data.validate_credentials,
   ]
 }
 
@@ -53,7 +66,7 @@ run "test_invalid_account_id_uppercase" {
   }
 
   expect_failures = [
-    var.cloudflare_account_id,
+    terraform_data.validate_credentials,
   ]
 }
 
@@ -72,11 +85,11 @@ run "test_invalid_account_id_special_chars" {
   }
 
   expect_failures = [
-    var.cloudflare_account_id,
+    terraform_data.validate_credentials,
   ]
 }
 
-# --- cloudflare_zone_id validation (hex32) ---
+# --- cloudflare_zone_id validation (hex32, via runtime precondition) ---
 
 run "test_invalid_zone_id_too_long" {
   command = plan
@@ -93,7 +106,7 @@ run "test_invalid_zone_id_too_long" {
   }
 
   expect_failures = [
-    var.cloudflare_zone_id,
+    terraform_data.validate_credentials,
   ]
 }
 

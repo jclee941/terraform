@@ -100,6 +100,8 @@ test: ## Run all Terraform tests (module + integration + workspace)
 	cd tests/integration && terraform init -backend=false && terraform test
 	cd tests/workspaces/pve && terraform init -backend=false && terraform test
 	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
+	cd tests/workspaces/grafana && terraform init -backend=false && terraform test
+	cd tests/workspaces/elk && terraform init -backend=false && terraform test
 	terraform -chdir=301-github init -backend=false && terraform -chdir=301-github test
 
 test-unit: ## Run unit tests only
@@ -112,6 +114,8 @@ test-integration: ## Run integration tests only
 test-workspace: ## Run workspace validation tests only
 	cd tests/workspaces/pve && terraform init -backend=false && terraform test
 	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
+	cd tests/workspaces/grafana && terraform init -backend=false && terraform test
+	cd tests/workspaces/elk && terraform init -backend=false && terraform test
 	terraform -chdir=301-github init -backend=false && terraform -chdir=301-github test
 
 ## Verification & Backup

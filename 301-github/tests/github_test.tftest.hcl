@@ -5,6 +5,19 @@
 # because 301-github/import.tf uses import blocks (root module only).
 
 mock_provider "github" {}
+mock_provider "onepassword" {}
+
+override_module {
+  target = module.onepassword_secrets
+  outputs = {
+    secrets = {
+      github_personal_access_token = "mock-github-token" # pragma: allowlist secret
+    }
+    metadata = {
+      vault_name = "homelab"
+    }
+  }
+}
 
 override_data {
   target = data.terraform_remote_state.infra
