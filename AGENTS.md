@@ -29,7 +29,7 @@ terraform/
 ├── 108-archon/                 # Archon service + reserved provider workspace
 ├── 112-mcphub/                 # MCPHub service + MCP catalog/templates
 ├── 215-synology/               # Physical NAS inventory + syslog config
-├── 220-staging/                # Staging VM
+├── 220-youtube/                # YouTube media server VM
 ├── 300-cloudflare/             # External Cloudflare infra + Worker
 ├── 301-github/                 # External GitHub org/repo management
 ├── modules/
@@ -69,7 +69,7 @@ terraform/
 | MCPHub gateway                | `112-mcphub/AGENTS.md`                                                        | Unified MCP gateway; `mcp_servers.json` SSoT.                                         |
 | MCP catalog validation        | `112-mcphub/validate_mcps.py`                                                 | Validates schema, port uniqueness, secret-pattern leaks.                              |
 | Synology NAS                  | `215-synology/AGENTS.md`                                                      | Physical NAS inventory host (not TF-provisioned).                                     |
-| Staging VM                    | `220-staging/AGENTS.md`                                                       | Ephemeral development sandbox with WARP.                                              |
+| YouTube VM                    | `220-youtube/AGENTS.md`                                                       | YouTube media server with WARP.                                                       |
 | Cloudflare infra              | `300-cloudflare/AGENTS.md`                                                    | External infra conventions + Worker boundaries.                                       |
 | Worker-specific rules         | `300-cloudflare/workers/synology-proxy/AGENTS.md`                             | Route/auth/cache implementation constraints.                                          |
 | Cloudflare automation scripts | `300-cloudflare/scripts/AGENTS.md`                                            | Secret collection/sync/audit/deploy script governance.                                |
@@ -129,7 +129,7 @@ bazel build //... && bazel test //...
 - Test scopes: `tests/AGENTS.md`, `tests/modules/proxmox/AGENTS.md`, `tests/modules/shared/AGENTS.md`, `tests/integration/AGENTS.md`, `tests/workspaces/AGENTS.md`
 - Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
 - Dashboard scope: `104-grafana/dashboards/AGENTS.md`
-- Dev/staging scopes: `215-synology/AGENTS.md`, `220-staging/AGENTS.md`
+ Dev/youtube scopes: `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
 - External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`
 - Operational scopes: `docs/AGENTS.md`, `docs/runbooks/AGENTS.md`, `scripts/AGENTS.md`, `scripts/n8n-workflows/AGENTS.md`
 

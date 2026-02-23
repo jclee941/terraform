@@ -18,7 +18,7 @@ body:
         Next available ID in the 100-255 range (internal) or 300+ (external).
         Current allocations: 100(PVE), 101(runner), 102(traefik), 104(grafana),
         105(elk), 106(glitchtip), 107(supabase), 108(archon), 112(mcphub),
-        200(oc), 215(synology), 220(staging).
+        200(oc), 215(synology), 220(youtube).
       placeholder: "109"
     validations:
       required: true

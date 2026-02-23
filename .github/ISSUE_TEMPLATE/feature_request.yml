@@ -13,7 +13,7 @@ body:
         - External Provider (300-cloudflare, 301-github)
         - Modules (proxmox, shared)
         - CI/CD (workflows, actions)
-        - Dev Environment (200-oc, 220-staging)
+        - YouTube Media (220-youtube)
         - Documentation
         - Other
     validations:

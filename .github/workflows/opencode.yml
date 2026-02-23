@@ -72,7 +72,7 @@ jobs:
             - modules/shared/onepassword-secrets/: Cross-stack 1Password secret retrieval.
             - 300-cloudflare/: DNS, tunnels, access, R2, Workers (cloudflare/cloudflare ~>5.0).
             - 301-github/: GitHub org/repos/teams (integrations/github ~>6.6).
-            - Per-service dirs: {NNN}-{svc}/ (101-runner through 220-staging).
+            - Per-service dirs: {NNN}-{svc}/ (101-runner through 220-youtube).
 
             CONVENTIONS TO ENFORCE:
             - Every directory with code MUST have BUILD.bazel and OWNERS files.
@@ -92,7 +92,7 @@ jobs:
             INFRASTRUCTURE (VMIDs to IPs):
             101=runner(.101), 102=traefik(.102), 104=grafana(.104), 105=elk(.105),
             106=glitchtip(.106), 107=supabase(.107), 108=archon(.108), 112=mcphub(.112),
-            200=oc(.200), 220=staging(.220).
+            220=youtube(.220).
 
             DEFAULT BEHAVIOR: Prefer reviewing and commenting over pushing changes.
             Only modify files if the user explicitly requests it (e.g., /oc fix this).

@@ -66,9 +66,9 @@ jobs:
         if: steps.changes.outputs.tf_changed == 'true'
         uses: ./.github/actions/terraform-setup
         with:
-          terraform-version: '1.10.5'
+          terraform-version: "1.10.5"
           working-directory: 100-pve/envs/prod
-          init-args: '-backend=false -input=false'
+          init-args: "-backend=false -input=false"
 
       - name: Validate Terraform format
         if: steps.changes.outputs.tf_changed == 'true'
@@ -145,13 +145,13 @@ jobs:
             AFFECTED="$AFFECTED 101-runner 102-traefik 104-grafana 105-elk 106-glitchtip 107-supabase 108-archon"
           fi
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/vm/'; then
-            AFFECTED="$AFFECTED 112-mcphub 200-oc 220-staging"
+            AFFECTED="$AFFECTED 112-mcphub 220-youtube"
           fi
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/lxc-config/'; then
             AFFECTED="$AFFECTED 101-runner 102-traefik 104-grafana 105-elk 106-glitchtip 107-supabase 108-archon"
           fi
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/vm-config/'; then
-            AFFECTED="$AFFECTED 112-mcphub 200-oc 220-staging"
+            AFFECTED="$AFFECTED 112-mcphub 220-youtube"
           fi
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/config-renderer/'; then
             AFFECTED="$AFFECTED 100-pve"

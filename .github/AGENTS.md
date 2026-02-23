@@ -45,7 +45,7 @@
 | --------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **Add Service Workflow**    | Copy `{svc}-plan.yml` + `{svc}-apply.yml` | Standalone workflows per service. Each contains full TF init + plan/apply logic (~120 lines).                                       |
 | **Drift Detection**         | `terraform-drift.yml`                     | Matrix: proxmox, grafana, elk, traefik, archon, cloudflare, github. Daily 06:00 UTC.                                                |
-| **Risk Tiers**              | `auto-merge.yml`                          | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, oc, staging), low = auto-merge.    |
+| **Risk Tiers**              | `auto-merge.yml`                          | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, 220-youtube), low = auto-merge.    |
 | **Workflow Pattern**        | `{svc}-plan.yml`                          | Each standalone workflow has: TF setup, init, plan/apply, PR comment. No reusable workflow abstraction (consolidation opportunity). |
 | **Secrets Pattern**         | Per-workflow steps                        | `secrets.*` → `TF_VAR_*` env export in plan/apply steps.                                                                            |
 | **Custom action contracts** | `.github/actions/AGENTS.md`               | Shared inputs and anti-patterns for composite actions.                                                                              |
