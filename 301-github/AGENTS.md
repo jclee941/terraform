@@ -19,6 +19,8 @@ Terraform workspace managing GitHub resources for `qws941`. Provisions 17 reposi
 ├── security.tf          # Dependabot + CodeQL scanning rulesets
 ├── branch-protection.tf # Legacy branch protection (pre-rulesets)
 ├── repository-files.tf  # Managed files pushed to repos
+├── onepassword.tf       # 1Password secret lookup (via shared module)
+├── validation.tf        # Input validation rules
 ├── data.tf              # Data sources (user, existing repos)
 ├── locals.tf            # Shared locals
 ├── import.tf            # State imports for existing resources
@@ -34,6 +36,7 @@ Terraform workspace managing GitHub resources for `qws941`. Provisions 17 reposi
 | **Webhooks** | `webhooks.tf` | 4 n8n hooks: glitchtip-error, grafana-alert, github-issue, github-pr. |
 | **Environments** | `environments.tf` | Deployment envs with wait timers, reviewers, branch policies. |
 | **Security** | `security.tf` | Dependabot auto-updates + CodeQL scanning rulesets. |
+| **1Password Secrets** | `onepassword.tf` + `validation.tf` | Structured secret lookup via `modules/shared/onepassword-secrets`. |
 | **Remote State** | `versions.tf` | Consumes 100-pve outputs via `terraform_remote_state.infra`. |
 
 ## CONVENTIONS

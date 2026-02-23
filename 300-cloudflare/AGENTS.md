@@ -13,7 +13,7 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 ├── BUILD.bazel              # Monorepo integration
 ├── OWNERS                   # Access control
 ├── AGENTS.md                # This file
-├── *.tf                     # Terraform workspace (14 TF files)
+├── *.tf                     # Terraform workspace (16 TF files, incl. onepassword.tf + validation.tf)
 ├── terraform.tfvars.example # Variable template (NO secrets)
 ├── workers/
 │   └── synology-proxy/      # Hono Worker: Synology FileStation proxy + R2 cache
@@ -41,11 +41,12 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 | **R2 storage** | `r2.tf` | `synology-cache` bucket (APAC, 7d TTL) |
 | **GitHub secrets** | `github-secrets.tf` | Cross-repo GitHub Actions secrets |
 | **Worker** | `workers/synology-proxy/` | Hono TS app with FileStation proxy |
+| **1Password secrets** | `onepassword.tf` + `validation.tf` | Structured secret lookup via `modules/shared/onepassword-secrets`. |
 | **CI** | Migrated from `.github/workflows/ci.yml` | 2 jobs: worker + terraform |
 
 ## CONVENTIONS
 - **Numbering**: 300+ = external infrastructure providers (not mapped to `192.168.50.x`).
-- **Providers**: cloudflare ~5.0, github ~6.0. Auth via `CLOUDFLARE_API_TOKEN` env var (no 1Password).
+- **Providers**: cloudflare ~5.0, github ~6.0, onepassword. Auth via `CLOUDFLARE_API_TOKEN` env var + 1Password service account.
 - **Feature flags**: `enable_cf_store_sync`, `enable_worker_route` in `variables.tf`.
 - **Secret values**: NEVER in code/git. Only in `.tfvars` (gitignored) or env vars.
 - **inventory/secrets.yaml**: Metadata only (name, targets[], description). No values.

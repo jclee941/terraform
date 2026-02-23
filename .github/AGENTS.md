@@ -15,6 +15,7 @@
 │   └── config.yml              # Template chooser config
 ├── pull_request_template.md    # Standardized PR template
 ├── copilot-review-instructions.md  # AI review guidelines
+├── actionlint.yaml                # GitHub Actions linter config
 ├── workflows/
 │   ├── _terraform-plan.yml     # Reusable plan template (called by service workflows)
 │   ├── _terraform-apply.yml    # Reusable apply template (called by service workflows)

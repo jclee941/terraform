@@ -11,6 +11,7 @@ High-performance edge router and reverse proxy (LXC 102) for the `jclee.me` ecos
 - `templates/`: Jinja2/TF templates for dynamic route generation.
 - `tf-configs/`: **Rendered SSoT**. Final YAMLs generated from `hosts.tf`.
 - `config/`: Static and manually maintained dynamic file provider configs.
+- `templates/cloudflared-docker-compose.yml.tftpl`: Cloudflared tunnel connector template (rendered by 100-pve pipeline).
 
 ## WHERE TO LOOK
 - **Service Routing**: Check `tf-configs/traefik-{service}.yml`. Generated from central inventory.

@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-02-22 23:35:00 Asia/Seoul
-**Commit:** b6e4683
+**Generated:** 2026-02-24 02:51:00 Asia/Seoul
+**Commit:** 43f476d
 **Branch:** master
 **Style:** Google3 Monorepo (Bazel)
 
@@ -22,6 +22,7 @@ terraform/
 ├── 100-pve/                    # Primary infra orchestrator + config rendering
 ├── 101-runner/                 # Self-hosted GitHub Actions runner (LXC)
 ├── 102-traefik/                # Reverse proxy templates + reserved TF workspace
+├── 103-coredns/                # Split DNS resolver (LXC)
 ├── 104-grafana/                # Observability stack + grafana provider workspace
 ├── 105-elk/                    # ELK stack + elasticstack provider workspace
 ├── 106-glitchtip/              # Error tracking service
@@ -60,6 +61,7 @@ terraform/
 | CI custom actions             | `.github/actions/AGENTS.md`                                                   | Composite action contracts (`terraform-setup`, `notify-failure`).                     |
 | Self-hosted runner            | `101-runner/AGENTS.md`                                                        | GitHub Actions runner on LXC 101; multi-repo registration.                            |
 | Reverse proxy                 | `102-traefik/AGENTS.md`                                                       | Traefik ingress, TLS, MCP resilient middleware.                                       |
+| DNS resolver                  | `103-coredns/AGENTS.md`                                                       | Split DNS on LXC 103; Corefile + Docker Compose + filebeat.                           |
 | Observability stack           | `104-grafana/AGENTS.md`                                                       | Prometheus + Grafana (16 dashboards) + TF-managed alerts.                             |
 | Dashboard catalog             | `104-grafana/dashboards/AGENTS.md`                                            | Dashboard JSON SSoT, UID/title discipline, and panel edit rules.                      |
 | Logging stack                 | `105-elk/AGENTS.md`                                                           | ES 8.17.0 + Logstash + Kibana; 3-tier ILM, filebeat autodiscovery, logstash-exporter. |
@@ -96,7 +98,7 @@ terraform/
 - SSoT: `hosts.tf` for host inventory; `112-mcphub/mcp_servers.json` for MCP server catalog.
 - Generated pipeline: templates and inventories feed `module.config_renderer` to produce `100-pve/configs/...`.
 - CI model: 3 core workflows + 2 reusable `_terraform-*` workflows + service plan/apply pairs + automation workflows.
-- Secrets: inject via env/GitHub secrets/1Password service account; keep placeholders in tracked config.
+- Secrets: inject via env/GitHub secrets/1Password service account; keep placeholders in tracked config. Provider workspaces use `modules/shared/onepassword-secrets` for structured secret lookup.
 - Log collection: Filebeat agents deployed to all LXC/VM hosts via `setup_filebeat` provisioner in lxc-config/vm-config modules.
 
 ## ANTI-PATTERNS (THIS PROJECT)
@@ -127,7 +129,7 @@ bazel build //... && bazel test //...
 - CI scopes: `.github/AGENTS.md`, `.github/workflows/AGENTS.md`, `.github/actions/AGENTS.md`
 - Module scopes: `modules/AGENTS.md`, `modules/proxmox/AGENTS.md`, `modules/proxmox/lxc/AGENTS.md`, `modules/proxmox/vm/AGENTS.md`, `modules/proxmox/lxc-config/AGENTS.md`, `modules/proxmox/vm-config/AGENTS.md`, `modules/proxmox/config-renderer/AGENTS.md`, `modules/shared/AGENTS.md`, `modules/shared/onepassword-secrets/AGENTS.md`
 - Test scopes: `tests/AGENTS.md`, `tests/modules/proxmox/AGENTS.md`, `tests/modules/shared/AGENTS.md`, `tests/integration/AGENTS.md`, `tests/workspaces/AGENTS.md`
-- Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
+- Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `103-coredns/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
 - Dashboard scope: `104-grafana/dashboards/AGENTS.md`
 - Dev/youtube scopes: `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
 - External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`
