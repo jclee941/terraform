@@ -1,0 +1,14 @@
+{
+  "name": "op-mcp-server",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "op-mcp-server": "./index.mjs"
+  },
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest"
+  }
+}

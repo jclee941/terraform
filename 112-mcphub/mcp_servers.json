@@ -47,8 +47,8 @@
     "onepassword": {
       "location": "hub",
       "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@takescake/1password-mcp"],
+      "command": "node",
+      "args": ["/app/op-mcp-server/index.mjs"],
       "port": 8077,
       "env": {
         "OP_SERVICE_ACCOUNT_TOKEN": "${OP_SERVICE_ACCOUNT_TOKEN}"
