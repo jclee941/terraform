@@ -14,9 +14,5 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.0"
     }
-    onepassword = {
-      source  = "1Password/onepassword"
-      version = "~> 3.2"
-    }
   }
 }
