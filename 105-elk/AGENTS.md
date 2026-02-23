@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests data from **Filebeat** agents deployed across all 7 LXC containers and VM 112 via Docker autodiscovery. Alerting is handled by Grafana (104-grafana).
+Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests data from **Filebeat** agents deployed across all 7 LXC containers, VM 112 (mcphub), and PVE bare-metal host (100) via Docker autodiscovery and filestream inputs. **Synology NAS** (215) forwards via syslog. **YouTube VM** (220) runs Filebeat when active. Alerting is handled by Grafana (104-grafana).
 
 ## STRUCTURE
 
@@ -49,13 +49,14 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - **2-Tier ILM**: Service indices use tiered lifecycle: hot (active writes, priority 100) → delete (configurable retention: 30d default, 90d critical, 7d ephemeral). No warm phase.
 - **Logstash Exporter**: Sidecar container exposes Logstash metrics at `:9198/metrics` for Prometheus scraping.
 - **Filebeat Autodiscovery**: All LXC hosts run Filebeat with Docker autodiscovery. New containers are auto-indexed via `logs-{service}-YYYY.MM.dd` pattern.
-- **Service Index Split**: Each service gets a dedicated daily index (`logs-{service}-YYYY.MM.dd`) for independent ILM lifecycle and Kibana filtering. Three tiers: `logs-critical` (archon/elk/supabase/grafana, 90d), `logs-ephemeral` (unknown/debug/runner, 7d), `logs-template` (everything else, 30d).
+- **Service Index Split**: Each service gets a dedicated daily index (`logs-{service}-YYYY.MM.dd`) for independent ILM lifecycle and Kibana filtering. Three tiers: `logs-critical` (archon/elk/supabase/grafana/pve, 90d), `logs-ephemeral` (unknown/debug/runner/youtube, 7d), `logs-template` (everything else, 30d). Synology syslog is routed to `logs-synology-*` (default 30d tier).
 - **DLQ**: Enabled by default (1024mb max) to capture failed document mappings.
 - **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu.
 - **Naming**: Index pattern is `logs-{service}-YYYY.MM.dd`. Service is extracted by Logstash from filebeat fields, Docker Compose labels, or parsed JSON. Fallback: `unknown`.
 - **Alerting**: Grafana (`104-grafana/terraform/main.tf`) handles all alerting. ElastAlert2 was removed.
 - **Script Alignment**: Keep operational scripts aligned with Terraform-defined service topology.
 - **State Tracking**: `terraform/terraform.tfstate` is committed to git (exception to global rule) for CI apply reliability with elasticstack provider.
+- **Terraform Secret Source**: `terraform/` provider auth password resolves from `module.onepassword_secrets` (`onepassword_vault_name` default `homelab`), not tfvars plaintext.
 
 ## SECURITY
 
@@ -70,7 +71,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - **NO Public 9200**: Elasticsearch API must never be exposed beyond `192.168.50.0/24`.
 - **NO Manual Config Updates**: Do not hand-edit `tf-configs/` or use Kibana Console for settings.
 - **NO Single-Point-of-Failure**: Do not disable ILM rollover (risk of disk saturation).
-- **NO Plaintext Secrets**: GlitchTip/Sentry keys via Docker env vars only.
+- **NO Plaintext Secrets**: Keep Terraform provider credentials 1Password-backed. tfvars secret overrides are break-glass only during active incident response, must be time-boxed, and require same-day rollback to 1Password source.
 - **NO Disabling xpack.security**: Once enabled, do not disable; all clients depend on auth.
 - **NO Untargeted Scripts**: Do not run migration/cleanup scripts on unintended hosts.
 - **NO Disabling Logstash Exporter**: Prometheus alerting depends on exporter metrics.

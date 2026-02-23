@@ -787,6 +787,9 @@ locals {
       mcp_settings   = "mcp_settings.json.tftpl"
       env            = ".env.tftpl"
     } }
+    "220-youtube" = { prefix = "youtube", files = {
+      filebeat = "filebeat.yml.tftpl"
+    } }
   }
 
   service_templates = merge([
