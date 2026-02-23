@@ -129,7 +129,7 @@ bazel build //... && bazel test //...
 - Test scopes: `tests/AGENTS.md`, `tests/modules/proxmox/AGENTS.md`, `tests/modules/shared/AGENTS.md`, `tests/integration/AGENTS.md`, `tests/workspaces/AGENTS.md`
 - Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
 - Dashboard scope: `104-grafana/dashboards/AGENTS.md`
- Dev/youtube scopes: `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
+- Dev/youtube scopes: `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
 - External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`
 - Operational scopes: `docs/AGENTS.md`, `docs/runbooks/AGENTS.md`, `scripts/AGENTS.md`, `scripts/n8n-workflows/AGENTS.md`
 
