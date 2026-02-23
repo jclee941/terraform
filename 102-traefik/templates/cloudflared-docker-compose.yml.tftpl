@@ -1,0 +1,28 @@
+# ============================================
+# Cloudflare Tunnel - Homelab Connector
+# ============================================
+# Managed by Terraform (100-pve workspace).
+# Do NOT edit manually.
+#
+# Token source: 300-cloudflare workspace
+#   terraform output -raw homelab_tunnel_token
+# ============================================
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-homelab
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${homelab_tunnel_token}
+    network_mode: host
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

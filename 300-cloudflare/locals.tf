@@ -48,10 +48,31 @@ locals {
   }
 
   # Services requiring Cloudflare Access protection
+  # All homelab HTTP services are protected by CF Access email auth
   restricted_services = {
-    vault    = { subdomain = "vault", name = "Vault" }
-    es       = { subdomain = "es", name = "Elasticsearch" }
-    mcphub   = { subdomain = "mcphub", name = "MCP Hub" }
-    opencode = { subdomain = "opencode", name = "OpenCode" }
+    elk       = { subdomain = "elk", name = "ELK" }
+    kibana    = { subdomain = "kibana", name = "Kibana" }
+    es        = { subdomain = "es", name = "Elasticsearch" }
+    glitchtip = { subdomain = "glitchtip", name = "GlitchTip" }
+    grafana   = { subdomain = "grafana", name = "Grafana" }
+    mcphub    = { subdomain = "mcphub", name = "MCP Hub" }
+    vault     = { subdomain = "vault", name = "Vault" }
+    archon    = { subdomain = "archon", name = "Archon" }
+    supabase  = { subdomain = "supabase", name = "Supabase" }
+    nas       = { subdomain = "nas", name = "NAS" }
+    n8n       = { subdomain = "n8n", name = "n8n" }
+    opencode  = { subdomain = "opencode", name = "OpenCode" }
+  }
+
+  # Non-HTTP services exposed via Cloudflare Tunnel (direct TCP, not via Traefik)
+  tunnel_direct_services = {
+    jclee-rdp = {
+      subdomain = "rdp"
+      service   = "rdp://192.168.50.200:3389"
+    }
+    oc-ssh = {
+      subdomain = "ssh"
+      service   = "ssh://192.168.50.200:22"
+    }
   }
 }

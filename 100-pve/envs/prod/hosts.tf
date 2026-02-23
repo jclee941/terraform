@@ -38,6 +38,16 @@ locals {
       }
     }
 
+    coredns = {
+      vmid  = 103
+      ip    = "192.168.50.103"
+      roles = ["dns", "split-dns"]
+      ports = {
+        dns    = 53
+        health = 8080
+      }
+    }
+
     grafana = {
       vmid  = 104
       ip    = "192.168.50.104"
@@ -108,6 +118,16 @@ locals {
         vault      = 8200
         proxmox    = 8055
         playwright = 8056
+      }
+    }
+
+    "jclee-dev" = {
+      vmid  = 200
+      ip    = "192.168.50.200"
+      roles = ["development", "workstation"]
+      ports = {
+        rdp = 3389
+        ssh = 22
       }
     }
 

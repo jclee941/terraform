@@ -91,6 +91,7 @@ locals {
     glitchtip = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
     supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
     archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
+    coredns   = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -517,6 +518,10 @@ module "lxc_config" {
           path    = "/etc/filebeat/filebeat.yml"
           content = module.config_renderer.rendered_configs.traefik_filebeat
         }
+        "cloudflared-docker-compose.yml" = {
+          path    = "/opt/cloudflared/docker-compose.yml"
+          content = module.config_renderer.rendered_configs.traefik_cloudflared
+        }
       }
     }
 
@@ -664,6 +669,30 @@ module "lxc_config" {
         }
       }
     }
+
+    coredns = {
+      vmid           = module.hosts.hosts.coredns.vmid
+      hostname       = "coredns"
+      ip_address     = module.hosts.hosts.coredns.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
+
+      docker_compose = {
+        path    = "/opt/coredns/docker-compose.yml"
+        content = module.config_renderer.rendered_configs.coredns_docker_compose
+      }
+
+      config_files = {
+        "Corefile" = {
+          path    = "/opt/coredns/Corefile"
+          content = module.config_renderer.rendered_configs.coredns_corefile
+        }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.coredns_filebeat
+        }
+      }
+    }
   }
 }
 
@@ -745,14 +774,20 @@ locals {
       filebeat = "filebeat.yml.tftpl"
     } }
     "102-traefik" = { prefix = "traefik", files = {
-      glitchtip = "glitchtip.yml.tftpl"
-      mcphub    = "mcphub.yml.tftpl"
-      n8n       = "n8n.yml.tftpl"
-      synology  = "synology.yml.tftpl"
-      archon    = "archon.yml.tftpl"
-      supabase  = "supabase.yml.tftpl"
-      vault     = "vault.yml.tftpl"
-      filebeat  = "filebeat.yml.tftpl"
+      glitchtip   = "glitchtip.yml.tftpl"
+      mcphub      = "mcphub.yml.tftpl"
+      n8n         = "n8n.yml.tftpl"
+      synology    = "synology.yml.tftpl"
+      archon      = "archon.yml.tftpl"
+      supabase    = "supabase.yml.tftpl"
+      vault       = "vault.yml.tftpl"
+      filebeat    = "filebeat.yml.tftpl"
+      cloudflared = "cloudflared-docker-compose.yml.tftpl"
+    } }
+    "103-coredns" = { prefix = "coredns", files = {
+      corefile       = "Corefile.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      filebeat       = "filebeat.yml.tftpl"
     } }
     "104-grafana" = { prefix = "grafana", files = {
       filebeat = "filebeat.yml.tftpl"
@@ -859,6 +894,7 @@ module "config_renderer" {
       proxmox_host              = local.proxmox_host
       proxmox_port              = local.proxmox_port
       proxmox_ssl_mode          = local.proxmox_ssl_mode
+      homelab_tunnel_token      = var.homelab_tunnel_token
     }
   )
   output_dir = "${path.module}/configs/rendered"

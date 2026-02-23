@@ -56,14 +56,14 @@ filter {
   if [message] {
     mutate {
       gsub => [
-        "message", "\u001B\\[[0-9;]*[A-Za-z]", ""
+        "message", "\x1B\[[0-9;]*[A-Za-z]", ""
       ]
     }
   }
   if [event][original] {
     mutate {
       gsub => [
-        "[event][original]", "\u001B\\[[0-9;]*[A-Za-z]", ""
+        "[event][original]", "\x1B\[[0-9;]*[A-Za-z]", ""
       ]
     }
   }
@@ -72,6 +72,7 @@ filter {
   if [type] == "syslog" {
     grok {
       match => { "message" => "%%{SYSLOGTIMESTAMP:syslog_timestamp} %%{SYSLOGHOST:syslog_hostname} %%{DATA:syslog_program}(?:\\[%%{POSINT:syslog_pid}\\])?: %%{GREEDYDATA:syslog_message}" }
+      tag_on_failure => []
     }
     date {
       match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
@@ -79,12 +80,15 @@ filter {
   }
   # Synology NAS syslog source identification
   # Synology sends logs via DSM Log Center to Logstash syslog input (port 5000).
-  if [type] == "syslog" and [syslog_hostname] {
-    if [syslog_hostname] =~ /^(synology|ds920|diskstation)/i {
+  if [type] == "syslog" {
+    # Remove ECS service object set by syslog input plugin to avoid array collision
+    mutate { remove_field => [ "service" ] }
+    if [host][hostname] =~ /(?i)^(synology|ds920|diskstation)/ {
+    if [host][hostname] =~ /(?i)^(synology|ds920|diskstation)/ {
       mutate {
         add_field => { "service" => "synology" }
       }
-    } else if ![service] {
+    } else {
       mutate {
         add_field => { "service" => "syslog" }
       }
@@ -297,8 +301,6 @@ filter {
 output {
   elasticsearch {
     hosts => ["elasticsearch:9200"]
-    user => "$${ELASTICSEARCH_USERNAME}"
-    password => "$${ELASTICSEARCH_PASSWORD}"
     index => "logs-%%{[service]}-%%{+YYYY.MM.dd}"
     retry_on_conflict => 3
     retry_initial_interval => 2
@@ -308,7 +310,7 @@ output {
   # Dead letter queue - capture failed events
   if "_elasticsearch_lookup_failure" in [tags] or "_grokparsefailure" in [tags] {
     file {
-      path => "/var/log/logstash/dead_letter_queue/failed-%%{+YYYY-MM-dd}.json"
+      path => "/usr/share/logstash/dlq/failed-%%{+YYYY-MM-dd}.json"
       codec => json_lines
     }
   }

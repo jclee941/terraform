@@ -170,3 +170,10 @@ variable "deploy_lxc_configs" {
   type        = bool
   default     = false
 }
+
+variable "homelab_tunnel_token" {
+  description = "Cloudflare Tunnel token for homelab connector (from 300-cloudflare workspace)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
