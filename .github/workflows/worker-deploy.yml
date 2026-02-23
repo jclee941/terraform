@@ -1,6 +1,7 @@
 name: Deploy Synology Proxy Worker
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
