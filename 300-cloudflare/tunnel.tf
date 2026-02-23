@@ -8,7 +8,7 @@ resource "random_password" "tunnel_secret" {
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "synology" {
   account_id    = var.cloudflare_account_id
-  name          = "synology-nas"
+  name          = "synology"
   tunnel_secret = base64encode(random_password.tunnel_secret.result)
 
   lifecycle {
