@@ -69,10 +69,6 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
         hostname = "${svc.subdomain}.${var.homelab_domain}"
         service  = "http://localhost:80"
       }],
-      [for key, svc in local.tunnel_direct_services : {
-        hostname = "${svc.subdomain}.${var.homelab_domain}"
-        service  = svc.service
-      }],
       [{ service = "http_status:404" }]
     )
   }

@@ -64,15 +64,4 @@ locals {
     opencode  = { subdomain = "opencode", name = "OpenCode" }
   }
 
-  # Non-HTTP services exposed via Cloudflare Tunnel (direct TCP, not via Traefik)
-  tunnel_direct_services = {
-    jclee-rdp = {
-      subdomain = "rdp"
-      service   = "rdp://192.168.50.200:3389"
-    }
-    oc-ssh = {
-      subdomain = "ssh"
-      service   = "ssh://192.168.50.200:22"
-    }
-  }
 }
