@@ -39,6 +39,7 @@ jobs:
             [glitchtip]=8075
             [archon]=8078
             [slack]=8079
+            [test-runner]=8080
           )
 
           MCPHUB_HOST="192.168.50.112"

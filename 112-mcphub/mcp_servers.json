@@ -113,6 +113,14 @@
         "SLACK_MCP_XOXB_TOKEN": "${SLACK_MCP_XOXB_TOKEN}"
       },
       "description": "Slack workspace operations"
+    },
+    "test-runner": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "test-runner-mcp"],
+      "port": 8080,
+      "description": "Test execution across frameworks (jest, pytest, go, generic)"
     }
   }
 }
