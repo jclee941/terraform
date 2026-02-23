@@ -1,7 +1,8 @@
 variable "github_token" {
-  description = "GitHub personal access token"
+  description = "GitHub personal access token (optional if provided via 1Password)"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "github_owner" {
@@ -335,4 +336,17 @@ variable "enable_codeowners_management" {
   description = "Enable Terraform-managed CODEOWNERS files. Disable when rulesets block direct commits."
   type        = bool
   default     = false
+}
+
+variable "op_service_account_token" {
+  description = "1Password service account token"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "onepassword_vault_name" {
+  description = "1Password vault name for secret lookups"
+  type        = string
+  default     = "homelab"
 }

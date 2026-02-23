@@ -3,7 +3,7 @@
 # ============================================
 
 resource "cloudflare_zero_trust_access_application" "synology" {
-  zone_id          = var.cloudflare_zone_id
+  zone_id          = local.effective_cloudflare_zone_id
   name             = "Synology NAS"
   domain           = var.synology_domain
   type             = "self_hosted"
@@ -11,7 +11,7 @@ resource "cloudflare_zero_trust_access_application" "synology" {
 }
 
 resource "cloudflare_zero_trust_access_policy" "synology_email" {
-  account_id = var.cloudflare_account_id
+  account_id = local.effective_cloudflare_account_id
   name       = "Email Access"
   decision   = "allow"
 
@@ -29,7 +29,7 @@ resource "cloudflare_zero_trust_access_policy" "synology_email" {
 resource "cloudflare_zero_trust_access_application" "homelab" {
   for_each = local.restricted_services
 
-  zone_id          = var.cloudflare_zone_id
+  zone_id          = local.effective_cloudflare_zone_id
   name             = each.value.name
   domain           = "${each.value.subdomain}.${var.homelab_domain}"
   type             = "self_hosted"
@@ -53,7 +53,7 @@ resource "cloudflare_zero_trust_access_application" "homelab" {
 resource "cloudflare_zero_trust_access_application" "direct_service" {
   for_each = local.tunnel_direct_services
 
-  zone_id          = var.cloudflare_zone_id
+  zone_id          = local.effective_cloudflare_zone_id
   name             = "${each.value.subdomain} (${upper(split("://", each.value.service)[0])})"
   domain           = "${each.value.subdomain}.${var.homelab_domain}"
   type             = "self_hosted"

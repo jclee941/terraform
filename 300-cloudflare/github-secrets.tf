@@ -1,5 +1,5 @@
 resource "github_actions_secret" "managed" {
-  for_each = nonsensitive(var.github_token != "" && length(var.secret_values) > 0) ? local.github_secrets : {}
+  for_each = nonsensitive(local.effective_github_token != "" && length(var.secret_values) > 0) ? local.github_secrets : {}
 
   repository      = each.value.repository
   secret_name     = each.value.secret_name

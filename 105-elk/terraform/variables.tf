@@ -23,6 +23,19 @@ variable "kibana_url" {
   default     = "http://192.168.50.105:5601"
 }
 
+variable "op_service_account_token" {
+  description = "1Password service account token"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "onepassword_vault_name" {
+  description = "1Password vault name for secret lookups"
+  type        = string
+  default     = "homelab"
+}
+
 locals {
   infra_hosts = try(data.terraform_remote_state.infra.outputs.host_inventory, {})
   elk_ip      = try(local.infra_hosts.elk.ip, "192.168.50.105")

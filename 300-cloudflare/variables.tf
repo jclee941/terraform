@@ -1,13 +1,9 @@
 
 
 variable "cloudflare_account_id" {
-  description = "Cloudflare account ID"
+  description = "Cloudflare account ID (optional if provided via 1Password)"
   type        = string
-
-  validation {
-    condition     = can(regex("^[0-9a-f]{32}$", var.cloudflare_account_id))
-    error_message = "cloudflare_account_id must be a 32-character lowercase hex string."
-  }
+  default     = ""
 }
 
 variable "cloudflare_secrets_store_id" {
@@ -28,13 +24,24 @@ variable "github_owner" {
 }
 
 variable "github_token" {
-  description = "GitHub token with actions secret write permissions"
+  description = "GitHub token with actions secret write permissions (optional if provided via 1Password)"
   type        = string
   sensitive   = true
   default     = ""
 }
 
+variable "op_service_account_token" {
+  description = "1Password service account token"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
 
+variable "onepassword_vault_name" {
+  description = "1Password vault name for secret lookups"
+  type        = string
+  default     = "homelab"
+}
 
 variable "secret_values" {
   description = "Runtime secret values map, keyed by secret name (never commit)"
@@ -54,13 +61,9 @@ variable "enable_cf_store_sync" {
 # ============================================
 
 variable "cloudflare_zone_id" {
-  description = "Cloudflare zone ID for DNS records and Workers routes"
+  description = "Cloudflare zone ID for DNS records and Workers routes (optional if provided via 1Password)"
   type        = string
-
-  validation {
-    condition     = can(regex("^[0-9a-f]{32}$", var.cloudflare_zone_id))
-    error_message = "cloudflare_zone_id must be a 32-character lowercase hex string."
-  }
+  default     = ""
 }
 
 variable "synology_domain" {

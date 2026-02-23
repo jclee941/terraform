@@ -8,6 +8,10 @@ terraform {
       source  = "elastic/elasticstack"
       version = "~> 0.13"
     }
+    onepassword = {
+      source  = "1Password/onepassword"
+      version = "~> 3.2"
+    }
   }
 }
 

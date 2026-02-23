@@ -4,7 +4,7 @@
 
 resource "terraform_data" "cf_secrets_store" {
   input = {
-    account_id = var.cloudflare_account_id
+    account_id = local.effective_cloudflare_account_id
     store_id   = var.cloudflare_secrets_store_id
     secrets    = local.cf_store_secrets
   }
@@ -16,7 +16,7 @@ resource "terraform_data" "cf_store_secret_sync" {
   } : {}
 
   input = {
-    account_id  = var.cloudflare_account_id
+    account_id  = local.effective_cloudflare_account_id
     store_id    = var.cloudflare_secrets_store_id
     secret_name = each.key
   }
@@ -43,7 +43,7 @@ resource "terraform_data" "cf_store_secret_sync" {
 
       printf '%s' "${var.secret_values[each.key]}" | wrangler secrets-store secret create "${each.key}" \
         --store-id "${var.cloudflare_secrets_store_id}" \
-        --account-id "${var.cloudflare_account_id}" \
+        --account-id "${local.effective_cloudflare_account_id}" \
         --remote
     EOT
     interpreter = ["/bin/bash", "-c"]

@@ -7,7 +7,7 @@ resource "random_password" "tunnel_secret" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "synology" {
-  account_id    = var.cloudflare_account_id
+  account_id    = local.effective_cloudflare_account_id
   name          = "synology"
   tunnel_secret = base64encode(random_password.tunnel_secret.result)
 
@@ -17,7 +17,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "synology" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "synology" {
-  account_id = var.cloudflare_account_id
+  account_id = local.effective_cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.synology.id
 
   config = {
@@ -37,7 +37,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "synology" {
 }
 
 data "cloudflare_zero_trust_tunnel_cloudflared_token" "synology" {
-  account_id = var.cloudflare_account_id
+  account_id = local.effective_cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.synology.id
 }
 
@@ -50,7 +50,7 @@ resource "random_password" "homelab_tunnel_secret" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "homelab" {
-  account_id    = var.cloudflare_account_id
+  account_id    = local.effective_cloudflare_account_id
   name          = "traefik"
   tunnel_secret = base64encode(random_password.homelab_tunnel_secret.result)
 
@@ -60,7 +60,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "homelab" {
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
-  account_id = var.cloudflare_account_id
+  account_id = local.effective_cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
 
   config = {
@@ -79,6 +79,6 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
 }
 
 data "cloudflare_zero_trust_tunnel_cloudflared_token" "homelab" {
-  account_id = var.cloudflare_account_id
+  account_id = local.effective_cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
 }
