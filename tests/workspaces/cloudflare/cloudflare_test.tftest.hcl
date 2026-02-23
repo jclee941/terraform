@@ -11,6 +11,7 @@ mock_provider "cloudflare" {}
 mock_provider "github" {}
 
 mock_provider "random" {}
+mock_provider "onepassword" {}
 
 # =============================================================================
 # Negative Tests — invalid inputs that must fail validation
