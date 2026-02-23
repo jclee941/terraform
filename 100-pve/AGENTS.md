@@ -2,13 +2,13 @@
 
 ## OVERVIEW
 
-Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (885 lines) coordinates host inventory, container sizing, validation, config rendering, and Filebeat deployment.
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (904 lines) coordinates host inventory, container sizing, validation, config rendering, and Filebeat deployment.
 
 ## STRUCTURE
 
 ```
 100-pve/
-├── main.tf              # Central orchestration (885 lines)
+├── main.tf              # Central orchestration (904 lines)
 ├── variables.tf         # Input variables + validation
 ├── terraform.tfvars     # Variable values (gitignored)
 ├── versions.tf          # Provider + backend config (local)

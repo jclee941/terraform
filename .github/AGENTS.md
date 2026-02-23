@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-28 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
+31 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
 
 ## STRUCTURE
 
@@ -20,7 +20,7 @@
 │   ├── _terraform-apply.yml    # Reusable apply template (called by service workflows)
 │   ├── terraform-plan.yml      # 100-pve plan (PR trigger)
 │   ├── terraform-apply.yml     # 100-pve apply (push to master)
-│   ├── terraform-drift.yml     # Daily drift check (7-workspace matrix)
+│   ├── terraform-drift.yml     # Drift check (Mon-Fri 00:00 UTC, 7-workspace matrix)
 │   ├── {svc}-plan.yml          # Per-service plan (6 services: archon, cloudflare, elk, github, grafana, traefik)
 │   ├── {svc}-apply.yml         # Per-service apply (6 services)
 │   ├── auto-merge.yml          # Risk-tier labeling + auto-merge (low only)
@@ -30,6 +30,7 @@
 │   ├── secret-audit.yml        # Scan for exposed secrets
 │   ├── security-scan.yml       # CodeQL + dependency scanning
 │   ├── stale.yml               # Close stale issues/PRs
+│   ├── mcp-health-check.yml   # MCP server health monitoring
 │   ├── onepassword-test.yml    # 1Password connectivity test
 │   ├── worker-deploy.yml       # Cloudflare Worker deployment
 │   ├── opencode.yml            # OpenCode dev VM config deployment
@@ -44,7 +45,7 @@
 | Task                        | Location                                  | Notes                                                                                                                               |
 | --------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **Add Service Workflow**    | Copy `{svc}-plan.yml` + `{svc}-apply.yml` | Standalone workflows per service. Each contains full TF init + plan/apply logic (~120 lines).                                       |
-| **Drift Detection**         | `terraform-drift.yml`                     | Matrix: proxmox, grafana, elk, traefik, archon, cloudflare, github. Daily 06:00 UTC.                                                |
+| **Drift Detection**         | `terraform-drift.yml`                     | Matrix: proxmox, grafana, elk, traefik, archon, cloudflare, github. Mon-Fri 00:00 UTC (09:00 KST).                                                |
 | **Risk Tiers**              | `auto-merge.yml`                          | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, 220-youtube), low = auto-merge.    |
 | **Workflow Pattern**        | `{svc}-plan.yml`                          | Each standalone workflow has: TF setup, init, plan/apply, PR comment. No reusable workflow abstraction (consolidation opportunity). |
 | **Secrets Pattern**         | Per-workflow steps                        | `secrets.*` → `TF_VAR_*` env export in plan/apply steps.                                                                            |

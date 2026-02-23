@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
 **Generated:** 2026-02-22 23:35:00 Asia/Seoul
-**Commit:** 70149a2
+**Commit:** b6e4683
 **Branch:** master
 **Style:** Google3 Monorepo (Bazel)
 
@@ -37,7 +37,7 @@ terraform/
 │   └── shared/                 # cross-stack reusable modules
 ├── tests/                      # terraform test suites (module, integration, workspace)
 ├── docs/                       # runbooks, ADRs, architecture docs
-├── .github/workflows/          # 28 workflows (core, reusable, service, automation)
+├── .github/workflows/          # 31 workflows (core, reusable, service, automation)
 └── scripts/                    # operational automation scripts
 ```
 
@@ -45,7 +45,7 @@ terraform/
 
 | Task                          | Location                                                                      | Notes                                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Core infra orchestration      | `100-pve/main.tf`                                                             | Hub workspace (885 lines). Pulls hosts inventory and renders configs.                 |
+| Core infra orchestration      | `100-pve/main.tf`                                                             | Hub workspace (904 lines). Pulls hosts inventory and renders configs.                 |
 | Host inventory SoT            | `100-pve/envs/prod/hosts.tf`                                                  | Single source for internal host IP/port metadata.                                     |
 | Generated config rules        | `100-pve/configs/AGENTS.md`                                                   | Rendered outputs are generated-only; no manual edits.                                 |
 | Proxmox module behavior       | `modules/proxmox/`                                                            | LXC, VM, lxc-config, vm-config, config-renderer.                                      |

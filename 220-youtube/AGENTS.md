@@ -47,4 +47,5 @@ The `220-youtube` VM is a dedicated environment for YouTube media workloads. It 
 - Cloned from template 9000 (Ubuntu).
 - WARP mode: Personal (1.1.1.1 DNS + encrypted tunnel).
 - Verify WARP status: `warp-cli status` or `curl -s https://www.cloudflare.com/cdn-cgi/trace/ | grep warp`.
+- Filebeat agent deployed for ELK log collection (Docker autodiscovery enabled).
 - Switch to Zero Trust MDM by writing `/var/lib/cloudflare-warp/mdm.xml` and restarting `warp-svc`.
