@@ -36,7 +36,7 @@ resource "grafana_contact_point" "n8n_webhook" {
   name = "n8n-webhook"
 
   webhook {
-    url = var.n8n_webhook_url
+    url = local.effective_n8n_webhook_url
   }
 }
 
@@ -52,7 +52,7 @@ resource "grafana_contact_point" "n8n_glitchtip_webhook" {
   name = "n8n-glitchtip-webhook"
 
   webhook {
-    url = var.n8n_glitchtip_webhook_url
+    url = local.effective_n8n_glitchtip_webhook_url
   }
 }
 

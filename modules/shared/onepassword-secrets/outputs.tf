@@ -6,10 +6,10 @@
 # Each 1Password item must have a section named "secrets" with matching field labels.
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
 #
-# Secrets (sensitive=true): API keys, passwords, tokens — 31 keys.
-# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 8 keys.
+# Secrets (sensitive=true): API keys, passwords, tokens — 32 keys.
+# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 10 keys.
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (31 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (32 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -49,6 +49,7 @@ output "secrets" {
       data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_token"].value,
       try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_key"].value, "")
     )
+    cloudflare_tunnel_token = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["tunnel_token"].value, "")
 
     # n8n
     n8n_api_key             = try(data.onepassword_item.n8n.section_map["secrets"].field_map["api_key"].value, "")
@@ -71,7 +72,7 @@ output "secrets" {
 }
 
 output "metadata" {
-  description = "Non-secret configuration metadata: usernames, URLs, IDs (8 keys)"
+  description = "Non-secret configuration metadata: usernames, URLs, IDs (10 keys)"
   sensitive   = false
   value = {
     # Splunk
@@ -87,5 +88,9 @@ output "metadata" {
     cloudflare_email      = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["email"].value, "")
     cloudflare_account_id = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["account_id"].value, "")
     cloudflare_zone_id    = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["zone_id"].value, "")
+
+    # n8n
+    n8n_webhook_url           = try(data.onepassword_item.n8n.section_map["secrets"].field_map["webhook_url"].value, "")
+    n8n_glitchtip_webhook_url = try(data.onepassword_item.n8n.section_map["secrets"].field_map["glitchtip_webhook_url"].value, "")
   }
 }

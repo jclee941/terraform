@@ -26,7 +26,9 @@ override_module {
       grafana_service_account_token = "mock-grafana-token" # pragma: allowlist secret
     }
     metadata = {
-      vault_name = "homelab"
+      vault_name                = "homelab"
+      n8n_webhook_url           = "http://mock:5678/webhook/grafana-alert"
+      n8n_glitchtip_webhook_url = "http://mock:5678/webhook/grafana-to-glitchtip"
     }
   }
 }

@@ -47,6 +47,15 @@ locals {
     local.proxmox_api_token_from_1password :
     trimspace(var.proxmox_api_token)
   )
+  tunnel_token_from_1password = trimspace(try(
+    module.onepassword_secrets.secrets["cloudflare_tunnel_token"],
+    ""
+  ))
+  effective_homelab_tunnel_token = (
+    local.tunnel_token_from_1password != "" ?
+    local.tunnel_token_from_1password :
+    trimspace(var.homelab_tunnel_token)
+  )
 
   infrastructure_nodes = [
     for name, host in module.hosts.hosts : {
@@ -894,7 +903,7 @@ module "config_renderer" {
       proxmox_host              = local.proxmox_host
       proxmox_port              = local.proxmox_port
       proxmox_ssl_mode          = local.proxmox_ssl_mode
-      homelab_tunnel_token      = var.homelab_tunnel_token
+      homelab_tunnel_token      = local.effective_homelab_tunnel_token
     }
   )
   output_dir = "${path.module}/configs/rendered"

@@ -145,6 +145,11 @@ run "test_secrets_default_to_empty_string" {
   }
 
   assert {
+    condition     = output.secrets.cloudflare_tunnel_token == ""
+    error_message = "Cloudflare tunnel_token should default to empty string"
+  }
+
+  assert {
     condition     = output.secrets.proxmox_api_token_value == ""
     error_message = "Proxmox api_token_value should default to empty string"
   }
@@ -189,6 +194,16 @@ run "test_secrets_default_to_empty_string" {
     condition     = output.metadata.cloudflare_account_id == ""
     error_message = "Cloudflare account_id should default to empty string"
   }
+
+  assert {
+    condition     = output.metadata.n8n_webhook_url == ""
+    error_message = "n8n webhook_url should default to empty string"
+  }
+
+  assert {
+    condition     = output.metadata.n8n_glitchtip_webhook_url == ""
+    error_message = "n8n glitchtip_webhook_url should default to empty string"
+  }
 }
 
 run "test_secrets_key_count" {
@@ -203,12 +218,12 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 31
-    error_message = "Secrets output should contain exactly 31 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 32
+    error_message = "Secrets output should contain exactly 32 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
-# Verify metadata output contains expected key count (8 metadata keys)
+# Verify metadata output contains expected key count (10 metadata keys)
 run "test_metadata_key_count" {
   command = plan
 
@@ -221,8 +236,8 @@ run "test_metadata_key_count" {
   }
 
   assert {
-    condition     = length(output.metadata) == 8
-    error_message = "Metadata output should contain exactly 8 keys, got ${length(output.metadata)}"
+    condition     = length(output.metadata) == 10
+    error_message = "Metadata output should contain exactly 10 keys, got ${length(output.metadata)}"
   }
 }
 
@@ -255,7 +270,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 39
-    error_message = "Total keys (secrets + metadata) should equal 39"
+    condition     = length(output.secrets) + length(output.metadata) == 42
+    error_message = "Total keys (secrets + metadata) should equal 42"
   }
 }
