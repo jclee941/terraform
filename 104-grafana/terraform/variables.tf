@@ -17,6 +17,12 @@ variable "n8n_webhook_url" {
   default     = "http://192.168.50.112:5678/webhook/grafana-alert"
 }
 
+variable "n8n_glitchtip_webhook_url" {
+  description = "n8n webhook URL for forwarding alerts to GlitchTip"
+  type        = string
+  default     = "http://192.168.50.112:5678/webhook/grafana-to-glitchtip"
+}
+
 variable "op_service_account_token" {
   description = "1Password service account token"
   type        = string

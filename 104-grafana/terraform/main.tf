@@ -48,6 +48,14 @@ resource "grafana_contact_point" "alert_log_fallback" {
   }
 }
 
+resource "grafana_contact_point" "n8n_glitchtip_webhook" {
+  name = "n8n-glitchtip-webhook"
+
+  webhook {
+    url = var.n8n_glitchtip_webhook_url
+  }
+}
+
 resource "grafana_notification_policy" "default" {
   group_by      = ["alertname", "grafana_folder"]
   contact_point = grafana_contact_point.n8n_webhook.name
@@ -64,6 +72,17 @@ resource "grafana_notification_policy" "default" {
     }
     contact_point   = grafana_contact_point.n8n_webhook.name
     repeat_interval = "1h"
+    continue        = true
+  }
+
+  policy {
+    matcher {
+      label = "severity"
+      match = "="
+      value = "critical"
+    }
+    contact_point   = grafana_contact_point.n8n_glitchtip_webhook.name
+    repeat_interval = "1h"
   }
 
   policy {
@@ -73,6 +92,17 @@ resource "grafana_notification_policy" "default" {
       value = "warning"
     }
     contact_point   = grafana_contact_point.n8n_webhook.name
+    repeat_interval = "4h"
+    continue        = true
+  }
+
+  policy {
+    matcher {
+      label = "severity"
+      match = "="
+      value = "warning"
+    }
+    contact_point   = grafana_contact_point.n8n_glitchtip_webhook.name
     repeat_interval = "4h"
   }
 

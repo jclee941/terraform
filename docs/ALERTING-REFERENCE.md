@@ -1,6 +1,6 @@
 # Alerting Reference
 
-**Last Updated**: 2026-02-23
+**Last Updated**: 2026-02-24
 
 Complete reference for the homelab error handling and alerting pipeline.
 
@@ -11,10 +11,13 @@ Hosts (100, 101, 102, 103, 104, 105, 106, 112)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
-                 └─ Grafana (104:3000, 10 rules, 3 groups) → n8n:5678 /webhook/grafana-alert
-                      └─ alert-to-github-issue.json → GitHub Issues
+                 └─ Grafana (104:3000, 10 rules, 3 groups)
+                      ├─ n8n-webhook → n8n:5678 /webhook/grafana-alert
+                      │    └─ alert-to-github-issue.json → GitHub Issues
+                      └─ n8n-glitchtip-webhook → n8n:5678 /webhook/grafana-to-glitchtip
+                           └─ grafana-to-glitchtip.json → GlitchTip (106:8000)
 
-GlitchTip (106:8000) — receives from application Sentry SDKs
+GlitchTip (106:8000) — receives from Sentry SDKs + Grafana bridge
   └─ GlitchTip webhook → n8n:5678 /webhook/glitchtip-error
        └─ error-to-github-issue.json → GitHub Issues
 ```
@@ -82,15 +85,24 @@ error_classification:GATEWAY_ERROR                           # Gateway errors
 
 Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
 
-**Contact point:** `n8n-webhook` → `http://192.168.50.112:5678/webhook/grafana-alert`
+**Contact points:**
 
-**Routing policies:**
+| Contact Point            | Target                                                          |
+| ------------------------ | --------------------------------------------------------------- |
+| `n8n-webhook`            | `http://192.168.50.112:5678/webhook/grafana-alert`              |
+| `n8n-glitchtip-webhook`  | `http://192.168.50.112:5678/webhook/grafana-to-glitchtip`       |
 
-| Severity | Group Wait | Repeat Interval |
-| -------- | ---------- | --------------- |
-| critical | 10s        | 1h              |
-| warning  | 1m         | 4h              |
-| info     | 2m         | 12h             |
+**Routing policies (fan-out):**
+
+Critical and warning policies use `continue = true` to fan out to both contact points.
+
+| Severity | Contact Point           | Group Wait | Repeat Interval |
+| -------- | ----------------------- | ---------- | --------------- |
+| critical | n8n-webhook             | 10s        | 1h              |
+| critical | n8n-glitchtip-webhook   | 10s        | 1h              |
+| warning  | n8n-webhook             | 1m         | 4h              |
+| warning  | n8n-glitchtip-webhook   | 1m         | 4h              |
+| info     | n8n-webhook             | 2m         | 12h             |
 
 **Alert rules (10 total, 3 groups):**
 
@@ -125,19 +137,19 @@ Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
 
 n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 
-| Webhook Path               | Source    | Labels                             |
-| -------------------------- | --------- | ---------------------------------- |
-| `/webhook/grafana-alert`   | Grafana   | `automated, infrastructure, alert` |
-| `/webhook/glitchtip-error` | GlitchTip | `bug, glitchtip, automated`        |
+| Webhook Path                    | Source    | Target     | Labels                             |
+| ------------------------------- | --------- | ---------- | ---------------------------------- |
+| `/webhook/grafana-alert`        | Grafana   | GitHub     | `automated, infrastructure, alert` |
+| `/webhook/grafana-to-glitchtip` | Grafana   | GlitchTip  | n/a (Sentry event ingestion)       |
+| `/webhook/glitchtip-error`      | GlitchTip | GitHub     | `bug, glitchtip, automated`        |
 
 ### 5. Error Tracking (GlitchTip)
 
 - URL: `http://192.168.50.106:8000`
 - Org: `jclee-homelab`, Project: `homelab`
-- Receives from: Application Sentry SDKs (client-side error reporting)
+- Receives from: Application Sentry SDKs (client-side error reporting) + Grafana bridge (infrastructure alerts)
 - Alert rule `n8n-automation` forwards to n8n webhook
-
-> **Gap**: GlitchTip no longer receives ELK threshold alerts. ElastAlert2 was removed; Grafana now handles all ES-based alerting but routes only to n8n→GitHub Issues. A future n8n fan-out or additional Grafana contact point could restore GlitchTip ingestion.
+- Grafana bridge: n8n converts Grafana alert payloads to Sentry events via `grafana-to-glitchtip.json`
 
 ## Datasource UIDs (Grafana)
 
@@ -155,11 +167,10 @@ n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 | Logstash config   | `105-elk/config/logstash.yml`                       |
 | Grafana alerts    | `104-grafana/terraform/main.tf`                     |
 | n8n workflows     | `scripts/n8n-workflows/`                            |
+| GlitchTip bridge  | `scripts/n8n-workflows/grafana-to-glitchtip.json`   |
 
 ## Known Issues
-
-- **SPOF**: Grafana has single contact point (n8n-webhook). No fallback if n8n is down.
-- **Gap**: No direct ELK→GlitchTip path since ElastAlert2 removal.
+- **SPOF**: n8n is a single point of failure for both GitHub Issue creation and GlitchTip bridging. No fallback if n8n is down.
 
 ## Deprecated
 

@@ -1,0 +1,193 @@
+{
+  "name": "Grafana Alert \u2192 GlitchTip",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "grafana-to-glitchtip",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Grafana Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "grafana-to-glitchtip"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Grafana Alerting webhook payload\n// Extracts alert fields for Sentry event transformation\nconst body = $input.first().json.body || $input.first().json;\nconst alerts = body.alerts || [body];\nconst results = [];\n\nfor (const alert of alerts) {\n  const status = alert.status || body.status || 'firing';\n  if (status !== 'firing') continue;\n\n  const labels = alert.labels || {};\n  const annotations = alert.annotations || {};\n  const values = alert.values || alert.valueString || '';\n\n  const alertname = labels.alertname || body.title || body.commonLabels?.alertname || '';\n  if (!alertname || alertname === 'Unknown Alert') continue;\n\n  results.push({\n    json: {\n      alertname: alertname,\n      severity: labels.severity || 'warning',\n      status: status,\n      summary: annotations.summary || annotations.description || '',\n      values: typeof values === 'object' ? JSON.stringify(values) : String(values),\n      dashboardURL: alert.dashboardURL || '',\n      panelURL: alert.panelURL || '',\n      startsAt: alert.startsAt || new Date().toISOString(),\n      group: labels.grafana_folder || 'default'\n    }\n  });\n}\n\nreturn results.length > 0 ? results : [];"
+      },
+      "id": "parse-alert",
+      "name": "Parse Alert Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Rate limiter - max 10 events per 5-minute window\nconst MAX_EVENTS = 10;\nconst WINDOW_MS = 5 * 60 * 1000;\n\nconst now = Date.now();\nconst staticData = $getWorkflowStaticData('global');\n\nif (!staticData.glitchtipRateLimitEntries) {\n  staticData.glitchtipRateLimitEntries = [];\n}\nstaticData.glitchtipRateLimitEntries = staticData.glitchtipRateLimitEntries.filter(ts => now - ts < WINDOW_MS);\n\nconst isRateLimited = staticData.glitchtipRateLimitEntries.length >= MAX_EVENTS;\n\nif (!isRateLimited) {\n  staticData.glitchtipRateLimitEntries.push(now);\n}\n\nreturn [{\n  json: {\n    ...$input.first().json,\n    isRateLimited,\n    rateLimitCount: staticData.glitchtipRateLimitEntries.length,\n    rateLimitMax: MAX_EVENTS\n  }\n}];"
+      },
+      "id": "rate-limiter",
+      "name": "Rate Limiter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "rate-limited-check",
+              "leftValue": "={{ $json.isRateLimited }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-rate-limit",
+      "name": "Rate Limited?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transform Grafana alert to Sentry event format for GlitchTip\n// DSN format: http://<key>@<host>:<port>/<project_id>\nconst dsn = $env.GLITCHTIP_SENTRY_DSN || '';\nif (!dsn) {\n  throw new Error('GLITCHTIP_SENTRY_DSN environment variable not set');\n}\n\n// Parse DSN\nconst dsnMatch = dsn.match(/^https?:\\/\\/([^@]+)@([^/]+)\\/(\\d+)$/);\nif (!dsnMatch) {\n  throw new Error('Invalid GLITCHTIP_SENTRY_DSN format. Expected: http://<key>@<host>/<project_id>');\n}\nconst [, sentryKey, sentryHost, projectId] = dsnMatch;\n\nconst SEVERITY_MAP = {\n  'critical': 'fatal',\n  'error': 'error',\n  'warning': 'warning',\n  'warn': 'warning',\n  'info': 'info',\n  'debug': 'debug'\n};\n\nconst d = $input.first().json;\nconst eventId = crypto.randomUUID().replace(/-/g, '');\n\nconst sentryEvent = {\n  event_id: eventId,\n  timestamp: d.startsAt || new Date().toISOString(),\n  level: SEVERITY_MAP[d.severity.toLowerCase()] || 'warning',\n  logger: 'grafana.alerting',\n  platform: 'other',\n  server_name: 'grafana-104',\n  environment: 'production',\n  message: {\n    formatted: `[${d.severity.toUpperCase()}] ${d.alertname}: ${d.summary || 'Alert triggered'}`,\n    message: d.alertname\n  },\n  tags: {\n    alertname: d.alertname,\n    severity: d.severity,\n    source: 'grafana',\n    group: d.group || 'default'\n  },\n  extra: {\n    values: d.values || '',\n    dashboardURL: d.dashboardURL || '',\n    panelURL: d.panelURL || ''\n  },\n  fingerprint: [d.alertname]\n};\n\nconst storeUrl = `http://${sentryHost}/api/${projectId}/store/`;\nconst authHeader = `Sentry sentry_key=${sentryKey}, sentry_version=7, sentry_client=n8n-grafana-bridge/1.0`;\n\nreturn [{\n  json: {\n    sentryEvent,\n    storeUrl,\n    authHeader,\n    alertname: d.alertname,\n    severity: d.severity\n  }\n}];"
+      },
+      "id": "transform-sentry",
+      "name": "Transform to Sentry Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.storeUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Sentry-Auth",
+              "value": "={{ $json.authHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.sentryEvent) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "id": "post-glitchtip",
+      "name": "POST to GlitchTip",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1380, 200]
+    },
+    {
+      "parameters": {},
+      "id": "noop-rate-limited",
+      "name": "Rate Limited (Skip)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1160, 450]
+    }
+  ],
+  "connections": {
+    "Grafana Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Alert Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Alert Payload": {
+      "main": [
+        [
+          {
+            "node": "Rate Limiter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limiter": {
+      "main": [
+        [
+          {
+            "node": "Rate Limited?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limited?": {
+      "main": [
+        [
+          {
+            "node": "Rate Limited (Skip)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Transform to Sentry Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to Sentry Event": {
+      "main": [
+        [
+          {
+            "node": "POST to GlitchTip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-02-23T11:30:00.000Z",
+  "versionId": "1"
+}
