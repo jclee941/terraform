@@ -7,8 +7,8 @@ module "onepassword_secrets" {
 }
 
 locals {
-  cloudflare_secret = trimspace(coalesce(module.onepassword_secrets.secrets.cloudflare_api_key, ""))
-  cloudflare_email  = trimspace(coalesce(module.onepassword_secrets.metadata.cloudflare_email, ""))
+  cloudflare_secret = trimspace(try(coalesce(module.onepassword_secrets.secrets.cloudflare_api_key), ""))
+  cloudflare_email  = trimspace(try(coalesce(module.onepassword_secrets.metadata.cloudflare_email), ""))
   is_global_api_key = can(regex("^[0-9a-f]{37}$", local.cloudflare_secret))
 }
 
