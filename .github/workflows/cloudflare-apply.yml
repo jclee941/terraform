@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - "300-cloudflare/**"
+  workflow_dispatch:
 permissions:
   contents: read
   issues: write
