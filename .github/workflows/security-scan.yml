@@ -243,4 +243,4 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
-          workflow-name: "Security Scan"
+          title-prefix: "Security Scan"
