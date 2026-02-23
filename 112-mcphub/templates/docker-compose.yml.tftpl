@@ -9,8 +9,8 @@ services:
       - ./mcp_settings.json:/app/mcp_settings.json
       - mcphub_data:/app/data
       - npm_cache:/root/.npm
-      - ${MCP_WORKSPACE_HOST_PATH:-/home/jclee/dev}:${MCP_WORKSPACE_CONTAINER_PATH:-/workspace/dev}:ro
-      - ${MCP_WORKSPACE_HOST_PATH:-/home/jclee/dev}:/home/jclee/dev:ro
+      - $${MCP_WORKSPACE_HOST_PATH:-/home/jclee/dev}:$${MCP_WORKSPACE_CONTAINER_PATH:-/workspace/dev}:ro
+      - $${MCP_WORKSPACE_HOST_PATH:-/home/jclee/dev}:/home/jclee/dev:ro
       - /usr/bin/op:/usr/bin/op:ro
       - ./op-mcp-server:/app/op-mcp-server:ro
     env_file:
