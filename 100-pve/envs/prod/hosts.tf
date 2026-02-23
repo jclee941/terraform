@@ -120,10 +120,10 @@ locals {
       }
     }
 
-    staging = {
+    youtube = {
       vmid  = 220
       ip    = "192.168.50.220"
-      roles = ["staging", "dev"]
+      roles = ["youtube", "media"]
       ports = {}
     }
   }

@@ -33,7 +33,7 @@
 | **107-supabase**  | Backend-as-a-Service  | 3x .tftpl          | 100-pve/module.config_renderer |
 | **112-mcphub**    | MCP server hub        | 4x .tftpl          | 100-pve/module.config_renderer |
 | **215-synology**  | NAS inventory         | None (data only)   | Manual                         |
-| **220-staging**   | Staging VM            | None (reserved)    | Manual                         |
+| **220-youtube**   | YouTube VM            | filebeat.yml.tftpl | 100-pve/module.config_renderer |
 
 ---
 

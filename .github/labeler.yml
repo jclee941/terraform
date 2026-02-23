@@ -6,154 +6,153 @@
 documentation:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.md'
-          - 'docs/**'
-          - 'README*'
-          - 'CHANGELOG*'
+          - "**/*.md"
+          - "docs/**"
+          - "README*"
+          - "CHANGELOG*"
 
 ci:
   - changed-files:
       - any-glob-to-any-file:
-          - '.github/**'
-          - '*.yml'
-          - '*.yaml'
-          - 'Makefile'
+          - ".github/**"
+          - "*.yml"
+          - "*.yaml"
+          - "Makefile"
 
 terraform:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.tf'
-          - '**/*.tfvars'
-          - '**/.terraform.lock.hcl'
+          - "**/*.tf"
+          - "**/*.tfvars"
+          - "**/.terraform.lock.hcl"
 
 docker:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/Dockerfile*'
-          - '**/docker-compose*.yml'
-          - '**/.dockerignore'
+          - "**/Dockerfile*"
+          - "**/docker-compose*.yml"
+          - "**/.dockerignore"
 
 python:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.py'
-          - 'requirements*.txt'
-          - 'pyproject.toml'
-          - 'setup.py'
-          - 'setup.cfg'
+          - "**/*.py"
+          - "requirements*.txt"
+          - "pyproject.toml"
+          - "setup.py"
+          - "setup.cfg"
 
 typescript:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.ts'
-          - '**/*.tsx'
-          - '**/*.js'
-          - '**/*.jsx'
-          - 'package.json'
-          - 'tsconfig*.json'
+          - "**/*.ts"
+          - "**/*.tsx"
+          - "**/*.js"
+          - "**/*.jsx"
+          - "package.json"
+          - "tsconfig*.json"
 
 shell:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.sh'
-          - '**/*.bash'
+          - "**/*.sh"
+          - "**/*.bash"
 
 config:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.json'
-          - '**/*.toml'
-          - '**/*.ini'
-          - '**/*.cfg'
-          - '.editorconfig'
-          - '.gitignore'
+          - "**/*.json"
+          - "**/*.toml"
+          - "**/*.ini"
+          - "**/*.cfg"
+          - ".editorconfig"
+          - ".gitignore"
 
 # === Risk Tier Labels (aligned with auto-merge.yml) ===
 
 risk:critical:
   - changed-files:
       - any-glob-to-any-file:
-          - '100-pve/**'
-          - 'modules/**'
-          - '300-cloudflare/**'
-          - '301-github/**'
-          - '102-traefik/**'
+          - "100-pve/**"
+          - "modules/**"
+          - "300-cloudflare/**"
+          - "301-github/**"
+          - "102-traefik/**"
 
 risk:medium:
   - changed-files:
       - any-glob-to-any-file:
-          - '105-elk/**'
-          - '107-supabase/**'
-          - '108-archon/**'
-          - '112-mcphub/**'
-          - '200-oc/**'
-          - '220-staging/**'
+          - "105-elk/**"
+          - "107-supabase/**"
+          - "108-archon/**"
+          - "112-mcphub/**"
+          - "220-youtube/**"
 
 # === Service Labels ===
 
 svc:pve:
   - changed-files:
       - any-glob-to-any-file:
-          - '100-pve/**'
+          - "100-pve/**"
 
 svc:runner:
   - changed-files:
       - any-glob-to-any-file:
-          - '101-runner/**'
+          - "101-runner/**"
 
 svc:traefik:
   - changed-files:
       - any-glob-to-any-file:
-          - '102-traefik/**'
+          - "102-traefik/**"
 
 svc:grafana:
   - changed-files:
       - any-glob-to-any-file:
-          - '104-grafana/**'
+          - "104-grafana/**"
 
 svc:elk:
   - changed-files:
       - any-glob-to-any-file:
-          - '105-elk/**'
+          - "105-elk/**"
 
 svc:glitchtip:
   - changed-files:
       - any-glob-to-any-file:
-          - '106-glitchtip/**'
+          - "106-glitchtip/**"
 
 svc:supabase:
   - changed-files:
       - any-glob-to-any-file:
-          - '107-supabase/**'
+          - "107-supabase/**"
 
 svc:archon:
   - changed-files:
       - any-glob-to-any-file:
-          - '108-archon/**'
+          - "108-archon/**"
 
 svc:mcphub:
   - changed-files:
       - any-glob-to-any-file:
-          - '112-mcphub/**'
+          - "112-mcphub/**"
 
 svc:cloudflare:
   - changed-files:
       - any-glob-to-any-file:
-          - '300-cloudflare/**'
+          - "300-cloudflare/**"
 
 svc:github:
   - changed-files:
       - any-glob-to-any-file:
-          - '301-github/**'
+          - "301-github/**"
 
 # === Scope Labels ===
 
 modules:
   - changed-files:
       - any-glob-to-any-file:
-          - 'modules/**'
+          - "modules/**"
 
 tests:
   - changed-files:
       - any-glob-to-any-file:
-          - 'tests/**'
+          - "tests/**"

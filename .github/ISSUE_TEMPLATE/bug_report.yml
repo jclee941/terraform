@@ -17,9 +17,8 @@ body:
         - 107-supabase (database)
         - 108-archon (AI knowledge)
         - 112-mcphub (MCP gateway)
-        - 200-oc (dev VM)
+        - 220-youtube (YouTube VM)
         - 215-synology (NAS)
-        - 220-staging (staging)
         - 300-cloudflare (external)
         - 301-github (external)
         - modules/proxmox

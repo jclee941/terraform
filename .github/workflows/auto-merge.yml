@@ -28,7 +28,7 @@ jobs:
           if echo "$CHANGED" | grep -qE '^(100-pve/|modules/|300-cloudflare/|301-github/|102-traefik/)'; then
             RISK="critical"
           # Medium — service infrastructure
-          elif echo "$CHANGED" | grep -qE '^(105-elk/|107-supabase/|108-archon/|112-mcphub/|200-oc/|220-staging/)'; then
+          elif echo "$CHANGED" | grep -qE '^(105-elk/|107-supabase/|108-archon/|112-mcphub/|220-youtube/)'; then
             RISK="medium"
           fi
 

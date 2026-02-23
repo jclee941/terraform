@@ -77,6 +77,19 @@ filter {
       match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
     }
   }
+  # Synology NAS syslog source identification
+  # Synology sends logs via DSM Log Center to Logstash syslog input (port 5000).
+  if [type] == "syslog" and [syslog_hostname] {
+    if [syslog_hostname] =~ /^(synology|ds920|diskstation)/i {
+      mutate {
+        add_field => { "service" => "synology" }
+      }
+    } else if ![service] {
+      mutate {
+        add_field => { "service" => "syslog" }
+      }
+    }
+  }
 
   # JSON log parsing (structured logs from apps)
   if [message] =~ /^\s*\{/ {

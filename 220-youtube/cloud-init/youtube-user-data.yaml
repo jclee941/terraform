@@ -1,13 +1,13 @@
 #cloud-config
-hostname: staging
-fqdn: staging.jclee.me
+hostname: youtube
+fqdn: youtube.jclee.me
 manage_etc_hosts: true
 
 users:
   - name: jclee
     groups: [sudo, docker]
     shell: /bin/bash
-    sudo: ALL=(ALL) NOPASSWD:ALL
+    sudo: ALL=(ALL) NOPASSWD:ALL  # pragma: allowlist secret
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKtqkzRGFpy1dkgndShKi/Qv/HHs/kjX3wQFubrrTwea jclee@proxmox
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDG3YUt/najmLsmvBH38cNi+K8Ralkqlp78sM8Jg8Oiu0eOFhQ6San4IdEJItZfSWvKd5A4n3wfS8oTPTyOM1Q34fhZP0L2SG1d6JtgdFgIwWRMxz0nPTpwQGg0I3gd1V+kSh9xT/5uGTcSaGer1m2R+tramIFMneQDVxPpYP6ffLpoSA4hNmmVrrbfXMdSeOUR4ieNxYyM3aVCmBcAR+XpYIU45nRVvB3ysaqL3TyzSEEqURVnBoOl2gyvdCKIOunCgKgAFFUkjpeaCFNGfUj/U08dCeuOL96ARkg5d+sLwpxpMA2BNPerc9YJxw3+cC2nFTMbzihuzTDwpJ45/wBl2J1Q+iRc4g/2sN5k2Mnrcz2wUPNKe/kE2CRzV9yoMCgvx2AFA2ufjyS2RhteWdGEMwRoSrOVFr2PTG4VgCFIydhgxmCiHhIV91ljN/d3VsTlbMfkC768ZzeZkwIBg4dTDaUur2VA+7cTnxblAlyII6Up+1NC960AF7876Oki5k7NTSb0+/Gbw5tQSDugb4WZ/c97yxYr1N3gVCsRhVADiKLnj7kpuAHcwHbgTTHus0k8Otbi3LHfLfPyAK9AZDifq6LB1kEO7hK8Y9xjgsoBugDDx1cuRJY89U3D7xnhEmlSQUwmDALhwupD3ZRfuPM7IZLA09zvEagSXS6Dn0b6yw== jclee@dev
@@ -66,7 +66,7 @@ write_files:
     content: |
       DAEMON_ARGS="-fsfreeze-hook"
     owner: root:root
-    permissions: '0644'
+    permissions: "0644"
   - path: /etc/systemd/system/warp-svc-check.service
     content: |
       [Unit]
@@ -81,6 +81,6 @@ write_files:
       [Install]
       WantedBy=multi-user.target
     owner: root:root
-    permissions: '0644'
+    permissions: "0644"
 
-final_message: "Cloud-init completed for staging (VM 220) with Docker, Watchtower, and Cloudflare WARP"
+final_message: "Cloud-init completed for youtube (VM 220) with Docker, Watchtower, and Cloudflare WARP"

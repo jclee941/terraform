@@ -77,7 +77,7 @@ resource "elasticstack_elasticsearch_index_lifecycle" "homelab_logs_ephemeral_7d
 
 resource "elasticstack_elasticsearch_index_template" "logs_critical" {
   name           = "logs-critical"
-  index_patterns = ["logs-elk-*", "logs-supabase-*", "logs-grafana-*", "logs-archon-*"]
+  index_patterns = ["logs-elk-*", "logs-supabase-*", "logs-grafana-*", "logs-archon-*", "logs-pve-*"]
   priority       = 300
 
   template {
@@ -91,7 +91,7 @@ resource "elasticstack_elasticsearch_index_template" "logs_critical" {
 
 resource "elasticstack_elasticsearch_index_template" "logs_ephemeral" {
   name           = "logs-ephemeral"
-  index_patterns = ["logs-unknown-*", "logs-debug-*", "logs-runner-*"]
+  index_patterns = ["logs-unknown-*", "logs-debug-*", "logs-runner-*", "logs-youtube-*"]
   priority       = 250
 
   template {

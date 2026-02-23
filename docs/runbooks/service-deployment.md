@@ -112,7 +112,7 @@ Never run `terraform apply` locally against production.
 | Traefik | traefik-plan.yml | traefik-apply.yml | 102-traefik/** |
 | CF Worker | — | worker-deploy.yml | 300-cloudflare/workers/** |
 
-Services without dedicated workspaces (101-runner, 106-glitchtip, 107-supabase, 112-mcphub, 215-synology, 220-staging) are managed through the 100-pve orchestrator.
+Services without dedicated workspaces (101-runner, 106-glitchtip, 107-supabase, 112-mcphub, 215-synology, 220-youtube) are managed through the 100-pve orchestrator.
 
 ## Post-Deploy Checklist
 

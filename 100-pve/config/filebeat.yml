@@ -1,44 +1,52 @@
-# REFERENCE ONLY — deployed via 100-pve/main.tf config-renderer pipeline.
-# Source template: N/A (PVE host filebeat is manually managed).
-# Hardcoded IP 192.168.50.105 = elk host (see hosts.tf).
+# PVE bare-metal hypervisor Filebeat configuration.
+# Deployed manually — PVE host is not Terraform-provisioned.
+# Target: /etc/filebeat/filebeat.yml on PVE host (192.168.50.100)
+# ELK host: 192.168.50.105:5044 (see 100-pve/envs/prod/hosts.tf)
+
 filebeat.inputs:
-  - type: log
-    enabled: true
+  - type: filestream
+    id: pve-system-logs
     paths:
       - /var/log/*.log
       - /var/log/syslog
     fields:
-      service: system
-    fields_under_root: true
+      service: pve
+      host_role: pve
+    fields_under_root: false
 
-  - type: log
-    enabled: true
+  - type: filestream
+    id: pve-ceph-logs
     paths:
       - /var/log/ceph/*.log
     fields:
-      service: ceph
-    fields_under_root: true
+      service: pve
+      host_role: pve
+    fields_under_root: false
 
-  - type: log
-    enabled: true
+  - type: filestream
+    id: pve-proxmox-logs
     paths:
       - /var/log/pveproxy/*.log
       - /var/log/pve-firewall.log
       - /var/log/pveam.log
       - /var/log/vzdump-hook.log
     fields:
-      service: proxmox
-    fields_under_root: true
-
-output.logstash:
-  hosts: ["192.168.50.105:5044"]
+      service: pve
+      host_role: pve
+    fields_under_root: false
 
 processors:
   - add_host_metadata: ~
 
+output.logstash:
+  hosts: ["192.168.50.105:5044"]
+
+filebeat.registry.path: /var/lib/filebeat/registry
 logging.level: info
 logging.to_files: true
 logging.files:
   path: /var/log/filebeat
   name: filebeat
   keepfiles: 7
+
+max_message_bytes: 999999

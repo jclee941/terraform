@@ -1,6 +1,6 @@
 provider "proxmox" {
   endpoint  = var.proxmox_endpoint
-  api_token = var.proxmox_api_token
+  api_token = local.effective_proxmox_api_token
   insecure  = var.proxmox_insecure
 }
 
@@ -38,6 +38,15 @@ locals {
   proxmox_host               = local.proxmox_endpoint_parts[0]
   proxmox_port               = length(local.proxmox_endpoint_parts) > 1 ? local.proxmox_endpoint_parts[1] : "8006"
   proxmox_ssl_mode           = var.proxmox_insecure ? "insecure" : "strict"
+  proxmox_api_token_from_1password = trimspace(try(
+    module.onepassword_secrets.secrets["proxmox_api_token_value"],
+    ""
+  ))
+  effective_proxmox_api_token = (
+    local.proxmox_api_token_from_1password != "" ?
+    local.proxmox_api_token_from_1password :
+    trimspace(var.proxmox_api_token)
+  )
 
   infrastructure_nodes = [
     for name, host in module.hosts.hosts : {
@@ -157,6 +166,13 @@ check "memory_requirements" {
   }
 }
 
+check "proxmox_provider_token_required" {
+  assert {
+    condition     = length(local.effective_proxmox_api_token) > 0
+    error_message = "Proxmox provider token is required. Set 1Password secret key 'proxmox_api_token_value' (preferred) or provide var.proxmox_api_token override."
+  }
+}
+
 check "mcphub_required_secrets" {
   assert {
     condition = alltrue([
@@ -246,7 +262,7 @@ locals {
   }
 }
 
-# STAGING VM (220) - TEMPORARILY DISABLED
+# YOUTUBE VM (220) - TEMPORARILY DISABLED
 # VM 220 was manually created with non-standard 'dfge' datastore.
 # bpg/proxmox provider GRPC crashes on import. Re-enable in vm_definitions
 # when VM is recreated from template 9000 on standard 'local-lvm' storage.
@@ -338,11 +354,11 @@ module "vm_config" {
   ssh_private_key   = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
   vms = {
-    # staging: Disabled — see staging VM resource block comment above
-    # staging = {
-    #   vmid       = module.hosts.hosts.staging.vmid
-    #   hostname   = "staging"
-    #   ip_address = module.hosts.hosts.staging.ip
+    # youtube: Disabled — see youtube VM resource block comment above
+    # youtube = {
+    #   vmid       = module.hosts.hosts.youtube.vmid
+    #   hostname   = "youtube"
+    #   ip_address = module.hosts.hosts.youtube.ip
     #   deploy     = var.deploy_vm_configs
     #
     #   cloud_init = {
@@ -770,6 +786,9 @@ locals {
       docker_compose = "docker-compose.yml.tftpl"
       mcp_settings   = "mcp_settings.json.tftpl"
       env            = ".env.tftpl"
+    } }
+    "220-youtube" = { prefix = "youtube", files = {
+      filebeat = "filebeat.yml.tftpl"
     } }
   }
 
