@@ -27,7 +27,7 @@ jobs:
 
       - name: Check MCP service ports
         id: health
-        run: |  # pragma: allowlist secret
+        run: | # pragma: allowlist secret
           declare -A SERVICES=(
             [elk]=8065
             [kratos]=8060
@@ -47,7 +47,8 @@ jobs:
 
           for svc in $(echo "${!SERVICES[@]}" | tr ' ' '\n' | sort); do
             port=${SERVICES[$svc]}
-            if curl -sf -o /dev/null -w "" --connect-timeout 5 "http://${MCPHUB_HOST}:${port}" 2>/dev/null; then
+            if curl -sf -o /dev/null -w "" --connect-timeout 5 "http://${MCPHUB_HOST}:${port}/health" 2>/dev/null \
+              || curl -sf -o /dev/null -w "" --connect-timeout 5 "http://${MCPHUB_HOST}:${port}" 2>/dev/null; then
               REPORT+="| ${svc} | ${port} | ✅ Reachable |\n"
             else
               REPORT+="| **${svc}** | **${port}** | **🔴 Unreachable** |\n"
@@ -66,12 +67,11 @@ jobs:
             echo "has_failures=false" >> "$GITHUB_OUTPUT"
           fi
 
-
       - name: Functional 1Password check
         id: op_check
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |  # pragma: allowlist secret
+        run: | # pragma: allowlist secret
           # Quick smoke test — deep validation runs in onepassword-test.yml
           if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
             echo "status=skipped" >> "$GITHUB_OUTPUT"
@@ -110,7 +110,8 @@ jobs:
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         with:
           script: |
-            const failedPorts = process.env.FAILED_SERVICES;
+            const failedPorts = `${{ steps.health.outputs.failed }}`;
+            const report = `${{ steps.health.outputs.report }}`;
             const opStatus = '${{ steps.op_check.outputs.status }}';
             const opFailed = '${{ steps.op_check.outputs.has_failure }}' === 'true';
 
@@ -124,7 +125,7 @@ jobs:
               `**Run:** ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}\n`,
             ];
 
-            sections.push('### Service Ports\n', process.env.REPORT);
+            sections.push('### Service Ports\n', report);
 
             if (failedPorts) {
               sections.push(`\n**Failed:** ${failedPorts}`);
@@ -180,10 +181,6 @@ jobs:
                 labels: ['bug', 'mcp'],
               });
             }
-          env:
-            FAILED_SERVICES: ${{ steps.health.outputs.failed }}
-            REPORT: ${{ steps.health.outputs.report }}
-
       - name: Summary
         if: always()
         run: |

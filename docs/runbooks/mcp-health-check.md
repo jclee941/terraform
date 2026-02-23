@@ -48,6 +48,45 @@ Expected: `10/10 servers valid`
 
 ---
 
+### MCP workspace path visibility check (Git/Kratos path mismatch)
+
+**Symptom:** MCP calls fail with `Directory does not exist` even though the path exists on your local shell.
+
+**Root cause:** MCPHub runs in a container and resolves filesystem paths inside container namespace. Host-only paths are not directly visible unless bind-mounted.
+
+**Standardized paths (as of 2026-02-23):**
+
+- Host path: `${MCP_WORKSPACE_HOST_PATH}` (default `/home/jclee/dev`)
+- Container path: `${MCP_WORKSPACE_CONTAINER_PATH}` (default `/workspace/dev`)
+- Compatibility alias: host path is also mounted to `/home/jclee/dev`
+
+**Verify mount visibility on MCPHub host:**
+
+```bash
+ssh root@192.168.50.112
+cd /opt/mcphub
+docker compose exec mcphub sh -lc 'ls -ld /workspace/dev /home/jclee/dev'
+docker compose exec mcphub sh -lc 'test -d /workspace/dev/terraform && echo OK || echo MISSING'
+```
+
+**Fix (if missing):**
+
+```bash
+ssh root@192.168.50.112
+cd /opt/mcphub
+
+# Ensure .env has:
+# MCP_WORKSPACE_HOST_PATH=/home/jclee/dev
+# MCP_WORKSPACE_CONTAINER_PATH=/workspace/dev
+
+docker compose up -d
+docker compose exec mcphub sh -lc 'test -d /workspace/dev/terraform && echo OK || echo MISSING'
+```
+
+**Usage guidance:** Prefer `/workspace/dev/terraform` for MCP calls in containerized contexts.
+
+---
+
 ## Resolution
 
 ### 1Password: Empty Vault
