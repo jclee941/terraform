@@ -84,7 +84,6 @@ filter {
     # Remove ECS service object set by syslog input plugin to avoid array collision
     mutate { remove_field => [ "service" ] }
     if [host][hostname] =~ /(?i)^(synology|ds920|diskstation)/ {
-    if [host][hostname] =~ /(?i)^(synology|ds920|diskstation)/ {
       mutate {
         add_field => { "service" => "synology" }
       }

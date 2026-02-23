@@ -1,42 +1,42 @@
 # Alerting Reference
 
-**Last Updated**: 2026-02-12
+**Last Updated**: 2026-02-23
 
 Complete reference for the homelab error handling and alerting pipeline.
 
 ## Architecture
 
 ```
-Hosts (100, 101, 102, 104, 105, 106, 112)
+Hosts (100, 101, 102, 103, 104, 105, 106, 112)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
-                 ├─ ElastAlert2 (4 rules) → GlitchTip Sentry API (106:8000)
-                 │    └─ GlitchTip webhook → n8n:5678 /webhook/glitchtip-error
-                 │         └─ error-to-github-issue.json → GitHub Issues
-                 └─ Grafana (104:3000, 12 rules) → n8n:5678 /webhook/grafana-alert
+                 └─ Grafana (104:3000, 10 rules, 3 groups) → n8n:5678 /webhook/grafana-alert
                       └─ alert-to-github-issue.json → GitHub Issues
+
+GlitchTip (106:8000) — receives from application Sentry SDKs
+  └─ GlitchTip webhook → n8n:5678 /webhook/glitchtip-error
+       └─ error-to-github-issue.json → GitHub Issues
 ```
 
 ## Data Flow
 
 ### 1. Collection (Filebeat)
 
-Each host runs a static Filebeat config at `{host}/config/filebeat.yml`.
+Each host runs a Filebeat config deployed via Terraform (`lxc-config`/`vm-config` modules).
 
 | Host      | VMID | Inputs                               | fields_under_root |
 | --------- | ---- | ------------------------------------ | ----------------- |
 | pve       | 100  | system, ceph, proxmox                | true              |
 | runner    | 101  | system, github-runner                | true              |
 | traefik   | 102  | system, traefik, traefik-access      | true              |
+| coredns   | 103  | Docker autodiscover, system          | true              |
 | grafana   | 104  | system, grafana                      | true              |
 | elk       | 105  | system, elk-docker, mcp              | true              |
 | glitchtip | 106  | system, glitchtip (Docker container) | true              |
 | mcphub    | 112  | mcphub (Docker JSON), system         | true              |
 
 > **Requirement**: All inputs **must** use `fields_under_root: true` — Logstash filters reference `[service]` at root level.
-
-> **Note**: Filebeat configs are static files, NOT Terraform-managed.
 
 ### 2. Processing (Logstash)
 
@@ -78,22 +78,9 @@ error_classification:GATEWAY_ERROR                           # Gateway errors
 - DLQ: Failed events written to `/usr/share/logstash/dlq/failed-{date}.json`
 - Native DLQ enabled in `logstash.yml`
 
-### 3. Alerting — ElastAlert2
+### 3. Alerting — Grafana
 
-Rules directory: `105-elk/config/elastalert-rules/`
-
-| Rule                   | Type      | Threshold         | Filter                                     | Destination            |
-| ---------------------- | --------- | ----------------- | ------------------------------------------ | ---------------------- |
-| `high-error-rate`      | frequency | 50 events / 5 min | `level:error`                              | GlitchTip (Sentry API) |
-| `critical-error-spike` | frequency | 5 events / 1 min  | `level:critical OR level:fatal`            | GlitchTip (Sentry API) |
-| `gateway-errors`       | frequency | 10 events / 5 min | `message:502 OR message:503`               | GlitchTip (Sentry API) |
-| `mcp-errors`           | frequency | 20 events / 5 min | `service:["mcp","mcphub"] AND level:error` | GlitchTip (Sentry API) |
-
-All rules post to GlitchTip via Sentry protocol at `http://192.168.50.106:8000`.
-
-### 4. Alerting — Grafana
-
-Config: `104-grafana/alerting.yaml`
+Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
 
 **Contact point:** `n8n-webhook` → `http://192.168.50.112:5678/webhook/grafana-alert`
 
@@ -134,7 +121,7 @@ Config: `104-grafana/alerting.yaml`
 
 **Query improvements** (2026-02-12): All ES-based rules now use structured Logstash fields (`error_classification`, `error_severity`) instead of raw text matching, eliminating false positives from noise exclusion patterns.
 
-### 5. Incident Creation (n8n)
+### 4. Incident Creation (n8n)
 
 n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 
@@ -143,12 +130,14 @@ n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 | `/webhook/grafana-alert`   | Grafana   | `automated, infrastructure, alert` |
 | `/webhook/glitchtip-error` | GlitchTip | `bug, glitchtip, automated`        |
 
-### 6. Error Tracking (GlitchTip)
+### 5. Error Tracking (GlitchTip)
 
 - URL: `http://192.168.50.106:8000`
 - Org: `jclee-homelab`, Project: `homelab`
-- Receives from: ElastAlert2 (Sentry protocol)
+- Receives from: Application Sentry SDKs (client-side error reporting)
 - Alert rule `n8n-automation` forwards to n8n webhook
+
+> **Gap**: GlitchTip no longer receives ELK threshold alerts. ElastAlert2 was removed; Grafana now handles all ES-based alerting but routes only to n8n→GitHub Issues. A future n8n fan-out or additional Grafana contact point could restore GlitchTip ingestion.
 
 ## Datasource UIDs (Grafana)
 
@@ -159,20 +148,20 @@ n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 
 ## File Locations
 
-| Component         | Path                                    |
-| ----------------- | --------------------------------------- |
-| Filebeat configs  | `{host}/config/filebeat.yml`            |
-| Logstash template | `105-elk/templates/logstash.conf.tftpl` |
-| Logstash config   | `105-elk/config/logstash.yml`           |
-| ElastAlert rules  | `105-elk/config/elastalert-rules/*.yml` |
-| Grafana alerting  | `104-grafana/alerting.yaml`             |
-| n8n workflows     | `scripts/n8n-workflows/`                |
+| Component         | Path                                                |
+| ----------------- | --------------------------------------------------- |
+| Filebeat configs  | Terraform-deployed via lxc-config/vm-config modules |
+| Logstash template | `105-elk/templates/logstash.conf.tftpl`             |
+| Logstash config   | `105-elk/config/logstash.yml`                       |
+| Grafana alerts    | `104-grafana/terraform/main.tf`                     |
+| n8n workflows     | `scripts/n8n-workflows/`                            |
 
 ## Known Issues
 
 - **SPOF**: Grafana has single contact point (n8n-webhook). No fallback if n8n is down.
+- **Gap**: No direct ELK→GlitchTip path since ElastAlert2 removal.
 
 ## Deprecated
 
 - `112-mcphub/n8n-workflows/elk-error-pipeline.json` — superseded by `scripts/n8n-workflows/error-to-github-issue.json`
-- `105-elk/config/elastalert-rules.yml` — orphaned file, not mounted by Docker. Rules live in `elastalert-rules/` directory.
+- ElastAlert2 — removed. All threshold alerting migrated to Grafana alert rules (10 rules, 3 groups).

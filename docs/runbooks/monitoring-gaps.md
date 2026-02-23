@@ -8,13 +8,12 @@
 
 ## Current Alerting Setup
 
-| Component        | Location                           | Rules                   |
-| ---------------- | ---------------------------------- | ----------------------- |
-| Grafana Alerting | `104-grafana/alerting.yaml`        | 10 rules, 2 groups      |
-| ElastAlert       | `105-elk/config/elastalert-rules/` | Per-rule YAML files     |
-| Contact Point    | n8n-webhook                        | Routes to GitHub Issues |
+| Component        | Location                    | Rules                   |
+| ---------------- | --------------------------- | ----------------------- |
+| Grafana Alerting | `104-grafana/alerting.yaml` | 10 rules, 3 groups      |
+| Contact Point    | n8n-webhook                 | Routes to GitHub Issues |
 
-Alert groups: `homelab-logs`, `mcp-alerts`
+Alert groups: `homelab-logs`, `mcp-alerts`, `infrastructure-health`
 
 ## Adding a Grafana Alert Rule
 
@@ -66,37 +65,6 @@ curl -s http://192.168.50.104:3000/api/v1/provisioning/alert-rules \
   -H "Authorization: Bearer <api-key>" | jq '.[].title'
 ```
 
-## Adding an ElastAlert Rule
-
-### 1. Create Rule File
-
-Create `105-elk/config/elastalert-rules/{rule-name}.yml`:
-
-```yaml
-name: "Rule Name"
-type: frequency
-index: logs-*
-num_events: 5
-timeframe:
-  minutes: 10
-filter:
-  - query:
-      query_string:
-        query: "level:error AND service:your-service"
-alert:
-  - command
-command:
-  - "/opt/elastalert/send-alert.sh"
-  - "{rule_name}"
-  - "{num_matches} errors in last 10 minutes"
-```
-
-### 2. Deploy
-
-```bash
-pct exec 105 -- docker compose -f /opt/elk/docker-compose.yml restart elastalert
-```
-
 ## Testing Alerts End-to-End
 
 ```bash
@@ -113,7 +81,7 @@ curl -s http://192.168.50.104:3000/api/v1/provisioning/alert-rules \
 # n8n UI: 192.168.50.112:5678 → Executions → Check recent
 
 # 4. Verify: GitHub Issue created
-gh issue list --repo jclee-homelab/proxmox --label automated
+gh issue list --repo qws941/terraform --label automated
 ```
 
 ## Prevention

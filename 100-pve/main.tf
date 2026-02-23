@@ -87,7 +87,7 @@ locals {
     runner    = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
     traefik   = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     grafana   = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
-    elk       = { memory = 8192, swap = 4096, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana, ElastAlert2)" }
+    elk       = { memory = 8192, swap = 4096, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
     glitchtip = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
     supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
     archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
