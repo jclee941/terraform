@@ -57,6 +57,8 @@ variable "actions_allowed_patterns" {
     "actions/checkout@*",
     "actions/cache@*",
     "actions/setup-*",
+    "anomalyco/opencode/*",
+    "cloudflare/wrangler-action@*",
   ]
 }
 
