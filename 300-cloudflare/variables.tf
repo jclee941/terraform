@@ -28,6 +28,11 @@ variable "github_token" {
   type        = string
   sensitive   = true
   default     = ""
+
+  validation {
+    condition     = var.github_token == "" || can(regex("^(ghp_|github_pat_)", var.github_token))
+    error_message = "github_token must be empty or start with 'ghp_' (classic) or 'github_pat_' (fine-grained)."
+  }
 }
 
 variable "op_service_account_token" {
@@ -35,6 +40,11 @@ variable "op_service_account_token" {
   type        = string
   sensitive   = true
   default     = ""
+
+  validation {
+    condition     = var.op_service_account_token == "" || can(regex("^ops_", var.op_service_account_token))
+    error_message = "op_service_account_token must be empty or start with 'ops_'."
+  }
 }
 
 variable "onepassword_vault_name" {

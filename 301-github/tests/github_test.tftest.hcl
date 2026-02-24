@@ -35,7 +35,7 @@ run "test_invalid_github_owner_starts_with_hyphen" {
   command = plan
 
   variables {
-    github_token = "test-token-placeholder"
+    github_token = "ghp_test-token-placeholder"
     github_owner = "-invalid"
   }
 
@@ -48,7 +48,7 @@ run "test_invalid_github_owner_ends_with_hyphen" {
   command = plan
 
   variables {
-    github_token = "test-token-placeholder"
+    github_token = "ghp_test-token-placeholder"
     github_owner = "invalid-"
   }
 
@@ -61,7 +61,7 @@ run "test_invalid_github_owner_too_long" {
   command = plan
 
   variables {
-    github_token = "test-token-placeholder"
+    github_token = "ghp_test-token-placeholder"
     github_owner = "abcdefghijklmnopqrstuvwxyz1234567890abcd" # pragma: allowlist secret
   }
 
@@ -74,7 +74,7 @@ run "test_invalid_github_owner_underscore" {
   command = plan
 
   variables {
-    github_token = "test-token-placeholder"
+    github_token = "ghp_test-token-placeholder"
     github_owner = "invalid_name"
   }
 
@@ -89,7 +89,7 @@ run "test_invalid_infra_domain_starts_with_dot" {
   command = plan
 
   variables {
-    github_token = "test-token-placeholder"
+    github_token = "ghp_test-token-placeholder"
     infra_domain = ".jclee.me"
   }
 
@@ -102,7 +102,7 @@ run "test_invalid_infra_domain_uppercase" {
   command = plan
 
   variables {
-    github_token = "test-token-placeholder"
+    github_token = "ghp_test-token-placeholder"
     infra_domain = "JCLEE.ME"
   }
 
@@ -117,7 +117,7 @@ run "test_invalid_actions_allowed_invalid_value" {
   command = plan
 
   variables {
-    github_token            = "test-token-placeholder"
+    github_token            = "ghp_test-token-placeholder"
     actions_allowed_actions = "custom"
   }
 
@@ -132,7 +132,7 @@ run "test_invalid_actions_enabled_repos_invalid_value" {
   command = plan
 
   variables {
-    github_token                 = "test-token-placeholder"
+    github_token                 = "ghp_test-token-placeholder"
     actions_enabled_repositories = "custom"
   }
 
@@ -147,7 +147,7 @@ run "test_invalid_secret_visibility_invalid_value" {
   command = plan
 
   variables {
-    github_token                   = "test-token-placeholder"
+    github_token                   = "ghp_test-token-placeholder"
     organization_secret_visibility = "public" # pragma: allowlist secret
   }
 
@@ -162,7 +162,7 @@ run "test_invalid_n8n_webhook_glitchtip_no_protocol" {
   command = plan
 
   variables {
-    github_token                    = "test-token-placeholder"
+    github_token                    = "ghp_test-token-placeholder"
     n8n_webhook_glitchtip_error_url = "n8n.jclee.me/webhook/glitchtip"
   }
 
@@ -175,7 +175,7 @@ run "test_invalid_n8n_webhook_grafana_ftp" {
   command = plan
 
   variables {
-    github_token                  = "test-token-placeholder"
+    github_token                  = "ghp_test-token-placeholder"
     n8n_webhook_grafana_alert_url = "ftp://n8n.jclee.me/webhook/grafana"
   }
 
@@ -188,7 +188,7 @@ run "test_invalid_n8n_webhook_issue_no_protocol" {
   command = plan
 
   variables {
-    github_token                 = "test-token-placeholder"
+    github_token                 = "ghp_test-token-placeholder"
     n8n_webhook_github_issue_url = "n8n.jclee.me/webhook/github-issue"
   }
 
@@ -201,7 +201,7 @@ run "test_invalid_n8n_webhook_pr_no_protocol" {
   command = plan
 
   variables {
-    github_token              = "test-token-placeholder"
+    github_token              = "ghp_test-token-placeholder"
     n8n_webhook_github_pr_url = "n8n.jclee.me/webhook/github-pr"
   }
 

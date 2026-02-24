@@ -7,6 +7,11 @@ variable "op_service_account_token" {
   type        = string
   default     = ""
   sensitive   = true
+
+  validation {
+    condition     = var.op_service_account_token == "" || can(regex("^ops_", var.op_service_account_token))
+    error_message = "op_service_account_token must be empty or start with 'ops_'."
+  }
 }
 
 variable "onepassword_vault_name" {
