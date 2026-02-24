@@ -23,3 +23,12 @@ certificatesResolvers:
       storage: /etc/traefik/acme.json
       httpChallenge:
         entryPoint: web
+  cf:
+    acme:
+      email: jclee@jclee.me
+      storage: /etc/traefik/acme-cf.json
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
