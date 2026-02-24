@@ -78,7 +78,7 @@ terraform/
 | Cloudflare infra              | `300-cloudflare/AGENTS.md`                                                    | External infra + Worker + Zero Trust Access + Logpush + tunnels.                      |
 | Worker-specific rules         | `300-cloudflare/workers/synology-proxy/AGENTS.md`                             | Route/auth/cache implementation constraints.                                          |
 | Cloudflare automation scripts | `300-cloudflare/scripts/AGENTS.md`                                            | Secret collection/sync/audit/deploy script governance.                                |
-| GitHub org management         | `301-github/AGENTS.md`                                                        | 17 repos, rulesets, webhooks, environments.                                           |
+| GitHub org management         | `301-github/AGENTS.md`                                                        | 14 repos, rulesets, webhooks, environments.                                           |
 | SafetyWallet service          | `310-safetywallet/AGENTS.md`                                                  | External SafetyWallet service; CF tunnel.                                             |
 | Test harness overview         | `tests/AGENTS.md`                                                             | Native `terraform test` conventions and layout.                                       |
 | Proxmox tests                 | `tests/modules/proxmox/AGENTS.md`                                             | Mock provider patterns, fixture discipline.                                           |
