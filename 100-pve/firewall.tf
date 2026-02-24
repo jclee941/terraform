@@ -90,6 +90,13 @@ locals {
         { dport = "8055:8079", proto = "tcp", comment = "MCP server ports" },
       ]
     }
+    jclee_dev = {
+      vmid = module.hosts.hosts.jclee_dev.vmid
+      rules = [
+        { dport = "22", proto = "tcp", comment = "SSH" },
+        { dport = "3389", proto = "tcp", comment = "RDP" },
+      ]
+    }
   }
 }
 
