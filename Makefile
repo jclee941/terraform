@@ -20,6 +20,7 @@ ALIAS_synology   := 215-synology
 ALIAS_youtube    := 220-youtube
 ALIAS_cloudflare := 300-cloudflare
 ALIAS_github     := 301-github
+ALIAS_slack      := 320-slack
 
 # Resolve alias: if ALIAS_$(SVC) is defined, use it; otherwise use SVC as-is
 TF_DIR := $(or $(ALIAS_$(SVC)),$(SVC))
@@ -30,7 +31,7 @@ define check_svc_dir
 		echo "Error: workspace directory '$(TF_DIR)' does not exist."; \
 		echo "Available workspaces:"; \
 		echo "  Direct: $$(ls -d [0-9]*/ | tr -d '/' | tr '\n' ' ')"; \
-		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub synology youtube cloudflare github"; \
+		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub synology youtube cloudflare github slack"; \
 		exit 1; \
 	fi
 endef
@@ -110,6 +111,7 @@ test: ## Run all Terraform tests (module + integration + workspace)
 	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
 	cd tests/workspaces/grafana && terraform init -backend=false && terraform test
 	cd tests/workspaces/elk && terraform init -backend=false && terraform test
+	cd tests/workspaces/slack && terraform init -backend=false && terraform test
 	terraform -chdir=301-github init -backend=false && terraform -chdir=301-github test
 
 test-unit: ## Run unit tests only
@@ -124,6 +126,7 @@ test-workspace: ## Run workspace validation tests only
 	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
 	cd tests/workspaces/grafana && terraform init -backend=false && terraform test
 	cd tests/workspaces/elk && terraform init -backend=false && terraform test
+	cd tests/workspaces/slack && terraform init -backend=false && terraform test
 	terraform -chdir=301-github init -backend=false && terraform -chdir=301-github test
 
 ## Verification & Backup

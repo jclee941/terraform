@@ -12,7 +12,8 @@ tests/
 │   ├── cloudflare/       # Cloudflare workspace validation
 │   ├── elk/              # ELK workspace validation
 │   ├── grafana/          # Grafana workspace validation
-│   └── pve/              # PVE workspace validation
+│   ├── pve/              # PVE workspace validation
+│   └── slack/            # Slack workspace validation
 ├── BUILD.bazel
 └── OWNERS
 ```
