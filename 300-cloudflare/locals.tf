@@ -68,6 +68,11 @@ locals {
       name      = "JCLee SSH"
       origin    = "tcp://${var.jclee_ip}:22"
     }
+    youtube-ssh = {
+      subdomain = "youtube-ssh"
+      name      = "YouTube SSH"
+      origin    = "tcp://${var.youtube_ip}:22"
+    }
   }
 
   # Services requiring Cloudflare Access protection

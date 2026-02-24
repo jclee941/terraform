@@ -28,6 +28,7 @@ The `220-youtube` VM is a dedicated environment for YouTube media workloads. It 
 | **Config Module**  | `modules/proxmox/vm-config/` | Shared VM configuration patterns              |
 | **Cloud-Init**     | `220-youtube/cloud-init/`    | Automated package/service setup (WARP, tools) |
 
+| **CF Tunnel**  | `300-cloudflare/locals.tf`   | `youtube-ssh` TCP service via homelab tunnel  |
 ## CONVENTIONS
 
 - **Ephemeral Lifecycle**: The VM is designed to be destroyed and recreated via Terraform (`terraform destroy/apply -target=...`).

@@ -162,3 +162,14 @@ variable "elk_ip" {
     error_message = "elk_ip must be a valid IPv4 address."
   }
 }
+
+variable "youtube_ip" {
+  description = "YouTube media server IP address (VMID 220)"
+  type        = string
+  default     = "192.168.50.220"
+
+  validation {
+    condition     = can(regex("^(\\d{1,3}\\.){3}\\d{1,3}$", var.youtube_ip))
+    error_message = "youtube_ip must be a valid IPv4 address."
+  }
+}

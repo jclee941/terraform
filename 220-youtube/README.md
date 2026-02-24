@@ -5,9 +5,11 @@ A dedicated virtual machine for YouTube media workloads.
 ## Quick Start
 
 ```bash
-# SSH access
+# SSH access (local network)
 ssh youtube
 ssh jclee@192.168.50.220
+# SSH access (external via CF tunnel)
+ssh -o ProxyCommand="cloudflared access tcp --hostname youtube-ssh.jclee.me" jclee@youtube-ssh.jclee.me
 ```
 
 ## Specifications
