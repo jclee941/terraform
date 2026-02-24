@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-02-24 13:48:00 Asia/Seoul
-**Commit:** ca3d406
+**Generated:** 2026-02-25 14:15:00 Asia/Seoul
+**Commit:** d3098ee
 **Branch:** master
 **Style:** Google3 Monorepo (Bazel)
 
@@ -104,7 +104,7 @@ terraform/
 - SSoT: `hosts.tf` for host inventory; `112-mcphub/mcp_servers.json` for MCP server catalog.
 - Generated pipeline: templates and inventories feed `module.config_renderer` to produce `100-pve/configs/...`.
 - CI model: 3 core workflows + 2 reusable `_terraform-*` workflows + service plan/apply pairs + automation workflows.
-- Secrets: inject via env/GitHub secrets/1Password service account; keep placeholders in tracked config. Provider workspaces use `modules/shared/onepassword-secrets` for structured secret lookup.
+- Secrets: inject via env/GitHub secrets/1Password service account or 1Password Connect Server; keep placeholders in tracked config. Provider workspaces use `modules/shared/onepassword-secrets` for structured secret lookup. Connect Server on LXC 112 port 8090 provides rate-limit-free alternative to service account token.
 - Log collection: Filebeat agents deployed to all LXC/VM hosts via `setup_filebeat` provisioner in lxc-config/vm-config modules. Cloudflare Worker traces ingested via Logpush → Logstash HTTP input.
 
 ## ANTI-PATTERNS (THIS PROJECT)
@@ -112,7 +112,7 @@ terraform/
 - NEVER hand-edit Terraform-rendered outputs under `100-pve/configs/` or service `tf-configs/` directories.
 - NEVER hardcode IPs in workspace logic; route through `module.hosts` inventory.
 - NEVER perform manual Terraform state edits outside Terraform CLI workflows.
-- NEVER commit `.env`, `.tfvars`, API keys, or runtime secret dumps. `.tfstate` is tracked in git for CI apply reliability across all workspaces: `100-pve/`, `102-traefik/terraform/`, `104-grafana/terraform/`, `105-elk/terraform/`, `108-archon/terraform/`, `300-cloudflare/`, `301-github/`.
+- NEVER commit `.env`, `.tfvars`, API keys, or runtime secret dumps. Only `105-elk/terraform/terraform.tfstate` is tracked in git (force-added); all other workspace state files are gitignored.
 - NEVER use `as any`, `@ts-ignore`, `@ts-expect-error`, or empty catch blocks.
 - NEVER SSH directly into Terraform-managed LXCs for config mutation; use IaC or `pct exec` for diagnostics only.
 
@@ -146,10 +146,14 @@ bazel build //... && bazel test //...
 - Risk-tier merge policy: critical and medium paths require manual merge; low-risk paths can auto-merge.
 - Self-hosted runner (101) is required for Terraform workflows with homelab network dependencies.
 - n8n webhook workflows must be published via UI after import.
-- All 7 workspace `.tfstate` files are tracked in git intentionally for CI reliability (local backend).
+- Only `105-elk/terraform/terraform.tfstate` is tracked in git; all other workspaces use local backend with gitignored state. CI apply workflows on the self-hosted runner manage state locally.
 - State locking: all workspaces use `backend "local" {}` with no remote locking. Concurrent apply is prevented by GHA `concurrency` groups (`cancel-in-progress: false`) and disabled local `make apply`.
 - 100-pve workflows (`terraform-plan.yml`, `terraform-apply.yml`) are intentionally standalone (not using `_terraform-*` reusable templates) due to Proxmox-specific secrets, resource import scripts, and plan-file-based apply flow.
 - Drift detection runs on push to master AND on a weekday schedule (Mon-Fri 00:00 UTC / 09:00 KST).
 - Filebeat Docker autodiscovery is enabled on all LXC hosts; new Docker services are auto-indexed.
 - Cloudflare Logpush sends Worker trace events to Logstash HTTP input (port 8080) via CF tunnel + M2M service token.
 - SSH/RDP access to homelab hosts tunneled through Cloudflare Zero Trust (720h session, email auth).
+- CoreDNS (LXC 103) is default DNS for all LXC/VM hosts (`192.168.50.103`); wildcard `*.jclee.me` → Traefik, `*.homelab.local` → per-host A records, external → 1.1.1.1/8.8.8.8.
+- Traefik (LXC 102) uses Cloudflare DNS-01 certificate resolver (`cf`) for TLS; runs as systemd service, not Docker.
+- 1Password Connect Server (`connect-api` + `connect-sync`) on LXC 112 port 8090 provides rate-limit-free vault access for Terraform workspaces.
+- MCPHub runs 9/10 MCP servers (archon blocked — requires OpenAI API key); catalog validated by `112-mcphub/validate_mcps.py`.
