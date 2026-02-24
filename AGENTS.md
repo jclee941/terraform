@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-02-24 02:51:00 Asia/Seoul
-**Commit:** 8be4f08
+**Generated:** 2026-02-24 12:30:00 Asia/Seoul
+**Commit:** 2e256e9
 **Branch:** master
 **Style:** Google3 Monorepo (Bazel)
 
@@ -64,7 +64,7 @@ terraform/
 | DNS resolver                  | `103-coredns/AGENTS.md`                                                       | Split DNS on LXC 103; Corefile + Docker Compose + filebeat.                           |
 | Observability stack           | `104-grafana/AGENTS.md`                                                       | Prometheus + Grafana (16 dashboards) + TF-managed alerts.                             |
 | Dashboard catalog             | `104-grafana/dashboards/AGENTS.md`                                            | Dashboard JSON SSoT, UID/title discipline, and panel edit rules.                      |
-| Logging stack                 | `105-elk/AGENTS.md`                                                           | ES 8.17.0 + Logstash + Kibana; 3-tier ILM, filebeat autodiscovery, logstash-exporter. |
+| Logging stack                 | `105-elk/AGENTS.md`                                                           | ES 8.17.0 + Logstash + Kibana; 3-tier ILM, filebeat autodiscovery, logstash-exporter, Logpush HTTP ingest. |
 | Error tracking                | `106-glitchtip/AGENTS.md`                                                     | GlitchTip (Sentry alternative) on LXC 106.                                            |
 | Supabase service              | `107-supabase/AGENTS.md`                                                      | Self-hosted Supabase (PostgreSQL, Auth, Realtime).                                    |
 | Archon AI                     | `108-archon/AGENTS.md`                                                        | AI knowledge management + MCP server on LXC 108.                                      |
@@ -72,7 +72,7 @@ terraform/
 | MCP catalog validation        | `112-mcphub/validate_mcps.py`                                                 | Validates schema, port uniqueness, secret-pattern leaks.                              |
 | Synology NAS                  | `215-synology/AGENTS.md`                                                      | Physical NAS inventory host (not TF-provisioned).                                     |
 | YouTube VM                    | `220-youtube/AGENTS.md`                                                       | YouTube media server with WARP.                                                       |
-| Cloudflare infra              | `300-cloudflare/AGENTS.md`                                                    | External infra conventions + Worker boundaries.                                       |
+| Cloudflare infra              | `300-cloudflare/AGENTS.md`                                                    | External infra + Worker + Zero Trust Access + Logpush + tunnels.                      |
 | Worker-specific rules         | `300-cloudflare/workers/synology-proxy/AGENTS.md`                             | Route/auth/cache implementation constraints.                                          |
 | Cloudflare automation scripts | `300-cloudflare/scripts/AGENTS.md`                                            | Secret collection/sync/audit/deploy script governance.                                |
 | GitHub org management         | `301-github/AGENTS.md`                                                        | 17 repos, rulesets, webhooks, environments.                                           |
@@ -99,7 +99,7 @@ terraform/
 - Generated pipeline: templates and inventories feed `module.config_renderer` to produce `100-pve/configs/...`.
 - CI model: 3 core workflows + 2 reusable `_terraform-*` workflows + service plan/apply pairs + automation workflows.
 - Secrets: inject via env/GitHub secrets/1Password service account; keep placeholders in tracked config. Provider workspaces use `modules/shared/onepassword-secrets` for structured secret lookup.
-- Log collection: Filebeat agents deployed to all LXC/VM hosts via `setup_filebeat` provisioner in lxc-config/vm-config modules.
+- Log collection: Filebeat agents deployed to all LXC/VM hosts via `setup_filebeat` provisioner in lxc-config/vm-config modules. Cloudflare Worker traces ingested via Logpush → Logstash HTTP input.
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
@@ -145,3 +145,5 @@ bazel build //... && bazel test //...
 - 100-pve workflows (`terraform-plan.yml`, `terraform-apply.yml`) are intentionally standalone (not using `_terraform-*` reusable templates) due to Proxmox-specific secrets, resource import scripts, and plan-file-based apply flow.
 - Drift detection runs on push to master AND on a weekday schedule (Mon-Fri 00:00 UTC / 09:00 KST).
 - Filebeat Docker autodiscovery is enabled on all LXC hosts; new Docker services are auto-indexed.
+- Cloudflare Logpush sends Worker trace events to Logstash HTTP input (port 8080) via CF tunnel + M2M service token.
+- SSH/RDP access to homelab hosts tunneled through Cloudflare Zero Trust (720h session, email auth).

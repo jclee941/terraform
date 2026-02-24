@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests data from **Filebeat** agents deployed across all 7 LXC containers, VM 112 (mcphub), and PVE bare-metal host (100) via Docker autodiscovery and filestream inputs. **Synology NAS** (215) forwards via syslog. **YouTube VM** (220) runs Filebeat when active. Alerting is handled by Grafana (104-grafana).
+Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests data from **Filebeat** agents deployed across all 7 LXC containers, VM 112 (mcphub), and PVE bare-metal host (100) via Docker autodiscovery and filestream inputs. **Synology NAS** (215) forwards via syslog. **Cloudflare Logpush** sends Worker trace events via HTTP input (port 8080). **YouTube VM** (220) runs Filebeat when active. Alerting is handled by Grafana (104-grafana).
 
 ## STRUCTURE
 
@@ -33,7 +33,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 
 ## TEMPLATE VARIABLES (from env-config module)
 
-- `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`
+- `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`, `elk_ports.logstash_http`
 - `elk_version` (8.17.0), `es_heap` (2g), `logstash_heap` (512m)
 - `logstash_dlq_size` (1024mb)
 - `elasticsearch_index_pattern` (logs-{service}-YYYY.MM.dd)
@@ -53,6 +53,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - **DLQ**: Enabled by default (1024mb max) to capture failed document mappings.
 - **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu.
 - **Naming**: Index pattern is `logs-{service}-YYYY.MM.dd`. Service is extracted by Logstash from filebeat fields, Docker Compose labels, or parsed JSON. Fallback: `unknown`.
+- **HTTP Ingest**: Logstash listens on port 8080 (`http` input, `json_lines` codec) for external log sources. Cloudflare Logpush Worker traces are routed to `logs-cloudflare-workers-*` with error classification on non-ok Outcome.
 - **Alerting**: Grafana (`104-grafana/terraform/main.tf`) handles all alerting. ElastAlert2 was removed.
 - **Script Alignment**: Keep operational scripts aligned with Terraform-defined service topology.
 - **State Tracking**: `terraform/terraform.tfstate` is committed to git (exception to global rule) for CI apply reliability with elasticstack provider.

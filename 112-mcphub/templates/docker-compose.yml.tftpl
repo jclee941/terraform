@@ -11,6 +11,10 @@ services:
       - npm_cache:/root/.npm
       - /usr/bin/op:/usr/bin/op:ro
       - ./op-mcp-server:/app/op-mcp-server:ro
+      - /mnt/oc-dev:/home/jclee/dev:ro
+      - ./.gitconfig:/root/.gitconfig:ro
+      - /mnt/oc-kratos:/root/.kratos
+      - ./slack-users-cache.json:/tmp/slack-users-cache.json
     env_file:
       - .env
     environment:

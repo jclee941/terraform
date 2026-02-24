@@ -110,7 +110,10 @@
       "port": 8079,
       "env": {
         "SLACK_MCP_XOXP_TOKEN": "${SLACK_MCP_XOXP_TOKEN}",
-        "SLACK_MCP_XOXB_TOKEN": "${SLACK_MCP_XOXB_TOKEN}"
+        "SLACK_MCP_XOXB_TOKEN": "${SLACK_MCP_XOXB_TOKEN}",
+        "SLACK_MCP_ADD_MESSAGE_TOOL": "true",
+        "SLACK_MCP_USERS_CACHE": "/tmp/slack-users-cache.json",
+        "SLACK_MCP_CHANNELS_CACHE": "/tmp/slack-channels-cache.json"
       },
       "description": "Slack workspace operations"
     },
