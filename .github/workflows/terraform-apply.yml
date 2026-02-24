@@ -105,7 +105,7 @@ jobs:
               print(f"already managed: {address}")
               continue
             # Resource not yet provisioned on provider — skip import, let apply create it
-            if any(p in output.lower() for p in ["not found", "does not exist", "unable to find", "unable to read", "404"]):
+            if any(p in output.lower() for p in ["non-existent", "not found", "does not exist", "unable to find", "unable to read", "404"]):
               print(f"not yet provisioned, will be created: {address}")
               continue
             print(output)
