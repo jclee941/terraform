@@ -52,17 +52,22 @@ locals {
     synology-ssh = {
       subdomain = "synology-ssh"
       name      = "Synology SSH"
-      origin    = "tcp://192.168.50.215:22"
+      origin    = "tcp://${var.synology_nas_ip}:22"
     }
     rdp = {
       subdomain = "rdp"
       name      = "RDP"
-      origin    = "tcp://192.168.50.80:3389"
+      origin    = "tcp://${var.jclee_ip}:3389"
     }
     oc-rdp = {
       subdomain = "oc-rdp"
       name      = "OpenCode RDP"
-      origin    = "tcp://192.168.50.200:3389"
+      origin    = "tcp://${var.jclee_dev_ip}:3389"
+    }
+    jclee-ssh = {
+      subdomain = "jclee-ssh"
+      name      = "JCLee SSH"
+      origin    = "tcp://${var.jclee_ip}:22"
     }
   }
 

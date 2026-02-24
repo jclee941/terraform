@@ -1,13 +1,10 @@
 # AGENTS: 80-jclee — Personal Workstation
-
-**VMID:** 80
 **IP:** 192.168.50.80
 **Status:** Active (CF tunnel: 80-jclee)
 **Tunnel ID:** 8419f66e-255a-4535-88d3-515010c60ac8
-
 ## OVERVIEW
 
-Personal workstation VM. Not provisioned by Terraform — inventory host only. RDP exposed externally via Cloudflare tunnel with Zero Trust email authentication (720h session).
+Personal workstation VM. Not provisioned by Terraform — inventory host only. RDP and SSH exposed externally via Cloudflare tunnel with Zero Trust email authentication (720h session). PVE firewall rules managed in `100-pve/firewall.tf`.
 
 ## STRUCTURE
 
@@ -20,19 +17,21 @@ Personal workstation VM. Not provisioned by Terraform — inventory host only. R
 ```
 
 ## WHERE TO LOOK
-
 | Task              | Location                                        | Notes                            |
-| ----------------- | ----------------------------------------------- | -------------------------------- |
-| RDP tunnel config | `300-cloudflare/locals.tf` → `tcp_services.rdp` | CF tunnel to .80:3389            |
-| CF Access policy  | `300-cloudflare/access.tf` → `tcp_services`     | 720h session, email auth         |
-| CF tunnel         | Cloudflare Dashboard                            | 80-jclee tunnel (not TF-managed) |
+| ----------------- | ---------------------------------------------------- | -------------------------------------- |
+| Host inventory    | `100-pve/envs/prod/hosts.tf` → `hosts.jclee`         | VMID 80, .80, ssh+rdp ports            |
+| RDP tunnel config | `300-cloudflare/locals.tf` → `tcp_services.rdp`      | CF tunnel to .80:3389 (via variable)   |
+| SSH tunnel config | `300-cloudflare/locals.tf` → `tcp_services.jclee-ssh` | CF tunnel to .80:22 (via variable)     |
+| CF Access policy  | `300-cloudflare/access.tf` → `tcp_services`          | 720h session, email auth               |
+| CF tunnel         | `300-cloudflare/tunnel.tf` → `jclee`                 | TF-managed tunnel resource             |
+| PVE firewall      | `100-pve/firewall.tf` → `vm_firewall.jclee`          | SSH (22/tcp) + RDP (3389/tcp)          |
 
 ## CONVENTIONS
-
 - This host is NOT Terraform-provisioned; changes are manual.
-- RDP access is via Cloudflare tunnel only — do not expose port directly.
-- The dedicated 80-jclee tunnel (8419f66e) is not managed by Terraform.
+- RDP and SSH access is via Cloudflare tunnel only — do not expose ports directly.
+- The `80-jclee` tunnel is Terraform-managed (`300-cloudflare/tunnel.tf`).
+- IPs reference `var.jclee_ip` in `300-cloudflare/` — do not hardcode.
 
 ## ANTI-PATTERNS
-
 - Do not expose RDP or SSH via public internet without CF tunnel + Access policy.
+- Do not hardcode 192.168.50.80 in Cloudflare config — use `var.jclee_ip`.

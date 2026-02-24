@@ -75,7 +75,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
       }],
       [{
         hostname = "logstash-ingest.${var.homelab_domain}"
-        service  = "http://192.168.50.105:8080"
+        service  = "http://${var.elk_ip}:8080"
       }],
       [{ service = "http_status:404" }]
     )
@@ -85,4 +85,28 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
 data "cloudflare_zero_trust_tunnel_cloudflared_token" "homelab" {
   account_id = local.effective_cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
+}
+
+
+# ============================================
+# Cloudflare Tunnel for JCLee Workstation (VMID 80)
+# ============================================
+
+resource "random_password" "jclee_tunnel_secret" {
+  length = 64
+}
+
+resource "cloudflare_zero_trust_tunnel_cloudflared" "jclee" {
+  account_id    = local.effective_cloudflare_account_id
+  name          = "80-jclee"
+  tunnel_secret = base64encode(random_password.jclee_tunnel_secret.result)
+
+  lifecycle {
+    ignore_changes = [tunnel_secret, config_src]
+  }
+}
+
+data "cloudflare_zero_trust_tunnel_cloudflared_token" "jclee" {
+  account_id = local.effective_cloudflare_account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.jclee.id
 }

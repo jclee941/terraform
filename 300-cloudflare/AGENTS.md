@@ -5,7 +5,7 @@
 
 ## OVERVIEW
 
-Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets Store + GitHub Actions for 12+ sibling projects), Zero Trust Access (12 HTTP services + 3 TCP tunnels + M2M service token), Cloudflare tunnels, DNS, Logpush, R2 storage, WAF, and a Synology FileStation proxy Worker.
+Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets Store + GitHub Actions for 12+ sibling projects), Zero Trust Access (12 HTTP services + 4 TCP tunnels + M2M service token), Cloudflare tunnels, DNS, Logpush, R2 storage, WAF, and a Synology FileStation proxy Worker.
 ## STRUCTURE
 ```
 300-cloudflare/
@@ -34,9 +34,9 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 | **Add/modify a secret** | `inventory/secrets.yaml` then `*.tf` | YAML defines targets, TF applies |
 | **Secret target logic** | `locals.tf` | YAML parsing + target classification |
 | **DNS records** | `dns.tf` | CNAME records for homelab + TCP + logstash-ingest subdomains |
-| **Tunnel config** | `tunnel.tf` + `docker/cloudflared/` | 2 tunnels: synology (direct) + homelab (Traefik + TCP + logstash-ingest) |
-| **Access policies** | `access.tf` | CF Access: 12 HTTP (24h), 3 TCP (720h), 1 M2M service token (logstash) |
-| **TCP tunnels (SSH/RDP)** | `locals.tf` → `tcp_services` + `tunnel.tf` + `dns.tf` + `access.tf` | synology-ssh (:22), rdp (:3389), oc-rdp (:3389) — bypass Traefik |
+| **Tunnel config** | `tunnel.tf` + `docker/cloudflared/` | 3 tunnels: synology (direct) + homelab (Traefik + TCP + logstash-ingest) + jclee (workstation) |
+| **Access policies** | `access.tf` | CF Access: 12 HTTP (24h), 4 TCP (720h), 1 M2M service token (logstash) |
+| **TCP tunnels (SSH/RDP)** | `locals.tf` → `tcp_services` + `tunnel.tf` + `dns.tf` + `access.tf` | synology-ssh (:22), rdp (:3389), oc-rdp (:3389), jclee-ssh (:22) — bypass Traefik |
 | **Logpush** | `logpush.tf` + `access.tf` | Worker trace events → Logstash HTTP ingest via M2M service token |
 | **WAF rules** | `waf.tf` | Web Application Firewall custom rulesets |
 | **R2 storage** | `r2.tf` | `synology-cache` bucket (APAC, 7d TTL) |
@@ -54,7 +54,7 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 - **Secret values**: NEVER in code/git. Only in `.tfvars` (gitignored) or env vars.
 - **inventory/secrets.yaml**: Metadata only (name, targets[], description). No values.
 - **Scripts**: Assume `~/dev/` sibling project layout for cross-project harvesting.
-- **Tunnel architecture**: 2 tunnels — `synology` (direct to NAS, no_tls_verify) and `homelab`/`traefik` (HTTP via Traefik + TCP direct + logstash-ingest to 192.168.50.105:8080).
+- **Tunnel architecture**: 3 tunnels — `synology` (direct to NAS, no_tls_verify), `homelab`/`traefik` (HTTP via Traefik + TCP direct + logstash-ingest), and `jclee` (workstation, VMID 80).
 - **Access tiers**: HTTP services get 24h sessions with email auth. TCP services (SSH/RDP) get 720h sessions. M2M (Logpush→Logstash) uses service token with `non_identity` policy.
 ## ANTI-PATTERNS
 - **NEVER** commit `.tfvars`, `.env`, or `data/` output files.
@@ -79,4 +79,4 @@ cd workers/synology-proxy && npm test                            # Worker test (
 - Migrated from standalone `~/dev/cloudflare/` repo (2026-02-13).
 - Logpush pipeline: CF Worker traces → `logpush.tf` job → HTTPS to `logstash-ingest.jclee.me` → CF tunnel → Logstash `:8080` HTTP input → `logs-cloudflare-workers-*` ES indices.
 - Logpush M2M service token (`logpush`) has 8760h (1yr) duration; rotated via `access.tf`.
-- TCP tunnels bypass Traefik entirely and connect directly to origin IPs (192.168.50.x).
+- TCP tunnels bypass Traefik entirely and connect directly to origin IPs via variables (`var.jclee_ip`, `var.jclee_dev_ip`, `var.synology_nas_ip`).

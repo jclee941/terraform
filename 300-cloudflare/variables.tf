@@ -124,3 +124,41 @@ variable "homelab_domain" {
     error_message = "homelab_domain must be a valid domain name."
   }
 }
+
+
+# ============================================
+# Homelab host IP variables
+# ============================================
+
+variable "jclee_ip" {
+  description = "JCLee workstation IP address (VMID 80)"
+  type        = string
+  default     = "192.168.50.80"
+
+  validation {
+    condition     = can(regex("^(\\d{1,3}\\.){3}\\d{1,3}$", var.jclee_ip))
+    error_message = "jclee_ip must be a valid IPv4 address."
+  }
+}
+
+variable "jclee_dev_ip" {
+  description = "JCLee development workstation IP address (VMID 200)"
+  type        = string
+  default     = "192.168.50.200"
+
+  validation {
+    condition     = can(regex("^(\\d{1,3}\\.){3}\\d{1,3}$", var.jclee_dev_ip))
+    error_message = "jclee_dev_ip must be a valid IPv4 address."
+  }
+}
+
+variable "elk_ip" {
+  description = "ELK stack IP address (VMID 105)"
+  type        = string
+  default     = "192.168.50.105"
+
+  validation {
+    condition     = can(regex("^(\\d{1,3}\\.){3}\\d{1,3}$", var.elk_ip))
+    error_message = "elk_ip must be a valid IPv4 address."
+  }
+}

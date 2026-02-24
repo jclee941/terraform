@@ -79,6 +79,13 @@ locals {
   }
 
   vm_firewall = {
+    jclee = {
+      vmid = module.hosts.hosts.jclee.vmid
+      rules = [
+        { dport = "22", proto = "tcp", comment = "SSH" },
+        { dport = "3389", proto = "tcp", comment = "RDP" },
+      ]
+    }
     mcphub = {
       vmid = module.hosts.hosts.mcphub.vmid
       rules = [

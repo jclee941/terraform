@@ -8,6 +8,16 @@ terraform {
 locals {
 
   hosts = {
+    jclee = {
+      vmid  = 80
+      ip    = "192.168.50.80"
+      roles = ["workstation"]
+      ports = {
+        rdp = 3389
+        ssh = 22
+      }
+    }
+
     pve = {
       vmid  = 100
       ip    = "192.168.50.100"
