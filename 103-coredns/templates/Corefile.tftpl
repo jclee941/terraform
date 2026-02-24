@@ -1,5 +1,6 @@
 # CoreDNS configuration for split DNS
 # Resolves *.jclee.me to Traefik for internal clients
+# Resolves *.homelab.local to individual host IPs
 # Rendered by Terraform - DO NOT EDIT MANUALLY
 
 jclee.me:53 {
@@ -8,6 +9,16 @@ jclee.me:53 {
     }
     template IN AAAA {
         rcode NOERROR
+    }
+    log
+}
+
+homelab.local:53 {
+    hosts {
+%{ for name, host in hosts ~}
+        ${host.ip} ${name}.homelab.local
+%{ endfor ~}
+        fallthrough
     }
     log
 }

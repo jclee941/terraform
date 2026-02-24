@@ -90,7 +90,7 @@ variable "network_cidr" {
 variable "dns_servers" {
   description = "DNS servers for containers"
   type        = list(string)
-  default     = ["8.8.8.8", "8.8.4.4"]
+  default     = ["192.168.50.103", "8.8.8.8"]
 
   validation {
     condition     = length(var.dns_servers) > 0 && length(var.dns_servers) <= 3

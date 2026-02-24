@@ -300,7 +300,7 @@ module "vm" {
   bios             = try(each.value.bios, "seabios")
   machine          = try(each.value.machine, "pc")
   network_gateway  = var.network_gateway
-  dns_servers      = [var.network_gateway, "8.8.8.8"]
+  dns_servers      = var.dns_servers
   datastore_id     = var.datastore_id
   managed_vmid_min = var.managed_vmid_range.min
   managed_vmid_max = var.managed_vmid_range.max
