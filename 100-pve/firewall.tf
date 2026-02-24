@@ -79,13 +79,8 @@ locals {
   }
 
   vm_firewall = {
-    jclee = {
-      vmid = module.hosts.hosts.jclee.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "3389", proto = "tcp", comment = "RDP" },
-      ]
-    }
+    # NOTE: jclee (VMID 80) excluded — Proxmox provider requires vm_id >= 100
+    # Firewall rules for VMID 80 must be managed via PVE GUI or CLI
     mcphub = {
       vmid = module.hosts.hosts.mcphub.vmid
       rules = [
