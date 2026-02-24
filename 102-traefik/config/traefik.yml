@@ -2,6 +2,12 @@ api:
   dashboard: true
   insecure: true
 
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    addServicesLabels: true
+
 entryPoints:
   web:
     address: ":80"

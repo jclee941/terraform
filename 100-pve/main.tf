@@ -63,7 +63,7 @@ locals {
       ip   = host.ip
       vmid = host.vmid
     }
-    if !contains(host.roles, "hypervisor")
+    if !contains(host.roles, "hypervisor") && !contains(host.roles, "workstation") && !contains(host.roles, "nas")
   ]
 
   mcp_catalog = jsondecode(file("${path.module}/../112-mcphub/mcp_servers.json"))
