@@ -1,12 +1,11 @@
+terraform {
+  required_version = ">= 1.7, < 2.0"
+}
+
 # Proxmox Infrastructure Host Inventory
 # Single Source of Truth for all host IPs, ports, and roles
 
 locals {
-  network = {
-    subnet  = "192.168.50.0/24"
-    gateway = "192.168.50.1"
-    domain  = "jclee.me"
-  }
 
   hosts = {
     pve = {
@@ -70,6 +69,7 @@ locals {
         logstash_tcp        = 5000
         logstash_api        = 9600
         logstash_prometheus = 9198
+        logstash_http       = 8080
       }
     }
 

@@ -47,6 +47,25 @@ locals {
     opencode  = { subdomain = "opencode" }
   }
 
+  # TCP/non-HTTP services exposed directly via Cloudflare Tunnel (bypass Traefik)
+  tcp_services = {
+    synology-ssh = {
+      subdomain = "synology-ssh"
+      name      = "Synology SSH"
+      origin    = "tcp://192.168.50.215:22"
+    }
+    rdp = {
+      subdomain = "rdp"
+      name      = "RDP"
+      origin    = "tcp://192.168.50.80:3389"
+    }
+    oc-rdp = {
+      subdomain = "oc-rdp"
+      name      = "OpenCode RDP"
+      origin    = "tcp://192.168.50.200:3389"
+    }
+  }
+
   # Services requiring Cloudflare Access protection
   # All homelab HTTP services are protected by CF Access email auth
   restricted_services = {

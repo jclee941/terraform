@@ -7,6 +7,12 @@ input {
     port => 5000
     type => "syslog"
   }
+
+  http {
+    port  => 8080
+    type  => "logpush"
+    codec => json_lines
+  }
 }
 
 filter {
@@ -91,6 +97,28 @@ filter {
       mutate {
         add_field => { "service" => "syslog" }
       }
+    }
+  }
+
+  # Cloudflare Workers Trace Events (Logpush → HTTP input)
+  if [type] == "logpush" {
+    mutate {
+      add_field => { "service" => "cloudflare-workers" }
+    }
+    if [ScriptName] {
+      mutate { add_field => { "worker_script" => "%%{[ScriptName]}" } }
+    }
+    if [Outcome] and [Outcome] != "ok" {
+      mutate {
+        add_field => {
+          "level" => "error"
+          "tier" => "2"
+          "error_classification" => "WORKER_FAILURE"
+          "error_severity" => "high"
+        }
+      }
+    } else {
+      mutate { add_field => { "level" => "info" } }
     }
   }
 

@@ -76,6 +76,7 @@ services:
     ports:
       - "${hosts.elk.ports.logstash_beat}:5044"
       - "${hosts.elk.ports.logstash_tcp}:5000"
+      - "${hosts.elk.ports.logstash_http}:8080"
       - "9600:9600"
 
     environment:

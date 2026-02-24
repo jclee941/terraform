@@ -69,6 +69,14 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
         hostname = "${svc.subdomain}.${var.homelab_domain}"
         service  = "http://localhost:80"
       }],
+      [for key, svc in local.tcp_services : {
+        hostname = "${svc.subdomain}.${var.homelab_domain}"
+        service  = svc.origin
+      }],
+      [{
+        hostname = "logstash-ingest.${var.homelab_domain}"
+        service  = "http://192.168.50.105:8080"
+      }],
       [{ service = "http_status:404" }]
     )
   }
