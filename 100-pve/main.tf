@@ -851,6 +851,7 @@ locals {
       mcp_settings       = "mcp_settings.json.tftpl"
       env                = ".env.tftpl"
       n8n_docker_compose = "docker-compose-n8n.yml.tftpl"
+      op_connect_compose = "docker-compose-op-connect.yml.tftpl"
     } }
     "220-youtube" = { prefix = "youtube", files = {
       filebeat = "filebeat.yml.tftpl"

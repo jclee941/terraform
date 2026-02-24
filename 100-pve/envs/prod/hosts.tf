@@ -127,6 +127,7 @@ locals {
         n8n        = 5678
         proxmox    = 8055
         playwright = 8056
+        op_connect = 8090
       }
     }
 

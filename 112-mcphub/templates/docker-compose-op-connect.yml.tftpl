@@ -1,0 +1,19 @@
+services:
+  op-connect-api:
+    image: 1password/connect-api:latest
+    ports:
+      - "${hosts.mcphub.ports.op_connect}:8080"
+    volumes:
+      - ./1password-credentials.json:/home/opuser/.op/1password-credentials.json:ro
+      - op-connect-data:/home/opuser/.op/data
+    restart: unless-stopped
+
+  op-connect-sync:
+    image: 1password/connect-sync:latest
+    volumes:
+      - ./1password-credentials.json:/home/opuser/.op/1password-credentials.json:ro
+      - op-connect-data:/home/opuser/.op/data
+    restart: unless-stopped
+
+volumes:
+  op-connect-data:
