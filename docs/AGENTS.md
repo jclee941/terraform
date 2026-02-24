@@ -27,7 +27,7 @@ docs/
 | **Incident Response**      | `runbooks/`                    | Step-by-step recovery guides                             |
 | **Token Rotation**         | `cloudflare-token-rotation.md` | Quarterly rotation steps                                 |
 | **Backups**                | `backup-strategy.md`           | 3-2-1 strategy details                                   |
-| **Secrets**                | `secret-management.md`         | 1Password + Vault integration patterns                   |
+| **Secrets**                | `secret-management.md`         | 1Password integration and secret lifecycle                   |
 | **Service Numbering**      | `workspace-ordering.md`        | VMID/directory numbering rationale                       |
 | **Alerts**                 | `ALERTING-REFERENCE.md`        | Rule definitions, thresholds, n8n bridge routing         |
 
