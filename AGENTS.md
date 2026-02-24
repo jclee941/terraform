@@ -35,6 +35,7 @@ terraform/
 ├── 300-cloudflare/             # External Cloudflare infra + Worker
 ├── 301-github/                 # External GitHub org/repo management
 ├── 310-safetywallet/           # SafetyWallet external service (CF tunnel)
+├── 320-slack/                  # Slack workspace management (channels, usergroups)
 ├── modules/
 │   ├── proxmox/                # lxc, vm, config rendering modules
 │   └── shared/                 # cross-stack reusable modules
@@ -80,6 +81,7 @@ terraform/
 | Cloudflare automation scripts | `300-cloudflare/scripts/AGENTS.md`                                            | Secret collection/sync/audit/deploy script governance.                                |
 | GitHub org management         | `301-github/AGENTS.md`                                                        | 14 repos, rulesets, webhooks, environments.                                           |
 | SafetyWallet service          | `310-safetywallet/AGENTS.md`                                                  | External SafetyWallet service; CF tunnel.                                             |
+| Slack workspace management    | `320-slack/AGENTS.md`                                                         | Channel lifecycle, usergroups via `pablovarela/slack` provider.                       |
 | Test harness overview         | `tests/AGENTS.md`                                                             | Native `terraform test` conventions and layout.                                       |
 | Proxmox tests                 | `tests/modules/proxmox/AGENTS.md`                                             | Mock provider patterns, fixture discipline.                                           |
 | Shared module tests           | `tests/modules/shared/AGENTS.md`                                              | onepassword module test and mock rules.                                               |
@@ -136,7 +138,7 @@ bazel build //... && bazel test //...
 - Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `103-coredns/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
 - Dashboard scope: `104-grafana/dashboards/AGENTS.md`
 - Dev/workstation scopes: `80-jclee/AGENTS.md`, `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
-- External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`, `310-safetywallet/AGENTS.md`
+- External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`, `310-safetywallet/AGENTS.md`, `320-slack/AGENTS.md`
 - Operational scopes: `docs/AGENTS.md`, `docs/runbooks/AGENTS.md`, `scripts/AGENTS.md`, `scripts/n8n-workflows/AGENTS.md`
 
 ## NOTES
