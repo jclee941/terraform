@@ -78,6 +78,7 @@ jobs:
           resources = [
             ('module.lxc["runner"].proxmox_virtual_environment_container.this', 'pve3/101'),
             ('module.lxc["traefik"].proxmox_virtual_environment_container.this', 'pve3/102'),
+            ('module.lxc["coredns"].proxmox_virtual_environment_container.this', 'pve3/103'),
             ('module.lxc["grafana"].proxmox_virtual_environment_container.this', 'pve3/104'),
             ('module.lxc["elk"].proxmox_virtual_environment_container.this', 'pve3/105'),
             ('module.lxc["glitchtip"].proxmox_virtual_environment_container.this', 'pve3/106'),
@@ -102,6 +103,10 @@ jobs:
               continue
             if "already managed by Terraform" in output:
               print(f"already managed: {address}")
+              continue
+            # Resource not yet provisioned on provider — skip import, let apply create it
+            if any(p in output.lower() for p in ["not found", "does not exist", "unable to find", "unable to read", "404"]):
+              print(f"not yet provisioned, will be created: {address}")
               continue
             print(output)
             sys.exit(imp.returncode)
