@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-31 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
+33 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
 
 ## STRUCTURE
 
@@ -35,6 +35,8 @@
 │   ├── onepassword-test.yml    # 1Password connectivity test
 │   ├── worker-deploy.yml       # Cloudflare Worker deployment
 │   ├── opencode.yml            # OpenCode dev VM config deployment
+│   ├── terraform-docs.yml      # Auto-generate terraform-docs on PR
+│   ├── tfstate-backup.yml      # Nightly tfstate backup to R2
 │   └── internal-service-access.yml
 └── actions/
     ├── terraform-setup/        # Composite action: install TF + init

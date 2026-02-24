@@ -34,7 +34,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 ## TEMPLATE VARIABLES (from env-config module)
 
 - `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`
-- `elk_version` (8.12.0), `es_heap` (2g), `logstash_heap` (512m)
+- `elk_version` (8.17.0), `es_heap` (2g), `logstash_heap` (512m)
 - `logstash_dlq_size` (1024mb)
 - `elasticsearch_index_pattern` (logs-{service}-YYYY.MM.dd)
 - `ilm_delete_after` (30d), `ilm_policy_name` (homelab-logs-30d)

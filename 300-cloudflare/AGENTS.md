@@ -13,7 +13,7 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 ├── BUILD.bazel              # Monorepo integration
 ├── OWNERS                   # Access control
 ├── AGENTS.md                # This file
-├── *.tf                     # Terraform workspace (16 TF files, incl. onepassword.tf + validation.tf)
+├── *.tf                     # Terraform workspace (17 TF files, incl. waf.tf, onepassword.tf, validation.tf)
 ├── terraform.tfvars.example # Variable template (NO secrets)
 ├── workers/
 │   └── synology-proxy/      # Hono Worker: Synology FileStation proxy + R2 cache
@@ -38,6 +38,7 @@ Cloudflare secrets management hub and Synology NAS proxy Worker. Centralized orc
 | **DNS records** | `dns.tf` | Cloudflare DNS zone records |
 | **Tunnel config** | `tunnel.tf` + `docker/cloudflared/` | TF creates tunnel, Docker runs connector |
 | **Access policies** | `access.tf` | CF Access email-based policies |
+| **WAF rules** | `waf.tf` | Web Application Firewall custom rulesets |
 | **R2 storage** | `r2.tf` | `synology-cache` bucket (APAC, 7d TTL) |
 | **GitHub secrets** | `github-secrets.tf` | Cross-repo GitHub Actions secrets |
 | **Worker** | `workers/synology-proxy/` | Hono TS app with FileStation proxy |

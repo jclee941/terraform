@@ -12,7 +12,7 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 
 ## GENERATED VS SOURCE
 
-- **Source-editable:** `mcp_servers.json`, `templates/*.tftpl`, `Dockerfile.*`, `validate_mcps.py`, `n8n-workflows/*.json`.
+- **Source-editable:** `mcp_servers.json`, `templates/*.tftpl`, `Dockerfile.*`, `validate_mcps.py`, `n8n-workflows/*.json`, `op-mcp-server/`.
 - **Generated/reference-only:** rendered files under service `tf-configs/` and deployment outputs under `100-pve/configs/`; `config/filebeat.yml` is reference-only.
 - **Edit Rule:** change templates/catalog, then re-render through Terraform workflows.
 
@@ -22,6 +22,8 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 - `validate_mcps.py`: schema + port uniqueness + secret-pattern validation.
 - `templates/mcp_settings.json.tftpl`: OpenCode MCP settings render target.
 - `templates/docker-compose.yml.tftpl`: mcphub + sidecar runtime template.
+- `templates/docker-compose-n8n.yml.tftpl`: n8n automation service runtime template.
+- `op-mcp-server/`: 1Password MCP server sidecar (Node.js, `index.mjs` + `package.json`).
 - `Dockerfile.proxmox`, `Dockerfile.playwright`: sidecar build definitions.
 - `n8n-workflows/`: exported automation workflows that must match runtime state.
 

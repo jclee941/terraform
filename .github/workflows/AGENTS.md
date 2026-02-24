@@ -11,6 +11,8 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
 ├── {svc}-plan.yml / {svc}-apply.yml             # Service workflow pairs
 ├── terraform-drift.yml                           # Matrix drift checks
 ├── mcp-health-check.yml                          # MCP port health + issue dedup
+├── terraform-docs.yml                            # Auto-generate terraform-docs on PR
+├── tfstate-backup.yml                             # Nightly tfstate backup to R2 (7 workspaces)
 └── auto-merge.yml + security/automation flows    # Risk-tier + governance
 ```
 

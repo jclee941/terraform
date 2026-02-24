@@ -23,8 +23,10 @@ Terraform workspace managing GitHub resources for `qws941`. Provisions 17 reposi
 ├── validation.tf        # Input validation rules
 ├── data.tf              # Data sources (user, existing repos)
 ├── locals.tf            # Shared locals
+├── labels.tf            # Org-wide label definitions (40 lines)
 ├── import.tf            # State imports for existing resources
-└── outputs.tf           # Exported values
+├── outputs.tf           # Exported values
+└── tests/               # Workspace validation tests (github_test.tftest.hcl)
 ```
 
 ## WHERE TO LOOK
@@ -37,6 +39,8 @@ Terraform workspace managing GitHub resources for `qws941`. Provisions 17 reposi
 | **Environments** | `environments.tf` | Deployment envs with wait timers, reviewers, branch policies. |
 | **Security** | `security.tf` | Dependabot auto-updates + CodeQL scanning rulesets. |
 | **1Password Secrets** | `onepassword.tf` + `validation.tf` | Structured secret lookup via `modules/shared/onepassword-secrets`. |
+| **Labels** | `labels.tf` | Org-wide GitHub label definitions. |
+| **Workspace Tests** | `tests/github_test.tftest.hcl` | Variable validation tests for this workspace. |
 | **Remote State** | `versions.tf` | Consumes 100-pve outputs via `terraform_remote_state.infra`. |
 
 ## CONVENTIONS

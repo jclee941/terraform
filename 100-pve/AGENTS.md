@@ -2,13 +2,14 @@
 
 ## OVERVIEW
 
-Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (904 lines) coordinates host inventory, container sizing, validation, config rendering, and Filebeat deployment.
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (958 lines) coordinates host inventory, container sizing, validation, config rendering, and Filebeat deployment. `firewall.tf` (130 lines) defines Proxmox firewall rules for cluster and VM-level security groups.
 
 ## STRUCTURE
 
 ```
 100-pve/
-├── main.tf              # Central orchestration (904 lines)
+├── main.tf              # Central orchestration (958 lines)
+├── firewall.tf          # Proxmox firewall rules + security groups (130 lines)
 ├── variables.tf         # Input variables + validation
 ├── terraform.tfvars     # Variable values (gitignored)
 ├── versions.tf          # Provider + backend config (local)
@@ -33,6 +34,7 @@ Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions
 | **VM Provisioning**  | `module.vm`                             | `../modules/proxmox/vm` — cloud-init via snippets.            |
 | **Config Rendering** | `module.vm_config`                      | Renders service templates → `configs/`.                       |
 | **Rendered Outputs** | `configs/lxc-{VMID}-{name}/`            | Terraform-generated. Never hand-edit.                         |
+| **Firewall Rules**   | `firewall.tf`                           | Cluster + VM-level firewall security groups.                  |
 | **Filebeat Configs** | `config/`                               | Host-level Filebeat configuration templates.                  |
 | **Filebeat Deploy**  | `module.lxc_config`, `module.vm_config` | `setup_filebeat` provisioner in deploy modules.               |
 

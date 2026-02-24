@@ -29,7 +29,7 @@ docs/
 | **Backups**                | `backup-strategy.md`           | 3-2-1 strategy details                                   |
 | **Secrets**                | `secret-management.md`         | 1Password + Vault integration patterns                   |
 | **Service Numbering**      | `workspace-ordering.md`        | VMID/directory numbering rationale                       |
-| **Alerts**                 | `ALERTING-REFERENCE.md`        | Rule definitions & thresholds                            |
+| **Alerts**                 | `ALERTING-REFERENCE.md`        | Rule definitions, thresholds, n8n bridge routing         |
 
 ## CONVENTIONS
 

@@ -12,7 +12,7 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 - `provisioning/`: Standard Grafana configuration for datasources (ES/Prometheus) and dashboard providers.
 - `tf-configs/`: Terraform-rendered outputs (Prometheus scrape targets, interpolated dashboard JSON).
 - `templates/`: `.tftpl` sources for dynamic configuration rendering.
-- `terraform/`: Standalone Grafana provider workspace. Alert rules (14 rules, 4 groups), dashboard folders, notification policies.
+- `terraform/`: Standalone Grafana provider workspace. Alert rules (14 rules, 4 groups), dashboard folders, notification policies, GlitchTip bridge contact point (n8n webhook forwarding alerts to GlitchTip).
 - `alerting.yaml`: Deprecated. Alert rules now managed in `terraform/main.tf`.
 
 ## WHERE TO LOOK
@@ -25,6 +25,7 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 | **Alert Rules**           | `terraform/main.tf`                        | 14 rules in 4 groups (Terraform SSoT)           |
 | **Interpolated JSON**     | `tf-configs/*.json`                        | Rendered dashboards with injected host IPs      |
 | **Log Collection Health** | `dashboards/log-collection-health.json`    | Filebeat coverage and ingestion rate monitoring |
+| **GlitchTip Bridge**      | `terraform/main.tf`                        | n8n contact point forwarding alerts to GlitchTip |
 | **Logstash Metrics**      | `dashboards/logstash-metrics.json`         | Pipeline throughput, DLQ, exporter metrics      |
 
 ## CONVENTIONS
