@@ -328,6 +328,8 @@ filter {
 output {
   elasticsearch {
     hosts => ["elasticsearch:9200"]
+    user => "elastic"
+    password => "${elk_elastic_password}"
     index => "logs-%%{[service]}-%%{+YYYY.MM.dd}"
     retry_on_conflict => 3
     retry_initial_interval => 2
