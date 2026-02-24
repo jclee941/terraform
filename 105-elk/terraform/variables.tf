@@ -50,8 +50,3 @@ variable "onepassword_vault_name" {
     error_message = "onepassword_vault_name must not be empty."
   }
 }
-
-locals {
-  infra_hosts = try(data.terraform_remote_state.infra.outputs.host_inventory, {})
-  elk_ip      = try(local.infra_hosts.elk.ip, "192.168.50.105")
-}

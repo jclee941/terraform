@@ -109,16 +109,6 @@ variable "enable_worker_route" {
   default     = false
 }
 
-variable "r2_cache_ttl_days" {
-  description = "R2 cache TTL in days for cached Synology files"
-  type        = number
-  default     = 7
-
-  validation {
-    condition     = var.r2_cache_ttl_days > 0
-    error_message = "r2_cache_ttl_days must be a positive number."
-  }
-}
 
 # ============================================
 # homelab tunnel variables

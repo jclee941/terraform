@@ -5,7 +5,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-        args: ['--allow-multiple-documents']
+        args: ["--allow-multiple-documents"]
         exclude: 'tf-configs/|\.archive/'
       - id: check-json
       - id: check-merge-conflict
@@ -18,23 +18,33 @@ repos:
       - id: terraform_validate
         args:
           - --hook-config=--retry-once-with-cleanup=true
+      - id: terraform_tflint
+      - id: terraform_docs
+        args:
+          - --hook-config=--path-to-file=README.md
+          - --hook-config=--create-file-if-not-exist=false
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
     hooks:
       - id: yamllint
-        args: ['-c', '.yamllint.yml']
+        args: ["-c", ".yamllint.yml"]
         exclude: 'tf-configs/|\.archive/|node_modules/'
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: ['--severity=warning']
+        args: ["--severity=warning"]
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
+        args: ["--baseline", ".secrets.baseline"]
         exclude: '\.archive/'
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint

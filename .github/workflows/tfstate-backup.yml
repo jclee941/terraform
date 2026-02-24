@@ -1,0 +1,74 @@
+name: Terraform State Backup
+
+on:
+  schedule:
+    - cron: "0 18 * * 0" # Weekly Sunday 03:00 KST (18:00 UTC Saturday)
+  workflow_dispatch: {}
+
+concurrency:
+  group: tfstate-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Encrypted State Backup
+    runs-on: self-hosted
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Backup all workspace states
+        env:
+          TF_BACKUP_PASSPHRASE: ${{ secrets.TF_BACKUP_PASSPHRASE }}
+        run: |
+          WORKSPACES=(
+            100-pve/envs/prod
+            102-traefik/terraform
+            104-grafana/terraform
+            105-elk/terraform
+            108-archon/terraform
+            300-cloudflare
+            301-github
+          )
+
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_DIR=".backups/${TIMESTAMP}"
+          mkdir -p "$BACKUP_DIR"
+
+          BACKED_UP=0
+          MISSING=0
+
+          for ws in "${WORKSPACES[@]}"; do
+            STATE_FILE="$ws/terraform.tfstate"
+            if [ -f "$STATE_FILE" ]; then
+              SAFE_NAME=$(echo "$ws" | tr '/' '-')
+              openssl enc -aes-256-cbc -pbkdf2 -salt \
+                -in "$STATE_FILE" \
+                -out "$BACKUP_DIR/${SAFE_NAME}.tfstate.enc" \
+                -pass env:TF_BACKUP_PASSPHRASE
+              echo "✅ Backed up: $ws"
+              BACKED_UP=$((BACKED_UP + 1))
+            else
+              echo "⚠️ No state file: $ws"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          echo ""
+          echo "=== Backup Summary ==="
+          echo "Backed up: $BACKED_UP"
+          echo "Missing:   $MISSING"
+          echo "Location:  $BACKUP_DIR"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tfstate-backup-${{ github.run_id }}
+          path: .backups/
+          retention-days: 90
+          if-no-files-found: error

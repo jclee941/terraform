@@ -153,11 +153,6 @@ variable "ssh_public_keys" {
   }
 }
 
-variable "deploy_mcp_configs" {
-  description = "Whether to deploy MCP configurations to remote hosts via SSH"
-  type        = bool
-  default     = false
-}
 
 variable "deploy_vm_configs" {
   description = "Whether to deploy VM configurations via SSH"

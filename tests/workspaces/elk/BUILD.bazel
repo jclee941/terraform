@@ -1,0 +1,5 @@
+filegroup(
+    name = "elk",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)

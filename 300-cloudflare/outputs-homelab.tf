@@ -1,6 +1,7 @@
 output "homelab_tunnel_id" {
   description = "Cloudflare Tunnel ID for homelab services"
   value       = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
+  sensitive   = true
 }
 
 output "homelab_tunnel_token" {

@@ -5,6 +5,7 @@
 output "tunnel_id" {
   description = "Cloudflare Tunnel ID for Synology NAS"
   value       = cloudflare_zero_trust_tunnel_cloudflared.synology.id
+  sensitive   = true
 }
 
 output "tunnel_token" {

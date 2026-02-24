@@ -102,3 +102,18 @@ resource "elasticstack_elasticsearch_index_template" "logs_ephemeral" {
     })
   }
 }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Snapshot Repository — automated backup target for ES indices
+# ──────────────────────────────────────────────────────────────────────────────
+
+resource "elasticstack_elasticsearch_snapshot_repository" "homelab_backups" {
+  name = "homelab-backups"
+
+  fs {
+    location                  = "/usr/share/elasticsearch/data/backup"
+    compress                  = true
+    max_restore_bytes_per_sec = "40mb"
+  }
+}

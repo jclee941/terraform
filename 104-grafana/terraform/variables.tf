@@ -55,10 +55,3 @@ variable "onepassword_vault_name" {
     error_message = "onepassword_vault_name must not be empty."
   }
 }
-
-locals {
-  infra_hosts = try(data.terraform_remote_state.infra.outputs.host_inventory, {})
-  grafana_ip  = try(local.infra_hosts.grafana.ip, "192.168.50.104")
-  elk_ip      = try(local.infra_hosts.elk.ip, "192.168.50.105")
-  mcphub_ip   = try(local.infra_hosts.mcphub.ip, "192.168.50.112")
-}

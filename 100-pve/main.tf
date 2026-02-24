@@ -409,8 +409,10 @@ module "vm_config" {
           "systemctl enable docker",
           "systemctl start docker",
           "mkdir -p /opt/mcphub",
+          "mkdir -p /opt/n8n",
           "systemctl daemon-reload",
-          "cd /opt/mcphub && docker compose build && docker compose up -d"
+          "cd /opt/mcphub && docker compose build && docker compose up -d",
+          "cd /opt/n8n && docker compose up -d"
         ]
         write_files = [
           {
@@ -446,6 +448,12 @@ module "vm_config" {
           {
             path        = "/etc/filebeat/filebeat.yml"
             content     = module.config_renderer.rendered_configs["mcphub_filebeat"]
+            permissions = "0644"
+            owner       = "root:root"
+          },
+          {
+            path        = "/opt/n8n/docker-compose.yml"
+            content     = module.config_renderer.rendered_configs["mcphub_n8n_docker_compose"]
             permissions = "0644"
             owner       = "root:root"
           }
@@ -826,10 +834,11 @@ locals {
       env            = ".env.tftpl"
     } }
     "112-mcphub" = { prefix = "mcphub", files = {
-      filebeat       = "filebeat.yml.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      mcp_settings   = "mcp_settings.json.tftpl"
-      env            = ".env.tftpl"
+      filebeat           = "filebeat.yml.tftpl"
+      docker_compose     = "docker-compose.yml.tftpl"
+      mcp_settings       = "mcp_settings.json.tftpl"
+      env                = ".env.tftpl"
+      n8n_docker_compose = "docker-compose-n8n.yml.tftpl"
     } }
     "220-youtube" = { prefix = "youtube", files = {
       filebeat = "filebeat.yml.tftpl"
