@@ -51,7 +51,7 @@
 | 106  | glitchtip | .106 | LXC      | Error tracking                       | 100-pve                                               |
 | 107  | supabase  | .107 | LXC      | Backend-as-a-Service                 | 100-pve                                               |
 | 108  | archon    | .108 | LXC      | AI knowledge management              | 100-pve (lifecycle) + 108-archon (app config)         |
-| 112  | mcphub    | .112 | VM       | MCP Hub + n8n + Vault                | 100-pve                                               |
+| 112  | mcphub    | .112 | VM       | MCP Hub + n8n + 1Password Connect    | 100-pve                                               |
 | 215  | synology  | .215 | Physical | NAS storage                          | Inventory only                                        |
 | 220  | sandbox   | .220 | VM       | Dev sandbox (CF WARP, disabled)      | 100-pve                                               |
 

@@ -46,7 +46,7 @@ pct exec 102 -- docker logs traefik --tail 50 2>&1 | grep -i error
 
 # Verify dynamic routing configs
 pct exec 102 -- ls /etc/traefik/config/
-# Files: elk.yml, glitchtip.yml, mcp.yml, vault.yml, mcphub.yml
+# Files: elk.yml, glitchtip.yml, mcp.yml, mcphub.yml
 ```
 
 ### 3. DNS Resolution
@@ -68,7 +68,6 @@ curl -v https://grafana.jclee.me/api/health
 curl -v https://elk.jclee.me
 curl -v https://glitchtip.jclee.me/healthz
 curl -v https://mcphub.jclee.me
-curl -v https://vault.jclee.me
 
 # Test direct (bypass Traefik)
 curl -s http://192.168.50.104:3000/api/health  # Grafana direct
@@ -112,6 +111,6 @@ pct exec 102 -- docker restart traefik
 ## Prevention
 
 - Traefik routing configs managed by Terraform — do NOT edit manually on LXC 102
-- All routing files in `102-traefik/config/` (elk.yml, glitchtip.yml, mcp.yml, vault.yml, mcphub.yml)
+- All routing files in `102-traefik/config/` (elk.yml, glitchtip.yml, mcp.yml, mcphub.yml)
 - DNS records managed in Cloudflare
 - Monitor with blackbox exporter in Grafana (SLA dashboard)

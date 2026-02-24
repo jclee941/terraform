@@ -39,31 +39,6 @@ terraform -chdir=100-pve plan -detailed-exitcode
 terraform -chdir=100-pve apply
 ```
 
-## Vault Issues
-
-> **Note:** Vault runs as infrastructure on VM 112 but is no longer the Terraform secret backend.
-> Secrets are managed via 1Password. See [Secret Management](../secret-management.md).
-
-### Vault Sealed
-```bash
-ssh root@192.168.50.112
-vault status  # Check seal status
-# Unseal (need 3 of 5 keys)
-vault operator unseal <key1>
-vault operator unseal <key2>
-vault operator unseal <key3>
-```
-
-### Vault Unreachable
-```bash
-# Check VM 112 status
-ssh root@192.168.50.100 'qm status 112'
-# Check Vault container
-ssh root@192.168.50.112 'docker ps | grep vault'
-# Check Vault port
-curl -s http://192.168.50.112:8200/v1/sys/health | jq
-```
-
 ## 1Password Issues
 
 ### Authentication Failure

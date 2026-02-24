@@ -12,7 +12,7 @@
 ## Recovery Priority Order
 
 1. **PVE Host** (100) — Hypervisor must be up first
-2. **Vault** (112:8200) — Infrastructure service (secrets now managed via 1Password)
+2. **1Password Connect** (112:8090) — Secret provider for all workspaces
 3. **Traefik** (102) — Routing for all services
 4. **ELK** (105) — Logging pipeline
 5. **Grafana** (104) — Monitoring/alerting
@@ -25,7 +25,6 @@
 | Component | Method | Location | Frequency |
 |-----------|--------|----------|-----------|
 | Terraform state | Git (committed) | GitHub repo | Every change |
-| Vault data | Raft snapshots | `/opt/vault/snapshots/` | Daily |
 | Elasticsearch | Snapshot API | Local filesystem | Daily |
 | Proxmox VMs/LXCs | vzdump | Synology NAS (215) | Weekly |
 | Cloudflare config | Terraform state | Git | Every change |
@@ -41,23 +40,6 @@
 pct start 102  # traefik
 pct start 105  # elk
 pct start 104  # grafana
-```
-
-### Vault Recovery
-
-> **Note:** Vault runs as infrastructure on VM 112 but is no longer the Terraform secret backend.
-> Secrets are managed via 1Password Connect Server (LXC 112, port 8090). This section covers Vault infrastructure recovery only.
-
-```bash
-ssh root@192.168.50.112
-# 1. Check seal status
-vault status
-# 2. If sealed, unseal
-vault operator unseal <key1>
-vault operator unseal <key2>
-vault operator unseal <key3>
-# 3. If data lost, restore from snapshot
-vault operator raft snapshot restore /opt/vault/snapshots/latest.snap
 ```
 
 ### Terraform State Recovery
@@ -112,7 +94,7 @@ cd 100-pve && terraform init && terraform apply
 
 ## Recovery Drill Checklist
 
-- [ ] Verify Vault unseal keys are accessible
+- [ ] Verify 1Password Connect Server health (LXC 112:8090)
 - [ ] Verify Proxmox vzdump backups are current (< 7 days)
 - [ ] Verify ES snapshots exist and are restorable
 - [ ] Verify terraform plan shows no unexpected changes
