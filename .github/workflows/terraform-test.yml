@@ -9,6 +9,8 @@ on:
       - "300-cloudflare/variables.tf"
       - "301-github/variables.tf"
       - "320-slack/variables.tf"
+      - "104-grafana/terraform/variables.tf"
+      - "105-elk/terraform/variables.tf"
   push:
     branches: [master]
     paths:
@@ -18,6 +20,8 @@ on:
       - "300-cloudflare/variables.tf"
       - "301-github/variables.tf"
       - "320-slack/variables.tf"
+      - "104-grafana/terraform/variables.tf"
+      - "105-elk/terraform/variables.tf"
   workflow_dispatch:
 
 permissions:
@@ -67,8 +71,12 @@ jobs:
             path: tests/workspaces/cloudflare
             use_chdir: false
             test_dir: ""
-          - name: github
-            path: 301-github
+          - name: grafana
+            path: tests/workspaces/grafana
+            use_chdir: false
+            test_dir: ""
+          - name: elk
+            path: tests/workspaces/elk
             use_chdir: false
             test_dir: ""
           - name: slack

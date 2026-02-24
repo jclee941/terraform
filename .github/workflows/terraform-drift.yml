@@ -13,17 +13,10 @@ on:
       - "300-cloudflare/**"
       - "301-github/**"
       - "320-slack/**"
-      - "101-runner/**"
-      - "103-coredns/**"
-      - "106-glitchtip/**"
-      - "107-supabase/**"
-      - "112-mcphub/**"
-      - "215-synology/**"
-      - "220-youtube/**"
       - "modules/**"
       - ".github/workflows/terraform-drift.yml"
   schedule:
-    - cron: '0 0 * * 1-5'  # Weekday 00:00 UTC (09:00 KST)
+    - cron: "0 0 * * 1-5" # Weekday 00:00 UTC (09:00 KST)
 
 permissions:
   contents: read
