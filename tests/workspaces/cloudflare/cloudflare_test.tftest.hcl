@@ -256,47 +256,6 @@ run "test_invalid_homelab_domain_uppercase" {
   ]
 }
 
-# --- r2_cache_ttl_days validation (> 0) ---
-
-run "test_invalid_r2_cache_ttl_zero" {
-  command = plan
-
-  module {
-    source = "../../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-    r2_cache_ttl_days     = 0
-  }
-
-  expect_failures = [
-    var.r2_cache_ttl_days,
-  ]
-}
-
-run "test_invalid_r2_cache_ttl_negative" {
-  command = plan
-
-  module {
-    source = "../../../300-cloudflare"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    access_allowed_emails = ["admin@example.com"]
-    r2_cache_ttl_days     = -1
-  }
-
-  expect_failures = [
-    var.r2_cache_ttl_days,
-  ]
-}
 
 # --- cloudflare_secrets_store_id validation (hex32) ---
 

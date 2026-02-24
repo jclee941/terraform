@@ -51,7 +51,7 @@ locals {
     }
     youtube = {
       description    = "YouTube automation tools"
-      visibility     = "public"
+      visibility     = "private"
       topics         = ["python", "youtube"]
       archived       = false
       default_branch = "master"
