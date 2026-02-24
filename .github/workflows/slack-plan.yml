@@ -1,0 +1,47 @@
+name: Slack Plan
+
+on:
+  pull_request:
+    paths:
+      - "320-slack/**"
+
+concurrency:
+  group: slack-plan-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    name: Slack Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Setup Terraform & Init (backend=false)
+        uses: ./.github/actions/terraform-setup
+        with:
+          terraform-version: "1.10.5"
+          working-directory: 320-slack
+          init-args: "-backend=false -input=false"
+
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --version
+
+      - name: TFLint init and run
+        run: |
+          tflint --init
+          tflint --chdir=320-slack --format compact
+
+  plan:
+    needs: lint
+    uses: ./.github/workflows/_terraform-plan.yml
+    with:
+      service-name: Slack
+      working-directory: 320-slack
+    secrets: inherit # pragma: allowlist secret

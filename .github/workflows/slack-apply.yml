@@ -1,0 +1,58 @@
+name: Slack Apply
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "320-slack/**"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: slack-apply
+  cancel-in-progress: false
+
+jobs:
+  lint:
+    name: Slack Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Setup Terraform & Init (backend=false)
+        uses: ./.github/actions/terraform-setup
+        with:
+          terraform-version: "1.10.5"
+          working-directory: 320-slack
+          init-args: "-backend=false -input=false"
+
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --version
+
+      - name: TFLint init and run
+        run: |
+          tflint --init
+          tflint --chdir=320-slack --format compact
+
+  apply:
+    needs: lint
+    uses: ./.github/workflows/_terraform-apply.yml
+    with:
+      service-name: Slack
+      working-directory: 320-slack
+      failure-title-prefix: "[Slack] Apply failed on master"
+      failure-extra-body: |
+        **Workspace:** `320-slack`
+
+        ### Checklist
+        - [ ] Verify Slack bot token is valid in 1Password
+        - [ ] Run `terraform plan` locally to diagnose
+        - [ ] Fix and re-apply, or revert the commit
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret

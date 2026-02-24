@@ -12,6 +12,7 @@ on:
       - "108-archon/**"
       - "300-cloudflare/**"
       - "301-github/**"
+      - "320-slack/**"
       - "101-runner/**"
       - "103-coredns/**"
       - "106-glitchtip/**"
@@ -57,6 +58,9 @@ jobs:
             init_args: "-input=false"
           - name: github
             dir: 301-github
+            init_args: "-input=false"
+          - name: slack
+            dir: 320-slack
             init_args: "-input=false"
 
     defaults:

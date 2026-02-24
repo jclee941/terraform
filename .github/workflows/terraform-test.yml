@@ -8,6 +8,7 @@ on:
       - "100-pve/variables.tf"
       - "300-cloudflare/variables.tf"
       - "301-github/variables.tf"
+      - "320-slack/variables.tf"
   push:
     branches: [master]
     paths:
@@ -16,6 +17,7 @@ on:
       - "100-pve/variables.tf"
       - "300-cloudflare/variables.tf"
       - "301-github/variables.tf"
+      - "320-slack/variables.tf"
   workflow_dispatch:
 
 permissions:
@@ -60,12 +62,19 @@ jobs:
           - name: pve
             path: tests/workspaces/pve
             use_chdir: false
+            test_dir: ""
           - name: cloudflare
             path: tests/workspaces/cloudflare
             use_chdir: false
+            test_dir: ""
           - name: github
             path: 301-github
             use_chdir: false
+            test_dir: ""
+          - name: slack
+            path: tests/workspaces/slack
+            use_chdir: false
+            test_dir: ""
 
     steps:
       - name: Checkout
