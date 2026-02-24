@@ -4,7 +4,7 @@
 **Tunnel ID:** 8419f66e-255a-4535-88d3-515010c60ac8
 ## OVERVIEW
 
-Personal workstation VM. Not provisioned by Terraform — inventory host only. RDP and SSH exposed externally via Cloudflare tunnel with Zero Trust email authentication (720h session). PVE firewall for VMID 80 cannot be Terraform-managed (provider requires vm_id >= 100) — use PVE GUI or CLI.
+Personal workstation (physical PC). Not provisioned by Terraform — inventory host only. RDP and SSH exposed externally via Cloudflare tunnel with Zero Trust email authentication (720h session).
 
 ## STRUCTURE
 
@@ -19,12 +19,12 @@ Personal workstation VM. Not provisioned by Terraform — inventory host only. R
 ## WHERE TO LOOK
 | Task              | Location                                        | Notes                            |
 | ----------------- | ---------------------------------------------------- | -------------------------------------- |
-| Host inventory    | `100-pve/envs/prod/hosts.tf` → `hosts.jclee`         | VMID 80, .80, ssh+rdp ports            |
+| Host inventory    | `100-pve/envs/prod/hosts.tf` → `hosts.jclee`         | ID 80, .80, ssh+rdp ports              |
 | RDP tunnel config | `300-cloudflare/locals.tf` → `tcp_services.rdp`      | CF tunnel to .80:3389 (via variable)   |
 | SSH tunnel config | `300-cloudflare/locals.tf` → `tcp_services.jclee-ssh` | CF tunnel to .80:22 (via variable)     |
 | CF Access policy  | `300-cloudflare/access.tf` → `tcp_services`          | 720h session, email auth               |
 | CF tunnel         | `300-cloudflare/tunnel.tf` → `jclee`                 | TF-managed tunnel resource             |
-| PVE firewall      | PVE GUI / CLI                                        | VMID 80 < 100; not TF-manageable       |
+
 
 ## CONVENTIONS
 - This host is NOT Terraform-provisioned; changes are manual.

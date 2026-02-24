@@ -19,7 +19,7 @@ Terraform monorepo for homelab and external infrastructure providers. Primary or
 
 ```text
 terraform/
-├── 80-jclee/                   # Windows workstation VM (RDP + SSH via CF tunnel)
+├── 80-jclee/                   # Windows workstation PC (RDP + SSH via CF tunnel)
 ├── 100-pve/                    # Primary infra orchestrator + config rendering
 ├── 101-runner/                 # Self-hosted GitHub Actions runner (LXC)
 ├── 102-traefik/                # Reverse proxy templates + reserved TF workspace
@@ -61,7 +61,7 @@ terraform/
 | CI topology (overview)        | `.github/AGENTS.md`                                                           | Runner, risk tiers, reusable workflow usage, issue/PR templates.                      |
 | CI workflow details           | `.github/workflows/AGENTS.md`                                                 | Pairing rules, `_terraform-*` templates, drift matrix.                                |
 | CI custom actions             | `.github/actions/AGENTS.md`                                                   | Composite action contracts (`terraform-setup`, `notify-failure`).                     |
-| Workstation VM                | `80-jclee/AGENTS.md`                                                          | Windows workstation (VMID 80); RDP + SSH via CF tunnel.                               |
+| Workstation PC                | `80-jclee/AGENTS.md`                                                          | Windows workstation (physical PC); RDP + SSH via CF tunnel.                           |
 | Self-hosted runner            | `101-runner/AGENTS.md`                                                        | GitHub Actions runner on LXC 101; multi-repo registration.                            |
 | Reverse proxy                 | `102-traefik/AGENTS.md`                                                       | Traefik ingress, TLS, MCP resilient middleware.                                       |
 | DNS resolver                  | `103-coredns/AGENTS.md`                                                       | Split DNS on LXC 103; Corefile + Docker Compose + filebeat.                           |

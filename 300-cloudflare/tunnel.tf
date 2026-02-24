@@ -89,7 +89,7 @@ data "cloudflare_zero_trust_tunnel_cloudflared_token" "homelab" {
 
 
 # ============================================
-# Cloudflare Tunnel for JCLee Workstation (VMID 80)
+# Cloudflare Tunnel for JCLee Workstation (physical PC, host ID 80)
 # ============================================
 
 resource "random_password" "jclee_tunnel_secret" {

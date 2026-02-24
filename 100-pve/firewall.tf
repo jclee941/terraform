@@ -79,8 +79,8 @@ locals {
   }
 
   vm_firewall = {
-    # NOTE: jclee (VMID 80) excluded — Proxmox provider requires vm_id >= 100
-    # Firewall rules for VMID 80 must be managed via PVE GUI or CLI
+    # NOTE: jclee (ID 80, physical PC) excluded — Proxmox provider requires vm_id >= 100
+    # Firewall rules for jclee must be managed via PVE GUI or CLI
     mcphub = {
       vmid = module.hosts.hosts.mcphub.vmid
       rules = [

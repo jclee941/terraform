@@ -131,7 +131,7 @@ variable "homelab_domain" {
 # ============================================
 
 variable "jclee_ip" {
-  description = "JCLee workstation IP address (VMID 80)"
+  description = "JCLee workstation IP address (physical PC, host ID 80)"
   type        = string
   default     = "192.168.50.80"
 

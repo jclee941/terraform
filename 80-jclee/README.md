@@ -1,6 +1,6 @@
-# 80-jclee — Personal Workstation
+# 80-jclee — Personal Workstation (Physical PC)
 | ----------------- | -------------------- |
-| VMID              | 80                   |
+| Host ID           | 80                   |
 | IP                | 192.168.50.80        |
 | Roles             | workstation          |
 | Ports             | RDP (3389), SSH (22) |
@@ -8,7 +8,7 @@
 | Provisioned by TF | No                   |
 ## Overview
 
-Personal workstation VM in the homelab. Not managed by Terraform — this directory serves as inventory documentation only.
+Personal workstation (physical PC) in the homelab. Not managed by Terraform — this directory serves as inventory documentation only.
 
 ## External Access
 - **RDP**: Tunneled via Cloudflare (`rdp.jclee.me`) with Zero Trust email auth (720h session)
@@ -21,4 +21,4 @@ Personal workstation VM in the homelab. Not managed by Terraform — this direct
 - CF RDP: `300-cloudflare/locals.tf` → `tcp_services.rdp`
 - CF SSH: `300-cloudflare/locals.tf` → `tcp_services.jclee-ssh`
 - CF access: `300-cloudflare/access.tf` → `tcp_services`
-- PVE firewall: `100-pve/firewall.tf` → `vm_firewall.jclee`
+- PVE firewall: Not TF-managed (host ID 80 < provider minimum 100)
