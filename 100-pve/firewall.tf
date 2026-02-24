@@ -91,7 +91,7 @@ locals {
       ]
     }
     jclee_dev = {
-      vmid = module.hosts.hosts.jclee_dev.vmid
+      vmid = module.hosts.hosts["jclee-dev"].vmid
       rules = [
         { dport = "22", proto = "tcp", comment = "SSH" },
         { dport = "3389", proto = "tcp", comment = "RDP" },
