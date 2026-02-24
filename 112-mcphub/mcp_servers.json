@@ -44,16 +44,19 @@
       "port": 8060,
       "description": "Ory Kratos identity management"
     },
-    "onepassword": {
+    "proxmox": {
       "location": "hub",
-      "transport": "stdio",
-      "command": "node",
-      "args": ["/app/op-mcp-server/index.mjs"],
-      "port": 8077,
-      "env": {
-        "OP_SERVICE_ACCOUNT_TOKEN": "${OP_SERVICE_ACCOUNT_TOKEN}"
-      },
-      "description": "1Password vault access for infrastructure secrets"
+      "transport": "sse",
+      "docker_service": "mcp-proxmox",
+      "port": 8055,
+      "description": "Proxmox VE hypervisor management"
+    },
+    "playwright": {
+      "location": "hub",
+      "transport": "sse",
+      "docker_service": "mcp-playwright",
+      "port": 8056,
+      "description": "Browser automation via Playwright"
     },
     "supabase": {
       "location": "hub",
@@ -116,14 +119,6 @@
         "SLACK_MCP_CHANNELS_CACHE": "/tmp/slack-channels-cache.json"
       },
       "description": "Slack workspace operations"
-    },
-    "test-runner": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "test-runner-mcp"],
-      "port": 8080,
-      "description": "Test execution across frameworks (jest, pytest, go, generic)"
     }
   }
 }
