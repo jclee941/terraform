@@ -288,14 +288,14 @@ run "test_vmid_range_below_100_rejected" {
   expect_failures = [var.managed_vmid_range]
 }
 
-run "test_vmid_range_above_199_rejected" {
+run "test_vmid_range_above_255_rejected" {
   command = plan
   module {
     source = "../../../100-pve"
   }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
-    managed_vmid_range = { min = 100, max = 200 }
+    managed_vmid_range = { min = 100, max = 300 }
   }
   expect_failures = [var.managed_vmid_range]
 }
