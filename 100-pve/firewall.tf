@@ -103,7 +103,7 @@ locals {
 resource "proxmox_virtual_environment_firewall_rules" "container" {
   for_each = local.container_firewall
 
-  node_name    = "pve"
+  node_name    = var.node_name
   container_id = each.value.vmid
 
   dynamic "rule" {
@@ -122,7 +122,7 @@ resource "proxmox_virtual_environment_firewall_rules" "container" {
 resource "proxmox_virtual_environment_firewall_rules" "vm" {
   for_each = local.vm_firewall
 
-  node_name = "pve"
+  node_name = var.node_name
   vm_id     = each.value.vmid
 
   dynamic "rule" {
