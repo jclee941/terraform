@@ -12,7 +12,7 @@ variable "elasticsearch_url" {
 variable "elasticsearch_username" {
   description = "Elasticsearch username (empty if xpack security disabled)"
   type        = string
-  default     = ""
+  default     = "elastic"
 }
 
 variable "elasticsearch_password" {

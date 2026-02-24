@@ -11,6 +11,7 @@ services:
       - xpack.security.transport.ssl.enabled=false
       - ELASTIC_PASSWORD=${elk_elastic_password}
       - "ES_JAVA_OPTS=-Xms${es_heap} -Xmx${es_heap}"
+      - path.repo=/usr/share/elasticsearch/data/backup
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
