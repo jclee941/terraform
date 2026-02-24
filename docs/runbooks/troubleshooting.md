@@ -68,12 +68,14 @@ curl -s http://192.168.50.112:8200/v1/sys/health | jq
 
 ### Authentication Failure
 ```bash
-# Check service account connectivity
+# Check Connect Server connectivity (LXC 112, port 8090)
 op whoami
-# If failing, verify token
-echo $OP_SERVICE_ACCOUNT_TOKEN | head -c 20
+# If failing, verify tokens
+echo $OP_CONNECT_TOKEN | head -c 20
+echo $OP_CONNECT_HOST
 # Re-export if needed
-export OP_SERVICE_ACCOUNT_TOKEN="<token>"
+export OP_CONNECT_TOKEN="<token>"
+export OP_CONNECT_HOST="http://192.168.50.112:8090"
 ```
 
 ### Secret Not Found

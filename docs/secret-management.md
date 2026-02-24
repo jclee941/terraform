@@ -110,14 +110,15 @@ Per-host `.env` secrets deployed via config-renderer templates:
 
 ## Provider Authentication
 
-The `OP_SERVICE_ACCOUNT_TOKEN` environment variable authenticates the Terraform provider to 1Password.
+The `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` environment variables authenticate the Terraform provider to 1Password via the Connect Server on LXC 112 (port 8090).
 
 **Token location:** LXC 112 at `/opt/mcphub/.env`
 
-**Local Terraform runs:** Set as `TF_VAR_op_service_account_token` env var:
+**Local Terraform runs:** The provider falls back to `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` env vars when `op_service_account_token` variable is empty (default). Set these locally:
 
 ```bash
-export TF_VAR_op_service_account_token=$(ssh root@192.168.50.112 'grep OP_SERVICE_ACCOUNT_TOKEN /opt/mcphub/.env | cut -d= -f2-')
+export OP_CONNECT_TOKEN=$(ssh root@192.168.50.112 'grep OP_SERVICE_ACCOUNT_TOKEN /opt/mcphub/.env | cut -d= -f2-')
+export OP_CONNECT_HOST="http://192.168.50.112:8090"
 terraform plan
 ```
 

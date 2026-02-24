@@ -46,7 +46,7 @@ pct start 104  # grafana
 ### Vault Recovery
 
 > **Note:** Vault runs as infrastructure on VM 112 but is no longer the Terraform secret backend.
-> Secrets are managed via 1Password (`OP_SERVICE_ACCOUNT_TOKEN`). This section covers Vault infrastructure recovery only.
+> Secrets are managed via 1Password Connect Server (LXC 112, port 8090). This section covers Vault infrastructure recovery only.
 
 ```bash
 ssh root@192.168.50.112

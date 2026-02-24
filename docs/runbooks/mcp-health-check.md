@@ -144,8 +144,9 @@ terraform -chdir=100-pve plan -target=module.onepassword_secrets 2>&1 | grep -c 
 **Also update GitHub secret:**
 
 ```bash
-# If token changed, update GHA secret too
-gh secret set OP_SERVICE_ACCOUNT_TOKEN -R qws941/terraform
+# If token changed, update GHA secrets too
+gh secret set OP_CONNECT_TOKEN
+gh secret set OP_CONNECT_HOST
 ```
 
 ---

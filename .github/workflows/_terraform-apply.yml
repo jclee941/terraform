@@ -40,7 +40,9 @@ on:
         type: string
         default: "terraform-drift,automated,infrastructure"
     secrets:
-      OP_SERVICE_ACCOUNT_TOKEN:
+      OP_CONNECT_TOKEN:
+        required: false
+      OP_CONNECT_HOST:
         required: false
       TF_API_TOKEN:
         required: false
@@ -222,8 +224,8 @@ jobs:
           TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
           TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
           TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_op_service_account_token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
 

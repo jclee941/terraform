@@ -17,7 +17,7 @@ modules/shared/
 ## CONVENTIONS
 - **Provider-Agnostic**: Logic here must NOT depend on specific infrastructure providers (Proxmox/AWS/Cloudflare) unless strictly necessary.
 - **Output-First**: Designed to output values for consumption by other modules.
-- **Auth**: Uses `OP_SERVICE_ACCOUNT_TOKEN` environment variable.
+- **Auth**: Uses `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` environment variables (Connect Server on LXC 112, port 8090). Provider falls back to these when `op_service_account_token` is empty.
 
 ## ANTI-PATTERNS
 - **NO Resource Creation**: These modules generally *read* data rather than *create* resources.

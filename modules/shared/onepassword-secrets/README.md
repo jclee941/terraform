@@ -19,8 +19,7 @@ Item: "grafana"  (category: password)
 
 ## Authentication
 
-Set `OP_SERVICE_ACCOUNT_TOKEN` as an environment variable or pass it via
-the provider configuration in the consuming workspace.
+Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect Server on LXC 112 at `http://192.168.50.112:8090`) or pass them via the provider configuration in the consuming workspace. The provider falls back to these when `op_service_account_token` variable is empty.
 
 <!-- BEGIN_TF_DOCS -->
 

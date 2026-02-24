@@ -219,7 +219,8 @@ template_vars = {
 # Core infrastructure
 export PROXMOX_VE_ENDPOINT="https://pve.jclee.me:8006"
 export PROXMOX_VE_API_TOKEN="PVEAPIToken=user@pam!terraform=..."
-export OP_SERVICE_ACCOUNT_TOKEN="ops_..."
+export OP_CONNECT_TOKEN="ops_..."
+export OP_CONNECT_HOST="http://192.168.50.112:8090"
 
 # Secondary workspaces
 export GRAFANA_URL="http://192.168.50.104:3000"

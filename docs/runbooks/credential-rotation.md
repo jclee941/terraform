@@ -29,8 +29,9 @@ Scheduled and reactive rotation procedures for homelab service credentials.
 # 1. Generate new token
 #    1Password admin → Service Accounts → homelab → Rotate Token
 
-# 2. Update GitHub Actions secret
-gh secret set OP_SERVICE_ACCOUNT_TOKEN
+# 2. Update GitHub Actions secrets (Connect Server auth)
+gh secret set OP_CONNECT_TOKEN
+gh secret set OP_CONNECT_HOST
 
 # 3. Update MCPHub .env
 pct exec 112 -- sed -i 's|OP_SERVICE_ACCOUNT_TOKEN=.*|OP_SERVICE_ACCOUNT_TOKEN=<new-token>|' /opt/mcphub/.env

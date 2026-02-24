@@ -13,7 +13,7 @@
 
 - Terraform >= 1.10.5
 - SSH access to PVE (diagnostics only — not for deployment)
-- 1Password access (`OP_SERVICE_ACCOUNT_TOKEN` for secret-dependent services)
+- 1Password Connect Server access (`OP_CONNECT_TOKEN` + `OP_CONNECT_HOST` for secret-dependent services)
 - `gh` CLI authenticated (for GitHub operations)
 ## Standard Deployment Flow
 

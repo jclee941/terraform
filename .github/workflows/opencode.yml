@@ -63,7 +63,7 @@ jobs:
           prompt: |
             You are an AI assistant for a Terraform infrastructure monorepo managing a Proxmox homelab
             (jclee.me). The repo uses Google3/Bazel conventions, bpg/proxmox provider (~>0.94), and
-            1Password for secret management via OP_SERVICE_ACCOUNT_TOKEN. # pragma: allowlist secret
+            1Password for secret management via 1Password Connect Server on LXC 112. # pragma: allowlist secret
 
             ARCHITECTURE:
             - 100-pve/main.tf: Central orchestration (~810 lines). NO hardcoded IPs — use module.hosts.
