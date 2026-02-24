@@ -258,9 +258,9 @@ module "lxc" {
 
 locals {
   cloud_init_files = {
-    mcphub = "local:snippets/mcphub-user-data.yaml"
+    mcphub  = "local:snippets/mcphub-user-data.yaml"
+    youtube = "local:snippets/youtube-user-data.yaml"
   }
-
   vm_definitions = {
     mcphub = {
       vmid        = 112
@@ -269,14 +269,17 @@ locals {
       cores       = 2
       disk_size   = 32
     }
+    youtube = {
+      vmid        = 220
+      description = "YouTube Media Server"
+      memory      = 8192
+      cores       = 2
+      disk_size   = 50
+      bios        = "ovmf"
+      machine     = "q35"
+    }
   }
 }
-
-# YOUTUBE VM (220) - TEMPORARILY DISABLED
-# VM 220 was manually created with non-standard 'dfge' datastore.
-# bpg/proxmox provider GRPC crashes on import. Re-enable in vm_definitions
-# when VM is recreated from template 9000 on standard 'local-lvm' storage.
-# Config: vmid=220, memory=8192, cores=2, disk_size=50, bios=ovmf, machine=q35
 
 # =============================================================================
 # MCPHUB VM (112) - MCPHub Server
@@ -364,27 +367,26 @@ module "vm_config" {
   ssh_private_key   = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
   vms = {
-    # youtube: Disabled — see youtube VM resource block comment above
-    # youtube = {
-    #   vmid       = module.hosts.hosts.youtube.vmid
-    #   hostname   = "youtube"
-    #   ip_address = module.hosts.hosts.youtube.ip
-    #   deploy     = var.deploy_vm_configs
-    #
-    #   cloud_init = {
-    #     packages = [
-    #       "qemu-guest-agent",
-    #       "curl",
-    #       "vim",
-    #       "git",
-    #       "gnupg",
-    #     ]
-    #     runcmd = [
-    #       "systemctl enable qemu-guest-agent",
-    #       "systemctl start qemu-guest-agent",
-    #     ]
-    #   }
-    # }
+    youtube = {
+      vmid       = module.hosts.hosts.youtube.vmid
+      hostname   = "youtube"
+      ip_address = module.hosts.hosts.youtube.ip
+      deploy     = var.deploy_vm_configs
+
+      cloud_init = {
+        packages = [
+          "qemu-guest-agent",
+          "curl",
+          "vim",
+          "git",
+          "gnupg",
+        ]
+        runcmd = [
+          "systemctl enable qemu-guest-agent",
+          "systemctl start qemu-guest-agent",
+        ]
+      }
+    }
 
     mcphub = {
       vmid           = module.hosts.hosts.mcphub.vmid

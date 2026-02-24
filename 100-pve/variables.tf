@@ -114,14 +114,14 @@ variable "datastore_id" {
 # -----------------------------------------------------------------------------
 
 variable "managed_vmid_range" {
-  description = "VMID range for Terraform-managed containers (101-112)"
+  description = "VMID range for Terraform-managed containers and VMs (101-220)"
   type = object({
     min = number
     max = number
   })
   default = {
     min = 101
-    max = 112
+    max = 220
   }
 
   validation {
@@ -130,8 +130,8 @@ variable "managed_vmid_range" {
   }
 
   validation {
-    condition     = var.managed_vmid_range.min >= 100 && var.managed_vmid_range.max <= 199
-    error_message = "VMID range must be within 100-199 for this infrastructure."
+    condition     = var.managed_vmid_range.min >= 100 && var.managed_vmid_range.max <= 255
+    error_message = "VMID range must be within 100-255 for this infrastructure."
   }
 }
 
