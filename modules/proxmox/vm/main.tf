@@ -19,6 +19,14 @@ resource "proxmox_virtual_environment_vm" "this" {
   machine     = var.machine
   on_boot     = var.on_boot
 
+  dynamic "efi_disk" {
+    for_each = var.bios == "ovmf" ? [1] : []
+    content {
+      datastore_id = var.datastore_id
+      type         = "4m"
+    }
+  }
+
   clone {
     vm_id = var.clone_template_id
     full  = true
@@ -99,6 +107,7 @@ resource "proxmox_virtual_environment_vm" "this" {
       agent,
       operating_system,
       disk[0].datastore_id,
+      efi_disk,
     ]
 
     prevent_destroy = true
