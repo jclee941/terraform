@@ -9,6 +9,7 @@ on:
       - "101-runner/templates/**"
       - "102-traefik/templates/**"
       - "102-traefik/config/**"
+      - "103-coredns/templates/**"
       - "104-grafana/templates/**"
       - "105-elk/templates/**"
       - "106-glitchtip/templates/**"
@@ -73,7 +74,7 @@ jobs:
           EXIT_CODE=${PIPESTATUS[0]}
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
 
-          if [ $EXIT_CODE -eq 0 ]; then
+          if [ "$EXIT_CODE" -eq 0 ]; then
             echo "result=success" >> "$GITHUB_OUTPUT"
           else
             echo "result=failure" >> "$GITHUB_OUTPUT"
@@ -86,11 +87,13 @@ jobs:
 
             ... (truncated, see workflow run for full output)"
           fi
-          echo "plan<<EOFPLAN" >> "$GITHUB_OUTPUT"
-          echo "$PLAN" >> "$GITHUB_OUTPUT"
-          echo "EOFPLAN" >> "$GITHUB_OUTPUT"
+          {
+            echo "plan<<EOFPLAN"
+            echo "$PLAN"
+            echo "EOFPLAN"
+          } >> "$GITHUB_OUTPUT"
 
-          exit $EXIT_CODE
+          exit "$EXIT_CODE"
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
           TF_VAR_proxmox_endpoint: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}

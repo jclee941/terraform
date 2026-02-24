@@ -1,6 +1,7 @@
 name: Terraform Apply
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -11,6 +12,7 @@ on:
       - "101-runner/templates/**"
       - "102-traefik/templates/**"
       - "102-traefik/config/**"
+      - "103-coredns/templates/**"
       - "104-grafana/templates/**"
       - "105-elk/templates/**"
       - "106-glitchtip/templates/**"
