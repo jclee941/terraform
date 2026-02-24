@@ -525,6 +525,18 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/archon.yml"
           content = module.config_renderer.rendered_configs.traefik_archon
         }
+        "traefik-grafana.yml" = {
+          path    = "/etc/traefik/dynamic/grafana.yml"
+          content = module.config_renderer.rendered_configs.traefik_grafana
+        }
+        "traefik-nas.yml" = {
+          path    = "/etc/traefik/dynamic/nas.yml"
+          content = module.config_renderer.rendered_configs.traefik_nas
+        }
+        "traefik-opencode.yml" = {
+          path    = "/etc/traefik/dynamic/opencode.yml"
+          content = module.config_renderer.rendered_configs.traefik_opencode
+        }
         "traefik-supabase.yml" = {
           path    = "/etc/traefik/dynamic/supabase.yml"
           content = module.config_renderer.rendered_configs.traefik_supabase
@@ -795,6 +807,9 @@ locals {
       synology    = "synology.yml.tftpl"
       archon      = "archon.yml.tftpl"
       supabase    = "supabase.yml.tftpl"
+      grafana     = "grafana.yml.tftpl"
+      nas         = "nas.yml.tftpl"
+      opencode    = "opencode.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"
       cloudflared = "cloudflared-docker-compose.yml.tftpl"
     } }

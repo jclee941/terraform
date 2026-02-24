@@ -135,17 +135,18 @@ locals {
       ip    = "192.168.50.200"
       roles = ["development", "workstation"]
       ports = {
-        rdp = 3389
-        ssh = 22
+        rdp      = 3389
+        ssh      = 22
+        opencode = 8090
       }
     }
-
     synology = {
       vmid  = 215
       ip    = "192.168.50.215"
       roles = ["nas", "storage"]
       ports = {
-        dsm = 5000
+        dsm       = 5000
+        dsm_https = 5001
       }
     }
 

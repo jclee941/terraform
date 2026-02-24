@@ -1,0 +1,16 @@
+http:
+  routers:
+    grafana:
+      rule: Host(`grafana.${domain}`)
+      entryPoints:
+        - websecure
+      service: grafana
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    grafana:
+      loadBalancer:
+        servers:
+          - url: http://${hosts.grafana.ip}:${hosts.grafana.ports.grafana}

@@ -1,0 +1,21 @@
+http:
+  routers:
+    nas:
+      rule: Host(`nas.${domain}`)
+      entryPoints:
+        - websecure
+      service: nas
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    nas:
+      loadBalancer:
+        serversTransport: nas-transport
+        servers:
+          - url: https://${hosts.synology.ip}:${hosts.synology.ports.dsm_https}
+
+  serversTransports:
+    nas-transport:
+      insecureSkipVerify: true

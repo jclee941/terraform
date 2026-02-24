@@ -1,0 +1,16 @@
+http:
+  routers:
+    opencode:
+      rule: Host(`opencode.${domain}`)
+      entryPoints:
+        - websecure
+      service: opencode
+      tls:
+        certResolver: cf
+      priority: 10
+
+  services:
+    opencode:
+      loadBalancer:
+        servers:
+          - url: http://${hosts["jclee-dev"].ip}:${hosts["jclee-dev"].ports.opencode}
