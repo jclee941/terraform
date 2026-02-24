@@ -39,7 +39,6 @@ locals {
     glitchtip = { subdomain = "glitchtip" }
     grafana   = { subdomain = "grafana" }
     mcphub    = { subdomain = "mcphub" }
-    vault     = { subdomain = "vault" }
     archon    = { subdomain = "archon" }
     supabase  = { subdomain = "supabase" }
     nas       = { subdomain = "nas" }
@@ -80,7 +79,6 @@ locals {
     glitchtip = { subdomain = "glitchtip", name = "GlitchTip" }
     grafana   = { subdomain = "grafana", name = "Grafana" }
     mcphub    = { subdomain = "mcphub", name = "MCP Hub" }
-    vault     = { subdomain = "vault", name = "Vault" }
     archon    = { subdomain = "archon", name = "Archon" }
     supabase  = { subdomain = "supabase", name = "Supabase" }
     nas       = { subdomain = "nas", name = "NAS" }

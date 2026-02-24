@@ -125,7 +125,6 @@ locals {
       ports = {
         web        = 3000
         n8n        = 5678
-        vault      = 8200
         proxmox    = 8055
         playwright = 8056
       }

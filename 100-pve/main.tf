@@ -527,10 +527,6 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/supabase.yml"
           content = module.config_renderer.rendered_configs.traefik_supabase
         }
-        "traefik-vault.yml" = {
-          path    = "/etc/traefik/dynamic/vault.yml"
-          content = module.config_renderer.rendered_configs.traefik_vault
-        }
         "filebeat.yml" = {
           path    = "/etc/filebeat/filebeat.yml"
           content = module.config_renderer.rendered_configs.traefik_filebeat
@@ -797,7 +793,6 @@ locals {
       synology    = "synology.yml.tftpl"
       archon      = "archon.yml.tftpl"
       supabase    = "supabase.yml.tftpl"
-      vault       = "vault.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"
       cloudflared = "cloudflared-docker-compose.yml.tftpl"
     } }
