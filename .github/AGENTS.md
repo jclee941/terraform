@@ -20,7 +20,7 @@
 │   ├── _terraform-plan.yml     # Reusable plan template (called by service workflows)
 │   ├── _terraform-apply.yml    # Reusable apply template (called by service workflows)
 │   ├── terraform-plan.yml      # 100-pve plan (PR trigger)
-│   ├── terraform-apply.yml     # 100-pve apply (push to master)
+│   ├── terraform-apply.yml     # 100-pve apply (push to master + workflow_dispatch)
 │   ├── terraform-drift.yml     # Drift check (Mon-Fri 00:00 UTC, 7-workspace matrix)
 │   ├── {svc}-plan.yml          # Per-service plan (6 services: archon, cloudflare, elk, github, grafana, traefik)
 │   ├── {svc}-apply.yml         # Per-service apply (6 services)

@@ -43,7 +43,7 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
 
 - `terraform-plan.yml` / `terraform-apply.yml` (100-pve) are **intentionally standalone** — not wrappers around `_terraform-*` reusable workflows. Reasons:
   - Proxmox-specific secrets (`PROXMOX_ENDPOINT`, `PROXMOX_API_TOKEN`, `PROXMOX_INSECURE`) are absent from the reusable template's secret contract.
-  - Apply pipeline includes a unique Proxmox resource import script (7 LXC + 1 VM) with show→import→skip-if-managed logic that has no equivalent in the reusable template.
+  - Apply pipeline includes a unique Proxmox resource import script (8 LXC + 1 VM) with show→import→skip-if-managed logic and graceful not-provisioned handling (`non-existent`/`not found`/`does not exist` → skip) that has no equivalent in the reusable template.
   - Plan workflow uploads `tfplan` artifact (7-day retention) for plan-then-apply-from-file flow, vs reusable's `-auto-approve`.
   - Path triggers span `100-pve/**`, `modules/**`, and 13 service-template directories across all services.
 - All 7 Terraform workspaces use `backend "local" {}`. State locking is enforced via:
