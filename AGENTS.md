@@ -19,6 +19,7 @@ Terraform monorepo for homelab and external infrastructure providers. Primary or
 
 ```text
 terraform/
+├── 80-jclee/                   # Windows workstation VM (RDP + SSH via CF tunnel)
 ├── 100-pve/                    # Primary infra orchestrator + config rendering
 ├── 101-runner/                 # Self-hosted GitHub Actions runner (LXC)
 ├── 102-traefik/                # Reverse proxy templates + reserved TF workspace
@@ -33,6 +34,7 @@ terraform/
 ├── 220-youtube/                # YouTube media server VM
 ├── 300-cloudflare/             # External Cloudflare infra + Worker
 ├── 301-github/                 # External GitHub org/repo management
+├── 310-safetywallet/           # SafetyWallet external service (CF tunnel)
 ├── modules/
 │   ├── proxmox/                # lxc, vm, config rendering modules
 │   └── shared/                 # cross-stack reusable modules
@@ -59,6 +61,7 @@ terraform/
 | CI topology (overview)        | `.github/AGENTS.md`                                                           | Runner, risk tiers, reusable workflow usage, issue/PR templates.                      |
 | CI workflow details           | `.github/workflows/AGENTS.md`                                                 | Pairing rules, `_terraform-*` templates, drift matrix.                                |
 | CI custom actions             | `.github/actions/AGENTS.md`                                                   | Composite action contracts (`terraform-setup`, `notify-failure`).                     |
+| Workstation VM                | `80-jclee/AGENTS.md`                                                          | Windows workstation (VMID 80); RDP + SSH via CF tunnel.                               |
 | Self-hosted runner            | `101-runner/AGENTS.md`                                                        | GitHub Actions runner on LXC 101; multi-repo registration.                            |
 | Reverse proxy                 | `102-traefik/AGENTS.md`                                                       | Traefik ingress, TLS, MCP resilient middleware.                                       |
 | DNS resolver                  | `103-coredns/AGENTS.md`                                                       | Split DNS on LXC 103; Corefile + Docker Compose + filebeat.                           |
@@ -76,6 +79,7 @@ terraform/
 | Worker-specific rules         | `300-cloudflare/workers/synology-proxy/AGENTS.md`                             | Route/auth/cache implementation constraints.                                          |
 | Cloudflare automation scripts | `300-cloudflare/scripts/AGENTS.md`                                            | Secret collection/sync/audit/deploy script governance.                                |
 | GitHub org management         | `301-github/AGENTS.md`                                                        | 17 repos, rulesets, webhooks, environments.                                           |
+| SafetyWallet service          | `310-safetywallet/AGENTS.md`                                                  | External SafetyWallet service; CF tunnel.                                             |
 | Test harness overview         | `tests/AGENTS.md`                                                             | Native `terraform test` conventions and layout.                                       |
 | Proxmox tests                 | `tests/modules/proxmox/AGENTS.md`                                             | Mock provider patterns, fixture discipline.                                           |
 | Shared module tests           | `tests/modules/shared/AGENTS.md`                                              | onepassword module test and mock rules.                                               |
@@ -131,8 +135,8 @@ bazel build //... && bazel test //...
 - Test scopes: `tests/AGENTS.md`, `tests/modules/proxmox/AGENTS.md`, `tests/modules/shared/AGENTS.md`, `tests/integration/AGENTS.md`, `tests/workspaces/AGENTS.md`
 - Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `103-coredns/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
 - Dashboard scope: `104-grafana/dashboards/AGENTS.md`
-- Dev/youtube scopes: `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
-- External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`
+- Dev/workstation scopes: `80-jclee/AGENTS.md`, `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
+- External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`, `310-safetywallet/AGENTS.md`
 - Operational scopes: `docs/AGENTS.md`, `docs/runbooks/AGENTS.md`, `scripts/AGENTS.md`, `scripts/n8n-workflows/AGENTS.md`
 
 ## NOTES
