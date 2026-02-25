@@ -57,6 +57,7 @@ envs/prod/hosts.tf (SSoT)
 - **Memory Budget**: Total < 54 GB physical. Sizing in `container_sizing` local.
 - **Providers**: `bpg/proxmox` (~>0.94), `1Password/onepassword` (~>3.2).
 - **Filebeat**: All LXC/VM hosts get Filebeat via `setup_filebeat` provisioner. Logs flow to Logstash on 105.
+- **Firewall**: `firewall.tf` uses `var.node_name` for node targeting — never hardcode `"pve"`.
 
 ## ANTI-PATTERNS
 

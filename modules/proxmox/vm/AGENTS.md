@@ -14,6 +14,7 @@ Provisioning module for Proxmox VMs using clone and cloud-init inputs with valid
 - Keep cloud-init file IDs passed from upstream render/deploy steps.
 - Keep clone semantics explicit; avoid implicit defaults for template source.
 - Keep validation rules aligned with workspace-managed VMID ranges.
+- EFI disk (`efi_disk`) uses dynamic block — only rendered when `bios = "ovmf"`. Do not add static `efi_disk` blocks.
 
 ## ANTI-PATTERNS
 - Do not hardcode template IDs directly in service workspaces.

@@ -12,7 +12,7 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
 ├── terraform-drift.yml                           # Matrix drift checks
 ├── mcp-health-check.yml                          # MCP port health + issue dedup
 ├── terraform-docs.yml                            # Auto-generate terraform-docs on PR
-├── tfstate-backup.yml                             # Nightly tfstate backup to R2 (7 workspaces)
+├── tfstate-backup.yml                             # Nightly tfstate backup to R2 (8 workspaces)
 └── auto-merge.yml + security/automation flows    # Risk-tier + governance
 ```
 
@@ -46,11 +46,11 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
   - Apply pipeline includes a unique Proxmox resource import script (8 LXC + 1 VM) with show→import→skip-if-managed logic and graceful not-provisioned handling (`non-existent`/`not found`/`does not exist` → skip) that has no equivalent in the reusable template.
   - Plan workflow uploads `tfplan` artifact (7-day retention) for plan-then-apply-from-file flow, vs reusable's `-auto-approve`.
   - Path triggers span `100-pve/**`, `modules/**`, and 13 service-template directories across all services.
-- All 7 Terraform workspaces use `backend "local" {}`. State locking is enforced via:
+- All 8 Terraform workspaces use `backend "local" {}`. State locking is enforced via:
   - GHA `concurrency` groups with `cancel-in-progress: false` on all apply workflows — prevents parallel applies to same workspace.
   - Local `make apply` is disabled (`exit 1`) — all applies route through CI.
   - `.tfstate` files tracked in git for CI reliability (single-writer model via concurrency).
-- Drift detection (`terraform-drift.yml`) runs on push to master AND weekday schedule (Mon-Fri 00:00 UTC). Matrix covers all 7 workspaces with `fail-fast: false`.
+- Drift detection (`terraform-drift.yml`) runs on push to master AND weekday schedule (Mon-Fri 00:00 UTC). Matrix covers 7 workspaces (slack not yet included) with `fail-fast: false`.
 
 ## COMMANDS
 ```bash

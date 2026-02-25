@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-33 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 7 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
+35 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 8 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
 
 ## STRUCTURE
 
@@ -22,8 +22,8 @@
 │   ├── terraform-plan.yml      # 100-pve plan (PR trigger)
 │   ├── terraform-apply.yml     # 100-pve apply (push to master + workflow_dispatch)
 │   ├── terraform-drift.yml     # Drift check (Mon-Fri 00:00 UTC, 7-workspace matrix)
-│   ├── {svc}-plan.yml          # Per-service plan (6 services: archon, cloudflare, elk, github, grafana, traefik)
-│   ├── {svc}-apply.yml         # Per-service apply (6 services)
+│   ├── {svc}-plan.yml          # Per-service plan (7 services: archon, cloudflare, elk, github, grafana, slack, traefik)
+│   ├── {svc}-apply.yml         # Per-service apply (7 services)
 │   ├── auto-merge.yml          # Risk-tier labeling + auto-merge (low only)
 │   ├── pr-review.yml           # Automated PR review
 │   ├── labeler.yml             # Auto-label by changed paths
@@ -48,8 +48,8 @@
 | Task                        | Location                                  | Notes                                                                                                                               |
 | --------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **Add Service Workflow**    | Copy `{svc}-plan.yml` + `{svc}-apply.yml` | Standalone workflows per service. Each contains full TF init + plan/apply logic (~120 lines).                                       |
-| **Drift Detection**         | `terraform-drift.yml`                     | Matrix: proxmox, grafana, elk, traefik, archon, cloudflare, github. Mon-Fri 00:00 UTC (09:00 KST).                                                |
-| **Risk Tiers**              | `auto-merge.yml`                          | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, 220-youtube), low = auto-merge.    |
+| **Drift Detection**         | `terraform-drift.yml`                     | Matrix: proxmox, grafana, elk, traefik, archon, cloudflare, github. Mon-Fri 00:00 UTC (09:00 KST). Slack not yet in drift matrix. |
+| **Risk Tiers**              | `auto-merge.yml`                          | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, 220-youtube), low (slack) = auto-merge. |
 | **Workflow Pattern**        | `{svc}-plan.yml`                          | Each standalone workflow has: TF setup, init, plan/apply, PR comment. No reusable workflow abstraction (consolidation opportunity). |
 | **Secrets Pattern**         | Per-workflow steps                        | `secrets.*` → `TF_VAR_*` env export in plan/apply steps.                                                                            |
 | **Custom action contracts** | `.github/actions/AGENTS.md`               | Shared inputs and anti-patterns for composite actions.                                                                              |
@@ -62,7 +62,7 @@
 - **Runner**: All TF workflows use `self-hosted` (LXC 101). Non-TF automation uses `ubuntu-latest`.
 - **Backend Config**: All workspaces use local backend. No `-backend-config` needed — `terraform init` uses default local state.
 - **Pin Actions**: All `uses:` pinned to full commit SHA, not version tags.
-- **Services**: archon, cloudflare, elk, github, grafana, traefik each have dedicated standalone plan/apply pairs (~120 lines each, significant duplication — consolidation candidate).
+- **Services**: archon, cloudflare, elk, github, grafana, slack, traefik each have dedicated standalone plan/apply pairs (~120 lines each, significant duplication — consolidation candidate).
 - **Issue Templates**: Use YAML forms (not markdown) for structured input and automatic labeling.
 - **Pre-deploy Verification**: `_terraform-plan.yml` runs `terraform validate` + `terraform fmt -check -recursive` before every plan. Gates propagate to all service workflows.
 - **Post-deploy Verification**: `_terraform-apply.yml` runs `terraform validate` before apply and post-apply output validation after apply.

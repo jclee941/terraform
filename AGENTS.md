@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
 **Generated:** 2026-02-25 14:15:00 Asia/Seoul
-**Commit:** d3098ee
+**Commit:** ce04972
 **Branch:** master
 **Style:** Google3 Monorepo (Bazel)
 
@@ -30,6 +30,7 @@ terraform/
 ├── 107-supabase/               # Supabase service
 ├── 108-archon/                 # Archon service + reserved provider workspace
 ├── 112-mcphub/                 # MCPHub service + MCP catalog/templates
+├── 200-oc/                    # OpenCode dev machine (VM)
 ├── 215-synology/               # Physical NAS inventory + syslog config
 ├── 220-youtube/                # YouTube media server VM
 ├── 300-cloudflare/             # External Cloudflare infra + Worker
@@ -41,7 +42,7 @@ terraform/
 │   └── shared/                 # cross-stack reusable modules
 ├── tests/                      # terraform test suites (module, integration, workspace)
 ├── docs/                       # runbooks, ADRs, architecture docs
-├── .github/workflows/          # 33 workflows (core, reusable, service, automation)
+├── .github/workflows/          # 35 workflows (core, reusable, service, automation)
 └── scripts/                    # operational automation scripts
 ```
 
@@ -63,6 +64,7 @@ terraform/
 | CI workflow details           | `.github/workflows/AGENTS.md`                                                 | Pairing rules, `_terraform-*` templates, drift matrix.                                |
 | CI custom actions             | `.github/actions/AGENTS.md`                                                   | Composite action contracts (`terraform-setup`, `notify-failure`).                     |
 | Workstation PC                | `80-jclee/AGENTS.md`                                                          | Windows workstation (physical PC); RDP + SSH via CF tunnel.                           |
+| OpenCode dev VM             | `200-oc/AGENTS.md`                                                            | VM 200 at .200; SSH via `ssh.jclee.me`, RDP via `oc-rdp.jclee.me`.                    |
 | Self-hosted runner            | `101-runner/AGENTS.md`                                                        | GitHub Actions runner on LXC 101; multi-repo registration.                            |
 | Reverse proxy                 | `102-traefik/AGENTS.md`                                                       | Traefik ingress, TLS, MCP resilient middleware.                                       |
 | DNS resolver                  | `103-coredns/AGENTS.md`                                                       | Split DNS on LXC 103; Corefile + Docker Compose + filebeat.                           |
@@ -121,6 +123,7 @@ terraform/
 ```bash
 make plan SVC=pve                                # plan only (apply via CI)
 make plan SVC=cloudflare
+make plan SVC=slack
 python3 112-mcphub/validate_mcps.py
 make test
 make test-unit
@@ -137,7 +140,7 @@ bazel build //... && bazel test //...
 - Test scopes: `tests/AGENTS.md`, `tests/modules/proxmox/AGENTS.md`, `tests/modules/shared/AGENTS.md`, `tests/integration/AGENTS.md`, `tests/workspaces/AGENTS.md`
 - Service scopes: `101-runner/AGENTS.md`, `102-traefik/AGENTS.md`, `103-coredns/AGENTS.md`, `104-grafana/AGENTS.md`, `105-elk/AGENTS.md`, `106-glitchtip/AGENTS.md`, `107-supabase/AGENTS.md`, `108-archon/AGENTS.md`, `112-mcphub/AGENTS.md`
 - Dashboard scope: `104-grafana/dashboards/AGENTS.md`
-- Dev/workstation scopes: `80-jclee/AGENTS.md`, `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
+- Dev/workstation scopes: `80-jclee/AGENTS.md`, `200-oc/AGENTS.md`, `215-synology/AGENTS.md`, `220-youtube/AGENTS.md`
 - External scopes: `300-cloudflare/AGENTS.md`, `300-cloudflare/scripts/AGENTS.md`, `300-cloudflare/workers/AGENTS.md`, `300-cloudflare/workers/synology-proxy/AGENTS.md`, `301-github/AGENTS.md`, `310-safetywallet/AGENTS.md`, `320-slack/AGENTS.md`
 - Operational scopes: `docs/AGENTS.md`, `docs/runbooks/AGENTS.md`, `scripts/AGENTS.md`, `scripts/n8n-workflows/AGENTS.md`
 

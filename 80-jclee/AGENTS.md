@@ -24,6 +24,8 @@ Personal workstation (physical PC). Not provisioned by Terraform — inventory h
 | SSH tunnel config | `300-cloudflare/locals.tf` → `tcp_services.jclee-ssh` | CF tunnel to .80:22 (via variable)     |
 | CF Access policy  | `300-cloudflare/access.tf` → `tcp_services`          | 720h session, email auth               |
 | CF tunnel         | `300-cloudflare/tunnel.tf` → `jclee`                 | TF-managed tunnel resource             |
+| External RDP      | `rdp.jclee.me`                                       | CF tunnel → .80:3389                   |
+| External SSH      | `jclee-ssh.jclee.me`                                 | CF tunnel → .80:22                    |
 
 
 ## CONVENTIONS

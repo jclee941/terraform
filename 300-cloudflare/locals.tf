@@ -78,6 +78,11 @@ locals {
       name      = "OpenCode SSH"
       origin    = "tcp://${var.jclee_dev_ip}:22"
     }
+    ssh = {
+      subdomain = "ssh"
+      name      = "SSH"
+      origin    = "tcp://${var.jclee_dev_ip}:22"
+    }
   }
 
   # Services requiring Cloudflare Access protection
