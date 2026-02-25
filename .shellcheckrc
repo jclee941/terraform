@@ -1,0 +1,3 @@
+# Disable SC2129: "Consider using { cmd1; cmd2; } >> file instead of individual redirects"
+# This is a style preference. GHA workflow run blocks use individual redirects for clarity.
+disable=SC2129
