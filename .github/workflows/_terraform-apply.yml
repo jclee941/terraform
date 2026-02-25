@@ -295,7 +295,7 @@ jobs:
         run: |
           set -o pipefail
           MAX_RETRIES=3
-          BACKOFF=120
+          BACKOFF=300
           for attempt in $(seq 1 $MAX_RETRIES); do
             echo "::group::Terraform Apply (attempt $attempt/$MAX_RETRIES)"
             if terraform apply -auto-approve -input=false -no-color 2>&1 | tee /tmp/tf-apply-out.txt; then
