@@ -73,6 +73,7 @@ jobs:
         env:
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
           OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: | # pragma: allowlist secret
           # Quick smoke test — deep validation runs in onepassword-test.yml
           if [ -z "$OP_CONNECT_TOKEN" ]; then

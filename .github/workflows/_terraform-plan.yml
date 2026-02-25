@@ -50,6 +50,8 @@ on:
         required: false
       TF_VAR_GITHUB_TOKEN:
         required: false
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -156,6 +158,7 @@ jobs:
           TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
           OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
 
