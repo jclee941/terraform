@@ -93,6 +93,19 @@ jobs:
             exit 1
           fi
 
+      - name: Terraform Security Scan
+        if: steps.changes.outputs.tf_changed == 'true'
+        continue-on-error: true
+        run: |
+          echo '## Security Scan (Trivy)' >> $GITHUB_STEP_SUMMARY
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy fs --scanners misconfig --severity HIGH,CRITICAL --exit-code 0 --format table . 2>&1 | tee trivy_output.txt
+          if grep -q 'CRITICAL\|HIGH' trivy_output.txt 2>/dev/null; then
+            echo '⚠️ Security findings detected (advisory only)' >> $GITHUB_STEP_SUMMARY
+          else
+            echo '✅ No high/critical security issues found' >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Validate Docker Compose syntax
         if: steps.changes.outputs.docker_changed == 'true'
         run: |
@@ -126,6 +139,31 @@ jobs:
           if [ $ERRORS -eq 0 ]; then
             echo "✅ All directories have BUILD.bazel and OWNERS" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: AGENTS.md Validation
+        id: agents-check
+        run: |
+          echo '## AGENTS.md Coverage' >> $GITHUB_STEP_SUMMARY
+          CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }} 2>/dev/null || echo '')
+          DIRS=$(echo "$CHANGED" | grep -oE '^([0-9]+-[^/]+|modules/[^/]+(/[^/]+)?)' | sort -u || true)
+          MISSING=''
+          CHECKED=0
+          for d in $DIRS; do
+            if [ -d "$d" ]; then
+              CHECKED=$((CHECKED + 1))
+              if [ ! -f "$d/AGENTS.md" ]; then
+                MISSING="$MISSING $d"
+                echo "⚠️ Missing AGENTS.md in \`$d\`" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+          if [ -z "$MISSING" ] && [ $CHECKED -gt 0 ]; then
+            echo "✅ All modified directories ($CHECKED) have AGENTS.md" >> $GITHUB_STEP_SUMMARY
+          elif [ $CHECKED -eq 0 ]; then
+            echo 'ℹ️ No service/module directories in changeset' >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "missing=$(echo $MISSING | xargs)" >> "$GITHUB_OUTPUT"
+          echo "checked=$CHECKED" >> "$GITHUB_OUTPUT"
 
       - name: Module impact analysis
         id: module-impact
@@ -206,18 +244,26 @@ jobs:
             const status = '${{ job.status }}';
             const emoji = status === 'success' ? 'PASS' : 'FAIL';
 
-            let body = `## PR Validation Report\n\n`;
+            let body = '## PR Validation Report\n\n';
             body += `**Status**: ${emoji} ${status}\n\n`;
-            body += `| Check | Ran | Result |\n`;
-            body += `|-------|-----|--------|\n`;
+            body += '| Check | Ran | Result |\n';
+            body += '|-------|-----|--------|\n';
             body += `| Terraform | ${tf_changed ? 'Yes' : 'Skip'} | ${tf_changed ? (status === 'success' ? 'Pass' : 'Fail') : 'N/A'} |\n`;
+            body += `| Security Scan | ${tf_changed ? 'Yes' : 'Skip'} | ${tf_changed ? 'Advisory' : 'N/A'} |\n`;
             body += `| YAML | ${yaml_changed ? 'Yes' : 'Skip'} | ${yaml_changed ? (status === 'success' ? 'Pass' : 'Fail') : 'N/A'} |\n`;
             body += `| Docker | ${docker_changed ? 'Yes' : 'Skip'} | ${docker_changed ? (status === 'success' ? 'Pass' : 'Fail') : 'N/A'} |\n`;
             body += `| Governance (BUILD/OWNERS) | Yes | ${status === 'success' ? 'Pass' : 'Fail'} |\n`;
 
+            const agents_missing = '${{ steps.agents-check.outputs.missing }}' || '';
+            const agents_checked = '${{ steps.agents-check.outputs.checked }}' || '0';
+            if (parseInt(agents_checked) > 0) {
+              const agentsResult = agents_missing ? `⚠️ Missing: \`${agents_missing}\`` : 'Pass';
+              body += `| AGENTS.md Coverage | Yes | ${agentsResult} |\n`;
+            }
+
             if (modules_changed) {
               body += `| Module Impact | Yes | ${affected_count} workspace(s) affected |\n`;
-              body += `\n### Module Impact Analysis\n\n`;
+              body += '\n### Module Impact Analysis\n\n';
               body += `**${affected_count} workspace(s) affected:** \`${affected_workspaces}\`\n\n`;
               body += `> Manual review required. Run \`terraform plan\` for each affected workspace.\n`;
             }

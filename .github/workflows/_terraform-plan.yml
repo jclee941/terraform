@@ -103,6 +103,13 @@ jobs:
       - name: Terraform Validate
         run: terraform validate -no-color
 
+      - name: Run tflint
+        continue-on-error: true
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          tflint --init
+          tflint --recursive --format=compact
+
       - name: Terraform Format Check
         run: |
           if ! terraform fmt -check -recursive . > /dev/null 2>&1; then
@@ -152,6 +159,20 @@ jobs:
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
 
+      - name: Plan Summary
+        if: always() && steps.plan.outputs.result != ''
+        id: summary
+        run: |
+          PLAN_OUT=$(cat plan_output.txt 2>/dev/null || echo '')
+          if echo "$PLAN_OUT" | grep -qE 'Plan: [0-9]+ to add'; then
+            SUMMARY=$(echo "$PLAN_OUT" | grep -oE 'Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy\.')
+          elif echo "$PLAN_OUT" | grep -q 'No changes'; then
+            SUMMARY='No changes. Infrastructure is up-to-date.'
+          else
+            SUMMARY='Plan output could not be parsed.'
+          fi
+          echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
+
       - name: Comment Plan on PR
         if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
@@ -160,6 +181,7 @@ jobs:
           PLAN_RESULT: ${{ steps.plan.outputs.result }}
           SERVICE_NAME: ${{ inputs.service-name }}
           WORKING_DIR: ${{ inputs.working-directory }}
+          PLAN_SUMMARY: ${{ steps.summary.outputs.summary }}
         with:
           script: |
             const result = process.env.PLAN_RESULT || 'failure';
@@ -169,8 +191,12 @@ jobs:
             const icon = result === 'success' ? '✅' : '❌';
             const status = result === 'success' ? 'Success' : 'Failed';
 
+            const planSummary = process.env.PLAN_SUMMARY || 'No summary available';
+
             const body = [
               `## ${icon} ${serviceName} Plan ${status}`,
+              '',
+              `**Summary**: ${planSummary}`,
               '',
               '<details><summary>Show Plan Output</summary>',
               '',

@@ -212,6 +212,13 @@ jobs:
               )
           PY
 
+      - name: Backup State
+        continue-on-error: true
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          cp terraform.tfstate "terraform.tfstate.backup-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
+          echo 'State backup created (or no state file exists yet)'
+
       - name: Terraform Apply
         run: terraform apply -auto-approve -input=false -no-color
         env:
