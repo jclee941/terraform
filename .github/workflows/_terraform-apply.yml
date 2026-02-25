@@ -306,7 +306,7 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           TF_VAR_op_service_account_token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
-          TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
+          TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || 'false' }}
 
 
       - name: Persist state
