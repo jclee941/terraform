@@ -48,6 +48,10 @@ on:
         required: false
       OP_SERVICE_ACCOUNT_TOKEN:
         required: false
+      OP_CONNECT_HOST:
+        required: false
+      OP_CONNECT_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -94,8 +98,8 @@ jobs:
           # 100-pve/terraform.tfstate to exist. On CI this file doesn't exist.
           # Create an empty stub so terraform plan/apply can proceed.
           # Use $GITHUB_WORKSPACE for correct path regardless of working-directory depth.
-          mkdir -p $GITHUB_WORKSPACE/100-pve
-          echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > $GITHUB_WORKSPACE/100-pve/terraform.tfstate
+          mkdir -p "$GITHUB_WORKSPACE/100-pve"
+          echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > "$GITHUB_WORKSPACE/100-pve/terraform.tfstate"
 
 
       - name: Terraform Validate
@@ -124,7 +128,7 @@ jobs:
           EXIT_CODE=${PIPESTATUS[0]}
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
 
-          if [ $EXIT_CODE -eq 0 ]; then
+          if [ "$EXIT_CODE" -eq 0 ]; then
             echo "result=success" >> "$GITHUB_OUTPUT"
           else
             echo "result=failure" >> "$GITHUB_OUTPUT"
@@ -137,11 +141,13 @@ jobs:
 
             ... (truncated, see workflow run for full output)"
           fi
-          echo "plan<<EOFPLAN" >> "$GITHUB_OUTPUT"
-          echo "$PLAN" >> "$GITHUB_OUTPUT"
-          echo "EOFPLAN" >> "$GITHUB_OUTPUT"
+          {
+            echo "plan<<EOFPLAN"
+            echo "$PLAN"
+            echo "EOFPLAN"
+          } >> "$GITHUB_OUTPUT"
 
-          exit $EXIT_CODE
+          exit "$EXIT_CODE"
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
           TF_VAR_grafana_auth: ${{ secrets.TF_VAR_GRAFANA_AUTH }}
@@ -152,8 +158,9 @@ jobs:
           TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
           TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
           TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_op_service_account_token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          TF_VAR_op_service_account_token: ""
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
 

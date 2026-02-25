@@ -60,6 +60,10 @@ on:
         required: false
       OP_SERVICE_ACCOUNT_TOKEN:
         required: false
+      OP_CONNECT_HOST:
+        required: false
+      OP_CONNECT_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -129,8 +133,9 @@ jobs:
         if: inputs.enable-repository-imports
         env:
           TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_op_service_account_token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          TF_VAR_op_service_account_token: ""
         run: |
           python3 - <<'PY'
           import json
@@ -286,12 +291,6 @@ jobs:
           cp terraform.tfstate "terraform.tfstate.backup-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
           echo 'State backup created (or no state file exists yet)'
 
-      - name: Rate limit cooldown
-        if: ${{ inputs.enable-repository-imports }}
-        run: |
-          echo 'Waiting 60s for 1Password rate limit window to reset after import step...'
-          sleep 60
-          echo '✅ Cooldown complete'
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -input=false -no-color
@@ -305,8 +304,9 @@ jobs:
           TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
           TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
           TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_op_service_account_token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+          TF_VAR_op_service_account_token: ""
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
 
