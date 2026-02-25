@@ -175,6 +175,13 @@ jobs:
           )
           print(f"state has {len(managed_resources)} managed resources")
 
+          # Guard: skip imports if state appears lost (prevents 1P rate limit cascade)
+          MIN_EXPECTED_RESOURCES = 10
+          if len(managed_resources) < MIN_EXPECTED_RESOURCES:
+            print(f"WARNING: state has only {len(managed_resources)} resources (expected >= {MIN_EXPECTED_RESOURCES}). Skipping imports to avoid rate limits — likely state file loss.")
+            print("ACTION REQUIRED: restore terraform.tfstate from backup before re-running.")
+            raise SystemExit(1)
+
           def tf_import(address: str, import_id: str):
             if address in managed_resources:
               print(f"already in state: {address}")
