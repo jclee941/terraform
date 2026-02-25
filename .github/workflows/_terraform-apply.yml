@@ -217,25 +217,36 @@ jobs:
             raise SystemExit(1)
 
           for repo in repos:
-            time.sleep(2)  # throttle imports to avoid 1Password rate limits
-            rulesets = gh_get(f"/repos/{owner}/{repo}/rulesets?per_page=100")
-            by_name = {r.get("name", ""): r.get("id") for r in rulesets if r.get("name") and r.get("id")}
+            time.sleep(3)  # throttle between repos to avoid 1Password rate limits
 
-            if by_name.get("default-branch-rules"):
-              tf_import(
-                f'github_repository_ruleset.branch["{repo}"]',
-                f'{repo}:{by_name["default-branch-rules"]}',
-              )
-            if by_name.get("tag-protection"):
-              tf_import(
-                f'github_repository_ruleset.tags["{repo}"]',
-                f'{repo}:{by_name["tag-protection"]}',
-              )
-            if by_name.get("required-code-scanning"):
-              tf_import(
-                f'github_repository_ruleset.code_scanning["{repo}"]',
-                f'{repo}:{by_name["required-code-scanning"]}',
-              )
+            # Check repo visibility — rulesets only exist for non-private repos in TF config
+            repo_info = gh_get(f"/repos/{owner}/{repo}")
+            is_private = repo_info.get("private", False) if isinstance(repo_info, dict) else True
+
+            if not is_private:
+              rulesets = gh_get(f"/repos/{owner}/{repo}/rulesets?per_page=100")
+              by_name = {r.get("name", ""): r.get("id") for r in rulesets if r.get("name") and r.get("id")}
+
+              if by_name.get("default-branch-rules"):
+                tf_import(
+                  f'github_repository_ruleset.branch["{repo}"]',
+                  f'{repo}:{by_name["default-branch-rules"]}',
+                )
+                time.sleep(1)
+              if by_name.get("tag-protection"):
+                tf_import(
+                  f'github_repository_ruleset.tags["{repo}"]',
+                  f'{repo}:{by_name["tag-protection"]}',
+                )
+                time.sleep(1)
+              if by_name.get("required-code-scanning"):
+                tf_import(
+                  f'github_repository_ruleset.code_scanning["{repo}"]',
+                  f'{repo}:{by_name["required-code-scanning"]}',
+                )
+                time.sleep(1)
+            else:
+              print(f"skipping rulesets for {repo} (private repo)")
 
             hooks = gh_get(f"/repos/{owner}/{repo}/hooks?per_page=100")
             for hook in hooks:
@@ -255,6 +266,7 @@ jobs:
                 f'github_repository_webhook.webhooks["{repo}:{hook_name}"]',
                 f"{repo}/{hook_id}",
               )
+              time.sleep(1)
           PY
 
       - name: Backup State
