@@ -292,7 +292,32 @@ jobs:
 
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -no-color
+        run: |
+          set -o pipefail
+          MAX_RETRIES=3
+          BACKOFF=120
+          for attempt in $(seq 1 $MAX_RETRIES); do
+            echo "::group::Terraform Apply (attempt $attempt/$MAX_RETRIES)"
+            if terraform apply -auto-approve -input=false -no-color 2>&1 | tee /tmp/tf-apply-out.txt; then
+              echo '::endgroup::'
+              echo '✅ Terraform apply succeeded'
+              exit 0
+            fi
+            echo '::endgroup::'
+            if grep -qi 'rate limit' /tmp/tf-apply-out.txt; then
+              if [ "$attempt" -lt "$MAX_RETRIES" ]; then
+                echo "⏳ Rate limit hit — waiting ${BACKOFF}s before retry..."
+                sleep "$BACKOFF"
+                BACKOFF=$((BACKOFF * 2))
+              else
+                echo '❌ Rate limit persists after all retries'
+                exit 1
+              fi
+            else
+              echo '❌ Apply failed (not rate-limit related)'
+              exit 1
+            fi
+          done
         env:
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
           TF_VAR_grafana_auth: ${{ secrets.TF_VAR_GRAFANA_AUTH }}
