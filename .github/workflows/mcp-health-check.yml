@@ -71,15 +71,13 @@ jobs:
       - name: Functional 1Password check
         id: op_check
         env:
-          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
-          OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: | # pragma: allowlist secret
           # Quick smoke test — deep validation runs in onepassword-test.yml
-          if [ -z "$OP_CONNECT_TOKEN" ]; then
+          if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
             echo "status=skipped" >> "$GITHUB_OUTPUT"
             echo "has_failure=false" >> "$GITHUB_OUTPUT"
-            echo "ℹ️ OP_CONNECT_TOKEN not configured — skipping"
+            echo "ℹ️ OP_SERVICE_ACCOUNT_TOKEN not configured — skipping"
             exit 0
           fi
 
