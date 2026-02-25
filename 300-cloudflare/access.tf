@@ -8,6 +8,7 @@ resource "cloudflare_zero_trust_access_application" "synology" {
   domain           = var.synology_domain
   type             = "self_hosted"
   session_duration = "24h"
+  allowed_idps     = local.allowed_identity_providers
 }
 
 resource "cloudflare_zero_trust_access_policy" "synology_email" {
@@ -34,6 +35,7 @@ resource "cloudflare_zero_trust_access_application" "homelab" {
   domain           = "${each.value.subdomain}.${var.homelab_domain}"
   type             = "self_hosted"
   session_duration = "24h"
+  allowed_idps     = local.allowed_identity_providers
 
   policies = [{
     decision = "allow"
@@ -60,6 +62,7 @@ resource "cloudflare_zero_trust_access_application" "tcp_services" {
   domain           = "${each.value.subdomain}.${var.homelab_domain}"
   type             = "self_hosted"
   session_duration = "720h"
+  allowed_idps     = local.allowed_identity_providers
 
   policies = [{
     decision = "allow"
@@ -74,12 +77,23 @@ resource "cloudflare_zero_trust_access_application" "tcp_services" {
 
 # ============================================
 # Cloudflare Access for Logstash Ingest (M2M)
+# Service token rotation: time_rotating triggers replacement every 60 days.
+# Token duration (90 days) > rotation interval → 30-day overlap buffer.
 # ============================================
+
+resource "time_rotating" "service_token_rotation" {
+  rotation_days = 60
+}
 
 resource "cloudflare_zero_trust_access_service_token" "logpush" {
   account_id = local.effective_cloudflare_account_id
   name       = "Logpush Worker Traces"
-  duration   = "8760h"
+  duration   = "2160h" # 90 days (reduced from 8760h/1yr)
+
+  lifecycle {
+    create_before_destroy = true
+    replace_triggered_by  = [time_rotating.service_token_rotation]
+  }
 }
 
 resource "cloudflare_zero_trust_access_application" "logstash_ingest" {
@@ -93,7 +107,9 @@ resource "cloudflare_zero_trust_access_application" "logstash_ingest" {
     decision = "non_identity"
     name     = "Logpush Service Token"
     include = [{
-      any_valid_service_token = {}
+      service_token = {
+        token_id = cloudflare_zero_trust_access_service_token.logpush.client_id
+      }
     }]
   }]
 }

@@ -111,6 +111,29 @@ variable "synology_nas_port" {
 variable "access_allowed_emails" {
   description = "List of email addresses allowed through CF Access"
   type        = list(string)
+
+  validation {
+    condition     = length(var.access_allowed_emails) > 0
+    error_message = "access_allowed_emails must contain at least one email address."
+  }
+
+  validation {
+    condition     = alltrue([for email in var.access_allowed_emails : can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email))])
+    error_message = "All entries in access_allowed_emails must be valid email addresses."
+  }
+}
+
+variable "google_oauth_client_id" {
+  description = "Google OAuth 2.0 Client ID for CF Access IdP (optional if provided via 1Password)"
+  type        = string
+  default     = ""
+}
+
+variable "google_oauth_client_secret" {
+  description = "Google OAuth 2.0 Client Secret for CF Access IdP (optional if provided via 1Password)"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 variable "enable_worker_route" {

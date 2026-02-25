@@ -9,12 +9,17 @@ module "onepassword_secrets" {
 
 locals {
   # 1Password lookups (fallback to empty string if not available)
-  _cloudflare_account_id_from_1password = trimspace(try(module.onepassword_secrets.metadata["cloudflare_account_id"], ""))
-  _cloudflare_zone_id_from_1password    = trimspace(try(module.onepassword_secrets.metadata["cloudflare_zone_id"], ""))
-  _github_token_from_1password          = trimspace(try(module.onepassword_secrets.secrets["github_personal_access_token"], ""))
+  _cloudflare_account_id_from_1password      = trimspace(try(module.onepassword_secrets.metadata["cloudflare_account_id"], ""))
+  _cloudflare_zone_id_from_1password         = trimspace(try(module.onepassword_secrets.metadata["cloudflare_zone_id"], ""))
+  _github_token_from_1password               = trimspace(try(module.onepassword_secrets.secrets["github_personal_access_token"], ""))
+  _google_oauth_client_id_from_1password     = trimspace(try(module.onepassword_secrets.secrets["google_oauth_client_id"], ""))
+  _google_oauth_client_secret_from_1password = trimspace(try(module.onepassword_secrets.secrets["google_oauth_client_secret"], ""))
 
   # Effective values: 1Password takes priority, variable fallback
-  effective_cloudflare_account_id = local._cloudflare_account_id_from_1password != "" ? local._cloudflare_account_id_from_1password : trimspace(var.cloudflare_account_id)
-  effective_cloudflare_zone_id    = local._cloudflare_zone_id_from_1password != "" ? local._cloudflare_zone_id_from_1password : trimspace(var.cloudflare_zone_id)
-  effective_github_token          = local._github_token_from_1password != "" ? local._github_token_from_1password : trimspace(var.github_token)
+  effective_cloudflare_account_id      = local._cloudflare_account_id_from_1password != "" ? local._cloudflare_account_id_from_1password : trimspace(var.cloudflare_account_id)
+  effective_cloudflare_zone_id         = local._cloudflare_zone_id_from_1password != "" ? local._cloudflare_zone_id_from_1password : trimspace(var.cloudflare_zone_id)
+  effective_github_token               = local._github_token_from_1password != "" ? local._github_token_from_1password : trimspace(var.github_token)
+  effective_google_oauth_client_id     = local._google_oauth_client_id_from_1password != "" ? local._google_oauth_client_id_from_1password : trimspace(var.google_oauth_client_id)
+  effective_google_oauth_client_secret = local._google_oauth_client_secret_from_1password != "" ? local._google_oauth_client_secret_from_1password : trimspace(var.google_oauth_client_secret)
+  google_idp_configured                = local.effective_google_oauth_client_id != "" && local.effective_google_oauth_client_secret != ""
 }
