@@ -32,16 +32,16 @@ scripts/
 
 ## WHERE TO LOOK
 
-| Task               | Script                                    | Notes                                  |
-| ------------------ | ----------------------------------------- | -------------------------------------- |
-| Verify Prod Health | `production_verification_v2.sh`           | Run after ANY deploy                   |
-| Create PR          | `create-pr.go`                            | Enforces naming conventions            |
-| Check Drift        | `terraform-drift-check.sh`                | DEPRECATED — use `terraform-drift.yml` |
-| Restore Backups    | `setup-backups.sh`                        | Restic/Borg config                     |
-| Deploy Filebeat    | `setup-filebeat.sh`                       | Idempotent, called by TF provisioners  |
-| Sync Vault         | `sync-vault-secrets.sh`                   | 1Password → Vault sync                 |
-| Manage n8n flows   | `n8n-workflows/AGENTS.md`                 | Workflow JSON SSoT and sync rules      |
-| GlitchTip bridge   | `n8n-workflows/grafana-to-glitchtip.json` | Grafana alert forwarding to GlitchTip  |
+| Task               | Script                                    | Notes                                            |
+| ------------------ | ----------------------------------------- | ------------------------------------------------ |
+| Verify Prod Health | `production_verification_v2.sh`           | Run after ANY deploy                             |
+| Create PR          | `create-pr.go`                            | Enforces naming conventions                      |
+| Check Drift        | `terraform-drift-check.sh`                | DEPRECATED — use `terraform-drift.yml`           |
+| Restore Backups    | `setup-backups.sh`                        | Restic/Borg config                               |
+| Deploy Filebeat    | `setup-filebeat.sh`                       | Idempotent, called by TF provisioners            |
+| Sync Vault         | `sync-vault-secrets.sh`                   | 1Password → Vault sync                           |
+| Manage n8n flows   | `n8n-workflows/AGENTS.md`                 | Workflow JSON SSoT and sync rules                |
+| GlitchTip bridge   | `n8n-workflows/grafana-to-glitchtip.json` | Grafana alert forwarding to GlitchTip            |
 | Scaffold Workspace | `scaffold-workspace.go`                   | `go run scripts/scaffold-workspace.go 113 redis` |
 
 ## ANTI-PATTERNS
