@@ -20,10 +20,10 @@ jobs:
           # Check by label
           LABELS=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
             --json labels --jq '.labels[].name')
-          # Check by PR author (Codex Connector bot)
+          # Check by PR author (Codex bot login is 'Codex', type 'Bot')
           AUTHOR=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
             --json author --jq '.author.login')
-          if echo "$LABELS" | grep -q '^codex$' || echo "$AUTHOR" | grep -q '\[bot\]'; then
+          if echo "$LABELS" | grep -q '^codex$' || [ "$AUTHOR" = "Codex" ]; then
             echo "codex=true" >> "$GITHUB_OUTPUT"
           else
             echo "codex=false" >> "$GITHUB_OUTPUT"
