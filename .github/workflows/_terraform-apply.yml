@@ -109,8 +109,8 @@ jobs:
           # 100-pve/terraform.tfstate to exist. On CI this file doesn't exist.
           # Create an empty stub so terraform plan/apply can proceed.
           # Use $GITHUB_WORKSPACE for correct path regardless of working-directory depth.
-          mkdir -p $GITHUB_WORKSPACE/100-pve
-          echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > $GITHUB_WORKSPACE/100-pve/terraform.tfstate
+          mkdir -p "$GITHUB_WORKSPACE/100-pve"
+          echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > "$GITHUB_WORKSPACE/100-pve/terraform.tfstate"
 
 
       - name: Terraform Validate
@@ -128,6 +128,7 @@ jobs:
           import subprocess
           import sys
           import urllib.request
+          import time
           import urllib.error
 
           owner = "qws941"
@@ -165,25 +166,36 @@ jobs:
               return []
 
           def tf_import(address: str, import_id: str):
-            cmd = ["terraform", "import", "-input=false", address, import_id]
-            proc = subprocess.run(cmd, text=True, capture_output=True)
-            out = (proc.stdout or "") + (proc.stderr or "")
-            if proc.returncode == 0:
-              print(f"imported {address} <- {import_id}")
-              return
-            if "already managed by Terraform" in out:
-              print(f"already managed: {address}")
-              return
-            if "Configuration for import target does not exist" in out:
-              print(f"skipped (no config): {address}")
-              return
-            if "Cannot import non-existent remote object" in out:
-              print(f"skipped (not found): {address}")
-              return
-            print(out)
-            raise SystemExit(proc.returncode)
+            max_retries = 4
+            for attempt in range(max_retries + 1):
+              cmd = ["terraform", "import", "-input=false", address, import_id]
+              proc = subprocess.run(cmd, text=True, capture_output=True)
+              out = (proc.stdout or "") + (proc.stderr or "")
+              if proc.returncode == 0:
+                print(f"imported {address} <- {import_id}")
+                return
+              if "already managed by Terraform" in out:
+                print(f"already managed: {address}")
+                return
+              if "Configuration for import target does not exist" in out:
+                print(f"skipped (no config): {address}")
+                return
+              if "Cannot import non-existent remote object" in out:
+                print(f"skipped (not found): {address}")
+                return
+              is_rate_limit = any(s in out for s in ["429", "Too Many Requests"]) or "rate limit" in out.lower()
+              if is_rate_limit and attempt < max_retries:
+                wait = 2 ** attempt * 5
+                print(f"rate limited (attempt {attempt + 1}/{max_retries + 1}), retrying in {wait}s: {address}")
+                time.sleep(wait)
+                continue
+              print(out)
+              raise SystemExit(proc.returncode)
+            print(f"failed after {max_retries + 1} attempts: {address}")
+            raise SystemExit(1)
 
           for repo in repos:
+            time.sleep(2)  # throttle imports to avoid 1Password rate limits
             rulesets = gh_get(f"/repos/{owner}/{repo}/rulesets?per_page=100")
             by_name = {r.get("name", ""): r.get("id") for r in rulesets if r.get("name") and r.get("id")}
 
