@@ -119,6 +119,17 @@
         "SLACK_MCP_CHANNELS_CACHE": "/tmp/slack-channels-cache.json"
       },
       "description": "Slack workspace operations"
+    },
+    "onepassword": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "node",
+      "args": ["/app/op-mcp-server/index.mjs"],
+      "port": 8077,
+      "env": {
+        "OP_SERVICE_ACCOUNT_TOKEN": "${OP_SERVICE_ACCOUNT_TOKEN}"
+      },
+      "description": "1Password vault and secret management"
     }
   }
 }

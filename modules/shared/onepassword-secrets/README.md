@@ -64,7 +64,7 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 
 | Name | Description |
 |------|-------------|
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (32 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (35 keys) |
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (10 keys) |
 
 <!-- END_TF_DOCS -->

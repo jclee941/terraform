@@ -6,10 +6,10 @@
 # Each 1Password item must have a section named "secrets" with matching field labels.
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
 #
-# Secrets (sensitive=true): API keys, passwords, tokens — 32 keys.
+# Secrets (sensitive=true): API keys, passwords, tokens — 35 keys.
 # Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 10 keys.
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (32 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (35 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -45,11 +45,10 @@ output "secrets" {
     openai_api_key       = try(data.onepassword_item.archon.section_map["secrets"].field_map["openai_api_key"].value, "")
 
     # Cloudflare
-    cloudflare_api_key = try(
-      data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_token"].value,
-      try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_key"].value, "")
-    )
-    cloudflare_tunnel_token = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["tunnel_token"].value, "")
+    cloudflare_api_key         = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["api_key"].value, "")
+    cloudflare_tunnel_token    = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["tunnel_token"].value, "")
+    google_oauth_client_id     = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["google_oauth_client_id"].value, "")
+    google_oauth_client_secret = try(data.onepassword_item.cloudflare.section_map["secrets"].field_map["google_oauth_client_secret"].value, "")
 
     # n8n
     n8n_api_key             = try(data.onepassword_item.n8n.section_map["secrets"].field_map["api_key"].value, "")
@@ -64,6 +63,7 @@ output "secrets" {
     mcphub_op_service_account_token = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["op_service_account_token"].value, "")
     slack_mcp_xoxp_token            = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxp_token"].value, "")
     slack_mcp_xoxb_token            = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "")
+    slack_bot_token                 = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "") # alias: consumers expect slack_bot_token
 
     # ELK / Elasticsearch
     elk_elastic_password = try(data.onepassword_item.elk.section_map["secrets"].field_map["elastic_password"].value, "")
