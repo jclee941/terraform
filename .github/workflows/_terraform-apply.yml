@@ -81,6 +81,16 @@ jobs:
         with:
           clean: false
 
+      - name: Restore persistent state
+        run: |
+          STATE_DIR="/home/runner/.terraform-state/${{ inputs.working-directory }}"
+          if [ -f "$STATE_DIR/terraform.tfstate" ]; then
+            cp "$STATE_DIR/terraform.tfstate" terraform.tfstate
+            echo "✅ Restored state from $STATE_DIR ($(stat -c%s "$STATE_DIR/terraform.tfstate") bytes)"
+          else
+            echo "⚠️ No persistent state found at $STATE_DIR"
+          fi
+
       - name: Setup Terraform & Init
         uses: ./.github/actions/terraform-setup
         with:
@@ -293,6 +303,19 @@ jobs:
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || '' }}
 
+
+      - name: Persist state
+        if: always()
+        run: |
+          STATE_DIR="/home/runner/.terraform-state/${{ inputs.working-directory }}"
+          STATE_SIZE=$(stat -c%s terraform.tfstate 2>/dev/null || echo 0)
+          if [ "$STATE_SIZE" -gt 5000 ]; then
+            mkdir -p "$STATE_DIR"
+            cp terraform.tfstate "$STATE_DIR/terraform.tfstate"
+            echo "✅ Persisted state to $STATE_DIR ($STATE_SIZE bytes)"
+          else
+            echo "⚠️ State file missing or too small (${STATE_SIZE} bytes) — skipping persist to avoid overwriting good state"
+          fi
 
       - name: Post-Apply Verification
         if: success()
