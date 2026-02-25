@@ -47,7 +47,7 @@ jobs:
     with:
       service-name: GitHub
       working-directory: 301-github
-      enable-repository-imports: true
+      enable-repository-imports: false
       failure-title-prefix: "[GitHub] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `301-github`
