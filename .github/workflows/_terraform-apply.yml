@@ -165,17 +165,32 @@ jobs:
               print(f"warning: {e.code} for {path} — skipping")
               return []
 
+          # Pre-load state to skip already-managed resources (avoids 1P rate limits)
+          state_proc = subprocess.run(
+            ["terraform", "state", "list"],
+            text=True, capture_output=True
+          )
+          managed_resources = set(
+            line.strip() for line in (state_proc.stdout or "").splitlines() if line.strip()
+          )
+          print(f"state has {len(managed_resources)} managed resources")
+
           def tf_import(address: str, import_id: str):
-            max_retries = 4
+            if address in managed_resources:
+              print(f"already in state: {address}")
+              return
+            cmd = ["terraform", "import", "-input=false", address, import_id]
+            max_retries = 3
             for attempt in range(max_retries + 1):
-              cmd = ["terraform", "import", "-input=false", address, import_id]
               proc = subprocess.run(cmd, text=True, capture_output=True)
               out = (proc.stdout or "") + (proc.stderr or "")
               if proc.returncode == 0:
                 print(f"imported {address} <- {import_id}")
+                managed_resources.add(address)
                 return
               if "already managed by Terraform" in out:
                 print(f"already managed: {address}")
+                managed_resources.add(address)
                 return
               if "Configuration for import target does not exist" in out:
                 print(f"skipped (no config): {address}")
