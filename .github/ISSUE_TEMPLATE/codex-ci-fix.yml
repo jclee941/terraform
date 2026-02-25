@@ -1,0 +1,122 @@
+name: "Codex: CI/CD Fix"
+description: Fix a broken or failing CI/CD workflow via Codex
+labels: ["codex", "automated", "ci"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Codex CI/CD Fix Connector
+        Use this template to have Codex diagnose and fix broken workflows.
+        Paste the failing workflow run URL and error logs — Codex will trace the root cause and apply a fix.
+
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Failing Workflow
+      description: Which workflow is broken?
+      options:
+        - terraform-plan.yml (100-pve plan)
+        - terraform-apply.yml (100-pve apply)
+        - _terraform-plan.yml (reusable plan)
+        - _terraform-apply.yml (reusable apply)
+        - archon-plan.yml / archon-apply.yml
+        - cloudflare-plan.yml / cloudflare-apply.yml
+        - elk-plan.yml / elk-apply.yml
+        - github-plan.yml / github-apply.yml
+        - grafana-plan.yml / grafana-apply.yml
+        - slack-plan.yml / slack-apply.yml
+        - traefik-plan.yml / traefik-apply.yml
+        - terraform-drift.yml
+        - auto-merge.yml
+        - pr-review.yml
+        - labeler.yml
+        - terraform-docs.yml
+        - mcp-health-check.yml
+        - tfstate-backup.yml
+        - secret-audit.yml
+        - security-scan.yml
+        - worker-deploy.yml
+        - milestone-automation.yml
+        - stale.yml
+        - codex-auto-issue.yml
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: run-url
+    attributes:
+      label: Failing Run URL
+      description: Link to the failing GitHub Actions run.
+      placeholder: "https://github.com/qws941/terraform/actions/runs/..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: error-log
+    attributes:
+      label: Error Log
+      description: |
+        Paste the relevant error output from the failing run.
+        **IMPORTANT**: Redact any secrets, tokens, or passwords before pasting.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: failure-type
+    attributes:
+      label: Failure Type
+      description: What kind of failure is this?
+      options:
+        - Terraform plan/apply error
+        - Terraform init error (backend, provider)
+        - 1Password / secrets connectivity
+        - Provider API error (Proxmox, Cloudflare, GitHub)
+        - Workflow syntax / action version error
+        - Permission / authentication error
+        - Runner connectivity / self-hosted issue
+        - Timeout
+        - Unknown / needs diagnosis
+    validations:
+      required: true
+
+  - type: textarea
+    id: instruction
+    attributes:
+      label: Fix Instructions
+      description: |
+        Specific instructions for Codex. If unsure of the root cause,
+        describe the symptoms and let Codex diagnose.
+      placeholder: |
+        The GitHub Apply workflow has been failing for 5 consecutive runs.
+        Error suggests 1Password rate limiting.
+
+        1. Check `.github/workflows/github-apply.yml` for 1Password API calls
+        2. Identify rate-limit-sensitive patterns (parallel secret fetches)
+        3. Add retry logic or batch secret fetches
+        4. Verify with `actionlint .github/workflows/github-apply.yml`
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Rules Codex must follow when fixing.
+      value: |
+        - Do NOT change workflow trigger conditions without explicit approval
+        - Do NOT remove required status checks
+        - Do NOT switch from self-hosted to ubuntu-latest for TF workflows
+        - Pin all action versions to full commit SHA, not version tags
+        - Preserve plan/apply pair symmetry
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Previous fix attempts, related issues, timeline of failures.
+    validations:
+      required: false

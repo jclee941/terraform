@@ -71,12 +71,7 @@ cd workers/synology-proxy && npm run dev               # Worker dev
 cd workers/synology-proxy && npm test                            # Worker test (deploy via CI only)
 ./scripts/collect.sh && ./scripts/audit.sh             # Secret harvest + drift
 ```
-## NOTES
-- R2 bucket `synology-cache` in APAC region, 7-day TTL.
-- Tunnel exposes Synology at `synology.jclee.win` via CF Access (email policy).
+- R2 bucket `synology-cache`: APAC region, 7-day TTL. Worker uses SID-based Synology FileStation auth (50min session cache).
 - `collect.sh` scans 12 hardcoded project dirs — update when adding projects.
-- Worker uses SID-based auth to Synology FileStation API (50min session cache).
-- Migrated from standalone `~/dev/cloudflare/` repo (2026-02-13).
-- Logpush pipeline: CF Worker traces → `logpush.tf` job → HTTPS to `logstash-ingest.jclee.me` → CF tunnel → Logstash `:8080` HTTP input → `logs-cloudflare-workers-*` ES indices.
-- Logpush M2M service token (`logpush`) has 8760h (1yr) duration; rotated via `access.tf`.
-- TCP tunnels bypass Traefik entirely and connect directly to origin IPs via variables (`var.jclee_ip`, `var.jclee_dev_ip`, `var.synology_nas_ip`, `var.youtube_ip`).
+- Logpush pipeline: CF Worker traces → `logpush.tf` job → HTTPS `logstash-ingest.jclee.me` → CF tunnel → Logstash `:8080` → `logs-cloudflare-workers-*`. M2M service token 8760h (1yr), rotated via `access.tf`.
+- TCP tunnels bypass Traefik; connect directly to origin IPs via variables (`var.jclee_ip`, `var.jclee_dev_ip`, `var.synology_nas_ip`, `var.youtube_ip`). Migrated from `~/dev/cloudflare/` (2026-02-13).

@@ -33,12 +33,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 
 ## TEMPLATE VARIABLES (from env-config module)
 
-- `elk_ip`, `elk_ports.elasticsearch`, `elk_ports.kibana`, `elk_ports.logstash_beat`, `elk_ports.logstash_syslog`, `elk_ports.logstash_http`
-- `elk_version` (8.17.0), `es_heap` (2g), `logstash_heap` (512m)
-- `logstash_dlq_size` (1024mb)
-- `elasticsearch_index_pattern` (logs-{service}-YYYY.MM.dd)
-- `ilm_delete_after` (30d), `ilm_policy_name` (homelab-logs-30d)
-- `elk_elastic_password`, `elk_kibana_password` (from 1Password `homelab/elk`)
+- Variables: `elk_ip`, `elk_ports.*`, `elk_version` (8.17.0), `es_heap` (2g), `logstash_heap` (512m), `logstash_dlq_size` (1024mb), `elasticsearch_index_pattern`, `ilm_delete_after` (30d), `ilm_policy_name`. Credentials from 1Password `homelab/elk`.
 
 ## CONFIG PIPELINE
 
@@ -55,17 +50,14 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - **Naming**: Index pattern is `logs-{service}-YYYY.MM.dd`. Service is extracted by Logstash from filebeat fields, Docker Compose labels, or parsed JSON. Fallback: `unknown`.
 - **HTTP Ingest**: Logstash listens on port 8080 (`http` input, `json_lines` codec) for external log sources. Cloudflare Logpush Worker traces are routed to `logs-cloudflare-workers-*` with error classification on non-ok Outcome.
 - **Alerting**: Grafana (`104-grafana/terraform/main.tf`) handles all alerting. ElastAlert2 was removed.
-- **Script Alignment**: Keep operational scripts aligned with Terraform-defined service topology.
 - **State Tracking**: `terraform/terraform.tfstate` is committed to git (exception to global rule) for CI apply reliability with elasticstack provider.
 - **Terraform Secret Source**: `terraform/` provider auth password resolves from `module.onepassword_secrets` (`onepassword_vault_name` default `homelab`), not tfvars plaintext.
 
 ## SECURITY
 
-- **xpack.security**: Enabled with HTTP basic auth (no TLS for internal network).
-- **Credentials**: Stored in 1Password at `homelab/elk` with fields `elastic_password` and `kibana_password`.
-- **Setup Container**: `elk-setup` runs once to set `kibana_system` password via ES Security API.
-- **Auth Flow**: ES uses `ELASTIC_PASSWORD` env var; Kibana uses `kibana_system`; Logstash uses `elastic` for writes.
-- **Traefik**: ES endpoint (`es.jclee.me`) restricted to LAN via `ipAllowList` middleware.
+- **xpack.security**: Enabled with HTTP basic auth (no TLS for internal). Credentials in 1Password `homelab/elk` (`elastic_password`, `kibana_password`).
+- **Auth Flow**: `elk-setup` container bootstraps `kibana_system`. ES uses `ELASTIC_PASSWORD` env var; Kibana uses `kibana_system`; Logstash uses `elastic`.
+- **Traefik**: `es.jclee.me` restricted to LAN via `ipAllowList` middleware.
 
 ## ANTI-PATTERNS
 

@@ -28,14 +28,12 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
 ## CONVENTIONS
 - Keep service workflows thin wrappers around `_terraform-*` reusable workflows.
 - Preserve plan/apply parity: same service name, same working directory, matching migration flags.
-- Keep Terraform workflows on `self-hosted` runner; non-TF automation can stay on `ubuntu-latest`.
-- Pin `uses:` actions to commit SHAs and keep secret wiring in `secrets: inherit` or explicit env mapping.
+- Keep secret wiring in `secrets: inherit` or explicit env mapping.
 - When changing trigger paths, verify they still match owning stack directories.
 
 ## ANTI-PATTERNS
 - Do not add standalone duplicated logic to `{svc}-plan.yml` when `_terraform-plan.yml` can own it.
 - Do not break plan/apply pair symmetry for a service.
-- Do not leak secret values through echo/printf in workflow steps.
 - Do not move Terraform jobs off `self-hosted` for homelab-dependent operations.
 - Do not change risk-tier rules without updating docs in `.github/AGENTS.md`.
 

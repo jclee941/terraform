@@ -30,13 +30,11 @@ Dashboard JSON files in this directory are the source of truth for Grafana dashb
 - Keep dashboard `uid` stable once published.
 - Keep dashboard titles deterministic; avoid cosmetic renames without reason.
 - Preserve datasource/query compatibility with ELK-backed observability.
-- Treat JSON as canonical; no UI-only edits that are not codified here.
 
 ## ANTI-PATTERNS (THIS DIRECTORY)
 
 - NEVER delete/recreate dashboards just to change panel layout when a targeted JSON edit works.
 - NEVER introduce temporary test dashboards in committed JSON.
-- NEVER rely on manual Grafana UI edits as final state.
 - NEVER hand-edit generated `tf-configs/` outputs instead of editing source JSON.
 
 ## NOTES

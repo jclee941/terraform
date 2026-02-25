@@ -17,7 +17,7 @@ Reusable composite actions shared across workflow domains. Keep action behavior 
 | Failure issue behavior | `notify-failure/action.yml` | Dedup logic and issue/comment update path. |
 
 ## CONVENTIONS
-- Keep `uses:` pins on full commit SHAs.
+- Pin third-party action refs to full commit SHAs inside composite step definitions.
 - Keep composite action inputs backward-compatible for workflow callers.
 - Keep side effects idempotent (dedup instead of issue spam).
 

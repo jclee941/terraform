@@ -218,8 +218,8 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 32
-    error_message = "Secrets output should contain exactly 32 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 35
+    error_message = "Secrets output should contain exactly 35 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
@@ -270,7 +270,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 42
-    error_message = "Total keys (secrets + metadata) should equal 42"
+    condition     = length(output.secrets) + length(output.metadata) == 45
+    error_message = "Total keys (secrets + metadata) should equal 45"
   }
 }

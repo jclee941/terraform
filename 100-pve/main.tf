@@ -4,9 +4,7 @@ provider "proxmox" {
   insecure  = var.proxmox_insecure
 }
 
-provider "onepassword" {
-  service_account_token = trimspace(var.op_service_account_token)
-}
+provider "onepassword" {}
 
 # =============================================================================
 # DATA SOURCES

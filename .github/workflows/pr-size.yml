@@ -1,0 +1,65 @@
+name: PR Size Labels
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: pr-size-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  size-label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Calculate PR size and apply label
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const additions = pr.additions || 0;
+            const deletions = pr.deletions || 0;
+            const totalChanges = additions + deletions;
+
+            // Size thresholds (lines changed)
+            const sizes = [
+              { label: 'size/XS', max: 10 },
+              { label: 'size/S',  max: 50 },
+              { label: 'size/M',  max: 200 },
+              { label: 'size/L',  max: 500 },
+              { label: 'size/XL', max: Infinity }
+            ];
+
+            const sizeLabel = sizes.find(s => totalChanges <= s.max).label;
+
+            // Remove existing size labels
+            const existingLabels = pr.labels
+              .map(l => l.name)
+              .filter(n => n.startsWith('size/'));
+
+            for (const label of existingLabels) {
+              if (label !== sizeLabel) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  name: label
+                }).catch(() => {});
+              }
+            }
+
+            // Apply correct size label
+            if (!existingLabels.includes(sizeLabel)) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: [sizeLabel]
+              });
+            }
+
+            core.info(`PR #${pr.number}: +${additions} -${deletions} = ${totalChanges} lines → ${sizeLabel}`);

@@ -23,6 +23,9 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 
 <!-- BEGIN_TF_DOCS -->
 
+
+## Requirements
+
 ## Requirements
 
 | Name | Version |
@@ -32,9 +35,13 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 
 ## Providers
 
+## Providers
+
 | Name | Version |
 |------|---------|
-| <a name="provider_onepassword"></a> [onepassword](#provider\_onepassword) | ~> 3.2 |
+| <a name="provider_onepassword"></a> [onepassword](#provider\_onepassword) | 3.2.1 |
+
+## Resources
 
 ## Resources
 
@@ -56,15 +63,19 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 
 ## Inputs
 
+## Inputs
+
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_vault_name"></a> [vault\_name](#input\_vault\_name) | 1Password vault name containing homelab secrets | `string` | `"homelab"` | no |
 
 ## Outputs
 
+## Outputs
+
 | Name | Description |
 |------|-------------|
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (35 keys) |
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (10 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (35 keys) |
 
 <!-- END_TF_DOCS -->

@@ -14,7 +14,7 @@ Data-source module that reads homelab secrets from 1Password and exposes a stabl
 ## CONVENTIONS
 - Keep output key names stable; many templates consume this flat map.
 - Keep all lookups wrapped with `try(..., "")` to support terraform tests with mocks.
-- Keep provider auth via `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` (Connect Server on LXC 112, port 8090). Provider falls back to these when `op_service_account_token` is empty.
+- Provider auth config inherited from parent scope; see `modules/shared/AGENTS.md`.
 
 ## ANTI-PATTERNS
 - Do not create infrastructure resources here; data-source reads only.

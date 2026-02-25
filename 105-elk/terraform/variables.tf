@@ -33,13 +33,6 @@ variable "kibana_url" {
   }
 }
 
-variable "op_service_account_token" {
-  description = "1Password service account token"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 variable "onepassword_vault_name" {
   description = "1Password vault name for secret lookups"
   type        = string

@@ -35,18 +35,6 @@ variable "github_token" {
   }
 }
 
-variable "op_service_account_token" {
-  description = "1Password service account token"
-  type        = string
-  sensitive   = true
-  default     = ""
-
-  validation {
-    condition     = var.op_service_account_token == "" || can(regex("^ops_", var.op_service_account_token))
-    error_message = "op_service_account_token must be empty or start with 'ops_'."
-  }
-}
-
 variable "onepassword_vault_name" {
   description = "1Password vault name for secret lookups"
   type        = string

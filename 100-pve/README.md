@@ -75,3 +75,75 @@ As the host node, 100-pve is the foundation for:
 - **Style**: Google3 Monorepo
 - **Build System**: Bazel (`BUILD.bazel` included for config validation)
 - **Ownership**: Infrastructure Team (see `OWNERS`)
+
+<!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7, < 2.0 |
+| <a name="requirement_onepassword"></a> [onepassword](#requirement\_onepassword) | ~> 3.2 |
+| <a name="requirement_proxmox"></a> [proxmox](#requirement\_proxmox) | ~> 0.94 |
+
+## Providers
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.96.0 |
+
+## Resources
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [proxmox_virtual_environment_firewall_rules.container](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_firewall_rules) | resource |
+| [proxmox_virtual_environment_firewall_rules.vm](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_firewall_rules) | resource |
+| [proxmox_virtual_environment_nodes.nodes](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/data-sources/virtual_environment_nodes) | data source |
+
+## Inputs
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | Proxmox API token in format 'user@realm!tokenid=uuid' | `string` | n/a | yes |
+| <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Proxmox storage ID for container disks | `string` | `"dfge"` | no |
+| <a name="input_deploy_lxc_configs"></a> [deploy\_lxc\_configs](#input\_deploy\_lxc\_configs) | Whether to deploy LXC configurations via SSH | `bool` | `false` | no |
+| <a name="input_deploy_vm_configs"></a> [deploy\_vm\_configs](#input\_deploy\_vm\_configs) | Whether to deploy VM configurations via SSH | `bool` | `false` | no |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | DNS servers for containers | `list(string)` | <pre>[<br/>  "192.168.50.103",<br/>  "8.8.8.8"<br/>]</pre> | no |
+| <a name="input_homelab_tunnel_token"></a> [homelab\_tunnel\_token](#input\_homelab\_tunnel\_token) | Cloudflare Tunnel token for homelab connector (from 300-cloudflare workspace) | `string` | `""` | no |
+| <a name="input_managed_vmid_range"></a> [managed\_vmid\_range](#input\_managed\_vmid\_range) | VMID range for Terraform-managed containers and VMs (101-220) | <pre>object({<br/>    min = number<br/>    max = number<br/>  })</pre> | <pre>{<br/>  "max": 220,<br/>  "min": 101<br/>}</pre> | no |
+| <a name="input_network_cidr"></a> [network\_cidr](#input\_network\_cidr) | Network CIDR for container IPs | `string` | `"192.168.50.0/24"` | no |
+| <a name="input_network_gateway"></a> [network\_gateway](#input\_network\_gateway) | Network gateway IP address | `string` | `"192.168.50.1"` | no |
+| <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node name to deploy containers | `string` | `"pve3"` | no |
+| <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for shared infrastructure secrets | `string` | `"homelab"` | no |
+| <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | Proxmox VE API endpoint URL | `string` | `"https://192.168.50.100:8006/"` | no |
+| <a name="input_proxmox_insecure"></a> [proxmox\_insecure](#input\_proxmox\_insecure) | Skip TLS verification (use only for self-signed certs) | `bool` | `true` | no |
+| <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | SSH public keys for LXC containers (root user) | `list(string)` | `[]` | no |
+
+## Outputs
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_container_ids"></a> [container\_ids](#output\_container\_ids) | Container VMIDs |
+| <a name="output_container_ips"></a> [container\_ips](#output\_container\_ips) | Container IP addresses |
+| <a name="output_container_status"></a> [container\_status](#output\_container\_status) | Container deployment status |
+| <a name="output_host_inventory"></a> [host\_inventory](#output\_host\_inventory) | Host inventory map (ip, ports, vmid) for consumption by app workspaces via remote\_state |
+| <a name="output_lxc_configs"></a> [lxc\_configs](#output\_lxc\_configs) | LXC configuration paths |
+| <a name="output_nodes"></a> [nodes](#output\_nodes) | List of Proxmox nodes |
+| <a name="output_rendered_configs"></a> [rendered\_configs](#output\_rendered\_configs) | Paths to rendered configuration files |
+| <a name="output_required_template_secrets_validation"></a> [required\_template\_secrets\_validation](#output\_required\_template\_secrets\_validation) | Fail-fast validation for required 1Password secret keys consumed by rendered templates |
+| <a name="output_service_urls"></a> [service\_urls](#output\_service\_urls) | Derived service URLs for consumption by app workspaces (301-github) via remote\_state |
+| <a name="output_validation_summary"></a> [validation\_summary](#output\_validation\_summary) | Configuration validation summary |
+| <a name="output_vm_configs"></a> [vm\_configs](#output\_vm\_configs) | VM configuration paths |
+
+<!-- END_TF_DOCS -->

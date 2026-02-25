@@ -8,7 +8,8 @@ Operational automation scripts for the `proxmox` infrastructure. Includes produc
 
 ```
 scripts/
-├── create-pr.sh                  # PR automation wrapper (gh cli + custom logic)
+├── create-pr.go                  # PR automation wrapper (gh cli + custom logic)
+├── scaffold-workspace.go         # Scaffold new NNN-service workspace directories
 ├── production_verification_v2.sh # Live health check suite (Prometheus, Grafana, N8N)
 ├── terraform-drift-check.sh      # DEPRECATED — use terraform-drift.yml workflow
 ├── setup-backups.sh              # Backup configuration (Restic/Borg)
@@ -22,64 +23,30 @@ scripts/
     └── ...                       # Other exported workflows
 ```
 
-## KEY SCRIPTS
+## KEY DETAILS
 
-### `production_verification_v2.sh`
-
-**The "Test Suite" of the Monorepo.**
-
-- **Purpose**: Verify live infrastructure health after deployments.
-- **Checks**:
-  - Service Reachability (HTTP 200/401)
-  - Database Connections (PostgreSQL via GlitchTip)
-  - Metrics ingestion (Prometheus targets up)
-  - Workflow engine status (n8n healthz)
-- **Usage**: `./scripts/production_verification_v2.sh`
-
-### `create-pr.sh`
-
-**Standard PR Workflow.**
-
-- **Purpose**: Create GitHub PRs with standardized labels and descriptions.
-- **Integrations**: Uses `gh` CLI, auto-detects changes to apply labels (`infrastructure`, `automation`, `documentation`).
-
-### `terraform-drift-check.sh`
-
-**DEPRECATED — Replaced by `terraform-drift.yml` GitHub Actions workflow.**
-
-- **Status**: Script body replaced with deprecation notice. Drift detection is now event-driven via `.github/workflows/terraform-drift.yml`.
-- **Migration**: 7-workspace matrix runs on push/PR events and `workflow_dispatch`.
-
-### `setup-filebeat.sh`
-
-**Filebeat Deployment.**
-
-- **Purpose**: Idempotent Filebeat agent installation on LXC/VM hosts.
-- **Called by**: `lxc-config` and `vm-config` modules via `setup_filebeat` provisioner.
-- **Behavior**: Installs Filebeat, configures Docker autodiscovery, points output to Logstash on LXC 105.
-
-### `sync-vault-secrets.sh`
-
-**Vault Secret Sync.**
-
-- **Purpose**: Synchronize secrets between 1Password and HashiCorp Vault.
+- `production_verification_v2.sh`: Checks HTTP reachability, PostgreSQL (via GlitchTip), Prometheus targets, n8n healthz. Run after any deploy.
+- `terraform-drift-check.sh`: **DEPRECATED** — replaced by `terraform-drift.yml` workflow (7-workspace matrix).
+- `setup-filebeat.sh`: Idempotent; called by TF provisioners (`lxc-config`/`vm-config`). Docker autodiscovery → Logstash on LXC 105.
+- `scaffold-workspace.go`: Creates new numbered workspace directories with BUILD.bazel, OWNERS, README.md, AGENTS.md, main.tf, variables.tf, outputs.tf, versions.tf. Supports `--dry-run`.
 
 ## WHERE TO LOOK
 
-| Task               | Script                          | Notes                                 |
-| ------------------ | ------------------------------- | ------------------------------------- |
-| Verify Prod Health | `production_verification_v2.sh` | Run after ANY deploy                  |
-| Create PR          | `create-pr.sh`                  | Enforces naming conventions           |
-| Check Drift        | `terraform-drift-check.sh`      | DEPRECATED — use `terraform-drift.yml` |
-| Restore Backups    | `setup-backups.sh`              | Restic/Borg config                    |
-| Deploy Filebeat    | `setup-filebeat.sh`             | Idempotent, called by TF provisioners |
-| Sync Vault         | `sync-vault-secrets.sh`         | 1Password → Vault sync                |
-| Manage n8n flows   | `n8n-workflows/AGENTS.md`       | Workflow JSON SSoT and sync rules     |
-| GlitchTip bridge   | `n8n-workflows/grafana-to-glitchtip.json` | Grafana alert forwarding to GlitchTip |
+| Task               | Script                                    | Notes                                  |
+| ------------------ | ----------------------------------------- | -------------------------------------- |
+| Verify Prod Health | `production_verification_v2.sh`           | Run after ANY deploy                   |
+| Create PR          | `create-pr.go`                            | Enforces naming conventions            |
+| Check Drift        | `terraform-drift-check.sh`                | DEPRECATED — use `terraform-drift.yml` |
+| Restore Backups    | `setup-backups.sh`                        | Restic/Borg config                     |
+| Deploy Filebeat    | `setup-filebeat.sh`                       | Idempotent, called by TF provisioners  |
+| Sync Vault         | `sync-vault-secrets.sh`                   | 1Password → Vault sync                 |
+| Manage n8n flows   | `n8n-workflows/AGENTS.md`                 | Workflow JSON SSoT and sync rules      |
+| GlitchTip bridge   | `n8n-workflows/grafana-to-glitchtip.json` | Grafana alert forwarding to GlitchTip  |
+| Scaffold Workspace | `scaffold-workspace.go`                   | `go run scripts/scaffold-workspace.go 113 redis` |
 
 ## ANTI-PATTERNS
 
-- **NO manual PR creation**: Use `create-pr.sh` to ensure correct labelling.
+- **NO manual PR creation**: Use `create-pr.go` to ensure correct labelling.
 - **NO ignoring verification failures**: If `production_verification_v2.sh` fails, rollback or fix immediately.
 - **NO running setup-filebeat.sh directly**: Use Terraform provisioner via CI/CD for consistent deployment.
 - **NO running `make apply` locally**: `make apply` is disabled. All applies go through CI/CD (`terraform-apply.yml` or `{svc}-apply.yml`).

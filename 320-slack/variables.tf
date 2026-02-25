@@ -2,18 +2,6 @@
 # AUTH VARIABLES
 # =============================================================================
 
-variable "op_service_account_token" {
-  description = "1Password service account token (set via TF_VAR or env)"
-  type        = string
-  default     = ""
-  sensitive   = true
-
-  validation {
-    condition     = var.op_service_account_token == "" || can(regex("^ops_", var.op_service_account_token))
-    error_message = "op_service_account_token must be empty or start with 'ops_'."
-  }
-}
-
 variable "onepassword_vault_name" {
   description = "1Password vault name"
   type        = string

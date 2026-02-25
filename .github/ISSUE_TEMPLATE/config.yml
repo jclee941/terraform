@@ -6,3 +6,6 @@ contact_links:
   - name: Proxmox Documentation
     url: https://pve.proxmox.com/wiki/Main_Page
     about: Proxmox VE documentation for LXC/VM management
+  - name: Codex Automation Guide
+    url: https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent-to-work-on-tasks/about-assigning-tasks-to-copilot
+    about: How Codex picks up issues labeled 'codex' and executes them automatically

@@ -1,0 +1,123 @@
+name: "Codex Task"
+description: Automated task for Codex — general implementation, fix, or improvement
+labels: ["codex", "automated"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Codex Connector
+        This issue will be automatically picked up by Codex when the `codex` label is applied.
+        Write clear, specific instructions — Codex executes the issue body as-is.
+
+  - type: dropdown
+    id: workspace
+    attributes:
+      label: Target Workspace
+      description: Which workspace does this task affect?
+      options:
+        - 100-pve (core infra)
+        - 101-runner (GitHub Actions runner)
+        - 102-traefik (reverse proxy)
+        - 103-coredns (DNS resolver)
+        - 104-grafana (observability)
+        - 105-elk (logging)
+        - 106-glitchtip (error tracking)
+        - 107-supabase (database)
+        - 108-archon (AI knowledge)
+        - 112-mcphub (MCP gateway)
+        - 200-oc (OpenCode VM)
+        - 215-synology (NAS)
+        - 220-youtube (YouTube VM)
+        - 300-cloudflare (external)
+        - 301-github (external)
+        - 310-safetywallet (external)
+        - 320-slack (external)
+        - modules/proxmox
+        - modules/shared
+        - CI/CD (.github/workflows)
+        - scripts/
+        - Multiple / Cross-cutting
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Task Type
+      description: What kind of work is this?
+      options:
+        - fix (bug fix, broken CI, failing workflow)
+        - feature (new resource, workflow, module)
+        - refactor (migration, consolidation, cleanup)
+        - config (variable, label, template change)
+        - docs (AGENTS.md, README, runbook update)
+        - test (add or fix terraform tests)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk Tier
+      description: |
+        Critical: 100-pve, modules, 300-cloudflare, 301-github, 102-traefik
+        Medium: 105-elk, 107-supabase, 108-archon, 112-mcphub
+        Low: everything else
+      options:
+        - Critical
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: instruction
+    attributes:
+      label: Task Instructions
+      description: |
+        Write clear, imperative instructions for Codex to execute.
+        Be specific about file paths, expected changes, and verification steps.
+        Codex reads this as its primary directive.
+      placeholder: |
+        1. Open `300-cloudflare/main.tf`
+        2. Add a new DNS A record for `newservice.jclee.me` pointing to `192.168.50.113`
+        3. Add the corresponding entry in `100-pve/envs/prod/hosts.tf`
+        4. Run `terraform fmt` on changed files
+        5. Run `terraform validate` in both workspaces
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: |
+        Rules Codex must follow. Include anti-patterns to avoid.
+      placeholder: |
+        - Do NOT modify generated files under `100-pve/configs/`
+        - Do NOT hardcode IPs — use `module.hosts` inventory
+        - Follow existing naming conventions (snake_case for TF resources)
+        - Include BUILD.bazel and OWNERS if creating new directories
+    validations:
+      required: false
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification Steps
+      description: How to verify the task is complete.
+      placeholder: |
+        - `terraform fmt -check -recursive` passes
+        - `terraform validate` passes in affected workspace(s)
+        - No new lint errors
+        - Tests pass (`make test`)
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Related issues, PRs, error logs, or references.
+    validations:
+      required: false

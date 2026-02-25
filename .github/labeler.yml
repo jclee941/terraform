@@ -1,76 +1,173 @@
 # Auto-label configuration for actions/labeler
 # Maps file path patterns to PR labels
-# This is a GENERIC config — repos can override with their own .github/labeler.yml
+
+# --- File type labels ---
 
 # Documentation changes
 documentation:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.md'
-          - 'docs/**'
-          - 'README*'
-          - 'CHANGELOG*'
+          - "**/*.md"
+          - "docs/**"
+          - "README*"
+          - "CHANGELOG*"
 
 # CI/CD changes
 ci:
   - changed-files:
       - any-glob-to-any-file:
-          - '.github/**'
-          - '*.yml'
-          - '*.yaml'
-          - 'Makefile'
+          - ".github/**"
+          - "*.yml"
+          - "*.yaml"
+          - "Makefile"
 
 # Infrastructure / Terraform
 terraform:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.tf'
-          - '**/*.tfvars'
-          - '**/.terraform.lock.hcl'
+          - "**/*.tf"
+          - "**/*.tfvars"
+          - "**/.terraform.lock.hcl"
 
 # Docker changes
 docker:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/Dockerfile*'
-          - '**/docker-compose*.yml'
-          - '**/.dockerignore'
+          - "**/Dockerfile*"
+          - "**/docker-compose*.yml"
+          - "**/.dockerignore"
 
 # Python changes
 python:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.py'
-          - 'requirements*.txt'
-          - 'pyproject.toml'
-          - 'setup.py'
-          - 'setup.cfg'
+          - "**/*.py"
+          - "requirements*.txt"
+          - "pyproject.toml"
+          - "setup.py"
+          - "setup.cfg"
 
 # TypeScript / JavaScript changes
 typescript:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.ts'
-          - '**/*.tsx'
-          - '**/*.js'
-          - '**/*.jsx'
-          - 'package.json'
-          - 'tsconfig*.json'
+          - "**/*.ts"
+          - "**/*.tsx"
+          - "**/*.js"
+          - "**/*.jsx"
+          - "package.json"
+          - "tsconfig*.json"
 
 # Shell scripts
 shell:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.sh'
-          - '**/*.bash'
+          - "**/*.sh"
+          - "**/*.bash"
 
 # Configuration files
 config:
   - changed-files:
       - any-glob-to-any-file:
-          - '**/*.json'
-          - '**/*.toml'
-          - '**/*.ini'
-          - '**/*.cfg'
-          - '.editorconfig'
-          - '.gitignore'
+          - "**/*.json"
+          - "**/*.toml"
+          - "**/*.ini"
+          - "**/*.cfg"
+          - ".editorconfig"
+          - ".gitignore"
+
+# --- Scope labels ---
+
+scope/infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "100-pve/**"
+          - "80-jclee/**"
+          - "200-oc/**"
+          - "215-synology/**"
+
+scope/module:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "modules/**"
+
+scope/service:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "101-runner/**"
+          - "102-traefik/**"
+          - "103-coredns/**"
+          - "104-grafana/**"
+          - "105-elk/**"
+          - "106-glitchtip/**"
+          - "107-supabase/**"
+          - "108-archon/**"
+          - "112-mcphub/**"
+          - "220-youtube/**"
+          - "310-safetywallet/**"
+
+scope/external:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "300-cloudflare/**"
+          - "301-github/**"
+          - "320-slack/**"
+
+# --- Service labels ---
+
+svc:traefik:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "102-traefik/**"
+
+svc:elk:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "105-elk/**"
+
+svc:grafana:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "104-grafana/**"
+
+svc:supabase:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "107-supabase/**"
+
+svc:mcphub:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "112-mcphub/**"
+
+svc:archon:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "108-archon/**"
+
+svc:cloudflare:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "300-cloudflare/**"
+
+svc:slack:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "320-slack/**"
+
+# --- Provider labels ---
+
+provider/proxmox:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "modules/proxmox/**"
+
+provider/cloudflare:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "300-cloudflare/**"
+
+provider/github:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "301-github/**"
