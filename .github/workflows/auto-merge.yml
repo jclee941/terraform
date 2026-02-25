@@ -14,6 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Check Codex PR
+        id: codex
+        run: |
+          # Check by label
+          LABELS=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json labels --jq '.labels[].name')
+          # Check by PR author (Codex Connector bot)
+          AUTHOR=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json author --jq '.author.login')
+          if echo "$LABELS" | grep -q '^codex$' || echo "$AUTHOR" | grep -q '\[bot\]'; then
+            echo "codex=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "codex=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
       - name: Classify risk tier
         id: risk
         run: |
@@ -51,17 +69,23 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RISK: ${{ steps.risk.outputs.risk }}
 
-      - name: Enable auto-merge (low risk only)
-        if: steps.risk.outputs.risk == 'low'
+      - name: Enable auto-merge (low risk or Codex PR)
+        if: steps.risk.outputs.risk == 'low' || steps.codex.outputs.codex == 'true'
         run: |
           gh pr merge --auto --squash "$PR_URL"
-          echo "Auto-merge enabled — low risk change"
+          if [ "$CODEX" = "true" ]; then
+            echo "Auto-merge enabled — Codex PR (risk: $RISK)"
+          else
+            echo "Auto-merge enabled — low risk change"
+          fi
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODEX: ${{ steps.codex.outputs.codex }}
+          RISK: ${{ steps.risk.outputs.risk }}
 
-      - name: Skip auto-merge (medium/critical)
-        if: steps.risk.outputs.risk != 'low'
+      - name: Skip auto-merge (medium/critical, non-Codex)
+        if: steps.risk.outputs.risk != 'low' && steps.codex.outputs.codex != 'true'
         run: |
           gh pr merge --disable-auto "$PR_URL" 2>/dev/null || true
           RISK="${{ steps.risk.outputs.risk }}"
