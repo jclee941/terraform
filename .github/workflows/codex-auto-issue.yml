@@ -1,3 +1,7 @@
+# Codex Auto-Issue: trigger Codex on issues with 'codex' label
+# SSoT: qws941/.github — synced to all repos
+# Synced via: .github/sync.yml → Group 3
+
 name: Codex Auto-Issue
 
 on:
