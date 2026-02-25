@@ -177,6 +177,9 @@ jobs:
             if "Configuration for import target does not exist" in out:
               print(f"skipped (no config): {address}")
               return
+            if "Cannot import non-existent remote object" in out:
+              print(f"skipped (not found): {address}")
+              return
             print(out)
             raise SystemExit(proc.returncode)
 
