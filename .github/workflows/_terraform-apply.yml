@@ -286,6 +286,13 @@ jobs:
           cp terraform.tfstate "terraform.tfstate.backup-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
           echo 'State backup created (or no state file exists yet)'
 
+      - name: Rate limit cooldown
+        if: ${{ inputs.enable-repository-imports }}
+        run: |
+          echo 'Waiting 60s for 1Password rate limit window to reset after import step...'
+          sleep 60
+          echo '✅ Cooldown complete'
+
       - name: Terraform Apply
         run: terraform apply -auto-approve -input=false -no-color
         env:
