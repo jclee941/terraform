@@ -34,13 +34,6 @@ locals {
       default_branch = "master"
       protection     = "standard"
     }
-    ".github" = {
-      description    = "SSoT: community health, governance, and common config files — auto-synced to all repos"
-      visibility     = "private"
-      topics         = ["github", "governance", "sync"]
-      default_branch = "master"
-      protection     = "minimal"
-    }
     qws941 = {
       description    = "GitHub profile README"
       visibility     = "public"
