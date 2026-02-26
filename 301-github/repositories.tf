@@ -1,67 +1,50 @@
 locals {
   repositories = {
+    # --- Infrastructure ---
     terraform = {
       description         = "Multi-provider infrastructure as code monorepo"
       visibility          = "private"
-      topics              = ["homelab", "proxmox", "cloudflare", "bazel"]
-      archived            = false
+      topics              = ["homelab", "proxmox", "cloudflare", "bazel", "infrastructure", "iac", "terraform"]
       default_branch      = "master"
       protection          = "strict"
       extra_status_checks = ["Terraform Plan"]
     }
+
+    # --- Applications ---
     blacklist = {
       description    = "Blacklist management application"
       visibility     = "public"
       topics         = ["nodejs", "javascript"]
-      archived       = false
       default_branch = "master"
       protection     = "standard"
     }
-    safework2 = {
-      description    = "SafeWork platform v2"
-      visibility     = "private"
+    safetywallet = {
+      description    = "SafetyWallet monorepo"
+      visibility     = "public"
       topics         = ["typescript", "nextjs"]
-      archived       = false
       default_branch = "master"
       protection     = "standard"
     }
-    propose = {
-      description    = "Proposal management tool"
+
+    # --- Tools & Config ---
+    opencode = {
+      description    = "OpenCode home workspace — agent runtime configuration, skills, and operating policies"
       visibility     = "private"
-      topics         = ["typescript"]
-      archived       = false
+      topics         = ["opencode", "ai-agent", "configuration"]
       default_branch = "master"
       protection     = "standard"
     }
-    resume = {
-      description    = "Personal resume and portfolio"
-      visibility     = "public"
-      topics         = ["javascript", "portfolio"]
-      archived       = false
+    ".github" = {
+      description    = "SSoT: community health, governance, and common config files — auto-synced to all repos"
+      visibility     = "private"
+      topics         = ["github", "governance", "sync"]
       default_branch = "master"
       protection     = "minimal"
     }
-    hycu_fsds = {
-      description    = "HYCU FSDS autonomous driving"
+    qws941 = {
+      description    = "GitHub profile README"
       visibility     = "public"
-      topics         = ["python", "autonomous-driving"]
-      archived       = false
-      default_branch = "master"
-      protection     = "standard"
-    }
-    youtube = {
-      description    = "YouTube automation tools"
-      visibility     = "private"
-      topics         = ["python", "youtube"]
-      archived       = false
-      default_branch = "master"
-      protection     = "minimal"
-    }
-    splunk = {
-      description    = "Splunk apps and configurations"
-      visibility     = "public"
-      topics         = ["python", "splunk"]
-      archived       = false
+      topics         = ["profile"]
       default_branch = "master"
       protection     = "minimal"
     }
@@ -69,7 +52,80 @@ locals {
       description    = "Tmux configuration"
       visibility     = "public"
       topics         = ["shell", "tmux"]
-      archived       = false
+      default_branch = "master"
+      protection     = "minimal"
+    }
+
+    # --- Data & ML Competitions ---
+    aimo3-prize = {
+      description    = "AIMO Progress Prize 3 - Math Olympiad Solver"
+      visibility     = "private"
+      topics         = ["python", "kaggle", "math"]
+      default_branch = "master"
+      protection     = "minimal"
+    }
+    march-mania = {
+      description    = "NCAA March Machine Learning Mania 2026 tournament prediction"
+      visibility     = "private"
+      topics         = ["python", "kaggle", "machine-learning"]
+      default_branch = "master"
+      protection     = "minimal"
+    }
+    kaggle-playground = {
+      description    = "Kaggle Playground Series S6 tabular competitions"
+      visibility     = "private"
+      topics         = ["python", "kaggle", "tabular"]
+      default_branch = "master"
+      protection     = "minimal"
+    }
+    arc-prize = {
+      description    = "ARC Prize 2025 — abstract reasoning grid solver"
+      visibility     = "private"
+      topics         = ["python", "kaggle", "reasoning"]
+      default_branch = "master"
+      protection     = "minimal"
+    }
+    agents-league = {
+      description    = "Multi-agent reasoning for Microsoft Agents League — Planner→Solver→Verifier pipeline"
+      visibility     = "private"
+      topics         = ["python", "kaggle", "multi-agent"]
+      default_branch = "master"
+      protection     = "minimal"
+    }
+
+    # --- Legacy (public, maintained) ---
+    propose = {
+      description    = "Proposal management tool"
+      visibility     = "private"
+      topics         = ["typescript"]
+      default_branch = "master"
+      protection     = "standard"
+    }
+    resume = {
+      description    = "Personal resume and portfolio"
+      visibility     = "public"
+      topics         = ["javascript", "portfolio"]
+      default_branch = "master"
+      protection     = "minimal"
+    }
+    hycu_fsds = {
+      description    = "HYCU FSDS autonomous driving"
+      visibility     = "public"
+      topics         = ["python", "autonomous-driving"]
+      default_branch = "master"
+      protection     = "standard"
+    }
+    youtube = {
+      description    = "YouTube automation tools"
+      visibility     = "private"
+      topics         = ["python", "youtube"]
+      default_branch = "master"
+      protection     = "minimal"
+    }
+    splunk = {
+      description    = "Splunk apps and configurations"
+      visibility     = "public"
+      topics         = ["python", "splunk"]
       default_branch = "master"
       protection     = "minimal"
     }

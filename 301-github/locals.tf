@@ -34,11 +34,7 @@ locals {
     web_commit_signoff_required = false
   }
 
-  common_topics = [
-    "infrastructure",
-    "iac",
-    "terraform",
-  ]
+  common_topics = []
 
   common_topics_by_repository = {
     for repo_name, repo_cfg in local.repositories :
