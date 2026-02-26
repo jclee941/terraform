@@ -65,6 +65,11 @@ variable "actions_allowed_patterns" {
     "actions/setup-*",
     "anomalyco/opencode/*",
     "cloudflare/wrangler-action@*",
+    "release-drafter/release-drafter@*",
+    "amannn/action-semantic-pull-request@*",
+    "dessant/lock-threads@*",
+    "CodelyTV/pr-size-labeler@*",
+    "terraform-docs/gh-actions@*",
   ]
 }
 
