@@ -305,7 +305,6 @@ variable "security_dependabot_enabled" {
     hycu_fsds = true
     propose   = true
     resume    = true
-    safework2 = true
     splunk    = true
     terraform = true
     tmux      = true
@@ -321,7 +320,6 @@ variable "security_code_scanning_tools" {
     hycu_fsds = ["CodeQL"]
     propose   = ["CodeQL"]
     resume    = ["CodeQL"]
-    safework2 = ["CodeQL"]
     splunk    = ["CodeQL"]
     terraform = ["CodeQL"]
     tmux      = ["CodeQL"]

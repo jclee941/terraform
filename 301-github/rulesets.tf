@@ -55,7 +55,7 @@ locals {
 }
 
 resource "github_repository_ruleset" "branch" {
-  for_each = var.enable_repository_rulesets ? local.ruleset_repositories : tomap({})
+  for_each = var.enable_repository_rulesets ? local.ruleset_repositories : {}
 
   name        = "default-branch-protection"
   repository  = github_repository.repos[each.key].name
@@ -144,7 +144,7 @@ resource "github_repository_ruleset" "branch" {
 }
 
 resource "github_repository_ruleset" "tags" {
-  for_each = var.enable_repository_rulesets ? local.ruleset_repositories : tomap({})
+  for_each = var.enable_repository_rulesets ? local.ruleset_repositories : {}
 
   name        = "tag-protection"
   repository  = github_repository.repos[each.key].name
