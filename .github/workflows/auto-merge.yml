@@ -1,99 +1,45 @@
+# Auto-merge for Dependabot, owner, sync, and Codex PRs
+# SSoT: qws941/.github — synced to all repos
+# Synced via: .github/sync.yml → Group 2
+#
+# Triggers:
+#   - Dependabot PRs (auto-merge with squash)
+#   - Repository owner PRs (auto-merge with squash)
+#   - PRs with 'auto-merge', 'sync', or 'codex' label
+#
+# Merge strategy: GH_PAT with admin bypass via repository rulesets
+# No approval step needed — admin role bypasses required reviews
+
 name: Auto Merge
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  risk-gate:
-    name: Risk Assessment & Auto-Merge
+  auto-merge:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    if: >-
+      github.actor == 'dependabot[bot]' ||
+      github.actor == github.repository_owner ||
+      contains(github.event.pull_request.labels.*.name, 'auto-merge') ||
+      contains(github.event.pull_request.labels.*.name, 'codex') ||
+      contains(github.event.pull_request.labels.*.name, 'sync')
     steps:
-      - name: Check Codex PR
-        id: codex
-        run: |
-          # Check by label
-          LABELS=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-            --json labels --jq '.labels[].name')
-          # Check by PR author (Codex bot login is 'Codex', type 'Bot')
-          AUTHOR=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-            --json author --jq '.author.login')
-          if echo "$LABELS" | grep -q '^codex$' || [ "$AUTHOR" = "Codex" ]; then
-            echo "codex=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "codex=false" >> "$GITHUB_OUTPUT"
-          fi
+      - name: Merge PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-
-      - name: Classify risk tier
-        id: risk
         run: |
-          CHANGED=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-            --json files --jq '.files[].path')
-          echo "Changed files:"
-          echo "$CHANGED"
-
-          RISK="low"
-
-          # Critical — core infra, shared modules, external providers, reverse proxy
-          if echo "$CHANGED" | grep -qE '^(100-pve/|modules/|300-cloudflare/|301-github/|102-traefik/)'; then
-            RISK="critical"
-          # Medium — service infrastructure
-          elif echo "$CHANGED" | grep -qE '^(105-elk/|107-supabase/|108-archon/|112-mcphub/|220-youtube/)'; then
-            RISK="medium"
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::GH_PAT secret is not set — see qws941/.github README"
+            exit 1
           fi
-
-          echo "risk=$RISK" >> "$GITHUB_OUTPUT"
-          echo "Risk tier: $RISK"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-
-      - name: Apply risk label
-        run: |
-          for label in risk:critical risk:medium risk:low; do
-            gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-              --remove-label "$label" 2>/dev/null || true
-          done
-          gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-            --add-label "risk:$RISK"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          RISK: ${{ steps.risk.outputs.risk }}
-
-      - name: Enable auto-merge (low risk or Codex PR)
-        if: steps.risk.outputs.risk == 'low' || steps.codex.outputs.codex == 'true'
-        run: |
-          gh pr merge --auto --squash "$PR_URL"
-          if [ "$CODEX" = "true" ]; then
-            echo "Auto-merge enabled — Codex PR (risk: $RISK)"
-          else
-            echo "Auto-merge enabled — low risk change"
-          fi
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CODEX: ${{ steps.codex.outputs.codex }}
-          RISK: ${{ steps.risk.outputs.risk }}
-
-      - name: Skip auto-merge (medium/critical, non-Codex)
-        if: steps.risk.outputs.risk != 'low' && steps.codex.outputs.codex != 'true'
-        run: |
-          gh pr merge --disable-auto "$PR_URL" 2>/dev/null || true
-          RISK="${{ steps.risk.outputs.risk }}"
-          if [ "$RISK" = "critical" ]; then
-            echo "CRITICAL: Infrastructure change — auto-merge blocked by policy"
-          else
-            echo "MEDIUM: Service change — auto-merge disabled"
-          fi
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          gh pr merge "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --squash \
+            --admin
