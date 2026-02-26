@@ -107,9 +107,7 @@ resource "cloudflare_zero_trust_access_application" "logstash_ingest" {
     decision = "non_identity"
     name     = "Logpush Service Token"
     include = [{
-      service_token = {
-        token_id = cloudflare_zero_trust_access_service_token.logpush.client_id
-      }
+      any_valid_service_token = {}
     }]
   }]
 }
