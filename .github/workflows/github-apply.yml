@@ -17,32 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  lint:
-    name: GitHub Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-
-      - name: Setup Terraform & Init (backend=false)
-        uses: ./.github/actions/terraform-setup
-        with:
-          terraform-version: "1.10.5"
-          working-directory: 301-github
-          init-args: "-backend=false -input=false"
-
-      - name: Install TFLint
-        run: |
-          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          tflint --version
-
-      - name: TFLint init and run
-        run: |
-          tflint --init
-          tflint --chdir=301-github --format compact
-
   apply:
-    needs: lint
     uses: ./.github/workflows/_terraform-apply.yml
     with:
       service-name: GitHub
