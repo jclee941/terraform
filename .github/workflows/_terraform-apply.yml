@@ -268,10 +268,10 @@ jobs:
               rulesets = gh_get(f"/repos/{owner}/{repo}/rulesets?per_page=100")
               by_name = {r.get("name", ""): r.get("id") for r in rulesets if r.get("name") and r.get("id")}
 
-              if by_name.get("default-branch-rules"):
+              if by_name.get("default-branch-protection"):
                 tf_import(
                   f'github_repository_ruleset.branch["{repo}"]',
-                  f'{repo}:{by_name["default-branch-rules"]}',
+                  f'{repo}:{by_name["default-branch-protection"]}',
                 )
                 time.sleep(1)
               if by_name.get("tag-protection"):
@@ -280,10 +280,10 @@ jobs:
                   f'{repo}:{by_name["tag-protection"]}',
                 )
                 time.sleep(1)
-              if by_name.get("required-code-scanning"):
+              if by_name.get("code-scanning"):
                 tf_import(
                   f'github_repository_ruleset.code_scanning["{repo}"]',
-                  f'{repo}:{by_name["required-code-scanning"]}',
+                  f'{repo}:{by_name["code-scanning"]}',
                 )
                 time.sleep(1)
             else:

@@ -18,8 +18,6 @@ locals {
       deletion                          = true
       non_fast_forward                  = true
       status_checks                     = ["Validate Changes"]
-      enforce_commit_message_pattern    = true
-      enforce_branch_name_pattern       = true
     }
     standard = {
       required_approving_review_count   = 1
@@ -33,8 +31,6 @@ locals {
       deletion                          = true
       non_fast_forward                  = true
       status_checks                     = ["Validate Changes"]
-      enforce_commit_message_pattern    = true
-      enforce_branch_name_pattern       = true
     }
     minimal = {
       required_approving_review_count   = 1
@@ -48,8 +44,6 @@ locals {
       deletion                          = true
       non_fast_forward                  = true
       status_checks                     = []
-      enforce_commit_message_pattern    = false
-      enforce_branch_name_pattern       = false
     }
   }
 }
@@ -123,23 +117,6 @@ resource "github_repository_ruleset" "branch" {
       }
     }
 
-    dynamic "commit_message_pattern" {
-      for_each = local.protection_profiles[try(each.value.protection, "minimal")].enforce_commit_message_pattern ? [1] : []
-      content {
-        name     = "Conventional Commits"
-        operator = "regex"
-        pattern  = "^(feat|fix|docs|refactor|test|ci|chore|perf|build|revert)(\\(.+\\))?: .+"
-      }
-    }
-
-    dynamic "branch_name_pattern" {
-      for_each = local.protection_profiles[try(each.value.protection, "minimal")].enforce_branch_name_pattern ? [1] : []
-      content {
-        name     = "Branch naming convention"
-        operator = "regex"
-        pattern  = "^(feat|fix|docs|refactor|test|ci|chore|perf|build|revert)/.+"
-      }
-    }
   }
 }
 
@@ -182,10 +159,5 @@ resource "github_repository_ruleset" "tags" {
     deletion         = true
     non_fast_forward = true
 
-    tag_name_pattern {
-      name     = "Semantic version tags"
-      operator = "regex"
-      pattern  = "^v[0-9]"
-    }
   }
 }
