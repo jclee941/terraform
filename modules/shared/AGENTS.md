@@ -12,7 +12,7 @@ modules/shared/
 ## WHERE TO LOOK
 | Task | Module | Notes |
 |------|--------|-------|
-| **Retrieve Secrets** | `onepassword-secrets` | Uses `1Password/onepassword` provider with `section_map` access pattern. Outputs `secrets` (sensitive, 32 keys) + `metadata` (non-sensitive, 10 keys). |
+| **Retrieve Secrets** | `onepassword-secrets` | Uses `1Password/onepassword` provider with `section_map` access pattern. Outputs `secrets` (sensitive, 35 keys) + `metadata` (non-sensitive, 10 keys). |
 
 ## CONVENTIONS
 - **Provider-Agnostic**: Logic here must NOT depend on specific infrastructure providers (Proxmox/AWS/Cloudflare) unless strictly necessary.

@@ -24,7 +24,7 @@ scripts/setup-github-secrets.sh --audit
 ```
 1Password (homelab vault, 12 items)
   │
-  ├── onepassword-secrets module (32 secret keys)
+  ├── onepassword-secrets module (35 secret keys)
   │     │
   │     ├── 104-grafana/terraform ──────────────┐
   │     ├── 105-elk/terraform ────────────────┤
@@ -68,7 +68,7 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 12 items:
 
 **Module outputs:**
 
-- 32 secret keys (sensitive=true, not printed in Terraform output)
+- 35 secret keys (sensitive=true, not printed in Terraform output)
 - 10 metadata keys (sensitive=false)
 
 **Access pattern:**
@@ -90,6 +90,7 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
 | 300-cloudflare        | ✅                       | `cloudflare_account_id`, `zone_id`, `github_token` |
 | 301-github            | ✅                       | `github_personal_access_token`                     |
+| 320-slack             | ✅                       | `slack_bot_token`                                  |
 | 102-traefik           | ❌                       | —                                                  |
 | 108-archon            | ❌                       | —                                                  |
 

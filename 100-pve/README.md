@@ -77,10 +77,6 @@ As the host node, 100-pve is the foundation for:
 - **Ownership**: Infrastructure Team (see `OWNERS`)
 
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -91,13 +87,21 @@ As the host node, 100-pve is the foundation for:
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
-| <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.96.0 |
+| <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.97.0 |
 
-## Resources
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_config_renderer"></a> [config\_renderer](#module\_config\_renderer) | ../modules/proxmox/config-renderer | n/a |
+| <a name="module_hosts"></a> [hosts](#module\_hosts) | ./envs/prod | n/a |
+| <a name="module_lxc"></a> [lxc](#module\_lxc) | ../modules/proxmox/lxc | n/a |
+| <a name="module_lxc_config"></a> [lxc\_config](#module\_lxc\_config) | ../modules/proxmox/lxc-config | n/a |
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
+| <a name="module_vm"></a> [vm](#module\_vm) | ../modules/proxmox/vm | n/a |
+| <a name="module_vm_config"></a> [vm\_config](#module\_vm\_config) | ../modules/proxmox/vm-config | n/a |
 
 ## Resources
 
@@ -109,11 +113,8 @@ As the host node, 100-pve is the foundation for:
 
 ## Inputs
 
-## Inputs
-
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | Proxmox API token in format 'user@realm!tokenid=uuid' | `string` | n/a | yes |
 | <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Proxmox storage ID for container disks | `string` | `"dfge"` | no |
 | <a name="input_deploy_lxc_configs"></a> [deploy\_lxc\_configs](#input\_deploy\_lxc\_configs) | Whether to deploy LXC configurations via SSH | `bool` | `false` | no |
 | <a name="input_deploy_vm_configs"></a> [deploy\_vm\_configs](#input\_deploy\_vm\_configs) | Whether to deploy VM configurations via SSH | `bool` | `false` | no |
@@ -124,11 +125,10 @@ As the host node, 100-pve is the foundation for:
 | <a name="input_network_gateway"></a> [network\_gateway](#input\_network\_gateway) | Network gateway IP address | `string` | `"192.168.50.1"` | no |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node name to deploy containers | `string` | `"pve3"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for shared infrastructure secrets | `string` | `"homelab"` | no |
+| <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | Proxmox API token in format 'user@realm!tokenid=uuid' | `string` | n/a | yes |
 | <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | Proxmox VE API endpoint URL | `string` | `"https://192.168.50.100:8006/"` | no |
 | <a name="input_proxmox_insecure"></a> [proxmox\_insecure](#input\_proxmox\_insecure) | Skip TLS verification (use only for self-signed certs) | `bool` | `true` | no |
 | <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | SSH public keys for LXC containers (root user) | `list(string)` | `[]` | no |
-
-## Outputs
 
 ## Outputs
 
@@ -145,5 +145,4 @@ As the host node, 100-pve is the foundation for:
 | <a name="output_service_urls"></a> [service\_urls](#output\_service\_urls) | Derived service URLs for consumption by app workspaces (301-github) via remote\_state |
 | <a name="output_validation_summary"></a> [validation\_summary](#output\_validation\_summary) | Configuration validation summary |
 | <a name="output_vm_configs"></a> [vm\_configs](#output\_vm\_configs) | VM configuration paths |
-
 <!-- END_TF_DOCS -->

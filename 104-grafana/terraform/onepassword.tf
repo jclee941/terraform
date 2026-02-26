@@ -13,8 +13,8 @@ locals {
   _n8n_webhook_url_from_1password           = trimspace(try(module.onepassword_secrets.metadata["n8n_webhook_url"], ""))
   _n8n_glitchtip_webhook_url_from_1password = trimspace(try(module.onepassword_secrets.metadata["n8n_glitchtip_webhook_url"], ""))
 
-  # Effective values: explicit variable takes priority, 1Password fallback
-  effective_grafana_auth              = trimspace(var.grafana_auth) != "" ? trimspace(var.grafana_auth) : local._grafana_auth_from_1password
+  # Effective values: 1Password takes priority, variable fallback
+  effective_grafana_auth              = local._grafana_auth_from_1password != "" ? local._grafana_auth_from_1password : trimspace(var.grafana_auth)
   effective_n8n_webhook_url           = local._n8n_webhook_url_from_1password != "" ? local._n8n_webhook_url_from_1password : var.n8n_webhook_url
   effective_n8n_glitchtip_webhook_url = local._n8n_glitchtip_webhook_url_from_1password != "" ? local._n8n_glitchtip_webhook_url_from_1password : var.n8n_glitchtip_webhook_url
 }

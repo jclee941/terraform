@@ -39,6 +39,11 @@ variable "onepassword_vault_name" {
   description = "1Password vault name for secret lookups"
   type        = string
   default     = "homelab"
+
+  validation {
+    condition     = length(var.onepassword_vault_name) > 0
+    error_message = "onepassword_vault_name must not be empty."
+  }
 }
 
 variable "secret_values" {

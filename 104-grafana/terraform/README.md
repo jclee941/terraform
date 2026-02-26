@@ -1,8 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -13,14 +9,16 @@
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_grafana"></a> [grafana](#provider\_grafana) | 4.25.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
-## Resources
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../../modules/shared/onepassword-secrets | n/a |
 
 ## Resources
 
@@ -47,8 +45,6 @@
 
 ## Inputs
 
-## Inputs
-
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_grafana_auth"></a> [grafana\_auth](#input\_grafana\_auth) | Grafana API key or service account token | `string` | `""` | no |
@@ -56,8 +52,6 @@
 | <a name="input_n8n_glitchtip_webhook_url"></a> [n8n\_glitchtip\_webhook\_url](#input\_n8n\_glitchtip\_webhook\_url) | n8n webhook URL for forwarding alerts to GlitchTip | `string` | `"http://192.168.50.112:5678/webhook/grafana-to-glitchtip"` | no |
 | <a name="input_n8n_webhook_url"></a> [n8n\_webhook\_url](#input\_n8n\_webhook\_url) | n8n webhook URL for alert notifications | `string` | `"http://192.168.50.112:5678/webhook/grafana-alert"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret lookups | `string` | `"homelab"` | no |
-
-## Outputs
 
 ## Outputs
 
@@ -74,5 +68,4 @@
 | <a name="output_grafana_sa_token_terraform"></a> [grafana\_sa\_token\_terraform](#output\_grafana\_sa\_token\_terraform) | Grafana service account token for Terraform operations |
 | <a name="output_notification_policy_id"></a> [notification\_policy\_id](#output\_notification\_policy\_id) | ID of the default notification policy |
 | <a name="output_rule_group_names"></a> [rule\_group\_names](#output\_rule\_group\_names) | Names of all managed alert rule groups |
-
 <!-- END_TF_DOCS -->
