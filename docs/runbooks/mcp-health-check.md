@@ -1,40 +1,69 @@
 # MCP Service Health Check Runbook
 
-**Last verified:** 2026-02-23
+**Last verified:** 2026-02-26
 **Host:** LXC 112 (192.168.50.112) — MCPHub gateway
 **Catalog SSoT:** `112-mcphub/mcp_servers.json`
 
+## Architecture
+
+MCPHub runs as a **single Docker container** (`mcphub`) on LXC 112, listening on **port 3000**.
+All MCP servers are **STDIO child processes** inside the MCPHub container — they do NOT listen on individual network ports.
+
+| Component          | Endpoint                                 | Notes                                        |
+| ------------------ | ---------------------------------------- | -------------------------------------------- |
+| Gateway health     | `http://192.168.50.112:3000/health`      | Returns `{"status":"healthy"}` when all OK   |
+| Per-server status  | `http://192.168.50.112:3000/api/servers` | JSON array with name, status, enabled fields |
+| Catalog validation | `python3 112-mcphub/validate_mcps.py`    | Validates `mcp_servers.json` schema          |
+
 ## Quick Reference
 
-| Service            | Port     | Status (2026-02-23)        | Fix Section                             |
-| ------------------ | -------- | -------------------------- | --------------------------------------- |
-| ELK                | 8065     | ✅ Healthy (GREEN)         | —                                       |
-| Kratos             | 8060     | ✅ Healthy (v4.0.0)        | —                                       |
-| Terraform Registry | 8071     | ✅ Healthy                 | —                                       |
-| GitHub             | 8058     | ✅ Healthy                 | —                                       |
-| Git                | 8059     | ✅ Healthy                 | —                                       |
-| **1Password**      | **8077** | **🔴 Empty vault**         | [1Password](#1password-empty-vault)     |
-| **Supabase**       | **8076** | **🔴 Auth failure**        | [Supabase](#supabase-db-auth-failure)   |
-| **GlitchTip**      | **8075** | **🔴 Unreachable**         | [GlitchTip](#glitchtip-api-unreachable) |
-| Archon             | 8078     | 🟡 Partial (agents opt-in) | [Archon](#archon-agents-service-false)  |
-| Slack              | 8079     | ⚪ Not tested              | —                                       |
+| Server      | Transport | Status (2026-02-26)      | Fix Section                             |
+| ----------- | --------- | ------------------------ | --------------------------------------- |
+| elk         | stdio     | ✅ Connected             | —                                       |
+| kratos      | stdio     | ✅ Connected             | —                                       |
+| terraform   | stdio     | ✅ Connected             | —                                       |
+| github      | stdio     | ✅ Connected             | —                                       |
+| git         | stdio     | ✅ Connected             | —                                       |
+| onepassword | stdio     | ✅ Connected             | [1Password](#1password-empty-vault)     |
+| supabase    | stdio     | ✅ Connected             | [Supabase](#supabase-db-auth-failure)   |
+| glitchtip   | stdio     | ✅ Connected             | [GlitchTip](#glitchtip-api-unreachable) |
+| **archon**  | **stdio** | **🔴 Connection closed** | [Archon](#archon-mcp-remote-bridge)     |
+| slack       | stdio     | ✅ Connected             | —                                       |
+| proxmox     | stdio     | ✅ Connected             | —                                       |
+| playwright  | stdio     | ✅ Connected             | —                                       |
 
 ## Diagnosis
 
-### Full health sweep from MCPHub host
+### Gateway health check
 
 ```bash
-# SSH into MCPHub
+# From any host on the network
+curl -sf http://192.168.50.112:3000/health | jq .
+# Expected: {"status":"healthy","message":"All enabled MCP servers are ready"}
+# Unhealthy: {"status":"unhealthy","message":"Not all enabled MCP servers are ready"}
+```
+
+### Per-server status
+
+```bash
+curl -sf http://192.168.50.112:3000/api/servers | jq '[.data[] | {name, status, enabled}]'
+# Each server: status="connected" means healthy
+# Any other status (disconnected, error, etc.) = failed
+```
+
+### MCPHub container health
+
+```bash
 ssh root@192.168.50.112
 
-# Check all MCP server containers
-docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | grep mcp
+# Check container is running
+docker ps --filter name=mcphub --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 
-# Check individual service ports
-for port in 8058 8059 8060 8065 8071 8075 8076 8077 8078 8079; do
-  echo -n "Port $port: "
-  curl -sf -o /dev/null -w "%{http_code}" http://localhost:$port/health 2>/dev/null || echo "UNREACHABLE"
-done
+# View recent logs
+docker logs mcphub --tail 50
+
+# View logs for a specific server failure
+docker logs mcphub 2>&1 | grep -i "archon\|error\|fail" | tail -20
 ```
 
 ### Validate catalog schema
@@ -44,7 +73,7 @@ cd /path/to/terraform
 python3 112-mcphub/validate_mcps.py
 ```
 
-Expected: `10/10 servers valid`
+Expected: `✅ Catalog valid: 12 servers (hub=12, local=0, external=0)`
 
 ---
 
@@ -89,6 +118,20 @@ docker compose exec mcphub sh -lc 'test -d /workspace/dev/terraform && echo OK |
 
 ## Resolution
 
+### Restart MCPHub (all servers)
+
+All MCP servers restart together since they are child processes of the single MCPHub container:
+
+```bash
+ssh root@192.168.50.112
+docker restart mcphub
+
+# Wait 10-15 seconds for servers to reconnect, then verify
+sleep 15
+curl -sf http://192.168.50.112:3000/health | jq .
+curl -sf http://192.168.50.112:3000/api/servers | jq '[.data[] | {name, status}]'
+```
+
 ### 1Password: Empty Vault
 
 **Symptom:** `vault_list` returns `{"vaults": []}`. All 12 item lookups in Terraform return empty strings.
@@ -98,11 +141,14 @@ docker compose exec mcphub sh -lc 'test -d /workspace/dev/terraform && echo OK |
 **Fix:**
 
 ```bash
-# 1. Verify current token on MCPHub host
+# 1. Check 1Password status via MCPHub API
+curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "onepassword")'
+
+# 2. Verify current token on MCPHub host
 ssh root@192.168.50.112
 cat /opt/mcphub/.env | grep OP_SERVICE_ACCOUNT_TOKEN
 
-# 2. Test token directly
+# 3. Test token directly
 export OP_SERVICE_ACCOUNT_TOKEN="<token from .env>"
 # Install op CLI if needed: https://developer.1password.com/docs/cli/get-started/
 op vault list --format=json
@@ -114,23 +160,23 @@ op vault list --format=json
 **Token rotation (if expired):**
 
 ```bash
-# 3. Generate new token in 1Password console:
+# 4. Generate new token in 1Password console:
 #    https://my.1password.com → Settings → Service Accounts
 #    - Select the service account used for MCPHub
 #    - Generate new token
 #    - Ensure "Homelab" vault is in permissions
 
-# 4. Update token on MCPHub host
+# 5. Update token on MCPHub host
 ssh root@192.168.50.112
-# Edit .env file with new token
 nano /opt/mcphub/.env
 # Update: OP_SERVICE_ACCOUNT_TOKEN=<new-token>
 
-# 5. Restart 1Password MCP server
-docker restart mcphub-onepassword
+# 6. Restart MCPHub (restarts all MCP servers including 1Password)
+docker restart mcphub
 
-# 6. Verify
-curl -s http://localhost:8077/health
+# 7. Verify
+sleep 15
+curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "onepassword") | {name, status}'
 ```
 
 **Verify in Terraform:**
@@ -188,11 +234,12 @@ ssh root@192.168.50.112
 nano /opt/mcphub/.env
 # Update SUPABASE connection string with new password
 
-# 5. Restart Supabase MCP server
-docker restart mcphub-supabase
+# 5. Restart MCPHub
+docker restart mcphub
 
 # 6. Verify
-curl -s http://localhost:8076/health
+sleep 15
+curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "supabase") | {name, status}'
 ```
 
 **Store password in 1Password:**
@@ -230,9 +277,7 @@ curl -H "Authorization: Bearer <token>" \
   http://192.168.50.106:8000/api/0/organizations/
 
 # If 401: token expired — regenerate in GlitchTip UI
-# If 404: org slug wrong — list orgs to find correct slug:
-curl -H "Authorization: Bearer <token>" \
-  http://192.168.50.106:8000/api/0/organizations/
+# If 404: org slug wrong — list orgs to find correct slug
 
 # 4. Regenerate token if needed:
 #    Open http://192.168.50.106:8000 → Settings → API Keys → Create
@@ -240,32 +285,60 @@ curl -H "Authorization: Bearer <token>" \
 # 5. Update env and restart
 ssh root@192.168.50.112
 nano /opt/mcphub/.env
-docker restart mcphub-glitchtip
+docker restart mcphub
 
 # 6. Verify
-curl -s http://localhost:8075/health
+sleep 15
+curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "glitchtip") | {name, status}'
 ```
 
 **Cross-reference:** See `docs/runbooks/credential-rotation.md` for GlitchTip token rotation procedure.
 
 ---
 
-### Archon: agents_service=FALSE
+### Archon: mcp-remote Bridge
 
-**Symptom:** Health check shows `agents_service: false`.
+**Symptom:** MCPHub reports `MCP error -32000: Connection closed` for archon.
 
-**Root cause:** This is **expected behavior**. The Archon `agents` service runs under a Docker Compose profile (`profile: agents`) that is opt-in. It is not started by default.
+**Root cause:** Archon is the **only** MCP server that uses `mcp-remote` as an HTTP-to-STDIO bridge (all other servers are pure STDIO). The `npx -y mcp-remote` child process crashes inside the MCPHub Docker container, likely due to missing dependencies, npm cache issues, or Node.js version mismatch within the container environment.
 
-**No action required** unless agent functionality is needed.
+**Architecture:**
 
-**To enable agents (optional):**
+- Archon MCP server runs on LXC 108:8051 (Streamable HTTP transport)
+- MCPHub config spawns `npx -y mcp-remote http://192.168.50.108:8051/mcp --allow-http --transport http-only` as STDIO child
+- The `mcp-remote` process fails inside the container despite working from the host
+
+**Verify archon server is healthy:**
 
 ```bash
-ssh root@192.168.50.108
-# Or: pct exec 108 -- bash
-cd /opt/archon
-docker compose --profile agents up -d
+# From MCPHub host or any network host
+curl -sf http://192.168.50.108:8051/health | jq .
+# Expected: {"success":true,"status":"ready","uptime_seconds":...}
 ```
+
+**Debug mcp-remote inside container:**
+
+```bash
+ssh root@192.168.50.112
+cd /opt/mcphub
+
+# Check if mcp-remote can resolve inside container
+docker compose exec mcphub npx -y mcp-remote --version
+
+# Check network connectivity from container to archon
+docker compose exec mcphub curl -sf http://192.168.50.108:8051/health
+
+# Check MCPHub logs for archon-specific errors
+docker logs mcphub 2>&1 | grep -i archon | tail -20
+```
+
+**Fix options:**
+
+1. **Pre-install mcp-remote** in the MCPHub Docker image (add to `package.json` or Dockerfile)
+2. **Use MCPHub's native HTTP transport** if supported — check MCPHub docs for `transport: "http"` or `transport: "streamable-http"` config
+3. **Switch archon to SSE transport** and configure MCPHub accordingly
+
+**No action required** if archon functionality is not actively used. The other 11 servers remain unaffected.
 
 ---
 
@@ -275,4 +348,4 @@ docker compose --profile agents up -d
 2. **Catalog validation:** Run `python3 112-mcphub/validate_mcps.py` before any MCPHub config change.
 3. **Credential rotation:** Follow `docs/runbooks/credential-rotation.md` for scheduled token renewal.
 4. **1Password CI test:** `onepassword-test.yml` runs on PR, `workflow_dispatch`, and after `mcp-health-check.yml` to verify vault connectivity and all 12 expected items.
-5. **Health check workflow:** `.github/workflows/mcp-health-check.yml` provides on-demand MCP service verification.
+5. **Health check workflow:** `.github/workflows/mcp-health-check.yml` checks MCPHub gateway health and per-server status via the MCPHub API on port 3000. Runs Mon-Fri 01:00 UTC.
