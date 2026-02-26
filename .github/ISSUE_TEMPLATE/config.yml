@@ -1,11 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Terraform Documentation
-    url: https://developer.hashicorp.com/terraform/docs
-    about: Official Terraform documentation
-  - name: Proxmox Documentation
-    url: https://pve.proxmox.com/wiki/Main_Page
-    about: Proxmox VE documentation for LXC/VM management
-  - name: Codex Automation Guide
-    url: https://docs.github.com/en/copilot/using-github-copilot/using-copilot-coding-agent-to-work-on-tasks/about-assigning-tasks-to-copilot
-    about: How Codex picks up issues labeled 'codex' and executes them automatically
+  - name: Security Vulnerability
+    url: https://github.com/qws941/.github/blob/master/SECURITY.md
+    about: Report security vulnerabilities via the organization-wide security policy (security@jclee.me, 48h SLA).
+  - name: Template / Governance Issue
+    url: https://github.com/qws941/.github/issues/new/choose
+    about: Report issues with shared templates, workflows, labels, or governance files (managed in the .github repo).
