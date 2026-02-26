@@ -142,8 +142,8 @@ variable "runner_groups" {
   }))
   default = {
     homelab = {
-      visibility            = "selected"
-      selected_repositories = ["terraform"]
+      visibility                 = "all"
+      allows_public_repositories = true
     }
   }
 }
