@@ -21,7 +21,8 @@ jobs:
           STATE_B64: ${{ secrets.TFSTATE_RESTORE_GRAFANA }}
         run: |
           STATE_DIR="/home/runner/.terraform-state/${{ inputs.workspace }}"
-          mkdir -p "${STATE_DIR}"
+          sudo mkdir -p "${STATE_DIR}"
+          sudo chown -R "$(id -u):$(id -g)" /home/runner/.terraform-state
 
           if [ -z "${STATE_B64}" ]; then
             echo "::error::TFSTATE_RESTORE_GRAFANA secret is empty"
