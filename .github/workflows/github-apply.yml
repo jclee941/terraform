@@ -22,9 +22,9 @@ jobs:
     with:
       service-name: GitHub
       working-directory: 301-github
-      enable-repository-imports: false
+      enable-repository-imports: true
       needs-infra-state: true
-      migrate-state: safework2_cleanup
+      migrate-state: none
       failure-title-prefix: "[GitHub] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `301-github`

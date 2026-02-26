@@ -163,12 +163,19 @@ jobs:
             "terraform",
             "blacklist",
             "safetywallet",
+            "opencode",
+            "qws941",
+            "tmux",
+            "aimo3-prize",
+            "march-mania",
+            "kaggle-playground",
+            "arc-prize",
+            "agents-league",
             "propose",
             "resume",
             "hycu_fsds",
             "youtube",
             "splunk",
-            "tmux",
           ]
 
           def gh_get(path: str):
@@ -240,6 +247,18 @@ jobs:
 
           for repo in repos:
             time.sleep(3)  # throttle between repos to avoid 1Password rate limits
+
+            # Import the repository itself
+            tf_import(f'github_repository.repos["{repo}"]', repo)
+            time.sleep(1)
+
+            # Import actions permissions
+            tf_import(f'github_actions_repository_permissions.repositories["{repo}"]', repo)
+            time.sleep(1)
+
+            # Import dependabot security updates
+            tf_import(f'github_repository_dependabot_security_updates.repositories["{repo}"]', repo)
+            time.sleep(1)
 
             # Check repo visibility — rulesets only exist for non-private repos in TF config
             repo_info = gh_get(f"/repos/{owner}/{repo}")
