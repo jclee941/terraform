@@ -22,7 +22,7 @@ jobs:
     with:
       service-name: GitHub
       working-directory: 301-github
-      enable-repository-imports: true
+      enable-repository-imports: false
       needs-infra-state: true
       migrate-state: none
       failure-title-prefix: "[GitHub] Apply failed on master"
