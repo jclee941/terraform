@@ -16,7 +16,7 @@ on:
         type: string
         default: "1.10.5"
       migrate-state:
-        description: "Run state migration to remove orphaned resources. Values: none | lxc_config | lxc_and_lxc_config"
+        description: "Run state migration to remove orphaned resources. Values: none | lxc_config | lxc_and_lxc_config | safework2_cleanup"
         type: string
         default: "none"
       enable-repository-imports:
@@ -114,6 +114,16 @@ jobs:
           terraform state rm module.lxc 2>/dev/null || true
           terraform state rm module.lxc_config 2>/dev/null || true
 
+      - name: Migrate State — remove safework2 ghost resources (GitHub)
+        if: inputs.migrate-state == 'safework2_cleanup'
+        run: |
+          # safework2 repo was deleted but resources remain in CI-persisted state.
+          # Remove all safework2-related resources so refresh doesn't hit 404.
+          terraform state list | grep 'safework2' | while read -r addr; do
+            echo "Removing: $addr"
+            terraform state rm "$addr" 2>/dev/null || true
+          done
+          echo '✅ safework2 state cleanup complete'
       - name: Create stub remote state for CI
         if: inputs.enable-repository-imports || inputs.needs-infra-state
         run: |
@@ -152,7 +162,7 @@ jobs:
           repos = [
             "terraform",
             "blacklist",
-            "safework2",
+            "safetywallet",
             "propose",
             "resume",
             "hycu_fsds",

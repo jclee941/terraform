@@ -24,6 +24,7 @@ jobs:
       working-directory: 301-github
       enable-repository-imports: false
       needs-infra-state: true
+      migrate-state: safework2_cleanup
       failure-title-prefix: "[GitHub] Apply failed on master"
       failure-extra-body: |
         **Workspace:** `301-github`
