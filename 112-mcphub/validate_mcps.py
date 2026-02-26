@@ -19,7 +19,7 @@ from pathlib import Path
 CATALOG_DEFAULT = Path(__file__).parent / "mcp_servers.json"
 
 VALID_LOCATIONS = {"hub", "local", "external"}
-VALID_TRANSPORTS = {"stdio", "sse", "http"}
+VALID_TRANSPORTS = {"stdio", "sse", "http", "streamable-http"}
 
 # Patterns that indicate committed secrets
 SECRET_PATTERNS = [
@@ -114,6 +114,12 @@ def validate_catalog(catalog_path: Path) -> list[str]:
                         f"{prefix}: http server missing 'port'"
                     )
 
+            # Streamable HTTP servers need url
+            if transport == "streamable-http":
+                if "url" not in server:
+                    errors.append(
+                        f"{prefix}: streamable-http server missing 'url'"
+                    )
         elif location == "local":
             if "command" not in server:
                 errors.append(f"{prefix}: local server missing 'command'")

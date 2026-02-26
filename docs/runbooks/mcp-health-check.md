@@ -27,7 +27,7 @@ All MCP servers are **STDIO child processes** inside the MCPHub container — th
 | onepassword | stdio     | ✅ Connected             | [1Password](#1password-empty-vault)     |
 | supabase    | stdio     | ✅ Connected             | [Supabase](#supabase-db-auth-failure)   |
 | glitchtip   | stdio     | ✅ Connected             | [GlitchTip](#glitchtip-api-unreachable) |
-| **archon**  | **stdio** | **🔴 Connection closed** | [Archon](#archon-mcp-remote-bridge)     |
+| **archon**  | **streamable-http** | ✅ Connected (native HTTP) | [Archon](#archon-streamable-http) |
 | slack       | stdio     | ✅ Connected             | —                                       |
 | proxmox     | stdio     | ✅ Connected             | —                                       |
 | playwright  | stdio     | ✅ Connected             | —                                       |
@@ -296,50 +296,34 @@ curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == 
 
 ---
 
-### Archon: mcp-remote Bridge
+### Archon: Streamable HTTP
 
-**Symptom:** MCPHub reports `MCP error -32000: Connection closed` for archon.
+**Transport:** `streamable-http` (native MCPHub support, no bridge)
 
-**Root cause:** Archon is the **only** MCP server that uses `mcp-remote` as an HTTP-to-STDIO bridge (all other servers are pure STDIO). The `npx -y mcp-remote` child process crashes inside the MCPHub Docker container, likely due to missing dependencies, npm cache issues, or Node.js version mismatch within the container environment.
-
-**Architecture:**
-
-- Archon MCP server runs on LXC 108:8051 (Streamable HTTP transport)
-- MCPHub config spawns `npx -y mcp-remote http://192.168.50.108:8051/mcp --allow-http --transport http-only` as STDIO child
-- The `mcp-remote` process fails inside the container despite working from the host
+Archon runs on LXC 108:8051 using Streamable HTTP transport. MCPHub connects directly via its native `streamable-http` transport type — no `mcp-remote` bridge needed.
 
 **Verify archon server is healthy:**
 
 ```bash
-# From MCPHub host or any network host
+# From any network host
 curl -sf http://192.168.50.108:8051/health | jq .
 # Expected: {"success":true,"status":"ready","uptime_seconds":...}
 ```
 
-**Debug mcp-remote inside container:**
+**Verify MCPHub connection:**
 
 ```bash
-ssh root@192.168.50.112
-cd /opt/mcphub
-
-# Check if mcp-remote can resolve inside container
-docker compose exec mcphub npx -y mcp-remote --version
-
-# Check network connectivity from container to archon
-docker compose exec mcphub curl -sf http://192.168.50.108:8051/health
-
-# Check MCPHub logs for archon-specific errors
-docker logs mcphub 2>&1 | grep -i archon | tail -20
+curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "archon") | {name, status}'
+# Expected: {"name":"archon","status":"connected"}
 ```
 
-**Fix options:**
+**If archon shows disconnected:**
 
-1. **Pre-install mcp-remote** in the MCPHub Docker image (add to `package.json` or Dockerfile)
-2. **Use MCPHub's native HTTP transport** if supported — check MCPHub docs for `transport: "http"` or `transport: "streamable-http"` config
-3. **Switch archon to SSE transport** and configure MCPHub accordingly
-
-**No action required** if archon functionality is not actively used. The other 11 servers remain unaffected.
-
+1. Confirm archon server is running: `curl -sf http://192.168.50.108:8051/health`
+2. Check MCPHub logs: `docker logs mcphub 2>&1 | grep -i archon | tail -20`
+3. Verify `mcp_servers.json` has `"transport": "streamable-http"` and `"url": "http://192.168.50.108:8051/mcp"`
+4. Restart MCPHub: `docker restart mcphub && sleep 15`
+5. Re-check: `curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "archon")'`
 ---
 
 ## Prevention

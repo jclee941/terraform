@@ -79,16 +79,8 @@
     },
     "archon": {
       "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "http://192.168.50.108:8051/mcp",
-        "--allow-http",
-        "--transport",
-        "http-only"
-      ],
+      "transport": "streamable-http",
+      "url": "http://192.168.50.108:8051/mcp",
       "port": 8078,
       "description": "Archon AI knowledge management"
     },

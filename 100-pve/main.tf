@@ -85,6 +85,10 @@ locals {
     for k, v in local.mcp_hub_servers : k => v
     if lookup(v, "transport", "stdio") == "http"
   }
+  mcp_hub_external_http_servers = {
+    for k, v in local.mcp_hub_servers : k => v
+    if lookup(v, "transport", "stdio") == "streamable-http" && contains(keys(v), "url")
+  }
 
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
@@ -913,17 +917,18 @@ module "config_renderer" {
       prometheus_datasource_uid = "prometheus"
       sla_target_percentage     = "99.9"
 
-      mcp_catalog_json          = jsonencode(local.mcp_catalog)
-      mcp_hub_servers_json      = jsonencode(local.mcp_hub_servers)
-      mcp_hub_stdio_json        = jsonencode(local.mcp_hub_stdio_servers)
-      mcp_hub_sse_json          = jsonencode(local.mcp_hub_sse_servers)
-      mcp_hub_external_sse_json = jsonencode(local.mcp_hub_external_sse_servers)
-      mcp_hub_http_json         = jsonencode(local.mcp_hub_http_servers)
-      mcp_host                  = local.mcp_catalog.mcp_host
-      proxmox_host              = local.proxmox_host
-      proxmox_port              = local.proxmox_port
-      proxmox_ssl_mode          = local.proxmox_ssl_mode
-      homelab_tunnel_token      = local.effective_homelab_tunnel_token
+      mcp_catalog_json           = jsonencode(local.mcp_catalog)
+      mcp_hub_servers_json       = jsonencode(local.mcp_hub_servers)
+      mcp_hub_stdio_json         = jsonencode(local.mcp_hub_stdio_servers)
+      mcp_hub_sse_json           = jsonencode(local.mcp_hub_sse_servers)
+      mcp_hub_external_sse_json  = jsonencode(local.mcp_hub_external_sse_servers)
+      mcp_hub_http_json          = jsonencode(local.mcp_hub_http_servers)
+      mcp_hub_external_http_json = jsonencode(local.mcp_hub_external_http_servers)
+      mcp_host                   = local.mcp_catalog.mcp_host
+      proxmox_host               = local.proxmox_host
+      proxmox_port               = local.proxmox_port
+      proxmox_ssl_mode           = local.proxmox_ssl_mode
+      homelab_tunnel_token       = local.effective_homelab_tunnel_token
     }
   )
   output_dir = "${path.module}/configs/rendered"
