@@ -3,7 +3,8 @@ terraform {
 
   required_providers {
     proxmox = {
-      source = "bpg/proxmox"
+      source  = "bpg/proxmox"
+      version = "~> 0.94"
     }
   }
 }
@@ -22,8 +23,9 @@ resource "proxmox_virtual_environment_vm" "this" {
   dynamic "efi_disk" {
     for_each = var.bios == "ovmf" ? [1] : []
     content {
-      datastore_id = var.datastore_id
-      type         = "4m"
+      datastore_id      = var.datastore_id
+      type              = "4m"
+      pre_enrolled_keys = true
     }
   }
 
@@ -54,6 +56,16 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   network_device {
     bridge = "vmbr0"
+  }
+
+  dynamic "hostpci" {
+    for_each = var.hostpci_devices
+    content {
+      device  = hostpci.value.device
+      mapping = hostpci.value.mapping
+      id      = hostpci.value.id
+      pcie    = hostpci.value.pcie
+    }
   }
 
   initialization {

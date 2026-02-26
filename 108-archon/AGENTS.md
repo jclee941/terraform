@@ -43,6 +43,7 @@ Archon AI Knowledge Management system with MCP server integration. Provides AI-p
 - Uses `terraform_remote_state.infra` for host IP/VMID resolution from 100-pve
 - Secrets via 1Password (`homelab/archon`) rendered into `.env`
 - Docker Compose profiles: default (server+mcp+frontend), `agents` (opt-in)
+- LLM/embedding config managed via Archon UI → Supabase `archon_settings` table (not env vars)
 
 ## ANTI-PATTERNS
 - **NO** manual docker-compose edits in `tf-configs/` — edit `templates/` instead
@@ -51,5 +52,5 @@ Archon AI Knowledge Management system with MCP server integration. Provides AI-p
 - **NO** UI changes to LXC resources (managed by Terraform)
 
 ## DEPENDENCIES
-- **Upstream**: 107-supabase (vector storage, auth, database)
+- **Upstream**: 107-supabase (vector storage, auth, database), 109-ollama (LLM + embedding inference at `192.168.50.109:11434`)
 - **Downstream**: 112-mcphub (MCP integration via port 8051)

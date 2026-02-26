@@ -118,6 +118,15 @@ locals {
       }
     }
 
+    ollama = {
+      vmid  = 109
+      ip    = "192.168.50.109"
+      roles = ["ai", "llm", "gpu"]
+      ports = {
+        api = 11434
+      }
+    }
+
     mcphub = {
       vmid  = 112
       ip    = "192.168.50.112"

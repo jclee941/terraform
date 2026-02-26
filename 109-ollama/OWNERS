@@ -1,0 +1,6 @@
+# Service: Ollama (Local LLM Inference with GPU)
+# VMID: 109
+# IP: 192.168.50.109
+# Type: QEMU VM (GPU passthrough)
+# Owner: Infrastructure Team
+jclee@jclee.me

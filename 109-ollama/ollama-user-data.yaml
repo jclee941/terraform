@@ -1,0 +1,47 @@
+#cloud-config
+
+users:
+  - name: jclee
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDExqn51ZKUMauAzwbi9DGRT2gHwQDO1obYT0tyiFr+V50L6CumeXsOCXdjl/wYAAWno8dQx9PfDblZMKBHPql0THcWO3jkqC78aa+Dsnpx+T8oY80sLDoU4TLl2lDaDuXjVXe0JlZrd1EMqXzaRbGYefSoecKwR5+hNtgzbVR9vKkH20vjXeItjXqmYNaIvvPVzQEfmSROVjcSYtgihqNRoujrC3Pw1Q11ti4OTPwatLAVLVkz2j+ZQrddWZwOHP8KFWR+lHLRA4L3a6khpIAsGxKepYiPpgpc4j2cc1ZWooRq6fkZ2Tu7q1E7eLfF9ZAyx1tA3e7FYX73oCxUkLJlWIjnnUt+PuQOtuK1qoeEVXInclQ0FxTWyR8JfJyHW89mJcrUyQtXIzu+OPOENa5qna5pXy3CNPPQD7+wL8vB1LDWT/0232eKOJ1W/90gcviAO3Xsd2vUWGau1FidfsLk/uWPlEJ8393UnK0a5+jgz53OCWClrimE1ZM3+imUM8kFAtdu9yHCn9TRecgFF1SBJWYHfe4Bx9oujnHvDJpkkq9CSjya48YBBlUX5H3KYnEr5ths6nGwvppLtJBqMsShcfmwchrVC0of2Q8b4unmZ7MoMO15uFGxCPPAc+UZZQV67vHe2XdHHPKXXrQA1EId7pCXFaSDR0B2GU7WJQS7vQ== root@pve3
+
+hostname: ollama
+manage_etc_hosts: true
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - wget
+  - gnupg
+  - software-properties-common
+  - ubuntu-drivers-common
+  - pciutils
+  - qemu-guest-agent
+
+runcmd:
+  # Enable QEMU guest agent
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+  # Install NVIDIA driver (RTX 5070 Ti / GB203 — requires 570+ series)
+  - ubuntu-drivers install --gpgpu nvidia:570-server
+  # Load nvidia modules
+  - modprobe nvidia
+  # Install Ollama
+  - curl -fsSL https://ollama.ai/install.sh | sh
+  # Configure Ollama to listen on all interfaces
+  - mkdir -p /etc/systemd/system/ollama.service.d
+  - |
+    cat > /etc/systemd/system/ollama.service.d/override.conf << 'CONF'
+    [Service]
+    Environment="OLLAMA_HOST=0.0.0.0"
+    CONF
+  - systemctl daemon-reload
+  - systemctl enable ollama
+  - systemctl restart ollama
+
+final_message: "Cloud-init completed for ollama — NVIDIA driver and Ollama installed"

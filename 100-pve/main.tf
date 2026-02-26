@@ -262,6 +262,7 @@ locals {
   cloud_init_files = {
     mcphub  = "local:snippets/mcphub-user-data.yaml"
     youtube = "local:snippets/youtube-user-data.yaml"
+    ollama  = "local:snippets/ollama-user-data.yaml"
   }
   vm_definitions = {
     mcphub = {
@@ -279,6 +280,22 @@ locals {
       disk_size   = 50
       bios        = "ovmf"
       machine     = "q35"
+    }
+    ollama = {
+      vmid        = 109
+      description = "Ollama - Local LLM Inference with GPU"
+      memory      = 16384
+      cores       = 4
+      disk_size   = 50
+      bios        = "ovmf"
+      machine     = "q35"
+      hostpci_devices = [
+        {
+          device  = "hostpci0"
+          mapping = "gpu"
+          pcie    = true
+        }
+      ]
     }
   }
 }
@@ -306,6 +323,7 @@ module "vm" {
   datastore_id     = var.datastore_id
   managed_vmid_min = var.managed_vmid_range.min
   managed_vmid_max = var.managed_vmid_range.max
+  hostpci_devices  = try(each.value.hostpci_devices, [])
 
   cloud_init_file_id = try(local.cloud_init_files[each.key], null)
 }
