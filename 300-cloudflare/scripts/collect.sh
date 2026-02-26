@@ -91,7 +91,6 @@ echo ""
 declare -A ENV_FILES=(
   ["money"]="$DEV_DIR/money/.env"
   ["resume"]="$DEV_DIR/resume/.env"
-  ["safework2"]="$DEV_DIR/safework2/.env"
   ["safework"]="$DEV_DIR/safework/workers/.env"
   ["slack"]="$DEV_DIR/slack/.env"
   ["slack-bot"]="$DEV_DIR/slack/typescript/slack-bot/.env"
@@ -230,7 +229,6 @@ if $USE_VAULT; then
 
     vault_count=0
     for vpath in "${!VAULT_PATHS[@]}"; do
-      full_path="${VAULT_MOUNT}/data/${vpath}"
       if json=$(vault kv get -format=json "${VAULT_MOUNT}/${vpath}" 2>/dev/null); then
         # Extract all key-value pairs from the secret
         while IFS=$'\t' read -r -u3 k v; do
