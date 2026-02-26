@@ -22,14 +22,14 @@ resource "github_repository_ruleset" "code_scanning" {
     if try(local.repositories[k].visibility, "public") != "private"
   } : {}
 
-  name        = "required-code-scanning"
+  name        = "code-scanning"
   repository  = github_repository.repos[each.key].name
   target      = "branch"
   enforcement = "active"
 
   conditions {
     ref_name {
-      include = ["~DEFAULT_BRANCH"]
+      include = ["~ALL"]
       exclude = []
     }
   }
@@ -37,6 +37,18 @@ resource "github_repository_ruleset" "code_scanning" {
   bypass_actors {
     actor_id    = 5 # RepositoryRole: admin
     actor_type  = "RepositoryRole"
+    bypass_mode = "always"
+  }
+
+  bypass_actors {
+    actor_id    = 1144995 # Integration: OpenAI Codex
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
+  bypass_actors {
+    actor_id    = 1549082 # Integration: OpenCode
+    actor_type  = "Integration"
     bypass_mode = "always"
   }
 

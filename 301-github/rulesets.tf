@@ -18,12 +18,14 @@ locals {
       deletion                          = true
       non_fast_forward                  = true
       status_checks                     = ["Validate Changes"]
+      enforce_commit_message_pattern    = true
+      enforce_branch_name_pattern       = true
     }
     standard = {
       required_approving_review_count   = 1
       require_code_owner_review         = false
       dismiss_stale_reviews_on_push     = true
-      require_last_push_approval        = false
+      require_last_push_approval        = true
       required_review_thread_resolution = true
       required_linear_history           = true
       required_signatures               = false
@@ -31,6 +33,8 @@ locals {
       deletion                          = true
       non_fast_forward                  = true
       status_checks                     = ["Validate Changes"]
+      enforce_commit_message_pattern    = true
+      enforce_branch_name_pattern       = true
     }
     minimal = {
       required_approving_review_count   = 1
@@ -44,6 +48,8 @@ locals {
       deletion                          = true
       non_fast_forward                  = true
       status_checks                     = []
+      enforce_commit_message_pattern    = false
+      enforce_branch_name_pattern       = false
     }
   }
 }
@@ -51,7 +57,7 @@ locals {
 resource "github_repository_ruleset" "branch" {
   for_each = var.enable_repository_rulesets ? local.ruleset_repositories : tomap({})
 
-  name        = "default-branch-rules"
+  name        = "default-branch-protection"
   repository  = github_repository.repos[each.key].name
   target      = "branch"
   enforcement = "active"
@@ -66,6 +72,18 @@ resource "github_repository_ruleset" "branch" {
   bypass_actors {
     actor_id    = 5 # RepositoryRole: admin
     actor_type  = "RepositoryRole"
+    bypass_mode = "always"
+  }
+
+  bypass_actors {
+    actor_id    = 1144995 # Integration: OpenAI Codex
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
+  bypass_actors {
+    actor_id    = 1549082 # Integration: OpenCode
+    actor_type  = "Integration"
     bypass_mode = "always"
   }
 
@@ -104,6 +122,24 @@ resource "github_repository_ruleset" "branch" {
         }
       }
     }
+
+    dynamic "commit_message_pattern" {
+      for_each = local.protection_profiles[try(each.value.protection, "minimal")].enforce_commit_message_pattern ? [1] : []
+      content {
+        name     = "Conventional Commits"
+        operator = "regex"
+        pattern  = "^(feat|fix|docs|refactor|test|ci|chore|perf|build|revert)(\\(.+\\))?: .+"
+      }
+    }
+
+    dynamic "branch_name_pattern" {
+      for_each = local.protection_profiles[try(each.value.protection, "minimal")].enforce_branch_name_pattern ? [1] : []
+      content {
+        name     = "Branch naming convention"
+        operator = "regex"
+        pattern  = "^(feat|fix|docs|refactor|test|ci|chore|perf|build|revert)/.+"
+      }
+    }
   }
 }
 
@@ -128,10 +164,28 @@ resource "github_repository_ruleset" "tags" {
     bypass_mode = "always"
   }
 
+  bypass_actors {
+    actor_id    = 1144995 # Integration: OpenAI Codex
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
+  bypass_actors {
+    actor_id    = 1549082 # Integration: OpenCode
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
   rules {
     creation         = true
     update           = true
     deletion         = true
     non_fast_forward = true
+
+    tag_name_pattern {
+      name     = "Semantic version tags"
+      operator = "regex"
+      pattern  = "^v[0-9]"
+    }
   }
 }
