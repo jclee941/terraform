@@ -82,6 +82,7 @@ jobs:
             ('module.lxc["archon"].proxmox_virtual_environment_container.this', 'pve3/108'),
             ('module.vm["mcphub"].proxmox_virtual_environment_vm.this', 'pve3/112'),
             ('module.vm["youtube"].proxmox_virtual_environment_vm.this', 'pve3/220'),
+            ('module.vm["ollama"].proxmox_virtual_environment_vm.this', 'pve3/109'),
             ('proxmox_virtual_environment_firewall_rules.container["runner"]', 'container/pve3/101'),
             ('proxmox_virtual_environment_firewall_rules.container["traefik"]', 'container/pve3/102'),
             ('proxmox_virtual_environment_firewall_rules.container["coredns"]', 'container/pve3/103'),
