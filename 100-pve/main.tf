@@ -93,12 +93,12 @@ locals {
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
-  # Total dedicated: 14848 MB (14.5 GB) + swap: 8704 MB (8.5 GB) = 23552 MB effective
+  # Total dedicated: 18944 MB (18.5 GB) + swap: 10752 MB (10.5 GB) = 29696 MB effective
   container_sizing = {
     runner    = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
     traefik   = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     grafana   = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
-    elk       = { memory = 6144, swap = 3072, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
+    elk       = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
     glitchtip = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
     supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
     archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
@@ -924,7 +924,7 @@ module "config_renderer" {
       mcphub_version             = "0.12.3"
 
       es_heap                     = "3g"
-      logstash_heap               = "512m"
+      logstash_heap               = "1g"
       logstash_dlq_size           = "1024mb"
       elasticsearch_index_pattern = "logs-%%{[service]}-%%{+YYYY.MM.dd}"
       ilm_delete_after            = "30d"

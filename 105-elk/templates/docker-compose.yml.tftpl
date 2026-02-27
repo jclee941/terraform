@@ -50,11 +50,11 @@ services:
     command: >
       bash -c '
         echo "Setting kibana_system password...";
-        until curl -s -u "elastic:$${ELASTIC_PASSWORD}" http://elasticsearch:9200 | grep -q "cluster_name"; do sleep 5; done;
-        curl -s -X POST -u "elastic:$${ELASTIC_PASSWORD}" \
+        until curl -s -u "elastic:$$ELASTIC_PASSWORD" http://elasticsearch:9200 | grep -q "cluster_name"; do sleep 5; done;
+        curl -s -X POST -u "elastic:$$ELASTIC_PASSWORD" \
           -H "Content-Type: application/json" \
           http://elasticsearch:9200/_security/user/kibana_system/_password \
-          -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}" && echo "kibana_system password set" || echo "kibana_system password already configured";
+          -d "{\"password\":\"$$KIBANA_PASSWORD\"}" | grep -q "^{}" && echo "kibana_system password set" || echo "kibana_system password already configured";
         echo "Setup complete!";
       '
     deploy:
@@ -100,7 +100,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 2G
           cpus: '1.00'
     logging:
       driver: json-file
