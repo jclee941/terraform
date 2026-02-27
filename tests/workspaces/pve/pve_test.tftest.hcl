@@ -23,7 +23,7 @@ override_module {
       mcphub_admin_password           = "mock-secret" # pragma: allowlist secret
       mcphub_n8n_mcp_api_key          = "mock-secret" # pragma: allowlist secret
       mcphub_op_service_account_token = "mock-secret" # pragma: allowlist secret
-      mcphub_proxmox_token_name       = "mock-secret" # pragma: allowlist secret
+      mcphub_proxmox_token_name       = "mock-user@pam!mock-token" # pragma: allowlist secret
       mcphub_proxmox_token_value      = "mock-secret" # pragma: allowlist secret
       elk_elastic_password            = "mock-secret" # pragma: allowlist secret
       elk_kibana_password             = "mock-secret" # pragma: allowlist secret

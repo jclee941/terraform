@@ -173,15 +173,15 @@ pvesh create /cluster/backup \
 4. **Verify network & services**:
 
    ```bash
-   pct exec 109 -- ip a
-   pct exec 109 -- systemctl status grafana-server
+   pct exec 150 -- ip a
+   pct exec 150 -- systemctl status grafana-server
    ```
 
 5. **(Optional) Swap old for restored**:
    ```bash
    pct stop 104 && pct destroy 104
-   pct move-storage 109 --storage local
-   sed -i 's/109/104/' /etc/pve/nodes/pve/lxc/109.conf
+   pct move-storage 150 --storage local
+   sed -i 's/150/104/' /etc/pve/nodes/pve/lxc/150.conf
    ```
 
 ### VM Restore (e.g., 112-mcphub)
@@ -199,7 +199,7 @@ pvesh create /cluster/backup \
 2. **Restore to new VM**:
 
    ```bash
-   qmrestore /var/lib/vz/dump/vzdump-qemu-112-2026_02_11-03_15_00.vma.zst 113 \
+   qmrestore /var/lib/vz/dump/vzdump-qemu-112-2026_02_11-03_15_00.vma.zst 150 \
      --storage local-lvm
    ```
 
@@ -208,19 +208,19 @@ pvesh create /cluster/backup \
 3. **Start restored VM**:
 
    ```bash
-   qm start 113
+   qm start 150
    ```
 
 4. **Verify QEMU guest agent**:
 
    ```bash
-   qm agent 113 ping
+   qm agent 150 ping
    ```
 
 5. **(Optional) Swap old for restored**:
    ```bash
    qm stop 112 && qm destroy 112
-   qm set 113 --name mcphub
+   qm set 150 --name mcphub
    ```
 
 ### Partial Restore (Single Files from LXC)
@@ -280,7 +280,7 @@ tar -tzf vzdump-lxc-104-2026_02_11-02_15_00.tar.zst | wc -l
 
 ### Scenario 1: Single Service Failure (e.g., Grafana)
 
-1. **Restore to temporary VMID** (e.g., 109)
+1. **Restore to temporary VMID** (e.g., 150)
 2. **Start and verify services**
 3. **Copy data/config back to original** if partial restore needed
 4. **Destroy temporary VMID**
