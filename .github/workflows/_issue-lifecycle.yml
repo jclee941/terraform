@@ -1,0 +1,150 @@
+name: Issue Lifecycle Template
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  # Auto-assign PR author and detect linked issues
+  pr-opened:
+    if: >-
+      github.event_name == 'pull_request' &&
+      (github.event.action == 'opened' || github.event.action == 'edited')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Auto-assign and label linked issues
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            // Auto-assign PR author
+            const currentAssignees = pr.assignees.map(a => a.login);
+            if (!currentAssignees.includes(pr.user.login)) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                assignees: [pr.user.login]
+              });
+              core.info(`Assigned ${pr.user.login} to PR #${pr.number}`);
+            }
+
+            // Detect linked issues from PR body (Fixes #N, Closes #N, Resolves #N)
+            const body = pr.body || '';
+            const issuePattern = /(?:fixes|closes|resolves)\s+#(\d+)/gi;
+            const linkedIssues = [];
+            let match;
+            while ((match = issuePattern.exec(body)) !== null) {
+              linkedIssues.push(parseInt(match[1], 10));
+            }
+
+            if (linkedIssues.length === 0) {
+              core.info('No linked issues found in PR body');
+              return;
+            }
+
+            core.info(`Found linked issues: ${linkedIssues.join(', ')}`);
+
+            // Label linked issues with 'in-progress' when PR is opened
+            if (context.payload.action === 'opened') {
+              for (const issueNumber of linkedIssues) {
+                try {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    labels: ['in-progress']
+                  });
+                  core.info(`Labeled issue #${issueNumber} as in-progress`);
+                } catch (error) {
+                  core.warning(`Failed to label issue #${issueNumber}: ${error.message}`);
+                }
+              }
+            }
+
+  # When PR merges, add resolution comment to linked issues
+  pr-merged:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Comment on linked issues
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            const issuePattern = /(?:fixes|closes|resolves)\s+#(\d+)/gi;
+            const linkedIssues = [];
+            let match;
+            while ((match = issuePattern.exec(body)) !== null) {
+              linkedIssues.push(parseInt(match[1], 10));
+            }
+
+            if (linkedIssues.length === 0) return;
+
+            const mergeComment = [
+              `✅ Resolved by #${pr.number}`,
+              '',
+              `**Merged by:** @${pr.merged_by?.login || pr.user.login}`,
+              `**Branch:** \`${pr.head.ref}\` → \`${pr.base.ref}\``,
+              `**Risk:** ${pr.labels.find(l => l.name.startsWith('risk:'))?.name || 'unclassified'}`
+            ].join('\n');
+
+            for (const issueNumber of linkedIssues) {
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: mergeComment
+                });
+
+                // Remove in-progress label
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: 'in-progress'
+                }).catch(() => {});
+
+                core.info(`Commented on issue #${issueNumber}`);
+              } catch (error) {
+                core.warning(`Failed to comment on issue #${issueNumber}: ${error.message}`);
+              }
+            }
+
+  # When issue is closed without PR, clean up labels
+  issue-closed:
+    if: github.event_name == 'issues' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Clean up issue labels
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labelsToRemove = ['in-progress', 'stale'];
+
+            for (const label of labelsToRemove) {
+              const hasLabel = issue.labels.some(l => l.name === label);
+              if (hasLabel) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  name: label
+                }).catch(() => {});
+                core.info(`Removed '${label}' from issue #${issue.number}`);
+              }
+            }

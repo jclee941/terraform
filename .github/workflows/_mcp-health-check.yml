@@ -1,0 +1,216 @@
+name: MCP Health Check (Reusable)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    name: MCP Service Health
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Validate MCP catalog
+        run: python3 112-mcphub/validate_mcps.py
+
+      - name: Check MCPHub gateway and servers
+        id: health
+        run: |
+          MCPHUB_URL="http://192.168.50.112:3000"
+
+          # Check gateway reachability
+          if ! HEALTH_JSON=$(curl -sf --connect-timeout 10 "${MCPHUB_URL}/health" 2>/dev/null); then
+            {
+              echo "has_failures=true"
+              echo "failed=MCPHub gateway (192.168.50.112:3000) unreachable"
+              echo "report<<EOF"
+              echo -e "| Service | Status |\n|---------|--------|\n| **MCPHub Gateway** | **🔴 Unreachable** |\n"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          GATEWAY_STATUS=$(echo "$HEALTH_JSON" | jq -r '.status // "unknown"')
+          GATEWAY_MSG=$(echo "$HEALTH_JSON" | jq -r '.message // ""')
+
+          # Get per-server status from MCPHub API
+          if ! SERVERS_JSON=$(curl -sf --connect-timeout 10 "${MCPHUB_URL}/api/servers" 2>/dev/null); then
+            {
+              echo "has_failures=true"
+              echo "failed=MCPHub /api/servers endpoint unavailable"
+              echo "report<<EOF"
+              echo -e "| Service | Status |\n|---------|--------|\n| MCPHub Gateway | ⚠️ ${GATEWAY_STATUS} — server list unavailable |\n"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          FAILED=""
+          REPORT="| Service | Status |\n|---------|--------|\n"
+          REPORT+="| MCPHub Gateway | ${GATEWAY_STATUS} |\n"
+
+          while IFS=$'\t' read -r name status enabled; do
+            if [ "$enabled" = "false" ]; then
+              REPORT+="| ${name} | ⏸️ Disabled |\n"
+            elif [ "$status" = "connected" ]; then
+              REPORT+="| ${name} | ✅ Connected |\n"
+            else
+              REPORT+="| **${name}** | **🔴 ${status}** |\n"
+              FAILED="${FAILED}${name} (${status}), "
+            fi
+          done < <(echo "$SERVERS_JSON" | jq -r '.data[] | [.name, (.status // "unknown"), ((.enabled // true) | tostring)] | @tsv')
+
+          if [ -n "$GATEWAY_MSG" ] && [ "$GATEWAY_STATUS" != "healthy" ]; then
+            REPORT+="\n> Gateway: ${GATEWAY_MSG}\n"
+          fi
+
+          {
+            echo "report<<EOF"
+            echo -e "$REPORT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ -n "$FAILED" ]; then
+            {
+              echo "failed=${FAILED%, }"
+              echo "has_failures=true"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "has_failures=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Functional 1Password check
+        id: op_check
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: | # pragma: allowlist secret
+          # Quick smoke test — deep validation runs in onepassword-test.yml
+          if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
+            {
+              echo "status=skipped"
+              echo "has_failure=false"
+            } >> "$GITHUB_OUTPUT"
+            echo "ℹ️ OP_SERVICE_ACCOUNT_TOKEN not configured — skipping"
+            exit 0
+          fi
+
+          if ! command -v op >/dev/null 2>&1; then
+            {
+              echo "status=skipped"
+              echo "has_failure=false"
+            } >> "$GITHUB_OUTPUT"
+            echo "ℹ️ op CLI not installed — skipping"
+            exit 0
+          fi
+
+          if op whoami --format=json >/dev/null 2>&1; then
+            VAULT_COUNT=$(op vault list --format=json 2>/dev/null | jq 'length')
+            if [ "$VAULT_COUNT" -gt 0 ]; then
+              {
+                echo "status=ok"
+                echo "has_failure=false"
+                echo "vault_count=${VAULT_COUNT}"
+              } >> "$GITHUB_OUTPUT"
+              echo "✅ 1Password: authenticated, ${VAULT_COUNT} vault(s)"
+            else
+              {
+                echo "status=no_vaults"
+                echo "has_failure=true"
+              } >> "$GITHUB_OUTPUT"
+              echo "::warning::1Password authenticated but 0 vaults accessible"
+            fi
+          else
+            {
+              echo "status=auth_failed"
+              echo "has_failure=true"
+            } >> "$GITHUB_OUTPUT"
+            echo "::warning::1Password authentication failed — token may be expired"
+          fi
+
+      - name: Capture metadata
+        id: meta
+        run: echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update issue on failure
+        if: steps.health.outputs.has_failures == 'true' || steps.op_check.outputs.has_failure == 'true'
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 MCP Health Check:"
+          custom-title: "🔴 MCP Health Check: ${{ steps.health.outputs.failed }}${{ steps.health.outputs.failed != '' && steps.op_check.outputs.has_failure == 'true' && ', ' || '' }}${{ steps.op_check.outputs.has_failure == 'true' && format('1Password {0}', steps.op_check.outputs.status) || '' }}"
+          title-match: prefix
+          update-title: "true"
+          labels: bug,mcp
+          custom-body: |
+            ## MCP Health Check Failed
+
+            **Date:** ${{ steps.meta.outputs.timestamp }}
+            **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ### MCP Servers
+
+            ${{ steps.health.outputs.report }}
+
+            ${{ steps.health.outputs.failed != '' && format('**Failed:** {0}', steps.health.outputs.failed) || '' }}
+
+            ${{ steps.op_check.outputs.has_failure == 'true' && '### 1Password' || '' }}
+            ${{ steps.op_check.outputs.has_failure == 'true' && format('- Status: **{0}**', steps.op_check.outputs.status) || '' }}
+            ${{ steps.op_check.outputs.has_failure == 'true' && '- Run `onepassword-test.yml` (workflow_dispatch) for detailed diagnosis' || '' }}
+            ${{ steps.op_check.outputs.has_failure == 'true' && '- See `docs/runbooks/mcp-health-check.md` § 1Password empty vault' || '' }}
+
+            ### Action Required
+
+            - [ ] Check `docs/runbooks/mcp-health-check.md` for fix procedures
+            - [ ] Verify MCPHub gateway: `curl http://192.168.50.112:3000/health`
+            - [ ] Check server status: `curl -s http://192.168.50.112:3000/api/servers | jq`
+            - [ ] Review MCPHub logs: `docker logs mcphub`
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## MCP Health Check Results"
+            echo ""
+            echo "### MCP Servers"
+            echo -e "${{ steps.health.outputs.report }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          OP_STATUS="${{ steps.op_check.outputs.status }}"
+          OP_VAULTS="${{ steps.op_check.outputs.vault_count }}"
+          {
+            echo ""
+            echo "### 1Password"
+            echo "| Check | Result |"
+            echo "|-------|--------|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$OP_STATUS" = "ok" ]; then
+            {
+              echo "| Authentication | ✅ OK |"
+              echo "| Vaults | ✅ ${OP_VAULTS} accessible |"
+            } >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$OP_STATUS" = "skipped" ]; then
+            echo "| Status | ℹ️ Skipped (token/CLI not available) |" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$OP_STATUS" = "no_vaults" ]; then
+            {
+              echo "| Authentication | ✅ OK |"
+              echo "| Vaults | 🔴 0 accessible |"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Authentication | 🔴 Failed |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.health.outputs.has_failures }}" = "true" ]; then
+            {
+              echo ""
+              echo "**⚠️ Failed services:** ${{ steps.health.outputs.failed }}"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.health.outputs.has_failures }}" != "true" ] && [ "${{ steps.op_check.outputs.has_failure }}" != "true" ]; then
+            {
+              echo ""
+              echo "**✅ All checks passed**"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
