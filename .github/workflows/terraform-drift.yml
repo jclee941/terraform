@@ -21,6 +21,10 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: terraform-drift
+  cancel-in-progress: false
+
 jobs:
   drift:
     uses: ./.github/workflows/_terraform-drift.yml
