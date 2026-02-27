@@ -268,7 +268,7 @@ locals {
     mcphub = {
       vmid        = 112
       description = "MCPHub - Unified MCP Server Gateway"
-      memory      = 6144
+      memory      = 8192
       cores       = 2
       disk_size   = 32
     }
