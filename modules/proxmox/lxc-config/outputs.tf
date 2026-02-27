@@ -8,16 +8,16 @@ output "lxc_configs" {
       systemd_services = [
         for svc_name, svc in lxc.systemd_services : {
           name = svc_name
-          path = local_file.systemd_services["${name}-${svc_name}"].filename
+          path = try(local_file.systemd_services["${name}-${svc_name}"].filename, "")
         }
       ]
       config_files = [
         for cfg_name, cfg in lxc.config_files : {
           name = cfg_name
-          path = local_sensitive_file.config_files["${name}-${cfg_name}"].filename
+          path = try(local_sensitive_file.config_files["${name}-${cfg_name}"].filename, "")
         }
       ]
-      docker_compose = lxc.docker_compose != null ? local_sensitive_file.docker_compose[name].filename : null
+      docker_compose = lxc.docker_compose != null ? try(local_sensitive_file.docker_compose[name].filename, null) : null
     }
   }
 }

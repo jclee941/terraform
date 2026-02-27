@@ -40,6 +40,6 @@ output "rendered_files" {
   description = "Paths to rendered config files"
   value = {
     for name, _ in local.rendered :
-    name => local_file.rendered_configs[name].filename
+    name => try(local_file.rendered_configs[name].filename, "")
   }
 }
