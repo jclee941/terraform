@@ -11,6 +11,7 @@ mock_provider "cloudflare" {}
 mock_provider "github" {}
 mock_provider "random" {}
 mock_provider "onepassword" {}
+mock_provider "time" {}
 
 override_module {
   target = module.onepassword_secrets

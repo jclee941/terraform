@@ -10,15 +10,6 @@
 mock_provider "elasticstack" {}
 mock_provider "onepassword" {}
 
-override_data {
-  target = data.terraform_remote_state.infra
-  values = {
-    outputs = {
-      host_inventory = {}
-    }
-  }
-}
-
 override_module {
   target = module.onepassword_secrets
   outputs = {

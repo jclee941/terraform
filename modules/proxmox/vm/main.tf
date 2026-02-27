@@ -116,10 +116,13 @@ resource "proxmox_virtual_environment_vm" "this" {
     ignore_changes = [
       clone,
       network_device[0].mac_address,
+      network_device[0].disconnected,
       agent,
       operating_system,
       disk[0].datastore_id,
       efi_disk,
+      initialization,
+      vga,
     ]
 
     prevent_destroy = true

@@ -1,8 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -12,14 +8,15 @@
 | <a name="requirement_github"></a> [github](#requirement\_github) | ~> 6.6 |
 | <a name="requirement_onepassword"></a> [onepassword](#requirement\_onepassword) | ~> 3.2 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
-
-## Providers
+| <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.12 |
 
 ## Providers
 
 No providers.
 
-## Resources
+## Modules
+
+No modules.
 
 ## Resources
 
@@ -27,14 +24,9 @@ No resources.
 
 ## Inputs
 
-## Inputs
-
 No inputs.
 
 ## Outputs
 
-## Outputs
-
 No outputs.
-
 <!-- END_TF_DOCS -->
