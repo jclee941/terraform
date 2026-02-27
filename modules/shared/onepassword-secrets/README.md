@@ -22,10 +22,6 @@ Item: "grafana"  (category: password)
 Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect Server on LXC 112 at `http://192.168.50.112:8090`) or pass them via the provider configuration in the consuming workspace. The provider falls back to these when `op_service_account_token` variable is empty.
 
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -35,13 +31,13 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_onepassword"></a> [onepassword](#provider\_onepassword) | 3.2.1 |
 
-## Resources
+## Modules
+
+No modules.
 
 ## Resources
 
@@ -57,11 +53,10 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 | [onepassword_item.mcphub](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_item.n8n](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_item.proxmox](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
+| [onepassword_item.slack](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_item.splunk](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_item.supabase](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_vault.this](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/vault) | data source |
-
-## Inputs
 
 ## Inputs
 
@@ -71,11 +66,8 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 
 ## Outputs
 
-## Outputs
-
 | Name | Description |
 |------|-------------|
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (10 keys) |
 | <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (35 keys) |
-
 <!-- END_TF_DOCS -->

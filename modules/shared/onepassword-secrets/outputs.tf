@@ -55,15 +55,17 @@ output "secrets" {
     n8n_github_token        = try(data.onepassword_item.n8n.section_map["secrets"].field_map["github_token"].value, "")
     n8n_glitchtip_api_token = try(data.onepassword_item.n8n.section_map["secrets"].field_map["glitchtip_api_token"].value, "")
 
-    # MCPHub
+    # MCPHub (MCPHub-specific secrets only)
     mcphub_proxmox_token_name       = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["proxmox_token_name"].value, "")
     mcphub_proxmox_token_value      = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["proxmox_token_value"].value, "")
     mcphub_admin_password           = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["admin_password"].value, "")
     mcphub_n8n_mcp_api_key          = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["n8n_mcp_api_key"].value, "")
     mcphub_op_service_account_token = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["op_service_account_token"].value, "")
-    slack_mcp_xoxp_token            = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxp_token"].value, "")
-    slack_mcp_xoxb_token            = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "")
-    slack_bot_token                 = try(data.onepassword_item.mcphub.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "") # alias: consumers expect slack_bot_token
+
+    # Slack (dedicated 1Password item — separated from mcphub)
+    slack_mcp_xoxp_token = try(data.onepassword_item.slack.section_map["secrets"].field_map["slack_mcp_xoxp_token"].value, "")
+    slack_mcp_xoxb_token = try(data.onepassword_item.slack.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "")
+    slack_bot_token      = try(data.onepassword_item.slack.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "") # alias: consumers expect slack_bot_token
 
     # ELK / Elasticsearch
     elk_elastic_password = try(data.onepassword_item.elk.section_map["secrets"].field_map["elastic_password"].value, "")

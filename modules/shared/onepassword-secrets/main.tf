@@ -82,6 +82,11 @@ data "onepassword_item" "mcphub" {
   title = "mcphub"
 }
 
+data "onepassword_item" "slack" {
+  vault = data.onepassword_vault.this.uuid
+  title = "slack"
+}
+
 data "onepassword_item" "elk" {
   vault = data.onepassword_vault.this.uuid
   title = "elk"
