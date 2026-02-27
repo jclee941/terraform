@@ -52,10 +52,6 @@ data "onepassword_item" "exa" {
   title = "exa"
 }
 
-data "onepassword_item" "splunk" {
-  vault = data.onepassword_vault.this.uuid
-  title = "splunk"
-}
 
 data "onepassword_item" "supabase" {
   vault = data.onepassword_vault.this.uuid

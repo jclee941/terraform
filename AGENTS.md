@@ -128,7 +128,7 @@ Three sync groups covering 12 repositories:
 | 2     | `auto-merge.yml`                     | All 12 repos                                      |
 | 3     | `codex-auto-issue.yml`               | All 12 repos                                      |
 
-**Target repos**: `aimo3-prize`, `blacklist`, `hycu_fsds`, `opencode`, `propose`, `qws941`, `resume`, `safetywallet`, `splunk`, `terraform`, `tmux`, `youtube`
+**Target repos**: `aimo3-prize`, `blacklist`, `hycu_fsds`, `opencode`, `propose`, `qws941`, `resume`, `safetywallet`, `terraform`, `tmux`, `youtube`
 
 ### Reusable Workflows
 

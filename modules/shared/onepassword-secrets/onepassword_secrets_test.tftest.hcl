@@ -84,11 +84,6 @@ run "all_item_titles" {
   }
 
   assert {
-    condition     = data.onepassword_item.splunk.title == "splunk"
-    error_message = "Splunk item title should be 'splunk'."
-  }
-
-  assert {
     condition     = data.onepassword_item.archon.title == "archon"
     error_message = "Archon item title should be 'archon'."
   }

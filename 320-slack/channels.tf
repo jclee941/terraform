@@ -42,12 +42,6 @@ locals {
     "08-safework" = {
       name = "08_safework"
     }
-    "09-splunk" = {
-      name = "09_splunk"
-    }
-    "09-splunk-dev" = {
-      name = "09_splunk_dev"
-    }
     "10-hycu" = {
       name = "10_hycu"
     }
@@ -60,10 +54,6 @@ locals {
       name  = "opencode"
       topic = "opencode session events"
     }
-    "splunk-dev" = {
-      name = "splunk-dev"
-    }
-
     # ── tmux-bridge channels ──────────────────────────────────────────
     "tmux" = {
       name  = "tmux"
@@ -92,10 +82,6 @@ locals {
     "tmux-safetywallet" = {
       name  = "tmux-safetywallet"
       topic = "tmux session: safetywallet"
-    }
-    "tmux-splunk" = {
-      name  = "tmux-splunk"
-      topic = "tmux session: splunk"
     }
     "tmux-terraform" = {
       name  = "tmux-terraform"

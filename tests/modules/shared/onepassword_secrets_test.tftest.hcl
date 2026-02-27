@@ -53,14 +53,6 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.splunk
-    values = {
-      title       = "splunk"
-      section_map = {}
-    }
-  }
-
-  override_data {
     target = data.onepassword_item.supabase
     values = {
       title       = "supabase"
@@ -176,16 +168,6 @@ run "test_secrets_default_to_empty_string" {
 
   # Metadata output
   assert {
-    condition     = output.metadata.splunk_host == ""
-    error_message = "Splunk host should default to empty string"
-  }
-
-  assert {
-    condition     = output.metadata.splunk_port == ""
-    error_message = "Splunk port should default to empty string"
-  }
-
-  assert {
     condition     = output.metadata.cloudflare_email == ""
     error_message = "Cloudflare email should default to empty string"
   }
@@ -223,7 +205,7 @@ run "test_secrets_key_count" {
   }
 }
 
-# Verify metadata output contains expected key count (10 metadata keys)
+# Verify metadata output contains expected key count (7 metadata keys)
 run "test_metadata_key_count" {
   command = plan
 
@@ -236,8 +218,8 @@ run "test_metadata_key_count" {
   }
 
   assert {
-    condition     = length(output.metadata) == 10
-    error_message = "Metadata output should contain exactly 10 keys, got ${length(output.metadata)}"
+    condition     = length(output.metadata) == 7
+    error_message = "Metadata output should contain exactly 7 keys, got ${length(output.metadata)}"
   }
 }
 
@@ -270,7 +252,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 45
-    error_message = "Total keys (secrets + metadata) should equal 45"
+    condition     = length(output.secrets) + length(output.metadata) == 42
+    error_message = "Total keys (secrets + metadata) should equal 42"
   }
 }

@@ -175,7 +175,7 @@ jobs:
             "resume",
             "hycu_fsds",
             "youtube",
-            "splunk",
+
           ]
 
           def gh_get(path: str):

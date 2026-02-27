@@ -74,14 +74,9 @@ output "secrets" {
 }
 
 output "metadata" {
-  description = "Non-secret configuration metadata: usernames, URLs, IDs (10 keys)"
+  description = "Non-secret configuration metadata: usernames, URLs, IDs (7 keys)"
   sensitive   = false
   value = {
-    # Splunk
-    splunk_username = try(data.onepassword_item.splunk.section_map["secrets"].field_map["username"].value, "")
-    splunk_host     = try(data.onepassword_item.splunk.section_map["secrets"].field_map["host"].value, "")
-    splunk_port     = try(data.onepassword_item.splunk.section_map["secrets"].field_map["port"].value, "")
-
     # Supabase
     supabase_url                = try(data.onepassword_item.supabase.section_map["secrets"].field_map["url"].value, "")
     supabase_dashboard_username = try(data.onepassword_item.supabase.section_map["secrets"].field_map["dashboard_username"].value, "")

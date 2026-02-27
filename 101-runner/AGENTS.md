@@ -5,7 +5,7 @@
 **IP:** 192.168.50.101
 
 ## OVERVIEW
-Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user. Orchestrates registration across 7+ repositories (blacklist, claude, propose, proxmox, resume, splunk, terraform) using JIT-config. Provides direct access to homelab services (Proxmox, ELK) for integration testing and automated deployments. Includes Terraform and Bazel for infrastructure CI/CD.
+Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user. Orchestrates registration across 7+ repositories (blacklist, claude, propose, proxmox, resume, terraform) using JIT-config. Provides direct access to homelab services (Proxmox, ELK) for integration testing and automated deployments. Includes Terraform and Bazel for infrastructure CI/CD.
 
 ## STRUCTURE
 ```

@@ -53,9 +53,6 @@ override_module {
       n8n_glitchtip_api_token         = "mock-secret" # pragma: allowlist secret
     }
     metadata = {
-      splunk_username             = "admin"
-      splunk_host                 = "192.168.50.215"
-      splunk_port                 = "8089"
       supabase_url                = "https://supabase.jclee.me"
       supabase_dashboard_username = "admin"
       cloudflare_email            = "test@example.com"

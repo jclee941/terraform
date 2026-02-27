@@ -54,7 +54,6 @@ No modules.
 | [onepassword_item.n8n](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_item.proxmox](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_item.slack](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.splunk](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_item.supabase](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_vault.this](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/vault) | data source |
 
@@ -68,6 +67,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (10 keys) |
+| <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (7 keys) |
 | <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (35 keys) |
 <!-- END_TF_DOCS -->

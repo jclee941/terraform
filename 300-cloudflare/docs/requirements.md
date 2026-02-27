@@ -1,8 +1,8 @@
 # 요구사항정의서 (Requirements Specification)
 
-**프로젝트**: Cloudflare Secrets Management Hub & Synology Proxy Worker  
-**저장소**: [qws941/cloudflare](https://github.com/qws941/cloudflare)  
-**최종 수정**: 2026-02-12  
+**프로젝트**: Cloudflare Secrets Management Hub & Synology Proxy Worker
+**저장소**: [qws941/cloudflare](https://github.com/qws941/cloudflare)
+**최종 수정**: 2026-02-12
 **버전**: v1.0
 
 ---
@@ -29,7 +29,7 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 |----------|-----------|-----------|
 | infrastructure | 8 | CF API, Proxmox, Vault token/addr |
 | security | 2 | FortiAnalyzer |
-| monitoring | 3 | Splunk HEC, ELK |
+| monitoring | 1 | ELK |
 | messaging | 2 | Slack webhook/token |
 | database | 2 | PostgreSQL |
 | app_security | 5 | Flask, JWT, HMAC, encryption key |
@@ -219,5 +219,4 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 | KV | Key-Value (HashiCorp Vault KV v2) |
 | Zero Trust | Cloudflare Zero Trust 네트워크 접근 제어 |
 | TTL | Time To Live — 캐시 만료 시간 |
-| HEC | HTTP Event Collector (Splunk) |
 | E2E | End-to-End (통합 테스트) |

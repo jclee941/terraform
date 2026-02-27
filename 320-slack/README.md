@@ -13,10 +13,6 @@ Bot token sourced from 1Password vault `homelab`. Override with `TF_VAR_slack_bo
 Required bot scopes: `channels:read`, `channels:manage`, `channels:join`, `groups:read`, `groups:write`, `usergroups:read`, `usergroups:write`.
 
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -27,21 +23,21 @@ Required bot scopes: `channels:read`, `channels:manage`, `channels:join`, `group
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_slack"></a> [slack](#provider\_slack) | 1.2.2 |
 
-## Resources
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
 | [slack_conversation.channels](https://registry.terraform.io/providers/pablovarela/slack/latest/docs/resources/conversation) | resource |
-
-## Inputs
 
 ## Inputs
 
@@ -52,8 +48,5 @@ Required bot scopes: `channels:read`, `channels:manage`, `channels:join`, `group
 
 ## Outputs
 
-## Outputs
-
 No outputs.
-
 <!-- END_TF_DOCS -->

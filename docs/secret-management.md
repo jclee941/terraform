@@ -22,7 +22,7 @@ scripts/setup-github-secrets.sh --audit
 ## Architecture
 
 ```
-1Password (homelab vault, 12 items)
+1Password (homelab vault, 11 items)
   │
   ├── onepassword-secrets module (35 secret keys)
   │     │
@@ -48,7 +48,7 @@ scripts/setup-github-secrets.sh --audit
 
 ## 1Password Item Inventory
 
-The shared module (`modules/shared/onepassword-secrets/`) manages 12 items:
+The shared module (`modules/shared/onepassword-secrets/`) manages 11 items:
 
 | Item         | Description          | Key Secrets                                                                                                                  |
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -57,7 +57,6 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 12 items:
 | `proxmox`    | Hypervisor API       | `api_token_id`, `api_token_secret`                                                                                           |
 | `github`     | GitHub PAT           | `personal_access_token`                                                                                                      |
 | `exa`        | Exa search API       | `api_key`                                                                                                                    |
-| `splunk`     | Splunk HEC           | `hec_token`                                                                                                                  |
 | `supabase`   | Self-hosted Supabase | `postgres_password`, `jwt_secret`, `anon_key`, `service_role_key`, `dashboard_password`                                      |
 | `archon`     | Archon MCP           | `openai_api_key`                                                                                                             |
 | `cloudflare` | CF account           | `account_id`, `zone_id`, `api_token`                                                                                         |
@@ -68,7 +67,7 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 12 items:
 **Module outputs:**
 
 - 35 secret keys (sensitive=true, not printed in Terraform output)
-- 10 metadata keys (sensitive=false)
+ 7 metadata keys (sensitive=false)
 
 **Access pattern:**
 
