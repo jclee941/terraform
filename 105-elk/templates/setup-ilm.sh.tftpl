@@ -3,9 +3,9 @@
 # Sets up tiered ILM policies and index templates for log retention
 #
 # Tiers:
-#   critical  (90d) — core infrastructure: elk, supabase, grafana
-#   standard  (30d) — application services: traefik, archon, mcphub, glitchtip, runner
-#   ephemeral  (7d) — debug, unknown, temporary
+#   critical  (90d) — core infrastructure: elk, supabase, grafana, archon, pve
+#   standard  (30d) — all other services (catch-all default)
+#   ephemeral  (7d) — debug, unknown, github-runner, youtube
 set -euo pipefail
 
 ES_HOST="http://localhost:${hosts.elk.ports.elasticsearch}"
@@ -52,9 +52,10 @@ create_ilm_policy "homelab-logs-ephemeral-7d"  "${ilm_ephemeral_delete_after}"
 # —— Index Templates —————————————————————————————————————————————
 # Priority determines which template wins when multiple patterns match.
 # Higher priority = takes precedence.
-#   critical  (300) — specific critical service patterns
-#   ephemeral (250) — specific ephemeral patterns
-#   standard  (200) — catch-all logs-* (default tier)
+#   critical           (300) — specific critical service patterns
+#   ephemeral          (250) — specific ephemeral patterns
+#   cloudflare-workers (225) — CF Worker traces
+#   standard           (200) — catch-all logs-* (default tier)
 
 create_index_template() {
   local name="$1" policy="$2" priority="$3"
@@ -83,17 +84,22 @@ create_index_template() {
 
 # Critical tier: core infrastructure services (90d retention)
 create_index_template "logs-critical" "homelab-logs-critical-90d" 300 \
-  "logs-elk-*" "logs-supabase-*" "logs-grafana-*"
+  "logs-elk-*" "logs-supabase-*" "logs-grafana-*" "logs-archon-*" "logs-pve-*"
 
-# Ephemeral tier: debug and unknown sources (7d retention)
+# Ephemeral tier: debug, unknown, and high-volume ephemeral sources (7d retention)
 create_index_template "logs-ephemeral" "homelab-logs-ephemeral-7d" 250 \
-  "logs-unknown-*" "logs-debug-*"
+  "logs-unknown-*" "logs-debug-*" "logs-github-runner-*" "logs-youtube-*"
+
+# Cloudflare Workers tier: CF Worker traces (30d retention)
+create_index_template "logs-cloudflare-workers" "homelab-logs-30d" 225 \
+  "logs-cloudflare-workers-*"
 
 # Standard tier: catch-all for remaining services (30d retention)
-create_index_template "logs-standard" "homelab-logs-30d" 200 \
+create_index_template "logs-template" "homelab-logs-30d" 200 \
   "logs-*"
 
-echo "ILM setup complete. Three tiers configured:"
-echo "  critical  (90d): elk, supabase, grafana"
-echo "  standard  (30d): all other services (default)"
-echo "  ephemeral  (7d): unknown, debug"
+echo "ILM setup complete. Four index templates configured:"
+echo "  critical           (90d): elk, supabase, grafana, archon, pve"
+echo "  ephemeral           (7d): unknown, debug, github-runner, youtube"
+echo "  cloudflare-workers (30d): cloudflare-workers"
+echo "  standard           (30d): all other services (default)"

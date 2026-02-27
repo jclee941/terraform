@@ -91,7 +91,7 @@ resource "elasticstack_elasticsearch_index_template" "logs_critical" {
 
 resource "elasticstack_elasticsearch_index_template" "logs_ephemeral" {
   name           = "logs-ephemeral"
-  index_patterns = ["logs-unknown-*", "logs-debug-*", "logs-runner-*", "logs-youtube-*"]
+  index_patterns = ["logs-unknown-*", "logs-debug-*", "logs-github-runner-*", "logs-youtube-*"]
   priority       = 250
 
   template {
