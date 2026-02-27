@@ -103,6 +103,20 @@ resource "elasticstack_elasticsearch_index_template" "logs_ephemeral" {
   }
 }
 
+resource "elasticstack_elasticsearch_index_template" "logs_cloudflare_workers" {
+  name           = "logs-cloudflare-workers"
+  index_patterns = ["logs-cloudflare-workers-*"]
+  priority       = 225
+
+  template {
+    settings = jsonencode({
+      number_of_replicas     = 0
+      number_of_shards       = 1
+      "index.lifecycle.name" = elasticstack_elasticsearch_index_lifecycle.homelab_logs_30d.name
+    })
+  }
+}
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Snapshot Repository — automated backup target for ES indices
