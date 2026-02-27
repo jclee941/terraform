@@ -41,7 +41,6 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 - **Networking**: Unprivileged LXC with `nesting=1` enabled for Docker-in-Docker support.
 - **Naming**: Follows `{VMID}-{HOSTNAME}` (101-runner) for Proxmox and GitHub identifiers.
 - **Script Safety**: Keep scripts repeatable and safe for reruns during recovery.
-- **Repo Alignment**: Keep repository lists aligned with `301-github` governance.
 
 ## ANTI-PATTERNS
 - **NO manual config** inside LXC. Use scripts or Terraform remote-exec.

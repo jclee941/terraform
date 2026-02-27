@@ -60,7 +60,6 @@
 | ID  | Provider   | Workspace         | Purpose                                   |
 | --- | ---------- | ----------------- | ----------------------------------------- |
 | 300 | Cloudflare | `300-cloudflare/` | DNS, tunnels, Access, Workers, secrets    |
-| 301 | GitHub     | `301-github/`     | Repos, teams, rulesets, Actions, webhooks |
 
 ## Data Flows
 
@@ -96,8 +95,7 @@ Proxmox API          cloud-init → /opt/{service}/
     ├── 102-traefik/terraform/   (app config only)
     ├── 104-grafana/terraform/   (grafana provider: dashboards, alerts)
     ├── 105-elk/terraform/       (elasticstack provider: ILM, templates)
-    ├── 108-archon/terraform/    (app config only)
-    └── 301-github/              (github provider: repos, teams)
+    └── 108-archon/terraform/    (app config only)
 
 300-cloudflare (independent — reads 1Password directly)
 ```
@@ -140,7 +138,6 @@ modules/
 | `105-elk/terraform/`     | `105-elk/terraform.tfstate`        | elastic/elasticstack                      | ILM policies, index templates                                 |
 | `108-archon/terraform/`  | `108-archon/terraform.tfstate`     | (none)                                    | App-level config deployment via lxc-config                    |
 | `300-cloudflare/`        | `300-cloudflare/terraform.tfstate` | cloudflare, github, 1Password/onepassword | DNS zones, tunnels, Access policies, Workers                  |
-| `301-github/`            | `301-github/terraform.tfstate`     | integrations/github                       | Repos, teams, rulesets, Actions config, webhooks              |
 
 ## State Backend
 

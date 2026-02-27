@@ -33,7 +33,6 @@ jobs:
             105-elk/terraform
             108-archon/terraform
             300-cloudflare
-            301-github
           )
 
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)

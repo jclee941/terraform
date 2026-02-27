@@ -29,7 +29,6 @@ body:
         - 215-synology (NAS)
         - 220-youtube (YouTube VM)
         - 300-cloudflare (external)
-        - 301-github (external)
         - 310-safetywallet (external)
         - 320-slack (external)
         - modules/proxmox
@@ -60,7 +59,7 @@ body:
     attributes:
       label: Risk Tier
       description: |
-        Critical: 100-pve, modules, 300-cloudflare, 301-github, 102-traefik
+        Critical: 100-pve, modules, 300-cloudflare, 102-traefik
         Medium: 105-elk, 107-supabase, 108-archon, 112-mcphub
         Low: everything else
       options:
@@ -80,7 +79,7 @@ body:
         Codex reads this as its primary directive.
       placeholder: |
         1. Open `300-cloudflare/main.tf`
-        2. Add a new DNS A record for `newservice.jclee.me` pointing to `192.168.50.113`
+        2. Add a new DNS A record for `newservice.jclee.me` pointing to `192.168.50.{VMID}`
         3. Add the corresponding entry in `100-pve/envs/prod/hosts.tf`
         4. Run `terraform fmt` on changed files
         5. Run `terraform validate` in both workspaces

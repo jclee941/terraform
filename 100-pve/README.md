@@ -142,7 +142,7 @@ As the host node, 100-pve is the foundation for:
 | <a name="output_nodes"></a> [nodes](#output\_nodes) | List of Proxmox nodes |
 | <a name="output_rendered_configs"></a> [rendered\_configs](#output\_rendered\_configs) | Paths to rendered configuration files |
 | <a name="output_required_template_secrets_validation"></a> [required\_template\_secrets\_validation](#output\_required\_template\_secrets\_validation) | Fail-fast validation for required 1Password secret keys consumed by rendered templates |
-| <a name="output_service_urls"></a> [service\_urls](#output\_service\_urls) | Derived service URLs for consumption by app workspaces (301-github) via remote\_state |
+| <a name="output_service_urls"></a> [service\_urls](#output\_service\_urls) | Derived service URLs for consumption by app workspaces via remote\_state |
 | <a name="output_validation_summary"></a> [validation\_summary](#output\_validation\_summary) | Configuration validation summary |
 | <a name="output_vm_configs"></a> [vm\_configs](#output\_vm\_configs) | VM configuration paths |
 <!-- END_TF_DOCS -->

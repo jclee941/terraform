@@ -31,7 +31,7 @@ body:
     attributes:
       label: Risk Tier
       description: |
-        Critical: 100-pve, modules, 300-cloudflare, 301-github, 102-traefik, .github/workflows
+        Critical: 100-pve, modules, 300-cloudflare, 102-traefik, .github/workflows
         Medium: 105-elk, 107-supabase, 108-archon, 112-mcphub
         Low: everything else
       options:

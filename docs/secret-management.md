@@ -29,7 +29,6 @@ scripts/setup-github-secrets.sh --audit
   │     ├── 104-grafana/terraform ──────────────┐
   │     ├── 105-elk/terraform ────────────────┤
   │     ├── 300-cloudflare ───────────────────┤
-  │     ├── 301-github ────────────────────────┤
   │     └── 100-pve (via versions.tf provider) ┤
   │           │
   │           ▼
@@ -89,7 +88,6 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | 104-grafana/terraform | ✅                       | `grafana_service_account_token`, `n8n_webhook_url` |
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
 | 300-cloudflare        | ✅                       | `cloudflare_account_id`, `zone_id`, `github_token` |
-| 301-github            | ✅                       | `github_personal_access_token`                     |
 | 320-slack             | ✅                       | `slack_bot_token`                                  |
 | 102-traefik           | ❌                       | —                                                  |
 | 108-archon            | ❌                       | —                                                  |

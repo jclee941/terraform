@@ -14,8 +14,7 @@ app workspaces.
   ├── 102-traefik/terraform    (reads host_inventory)
   ├── 104-grafana/terraform    (reads host_inventory)
   ├── 105-elk/terraform        (reads host_inventory)
-  ├── 108-archon/terraform     (reads host_inventory)
-  └── 301-github               (reads host_inventory, service_urls)
+  └── 108-archon/terraform     (reads host_inventory)
 
 300-cloudflare                 (independent — no remote_state dependency)
 ```
@@ -39,7 +38,6 @@ They are independent of each other and can run in parallel.
 | `104-grafana/terraform` | `grafana-plan.yml` / `grafana-apply.yml` | `104-grafana/**` |
 | `105-elk/terraform` | `elk-plan.yml` / `elk-apply.yml` | `105-elk/**` |
 | `108-archon/terraform` | `archon-plan.yml` / `archon-apply.yml` | `108-archon/**` |
-| `301-github` | `github-plan.yml` / `github-apply.yml` | `301-github/**` |
 
 ### Tier Independent — External Providers
 
@@ -74,5 +72,4 @@ make plan SVC=100-pve && make apply SVC=100-pve
 # 2. Apply dependent workspaces (can be parallel)
 make plan SVC=104-grafana/terraform && make apply SVC=104-grafana/terraform
 make plan SVC=105-elk/terraform && make apply SVC=105-elk/terraform
-make plan SVC=301-github && make apply SVC=301-github
 ```

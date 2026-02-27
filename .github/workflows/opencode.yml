@@ -71,7 +71,6 @@ jobs:
             - modules/proxmox/{lxc,vm,lxc-config,vm-config,config-renderer}: Reusable TF modules.
             - modules/shared/onepassword-secrets/: Cross-stack 1Password secret retrieval.
             - 300-cloudflare/: DNS, tunnels, access, R2, Workers (cloudflare/cloudflare ~>5.0).
-            - 301-github/: GitHub org/repos/teams (integrations/github ~>6.6).
             - Per-service dirs: {NNN}-{svc}/ (101-runner through 220-youtube).
 
             CONVENTIONS TO ENFORCE:

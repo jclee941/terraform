@@ -93,12 +93,12 @@ locals {
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
-  # Total dedicated: 16640 MB (16.3 GB) + swap: 9472 MB (9.3 GB) = 26112 MB effective
+  # Total dedicated: 14848 MB (14.5 GB) + swap: 8704 MB (8.5 GB) = 23552 MB effective
   container_sizing = {
     runner    = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
     traefik   = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     grafana   = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
-    elk       = { memory = 8192, swap = 4096, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
+    elk       = { memory = 6144, swap = 3072, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
     glitchtip = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
     supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
     archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
@@ -275,7 +275,7 @@ locals {
     youtube = {
       vmid        = 220
       description = "YouTube Media Server"
-      memory      = 8192
+      memory      = 6144
       cores       = 2
       disk_size   = 50
       bios        = "ovmf"
@@ -284,7 +284,7 @@ locals {
     ollama = {
       vmid        = 109
       description = "Ollama - Local LLM Inference with GPU"
-      memory      = 16384
+      memory      = 12288
       cores       = 4
       disk_size   = 50
       bios        = "ovmf"
@@ -984,7 +984,7 @@ output "host_inventory" {
 }
 
 output "service_urls" {
-  description = "Derived service URLs for consumption by app workspaces (301-github) via remote_state"
+  description = "Derived service URLs for consumption by app workspaces via remote_state"
   value = {
     grafana_url = "https://grafana.jclee.me"
     n8n_url     = "https://mcphub.jclee.me"

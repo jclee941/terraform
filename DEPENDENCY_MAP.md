@@ -22,7 +22,6 @@
 | **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.10            |
 | **108-archon**     | `terraform/main.tf` | AI knowledge mgmt        | None                    | None (LXC-managed)             |
 | **300-cloudflare** | `main.tf`           | External DNS/tunnel      | None                    | cloudflare ~>4.0, github ~>6.0 |
-| **301-github**     | `main.tf`           | GitHub org/repo mgmt     | None                    | github ~>6.0                   |
 
 ### TEMPLATE-ONLY WORKSPACES (No Terraform)
 
@@ -211,7 +210,6 @@ template_vars = {
 | **108-archon**     | None                  | —       | —                     | LXC-managed          |
 | **300-cloudflare** | cloudflare/cloudflare | ~>4.0   | API token (env)       | DNS/tunnel/access    |
 |                    | github/github         | ~>6.0   | Token (env)           | Repo/secret mgmt     |
-| **301-github**     | github/github         | ~>6.0   | Token (env)           | Org/repo/team mgmt   |
 
 ### Environment Variables (Required for CI/Local)
 
@@ -242,8 +240,6 @@ export GITHUB_TOKEN="ghp_..."
 | `data "onepassword_vault"`                              | 100-pve (via module) | Resolve vault UUID by name                     |
 | `data "onepassword_item"`                               | 100-pve (via module) | Fetch 12 service secrets                       |
 | `data "grafana_data_source"`                            | 104-grafana          | Reference Prometheus/Elasticsearch datasources |
-| `data "github_repository"`                              | 301-github           | Reference existing repos for team assignment   |
-| `data "github_user"`                                    | 301-github           | Resolve GitHub usernames                       |
 | `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare       | Fetch tunnel token                             |
 | `data "terraform_remote_state"`                         | (none currently)     | Cross-workspace state reference (reserved)     |
 
@@ -264,7 +260,6 @@ export GITHUB_TOKEN="ghp_..."
 - **Traefik routes**: Edit `/home/jclee/dev/terraform/102-traefik/templates/*.yml.tftpl`
 - **Grafana dashboards**: Edit `/home/jclee/dev/terraform/104-grafana/terraform/main.tf`
 - **ELK pipelines**: Edit `/home/jclee/dev/terraform/105-elk/templates/logstash.conf.tftpl`
-- **GitHub org**: Edit `/home/jclee/dev/terraform/301-github/main.tf`
 - **Cloudflare DNS**: Edit `/home/jclee/dev/terraform/300-cloudflare/main.tf`
 
 ### For Module Development

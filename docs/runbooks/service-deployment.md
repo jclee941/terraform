@@ -107,7 +107,6 @@ Never run `terraform apply` locally against production.
 | Archon | archon-plan.yml | archon-apply.yml | 108-archon/** |
 | Cloudflare | cloudflare-plan.yml | cloudflare-apply.yml | 300-cloudflare/** |
 | ELK | elk-plan.yml | elk-apply.yml | 105-elk/** |
-| GitHub | github-plan.yml | github-apply.yml | 301-github/** |
 | Grafana | grafana-plan.yml | grafana-apply.yml | 104-grafana/** |
 | Traefik | traefik-plan.yml | traefik-apply.yml | 102-traefik/** |
 | CF Worker | — | worker-deploy.yml | 300-cloudflare/workers/** |

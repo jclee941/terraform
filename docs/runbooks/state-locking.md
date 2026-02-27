@@ -14,7 +14,6 @@ All workspaces use local backend (state files stored alongside each workspace):
 | 105-elk | `105-elk/terraform/terraform.tfstate` |
 | 108-archon | `108-archon/terraform/terraform.tfstate` |
 | 300-cloudflare | `300-cloudflare/terraform.tfstate` |
-| 301-github | `301-github/terraform.tfstate` |
 
 Init: `terraform init` (no `-backend-config` needed).
 
