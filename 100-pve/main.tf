@@ -289,13 +289,13 @@ locals {
       disk_size   = 50
       bios        = "ovmf"
       machine     = "q35"
-      hostpci_devices = [
-        {
-          device  = "hostpci0"
-          mapping = "gpu"
-          pcie    = true
-        }
-      ]
+
+
+
+
+
+
+
     }
   }
 }
