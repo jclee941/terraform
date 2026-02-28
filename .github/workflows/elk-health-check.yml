@@ -11,6 +11,10 @@ on:
       - ".github/workflows/_elk-health-check.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   health-check:
     uses: ./.github/workflows/_elk-health-check.yml

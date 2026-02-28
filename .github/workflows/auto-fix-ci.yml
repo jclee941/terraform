@@ -11,6 +11,13 @@ on:
       - "Internal Service Access Test"
     types: [completed]
 
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  issues: write
+  id-token: write
+
 jobs:
   auto-fix:
     if: >-

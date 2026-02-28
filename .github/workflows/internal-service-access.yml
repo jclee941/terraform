@@ -18,6 +18,11 @@ on:
       - "108-archon/**"
       - "112-mcphub/**"
       - ".github/workflows/internal-service-access.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   test:

@@ -1,11 +1,13 @@
-# Stale Issue/PR Management
-# Pattern: Microsoft/.github (adapted for personal account)
 name: 'Stale issue/PR cleanup'
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '30 2 * * *'
+
+permissions:
+  issues: write
+  pull-requests: write
 
 jobs:
   stale:
