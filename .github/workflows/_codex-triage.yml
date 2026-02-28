@@ -1,0 +1,31 @@
+name: Codex Triage (Reusable)
+
+on:
+  workflow_call:
+
+permissions:
+  issues: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request Codex investigation
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                '@codex Investigate this failure.',
+                '',
+                'Steps:',
+                '1. Check the workflow run logs linked in this issue',
+                '2. Identify the root cause of the failure',
+                '3. If the issue is code-related, create a fix PR',
+                '4. If it is a credential, infrastructure, or transient issue, summarize findings and recommended next steps',
+              ].join('\n'),
+            });

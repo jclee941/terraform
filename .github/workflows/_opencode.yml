@@ -1,0 +1,63 @@
+name: OpenCode AI (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        description: "AI model to use"
+        type: string
+        default: "anthropic/claude-sonnet-4-5"
+      prompt:
+        description: "System prompt for the AI assistant"
+        type: string
+        required: true
+    secrets:
+      ANTIGRAVITY_ACCOUNTS_JSON:
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  opencode:
+    name: OpenCode AI Assistant
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup Antigravity credentials
+        # Decodes the base64-encoded antigravity-accounts.json stored as a GitHub secret.
+        # To regenerate the secret value locally:
+        #   base64 -w 0 ~/.config/opencode/antigravity-accounts.json
+        # Google OAuth refresh tokens do not expire unless revoked or unused for 6+ months.
+        run: |
+          mkdir -p "$HOME/.config/opencode"
+          echo "${{ secrets.ANTIGRAVITY_ACCOUNTS_JSON }}" | base64 -d > "$HOME/.config/opencode/antigravity-accounts.json"
+          chmod 600 "$HOME/.config/opencode/antigravity-accounts.json"
+
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@8c739b4a7db455a33fd77b4c997f2a9eaf27648a # v1.2.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Auth is via opencode-antigravity-auth plugin (no ANTHROPIC_API_KEY needed).
+          # The plugin reads ~/.config/opencode/antigravity-accounts.json (written above)
+          # and exchanges the stored Google OAuth refresh token for API access.
+        with:
+          model: ${{ inputs.model }}
+          use_github_token: "true"
+          share: "false"
+          prompt: ${{ inputs.prompt }}

@@ -10,9 +10,9 @@ permissions:
 
 jobs:
   scan:
-    name: TFLint + Checkov
+    name: TFLint + Checkov + tfsec + Trivy
     runs-on: self-hosted
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -162,6 +162,110 @@ jobs:
         if: always()
         run: rm -rf /tmp/checkov-* 2>/dev/null || true
 
+      - name: Install tfsec
+        run: |
+          if ! command -v tfsec &>/dev/null; then
+            TFSEC_VERSION="v1.28.11"
+            curl -sL "https://github.com/aquasecurity/tfsec/releases/download/${TFSEC_VERSION}/tfsec-linux-amd64" \
+              -o /usr/local/bin/tfsec
+            chmod +x /usr/local/bin/tfsec
+          fi
+          tfsec --version
+
+      - name: tfsec Scan
+        id: tfsec
+        run: |
+          set +e
+
+          WORKSPACES=(
+            100-pve
+            102-traefik/terraform
+            104-grafana/terraform
+            105-elk/terraform
+            108-archon/terraform
+            300-cloudflare
+          )
+
+          overall_exit=0
+          output=""
+
+          for dir in "${WORKSPACES[@]}"; do
+            if [ ! -d "$dir" ]; then
+              continue
+            fi
+
+            result=$(tfsec "$dir" --format lovely --soft-fail 2>&1)
+            exit_code=$?
+
+            if [ $exit_code -ne 0 ]; then
+              overall_exit=1
+            fi
+
+            if [ -n "$result" ]; then
+              output+="### ${dir}
+          ${result}
+
+          "
+            fi
+          done
+
+          if [ ${#output} -gt 60000 ]; then
+            output="${output:0:60000}
+
+          ... (truncated)"
+          fi
+
+          {
+            echo "output<<EOFTFSEC"
+            echo "$output"
+            echo "EOFTFSEC"
+            echo "exit_code=$overall_exit"
+          } >> "$GITHUB_OUTPUT"
+
+          exit 0
+
+      - name: Install Trivy
+        run: |
+          if ! command -v trivy &>/dev/null; then
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+              | sh -s -- -b /usr/local/bin
+          fi
+          trivy --version
+
+      - name: Trivy Config Scan
+        id: trivy
+        run: |
+          set +e
+
+          result=$(trivy config . \
+            --severity HIGH,CRITICAL \
+            --skip-dirs .archive \
+            --skip-dirs data \
+            --skip-dirs tests \
+            --skip-dirs 100-pve/configs \
+            --exit-code 0 2>&1)
+          exit_code=$?
+
+          if [ ${#result} -gt 60000 ]; then
+            result="${result:0:60000}
+
+          ... (truncated)"
+          fi
+
+          {
+            echo "output<<EOFTRIVY"
+            echo "$result"
+            echo "EOFTRIVY"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ $exit_code -eq 0 ]; then
+            echo "exit_code=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "exit_code=1" >> "$GITHUB_OUTPUT"
+          fi
+
+          exit 0
+
       - name: Comment Results on PR
         if: always()
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
@@ -171,16 +275,26 @@ jobs:
           CHECKOV_OUTPUT: ${{ steps.checkov.outputs.output }}
           CHECKOV_EXIT: ${{ steps.checkov.outputs.exit_code }}
           CHECKOV_SUMMARY: ${{ steps.checkov.outputs.summary }}
+          TFSEC_OUTPUT: ${{ steps.tfsec.outputs.output }}
+          TFSEC_EXIT: ${{ steps.tfsec.outputs.exit_code }}
+          TRIVY_OUTPUT: ${{ steps.trivy.outputs.output }}
+          TRIVY_EXIT: ${{ steps.trivy.outputs.exit_code }}
         with:
           script: |
             const tflintExit = process.env.TFLINT_EXIT || '1';
             const checkovExit = process.env.CHECKOV_EXIT || '1';
+            const tfsecExit = process.env.TFSEC_EXIT || '1';
+            const trivyExit = process.env.TRIVY_EXIT || '1';
             const tflintOutput = process.env.TFLINT_OUTPUT || 'No output';
             const checkovOutput = process.env.CHECKOV_OUTPUT || 'No output';
             const checkovSummary = process.env.CHECKOV_SUMMARY || '';
+            const tfsecOutput = process.env.TFSEC_OUTPUT || 'No output';
+            const trivyOutput = process.env.TRIVY_OUTPUT || 'No output';
 
             const tflintIcon = tflintExit === '0' ? '✅' : '⚠️';
             const checkovIcon = checkovExit === '0' ? '✅' : '⚠️';
+            const tfsecIcon = tfsecExit === '0' ? '✅' : '⚠️';
+            const trivyIcon = trivyExit === '0' ? '✅' : '⚠️';
 
             const body = [
               '## 🔒 Security Scan Results',
@@ -189,6 +303,8 @@ jobs:
               `|------|--------|`,
               `| TFLint | ${tflintIcon} ${tflintExit === '0' ? 'Passed' : 'Findings detected'} |`,
               `| Checkov | ${checkovIcon} ${checkovExit === '0' ? 'Passed' : 'Findings detected'} |`,
+              `| tfsec | ${tfsecIcon} ${tfsecExit === '0' ? 'Passed' : 'Findings detected'} |`,
+              `| Trivy | ${trivyIcon} ${trivyExit === '0' ? 'Passed' : 'Findings detected'} |`,
               '',
               '<details><summary>TFLint Output</summary>',
               '',
@@ -200,6 +316,20 @@ jobs:
               '',
               '```',
               checkovOutput,
+              '```',
+              '',
+              '</details>',
+              '',
+              '<details><summary>tfsec Output</summary>',
+              '',
+              tfsecOutput,
+              '',
+              '</details>',
+              '',
+              '<details><summary>Trivy Output</summary>',
+              '',
+              '```',
+              trivyOutput,
               '```',
               '',
               '</details>',

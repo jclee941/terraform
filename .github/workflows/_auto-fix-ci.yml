@@ -1,0 +1,209 @@
+name: _Auto Fix CI Failure
+
+on:
+  workflow_call:
+    inputs:
+      run-id:
+        description: "Failed workflow run ID"
+        required: true
+        type: number
+      head-branch:
+        description: "Branch that triggered the failure"
+        required: true
+        type: string
+      head-sha:
+        description: "Commit SHA that triggered the failure"
+        required: true
+        type: string
+      pr-number:
+        description: "PR number associated with the failure"
+        required: true
+        type: number
+      workflow-name:
+        description: "Name of the failed workflow"
+        required: true
+        type: string
+      model:
+        description: "AI model to use for auto-fix"
+        required: false
+        type: string
+        default: "anthropic/claude-sonnet-4-5"
+    secrets:
+      ANTIGRAVITY_ACCOUNTS_JSON:
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  issues: write
+  id-token: write
+
+jobs:
+  auto-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout failed branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.head-branch }}
+          fetch-depth: 0
+
+      - name: Setup git config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create fix branch
+        id: branch
+        run: |
+          BRANCH_NAME="opencode/auto-fix-${{ inputs.run-id }}"
+          git checkout -b "$BRANCH_NAME"
+          echo "name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Get failure logs
+        id: logs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ inputs.run-id }},
+            });
+
+            const failedJobs = jobs.data.jobs.filter(j => j.conclusion === 'failure');
+            let errorLogs = '';
+
+            for (const job of failedJobs) {
+              try {
+                const logsResp = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  job_id: job.id,
+                });
+                const lines = String(logsResp.data).split('\n');
+                const tail = lines.slice(-200).join('\n');
+                errorLogs += `\n--- Job: ${job.name} (${job.conclusion}) ---\n${tail}\n`;
+              } catch (e) {
+                errorLogs += `\n--- Job: ${job.name} ---\n[Could not retrieve logs: ${e.message}]\n`;
+              }
+            }
+
+            if (errorLogs.length > 50000) {
+              errorLogs = errorLogs.slice(-50000);
+            }
+
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/ci-failure-logs.txt', errorLogs);
+            core.setOutput('failed_jobs', failedJobs.map(j => j.name).join(', '));
+            core.setOutput('failed_count', String(failedJobs.length));
+
+      - name: Read project context
+        id: context
+        run: |
+          if [ -f "AGENTS.md" ]; then
+            # Truncate to 10000 chars for prompt safety
+            head -c 10000 AGENTS.md > /tmp/project-context.txt
+            echo "has_agents=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No AGENTS.md found" > /tmp/project-context.txt
+            echo "has_agents=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Antigravity credentials
+        run: |
+          mkdir -p ~/.config/opencode
+          echo '${{ secrets.ANTIGRAVITY_ACCOUNTS_JSON }}' | base64 -d > ~/.config/opencode/antigravity-accounts.json
+
+      - name: Auto-fix with OpenCode
+        uses: anomalyco/opencode/github@8c739b4a7db455a33fd77b4c997f2a9eaf27648a # v1.2.6
+        with:
+          model: ${{ inputs.model }}
+          prompt: |
+            CI workflow "${{ inputs.workflow-name }}" failed on branch "${{ inputs.head-branch }}" (PR #${{ inputs.pr-number }}).
+            Failed jobs (${{ steps.logs.outputs.failed_count }}): ${{ steps.logs.outputs.failed_jobs }}
+
+            ## Project Context
+            $(cat /tmp/project-context.txt)
+
+            ## Instructions
+            1. Read the CI failure logs below
+            2. Identify the root cause of each failure
+            3. Fix ONLY what is needed to make CI pass
+            4. Do NOT refactor unrelated code
+            5. Do NOT modify CI workflow files unless the workflow itself is broken
+            6. Do NOT suppress errors with ignore comments or type casts
+            7. Follow existing code patterns and conventions
+            8. If the failure is infrastructure-related (network, secrets, runner), do NOT make code changes — just note it
+
+            ## CI Failure Logs
+            $(cat /tmp/ci-failure-logs.txt)
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push fix
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git add -A
+          git commit -m "fix: auto-fix CI failure from ${{ inputs.workflow-name }} (run #${{ inputs.run-id }})"
+          git push origin "${{ steps.branch.outputs.name }}"
+
+      - name: Create fix PR
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `fix: auto-fix CI failure from ${{ inputs.workflow-name }}`,
+              body: [
+                '## 🤖 Auto-Fix CI Failure',
+                '',
+                '| Field | Value |',
+                '|-------|-------|',
+                '| **Failed workflow** | ${{ inputs.workflow-name }} |',
+                '| **Failed run** | [#${{ inputs.run-id }}](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/${{ inputs.run-id }}) |',
+                '| **Original branch** | `${{ inputs.head-branch }}` |',
+                '| **Original PR** | #${{ inputs.pr-number }} |',
+                '| **Failed jobs** | ${{ steps.logs.outputs.failed_jobs }} |',
+                '',
+                '> ⚠️ This PR was auto-generated by OpenCode. Review carefully before merging.',
+              ].join('\n'),
+              head: '${{ steps.branch.outputs.name }}',
+              base: '${{ inputs.head-branch }}',
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pr-number }},
+              body: '🤖 CI failure detected in **${{ inputs.workflow-name }}**. Auto-fix PR created: #' + pr.data.number,
+            });
+
+      - name: Comment if no fix found
+        if: steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pr-number }},
+              body: [
+                '🤖 CI failure detected in **${{ inputs.workflow-name }}** but auto-fix could not determine a code fix.',
+                '',
+                'This may be an infrastructure issue (network, secrets, runner) or require manual investigation.',
+                '',
+                '[View failed run](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/${{ inputs.run-id }})',
+              ].join('\n'),
+            });

@@ -1,0 +1,48 @@
+name: Infracost (Reusable)
+
+on:
+  workflow_call:
+    secrets:
+      INFRACOST_API_KEY:
+        required: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  infracost:
+    name: Infracost
+    runs-on: self-hosted
+    timeout-minutes: 10
+    env:
+      INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Check API key
+        id: check_key
+        run: |
+          if [ -n "$INFRACOST_API_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::INFRACOST_API_KEY not set — skipping cost estimation"
+          fi
+
+      - name: Setup Infracost
+        if: steps.check_key.outputs.available == 'true'
+        uses: infracost/actions/setup@v2
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Run Infracost
+        if: steps.check_key.outputs.available == 'true'
+        run: |
+          infracost breakdown --path . --format json --out-file infracost.json
+          infracost comment github --path infracost.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --github-token ${{ github.token }} \
+            --pull-request ${{ github.event.pull_request.number }} \
+            --behavior update

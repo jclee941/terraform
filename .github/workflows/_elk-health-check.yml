@@ -1,0 +1,113 @@
+name: ELK Health Check (Reusable)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    name: ELK Stack Health
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Check Elasticsearch Cluster Health
+        id: es_health
+        run: |
+          if ! HEALTH_JSON=$(curl -sf --connect-timeout 10 "http://192.168.50.105:9200/_cluster/health" 2>/dev/null); then
+            {
+              echo "has_failures=true"
+              echo "failed=Elasticsearch (192.168.50.105:9200) unreachable"
+              echo "report<<EOF_REPORT"
+              echo -e "| Service | Status |\n|---------|--------|\n| **Elasticsearch** | **🔴 Unreachable** |\n"
+              echo "EOF_REPORT"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          STATUS=$(echo "$HEALTH_JSON" | jq -r '.status')
+          REPORT="| Service | Status |\n|---------|--------|\n"
+
+          if [ "$STATUS" = "green" ]; then
+            REPORT+="| Elasticsearch | ✅ Green |\n"
+            echo "has_failures=false" >> "$GITHUB_OUTPUT"
+          elif [ "$STATUS" = "yellow" ]; then
+            REPORT+="| Elasticsearch | ⚠️ Yellow |\n"
+            echo "has_failures=false" >> "$GITHUB_OUTPUT"
+          else
+            REPORT+="| Elasticsearch | 🔴 ${STATUS} |\n"
+            echo "has_failures=true" >> "$GITHUB_OUTPUT"
+            echo "failed=Elasticsearch cluster status is ${STATUS}" >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "report<<EOF_REPORT"
+            echo -e "$REPORT"
+            echo "EOF_REPORT"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check Logstash Pipeline Status
+        id: logstash_health
+        run: |
+          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:8080/" >/dev/null 2>&1; then
+            echo "has_failures=true" >> "$GITHUB_OUTPUT"
+            echo "failed=Logstash API (192.168.50.105:8080) unreachable" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_failures=false" >> "$GITHUB_OUTPUT"
+
+      - name: Check Logstash Exporter
+        id: logstash_exporter
+        run: |
+          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:9198/metrics" >/dev/null 2>&1; then
+            echo "has_failures=true" >> "$GITHUB_OUTPUT"
+            echo "failed=Logstash Exporter (192.168.50.105:9198) unreachable" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_failures=false" >> "$GITHUB_OUTPUT"
+
+      - name: Check Indices and ILM
+        id: index_health
+        run: |
+          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:9200/_ilm/policy" >/dev/null 2>&1; then
+            echo "has_failures=true" >> "$GITHUB_OUTPUT"
+            echo "failed=ILM API unreachable" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_failures=false" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update issue on failure
+        if: steps.es_health.outputs.has_failures == 'true' || steps.logstash_health.outputs.has_failures == 'true' || steps.logstash_exporter.outputs.has_failures == 'true' || steps.index_health.outputs.has_failures == 'true'
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 ELK Health Check:"
+          custom-title: "🔴 ELK Health Check Failed"
+          title-match: prefix
+          update-title: "true"
+          labels: bug,elk
+          custom-body: |
+            ## ELK Health Check Failed
+
+            **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ### Elasticsearch
+            ${{ steps.es_health.outputs.report }}
+
+            ### Failures
+            - ES: ${{ steps.es_health.outputs.failed }}
+            - Logstash: ${{ steps.logstash_health.outputs.failed }}
+            - Exporter: ${{ steps.logstash_exporter.outputs.failed }}
+            - Indices: ${{ steps.index_health.outputs.failed }}
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## ELK Health Check Results"
+            echo "${{ steps.es_health.outputs.report }}"
+          } >> "$GITHUB_STEP_SUMMARY"

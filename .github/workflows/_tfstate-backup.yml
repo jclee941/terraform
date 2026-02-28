@@ -1,0 +1,80 @@
+name: Terraform State Backup (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      workspaces:
+        description: "Newline-separated list of workspace paths (relative to repo root)"
+        type: string
+        default: |
+          100-pve/envs/prod
+          102-traefik/terraform
+          104-grafana/terraform
+          105-elk/terraform
+          108-archon/terraform
+          300-cloudflare
+          320-slack
+      retention-days:
+        description: "Artifact retention in days"
+        type: number
+        default: 90
+    secrets:
+      TF_BACKUP_PASSPHRASE:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Encrypted State Backup
+    runs-on: self-hosted
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Backup all workspace states
+        env:
+          TF_BACKUP_PASSPHRASE: ${{ secrets.TF_BACKUP_PASSPHRASE }}
+          WORKSPACES: ${{ inputs.workspaces }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_DIR=".backups/${TIMESTAMP}"
+          mkdir -p "$BACKUP_DIR"
+
+          BACKED_UP=0
+          MISSING=0
+
+          while IFS= read -r ws; do
+            ws=$(echo "$ws" | xargs)
+            [ -z "$ws" ] && continue
+            STATE_FILE="$ws/terraform.tfstate"
+            if [ -f "$STATE_FILE" ]; then
+              SAFE_NAME=$(echo "$ws" | tr '/' '-')
+              openssl enc -aes-256-cbc -pbkdf2 -salt \
+                -in "$STATE_FILE" \
+                -out "$BACKUP_DIR/${SAFE_NAME}.tfstate.enc" \
+                -pass env:TF_BACKUP_PASSPHRASE
+              echo "✅ Backed up: $ws"
+              BACKED_UP=$((BACKED_UP + 1))
+            else
+              echo "⚠️ No state file: $ws"
+              MISSING=$((MISSING + 1))
+            fi
+          done <<< "$WORKSPACES"
+
+          echo ""
+          echo "=== Backup Summary ==="
+          echo "Backed up: $BACKED_UP"
+          echo "Missing:   $MISSING"
+          echo "Location:  $BACKUP_DIR"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: tfstate-backup-${{ github.run_id }}
+          path: .backups/
+          retention-days: ${{ inputs.retention-days }}
+          if-no-files-found: error
