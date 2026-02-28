@@ -6,10 +6,10 @@
 # Each 1Password item must have a section named "secrets" with matching field labels.
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
 #
-# Secrets (sensitive=true): API keys, passwords, tokens — 35 keys.
+# Secrets (sensitive=true): API keys, passwords, tokens — 36 keys.
 # Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 10 keys.
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (35 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (36 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -66,6 +66,7 @@ output "secrets" {
     slack_mcp_xoxp_token = try(data.onepassword_item.slack.section_map["secrets"].field_map["slack_mcp_xoxp_token"].value, "")
     slack_mcp_xoxb_token = try(data.onepassword_item.slack.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "")
     slack_bot_token      = try(data.onepassword_item.slack.section_map["secrets"].field_map["slack_mcp_xoxb_token"].value, "") # alias: consumers expect slack_bot_token
+    slack_webhook_url    = try(data.onepassword_item.slack.section_map["secrets"].field_map["webhook_url"].value, "")
 
     # ELK / Elasticsearch
     elk_elastic_password = try(data.onepassword_item.elk.section_map["secrets"].field_map["elastic_password"].value, "")

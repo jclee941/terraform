@@ -38,6 +38,13 @@ variable "n8n_glitchtip_webhook_url" {
   }
 }
 
+variable "slack_webhook_url" {
+  description = "Slack incoming webhook URL for alert notifications (fallback if not in 1Password)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "onepassword_vault_name" {
   description = "1Password vault name for secret lookups"
   type        = string

@@ -56,6 +56,16 @@ resource "grafana_contact_point" "n8n_glitchtip_webhook" {
   }
 }
 
+resource "grafana_contact_point" "slack_alerts" {
+  name = "slack-alerts"
+
+  slack {
+    url   = local.effective_slack_webhook_url
+    title = "{{ .CommonLabels.alertname }}"
+    text  = "{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}"
+  }
+}
+
 resource "grafana_notification_policy" "default" {
   group_by      = ["alertname", "grafana_folder"]
   contact_point = grafana_contact_point.n8n_webhook.name
@@ -83,6 +93,17 @@ resource "grafana_notification_policy" "default" {
     }
     contact_point   = grafana_contact_point.n8n_glitchtip_webhook.name
     repeat_interval = "1h"
+    continue        = true
+  }
+
+  policy {
+    matcher {
+      label = "severity"
+      match = "="
+      value = "critical"
+    }
+    contact_point   = grafana_contact_point.slack_alerts.name
+    repeat_interval = "1h"
   }
 
   policy {
@@ -103,6 +124,17 @@ resource "grafana_notification_policy" "default" {
       value = "warning"
     }
     contact_point   = grafana_contact_point.n8n_glitchtip_webhook.name
+    repeat_interval = "4h"
+    continue        = true
+  }
+
+  policy {
+    matcher {
+      label = "severity"
+      match = "="
+      value = "warning"
+    }
+    contact_point   = grafana_contact_point.slack_alerts.name
     repeat_interval = "4h"
   }
 

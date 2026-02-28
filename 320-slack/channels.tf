@@ -2,9 +2,8 @@
 #
 # Categories:
 #   default    — Slack workspace defaults (general, random). Cannot be archived.
-#   legacy     — Numbered service channels from early workspace setup.
-#   service    — Current service/project channels.
-#   tmux       — tmux-bridge bot channels (auto-created per session).
+#   notify     — Unified notification channels for external service integrations.
+#   archived   — All legacy channels, frozen via is_archived.
 
 locals {
   channels = {
@@ -20,84 +19,121 @@ locals {
       action_on_destroy = "none"
     }
 
-    # ── Legacy numbered channels ──────────────────────────────────────
-    "01-blacklist" = {
-      name = "01_blacklist"
+    # ── Notification channels ─────────────────────────────────────────
+    "github" = {
+      name    = "github"
+      topic   = "GitHub activity — PRs, issues, CI/CD, releases"
+      purpose = "Unified GitHub webhook notifications for all qws941 repositories."
     }
-    "03-fortinet" = {
-      name = "03_fortinet"
-    }
-    "04-grafana" = {
-      name = "04_grafana"
-    }
-    "05-infra" = {
-      name = "05_infra"
-    }
-    "06-n8n" = {
-      name = "06_n8n"
-    }
-    "07-nginx" = {
-      name = "07_nginx"
-    }
-    "08-safework" = {
-      name = "08_safework"
-    }
-    "10-hycu" = {
-      name = "10_hycu"
+    "alerts" = {
+      name    = "alerts"
+      topic   = "Infrastructure alerts — Grafana, GlitchTip, uptime"
+      purpose = "Unified infrastructure and monitoring alerts."
     }
 
-    # ── Service channels ──────────────────────────────────────────────
+    # ── Archived — service channels ───────────────────────────────────
     "mcp" = {
-      name = "mcp"
+      name        = "mcp"
+      is_archived = true
     }
     "opencode" = {
-      name  = "opencode"
-      topic = "opencode session events"
+      name        = "opencode"
+      topic       = "opencode session events"
+      is_archived = true
     }
-    # ── tmux-bridge channels ──────────────────────────────────────────
+
+    # ── Archived — tmux channels ──────────────────────────────────────
     "tmux" = {
-      name  = "tmux"
-      topic = "tmux session lifecycle events"
+      name        = "tmux"
+      topic       = "tmux session lifecycle events"
+      is_archived = true
     }
     "tmux-blacklist" = {
-      name  = "tmux-blacklist"
-      topic = "tmux session: blacklist"
+      name        = "tmux-blacklist"
+      topic       = "tmux session: blacklist"
+      is_archived = true
     }
     "tmux-oh-my-opencode" = {
-      name  = "tmux-oh-my-opencode"
-      topic = "tmux session: oh-my-opencode"
+      name        = "tmux-oh-my-opencode"
+      topic       = "tmux session: oh-my-opencode"
+      is_archived = true
     }
     "tmux-prize" = {
-      name  = "tmux-prize"
-      topic = "tmux session: prize"
+      name        = "tmux-prize"
+      topic       = "tmux session: prize"
+      is_archived = true
     }
     "tmux-propose" = {
-      name  = "tmux-propose"
-      topic = "tmux session: propose"
+      name        = "tmux-propose"
+      topic       = "tmux session: propose"
+      is_archived = true
     }
     "tmux-resume" = {
-      name  = "tmux-resume"
-      topic = "tmux session: resume"
+      name        = "tmux-resume"
+      topic       = "tmux session: resume"
+      is_archived = true
     }
     "tmux-safetywallet" = {
-      name  = "tmux-safetywallet"
-      topic = "tmux session: safetywallet"
+      name        = "tmux-safetywallet"
+      topic       = "tmux session: safetywallet"
+      is_archived = true
     }
     "tmux-terraform" = {
-      name  = "tmux-terraform"
-      topic = "tmux session: terraform"
+      name        = "tmux-terraform"
+      topic       = "tmux session: terraform"
+      is_archived = true
+    }
+
+    # ── Archived — legacy numbered channels ───────────────────────────
+    "09-splunk-dev" = {
+      name        = "09_splunk_dev"
+      is_archived = true
+    }
+    "10-hycu" = {
+      name        = "10_hycu"
+      is_archived = true
+    }
+
+    # ── Archived — ephemeral tmux sessions ────────────────────────────
+    "tmux-splunk" = {
+      name        = "tmux-splunk"
+      topic       = "tmux session: splunk"
+      is_archived = true
+    }
+    "tmux-op-signin" = {
+      name        = "tmux-op-signin"
+      topic       = "tmux session: op-signin"
+      is_archived = true
+    }
+    "tmux-wrangler-login" = {
+      name        = "tmux-wrangler-login"
+      topic       = "tmux session: wrangler-login"
+      is_archived = true
     }
     "tmux-tf-plan" = {
-      name  = "tmux-tf-plan"
-      topic = "tmux session: tf-plan"
+      name        = "tmux-tf-plan"
+      topic       = "tmux session: tf-plan"
+      is_archived = true
     }
-    "tmux-vm220" = {
-      name  = "tmux-vm220"
-      topic = "tmux session: vm220"
+    "tmux-_github" = {
+      name        = "tmux-_github"
+      topic       = "tmux session: _github"
+      is_archived = true
     }
-    "tmux-youtube" = {
-      name  = "tmux-youtube"
-      topic = "tmux session: youtube"
+    "tmux-review" = {
+      name        = "tmux-review"
+      topic       = "tmux session: review"
+      is_archived = true
+    }
+    "tmux-cr" = {
+      name        = "tmux-cr"
+      topic       = "tmux session: cr"
+      is_archived = true
+    }
+    "tmux-vm109" = {
+      name        = "tmux-vm109"
+      topic       = "tmux session: vm109"
+      is_archived = true
     }
   }
 }
@@ -109,6 +145,7 @@ resource "slack_conversation" "channels" {
   topic                  = lookup(each.value, "topic", null)
   purpose                = lookup(each.value, "purpose", null)
   is_private             = false
+  is_archived            = lookup(each.value, "is_archived", false)
   adopt_existing_channel = true
   action_on_destroy      = lookup(each.value, "action_on_destroy", "archive")
 }

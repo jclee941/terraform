@@ -27,6 +27,7 @@
 | [grafana_contact_point.alert_log_fallback](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
 | [grafana_contact_point.n8n_glitchtip_webhook](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
 | [grafana_contact_point.n8n_webhook](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
+| [grafana_contact_point.slack_alerts](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
 | [grafana_dashboard.managed](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/dashboard) | resource |
 | [grafana_folder.alerts](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/folder) | resource |
 | [grafana_folder.homelab](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/folder) | resource |
@@ -52,6 +53,7 @@
 | <a name="input_n8n_glitchtip_webhook_url"></a> [n8n\_glitchtip\_webhook\_url](#input\_n8n\_glitchtip\_webhook\_url) | n8n webhook URL for forwarding alerts to GlitchTip | `string` | `"http://192.168.50.112:5678/webhook/grafana-to-glitchtip"` | no |
 | <a name="input_n8n_webhook_url"></a> [n8n\_webhook\_url](#input\_n8n\_webhook\_url) | n8n webhook URL for alert notifications | `string` | `"http://192.168.50.112:5678/webhook/grafana-alert"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret lookups | `string` | `"homelab"` | no |
+| <a name="input_slack_webhook_url"></a> [slack\_webhook\_url](#input\_slack\_webhook\_url) | Slack incoming webhook URL for alert notifications (fallback if not in 1Password) | `string` | `""` | no |
 
 ## Outputs
 
