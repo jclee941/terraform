@@ -57,7 +57,7 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
-          title-prefix: "🔴 Production Verification Failed:"
+          title-prefix: "🔴 Production Verification Failed"
           custom-title: "🔴 Production Verification Failed"
           title-match: prefix
           update-title: "true"
