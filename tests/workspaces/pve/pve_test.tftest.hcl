@@ -51,6 +51,7 @@ override_module {
       n8n_api_key                     = "mock-secret" # pragma: allowlist secret
       n8n_github_token                = "mock-secret" # pragma: allowlist secret
       n8n_glitchtip_api_token         = "mock-secret" # pragma: allowlist secret
+      slack_webhook_url                = "mock-secret" # pragma: allowlist secret
     }
     metadata = {
       supabase_url                = "https://supabase.jclee.me"
