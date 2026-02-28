@@ -8,8 +8,10 @@ module "onepassword_secrets" {
 }
 
 locals {
-  # 1Password lookup (fallback to empty string if not available)
-  _slack_token_from_1password = trimspace(try(module.onepassword_secrets.secrets["slack_bot_token"], ""))
+  # 1Password lookup: prefer xoxb bot token, fall back to xoxp user token
+  _slack_xoxb                 = trimspace(try(module.onepassword_secrets.secrets["slack_bot_token"], ""))
+  _slack_xoxp                 = trimspace(try(module.onepassword_secrets.secrets["slack_mcp_xoxp_token"], ""))
+  _slack_token_from_1password = local._slack_xoxb != "" ? local._slack_xoxb : local._slack_xoxp
 
   # Effective value: 1Password takes priority, variable fallback
   effective_slack_token = local._slack_token_from_1password != "" ? local._slack_token_from_1password : trimspace(var.slack_bot_token)

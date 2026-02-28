@@ -44,7 +44,7 @@ Required bot scopes: `channels:read`, `channels:manage`, `channels:join`, `group
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name | `string` | `"homelab"` | no |
-| <a name="input_slack_bot_token"></a> [slack\_bot\_token](#input\_slack\_bot\_token) | Slack bot token override (xoxb-*). Falls back to 1Password. | `string` | `""` | no |
+| <a name="input_slack_bot_token"></a> [slack\_bot\_token](#input\_slack\_bot\_token) | Slack token override (xoxb-*/xoxp-*/xoxe.*). Falls back to 1Password. | `string` | `""` | no |
 
 ## Outputs
 

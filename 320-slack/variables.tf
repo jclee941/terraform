@@ -14,13 +14,13 @@ variable "onepassword_vault_name" {
 }
 
 variable "slack_bot_token" {
-  description = "Slack bot token override (xoxb-*). Falls back to 1Password."
+  description = "Slack token override (xoxb-*/xoxp-*/xoxe.*). Falls back to 1Password."
   type        = string
   default     = ""
   sensitive   = true
 
   validation {
-    condition     = var.slack_bot_token == "" || startswith(var.slack_bot_token, "xoxb-")
-    error_message = "slack_bot_token must start with 'xoxb-' when provided."
+    condition     = var.slack_bot_token == "" || can(regex("^xox", var.slack_bot_token))
+    error_message = "slack_bot_token must be a valid Slack token (xoxb-/xoxp-/xoxe.) when provided."
   }
 }
