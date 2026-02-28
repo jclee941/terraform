@@ -84,7 +84,7 @@ runs:
               ``,
               `**Date:** ${today}`,
               `**Commit:** [\`${commit}\`](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${context.sha})`,
-              `**Triggered by:** @${context.actor}`,
+              `**Triggered by:** ${context.actor}`,
               `**Workflow:** ${context.workflow}`,
               `**Run:** [View logs](${runUrl})`,
             ].join('\n');
@@ -136,7 +136,7 @@ runs:
                 `## Recurring Failure (${today})`,
                 ``,
                 `**Commit:** [\`${commit}\`](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${context.sha})`,
-                `**Triggered by:** @${context.actor}`,
+                `**Triggered by:** ${context.actor}`,
                 `**Run:** [View logs](${runUrl})`,
                 ``,
                 `This workflow failed again. See the run logs for details.`,
