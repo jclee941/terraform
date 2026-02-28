@@ -779,7 +779,6 @@ locals {
     "mcphub_proxmox_token_value",
     "openai_api_key",
     "proxmox_ssh_private_key",
-    "slack_mcp_xoxb_token",
     "slack_mcp_xoxp_token",
     "supabase_anon_key",
     "supabase_dashboard_password",
