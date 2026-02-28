@@ -38,7 +38,7 @@ run "onepassword_vault_name_empty" {
   expect_failures = [var.onepassword_vault_name]
 }
 
-# --- slack_bot_token: must start with 'xoxb-' when provided ---
+# --- slack_bot_token: must start with 'xox' when provided ---
 
 run "slack_bot_token_invalid_prefix" {
   command = plan
@@ -54,6 +54,8 @@ run "slack_bot_token_invalid_prefix" {
   expect_failures = [var.slack_bot_token]
 }
 
+# --- slack_bot_token: xoxp- prefix is valid (relaxed validation accepts xox*) ---
+
 run "slack_bot_token_xoxp_prefix" {
   command = plan
 
@@ -64,8 +66,20 @@ run "slack_bot_token_xoxp_prefix" {
   variables {
     slack_bot_token = "xoxp-user-token"
   }
+}
 
-  expect_failures = [var.slack_bot_token]
+# --- slack_bot_token: xoxe. prefix is valid ---
+
+run "slack_bot_token_xoxe_prefix" {
+  command = plan
+
+  module {
+    source = "../../../320-slack"
+  }
+
+  variables {
+    slack_bot_token = "xoxe.xoxp-1-abc123"
+  }
 }
 
 # --- slack_bot_token: empty string is valid (falls back to 1Password) ---
