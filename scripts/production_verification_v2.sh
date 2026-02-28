@@ -6,6 +6,11 @@ set -e
 
 # Required: Grafana API token (generate via Grafana UI > Service Accounts or export from Vault)
 GRAFANA_TOKEN="${GRAFANA_TOKEN:-}"
+PROM_HOST="${PROM_HOST:-192.168.50.104}"
+GRAFANA_HOST="${GRAFANA_HOST:-192.168.50.104}"
+N8N_HOST="${N8N_HOST:-192.168.50.112}"
+PSQL_HOST="${PSQL_HOST:-192.168.50.100}"
+ELK_HOST="${ELK_HOST:-192.168.50.105}"
 
 echo "🔍 PRODUCTION VERIFICATION SUITE v2"
 echo "===================================="
@@ -18,7 +23,7 @@ fi
 
 PASSED=0
 FAILED=0
-TOTAL=13
+TOTAL=17
 
 # Show partial results on early exit
 cleanup() {
@@ -55,8 +60,8 @@ test_result() {
 
 # Test 1: Prometheus targets UP
 echo "Test 1: Checking Prometheus targets status..."
-PROM_TARGETS=$(curl -s http://192.168.50.104:9090/api/v1/targets | jq '.data.activeTargets | length')
-PROM_UP=$(curl -s http://192.168.50.104:9090/api/v1/targets | jq '[.data.activeTargets[] | select(.health=="up")] | length')
+PROM_TARGETS=$(curl -s http://${PROM_HOST}:9090/api/v1/targets | jq '.data.activeTargets | length')
+PROM_UP=$(curl -s http://${PROM_HOST}:9090/api/v1/targets | jq '[.data.activeTargets[] | select(.health=="up")] | length')
 echo "  Active targets: $PROM_UP / $PROM_TARGETS UP"
 if [ "$PROM_UP" -ge 9 ]; then
     test_result 1 "Prometheus targets" 0
@@ -66,7 +71,7 @@ fi
 
 # Test 2: Grafana HTTP response
 echo "Test 2: Checking Grafana HTTP..."
-GRAFANA_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://192.168.50.104:3000/api/health || echo "000")
+GRAFANA_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${GRAFANA_HOST}:3000/api/health || echo "000")
 test_result 2 "Grafana HTTP (expecting 200, got $GRAFANA_STATUS)" "$([ "$GRAFANA_STATUS" = "200" ] && echo 0 || echo 1)"
 
 # Test 3: N8N webhooks responding
@@ -76,7 +81,7 @@ WEBHOOKS=() # Temporary disable: workflows not currently deployed with these pat
 echo "  (Skipping N8N checks - workflows pending deployment)"
 WEBHOOK_PASS=0
 for webhook in "${WEBHOOKS[@]}"; do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "http://192.168.50.112:5678/webhook/$webhook" -d '{}' -H "Content-Type: application/json" 2>/dev/null || echo "000")
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "http://${N8N_HOST}:5678/webhook/$webhook" -d '{}' -H "Content-Type: application/json" 2>/dev/null || echo "000")
     if [ "$STATUS" = "200" ] || [ "$STATUS" = "201" ] || [ "$STATUS" = "500" ]; then
         ((WEBHOOK_PASS+=1))
     fi
@@ -88,7 +93,7 @@ test_result 3 "N8N webhooks (Skipped)" 0
 echo "Test 4: Running load test (100 requests)..."
 SUCCESS_COUNT=0
 for _ in {1..100}; do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "http://192.168.50.104:3000/api/health" 2>/dev/null)
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "http://${GRAFANA_HOST}:3000/api/health" 2>/dev/null)
     if [ "$STATUS" = "200" ]; then
         ((SUCCESS_COUNT+=1))
     fi
@@ -98,14 +103,14 @@ test_result 4 "Load test success rate" "$([ $SUCCESS_COUNT -ge 95 ] && echo 0 ||
 
 # Test 5: PostgreSQL connection
 echo "Test 5: Checking PostgreSQL connection..."
-PSQL_TEST=$(psql -h 192.168.50.100 -U postgres -d postgres -c "SELECT 1" 2>&1 | grep -c "1 row" || true)
+PSQL_TEST=$(psql -h ${PSQL_HOST} -U postgres -d postgres -c "SELECT 1" 2>&1 | grep -c "1 row" || true)
 test_result 5 "PostgreSQL connection" "$([ "$PSQL_TEST" -gt 0 ] && echo 0 || echo 1)"
 
 # Test 6: Alert rules count
 echo "Test 6: Checking alert rules..."
 if [ -n "$GRAFANA_TOKEN" ]; then
     ALERT_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
-        http://192.168.50.104:3000/api/ruler/grafana/rules | jq '[.[] | .rules[]] | length' 2>/dev/null || echo 0)
+        http://${GRAFANA_HOST}:3000/api/ruler/grafana/rules | jq '[.[] | .rules[]] | length' 2>/dev/null || echo 0)
     echo "  Alert rules: $ALERT_COUNT found"
     test_result 6 "Alert rules config" "$([ "$ALERT_COUNT" -ge 1 ] && echo 0 || echo 1)"
 else
@@ -117,7 +122,7 @@ test_result 6 "Alert rules (expecting ≥14)" "$([ $ALERT_COUNT -ge 14 ] && echo
 # Test 7: Contact points
 echo "Test 7: Checking contact points..."
 if [ -n "$GRAFANA_TOKEN" ]; then
-    CONTACT_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" http://192.168.50.104:3000/api/v1/provisioning/contact-points 2>/dev/null | jq 'length' || echo 0)
+    CONTACT_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" http://${GRAFANA_HOST}:3000/api/v1/provisioning/contact-points 2>/dev/null | jq 'length' || echo 0)
     echo "  Contact points: $CONTACT_COUNT found"
     test_result 7 "Contact points (expecting ≥2)" "$([ $CONTACT_COUNT -ge 2 ] && echo 0 || echo 1)"
 else
@@ -126,14 +131,14 @@ fi
 
 # Test 8: Prometheus metrics
 echo "Test 8: Checking metrics in Prometheus..."
-METRICS=$(curl -s "http://192.168.50.104:9090/api/v1/query?query=up" | jq '.data.result | length')
+METRICS=$(curl -s "http://${PROM_HOST}:9090/api/v1/query?query=up" | jq '.data.result | length')
 test_result 8 "Prometheus metrics" "$([ $METRICS -gt 0 ] && echo 0 || echo 1)"
 
 # Test 9: SLA Dashboard exists
 echo "Test 9: Checking SLA Dashboard..."
 if [ -n "$GRAFANA_TOKEN" ]; then
     DASHBOARD=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
-        "http://192.168.50.104:3000/api/search?query=homelab-overview" 2>/dev/null | jq 'length' || echo 0)
+        "http://${GRAFANA_HOST}:3000/api/search?query=homelab-overview" 2>/dev/null | jq 'length' || echo 0)
     test_result 9 "homelab dashboard exists" "$([ $DASHBOARD -gt 0 ] && echo 0 || echo 1)"
 else
     test_result 9 "homelab dashboard exists (Skipped)" 0
@@ -143,9 +148,9 @@ fi
 # Test 10: Dashboard panels count
 echo "Test 10: Checking SLA Dashboard panels..."
 if [ -n "$GRAFANA_TOKEN" ] && [ $DASHBOARD -gt 0 ]; then
-    DASHBOARD_UID=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" "http://192.168.50.104:3000/api/search?query=homelab-overview" 2>/dev/null | jq -r '.[0].uid' || echo "")
+    DASHBOARD_UID=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" "http://${GRAFANA_HOST}:3000/api/search?query=homelab-overview" 2>/dev/null | jq -r '.[0].uid' || echo "")
     if [ ! -z "$DASHBOARD_UID" ]; then
-        PANEL_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" "http://192.168.50.104:3000/api/dashboards/uid/$DASHBOARD_UID" 2>/dev/null | jq '.dashboard.panels | length' || echo 0)
+        PANEL_COUNT=$(curl -s -H "Authorization: Bearer ${GRAFANA_TOKEN}" "http://${GRAFANA_HOST}:3000/api/dashboards/uid/$DASHBOARD_UID" 2>/dev/null | jq '.dashboard.panels | length' || echo 0)
         echo "  homelab dashboard panels: $PANEL_COUNT"
         test_result 10 "Dashboard panels (expecting >0)" "$([ $PANEL_COUNT -gt 0 ] && echo 0 || echo 1)"
     else
@@ -171,6 +176,29 @@ fi
 # RECENT_DATA=$(curl -s "http://192.168.50.104:9090/api/v1/query?query=mcp_recovery_success_rate" | jq '.data.result | length' 2>/dev/null || echo 0)
 # echo "  Recent data points: $RECENT_DATA"
 # test_result 13 "Recent metrics data" $([ $RECENT_DATA -gt 0 ] && echo 0 || echo 1)
+
+# Test 14: ELK Elasticsearch Cluster Health
+echo "Test 14: Checking Elasticsearch health..."
+ES_HEALTH=$(curl -s http://${ELK_HOST}:9200/_cluster/health | jq -r '.status' || echo "down")
+echo "  Elasticsearch status: $ES_HEALTH"
+test_result 14 "Elasticsearch health" "$([ "$ES_HEALTH" = "green" ] || [ "$ES_HEALTH" = "yellow" ] && echo 0 || echo 1)"
+
+# Test 15: Logstash API responding
+echo "Test 15: Checking Logstash API..."
+LOGSTASH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${ELK_HOST}:8080/ || echo "000")
+test_result 15 "Logstash API (expecting 200, got $LOGSTASH_STATUS)" "$([ "$LOGSTASH_STATUS" = "200" ] && echo 0 || echo 1)"
+
+# Test 16: Logstash Prometheus Exporter
+echo "Test 16: Checking Logstash Prometheus Exporter..."
+EXPORTER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${ELK_HOST}:9198/metrics || echo "000")
+test_result 16 "Logstash Exporter (expecting 200, got $EXPORTER_STATUS)" "$([ "$EXPORTER_STATUS" = "200" ] && echo 0 || echo 1)"
+
+# Test 17: Filebeat/Logs reaching ES (Check if indices exist)
+echo "Test 17: Checking if Elasticsearch indices exist..."
+INDICES=$(curl -s http://${ELK_HOST}:9200/_cat/indices?format=json | jq length 2>/dev/null || echo 0)
+echo "  Indices found: $INDICES"
+test_result 17 "Elasticsearch Indices (>0)" "$([ "$INDICES" -gt 0 ] && echo 0 || echo 1)"
+
 
 # Summary
 echo ""

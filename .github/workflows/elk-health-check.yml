@@ -1,0 +1,17 @@
+name: ELK Health Check
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # Every 6 hours
+  push:
+    branches: [master]
+    paths:
+      - "105-elk/**"
+      - ".github/workflows/elk-health-check.yml"
+      - ".github/workflows/_elk-health-check.yml"
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    uses: ./.github/workflows/_elk-health-check.yml
+    secrets: inherit  # pragma: allowlist secret

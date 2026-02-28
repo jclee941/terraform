@@ -1,15 +1,10 @@
 # Codex PR Review: auto-trigger Codex review on new/updated PRs
 # Requires: Codex GitHub App installed with OAuth
-
 name: Codex PR Review
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-
-permissions:
-  pull-requests: write
-  contents: read
 
 concurrency:
   group: codex-review-${{ github.event.pull_request.number }}
@@ -17,34 +12,5 @@ concurrency:
 
 jobs:
   codex-review:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Trigger Codex review
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          script: |
-            const pr = context.payload.pull_request;
-
-            const body = [
-              `@codex Review this PR`,
-              '',
-              `**Title:** ${pr.title}`,
-              `**Branch:** ${pr.head.ref} → ${pr.base.ref}`,
-              `**Changed files:** ${pr.changed_files}`,
-              '',
-              'Review focus:',
-              '- Hardcoded secrets or credentials',
-              '- Missing BUILD.bazel or OWNERS in new directories',
-              '- Hardcoded IPs (must use module.hosts)',
-              '- Manual edits to generated configs/ or tf-configs/',
-              '- terraform fmt and validate compliance',
-              '- Action version pinning (SHA, not mutable tags)',
-            ].join(String.fromCharCode(10));
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-              body: body
-            });
+    uses: ./.github/workflows/_codex-pr-review.yml
+    secrets: inherit  # pragma: allowlist secret
