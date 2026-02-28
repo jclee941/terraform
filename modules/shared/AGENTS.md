@@ -1,4 +1,4 @@
-# modules/shared — Cross-Stack Shared Modules
+# AGENTS: modules/shared
 
 ## OVERVIEW
 Reusable utility modules shared across multiple infrastructure stacks (Proxmox, Cloudflare, etc.). Provides standardized implementations for common patterns like secret management.

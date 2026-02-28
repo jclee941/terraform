@@ -1,6 +1,4 @@
-# AGENTS.md - 104-Grafana
-
-**Reason:** Observability Stack
+# AGENTS: 104-grafana
 
 ## OVERVIEW
 
@@ -17,16 +15,16 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 
 ## WHERE TO LOOK
 
-| Task                      | Location                                   | Notes                                           |
-| ------------------------- | ------------------------------------------ | ----------------------------------------------- |
-| **Datasource Config**     | `provisioning/datasources/datasources.yml` | Connection strings for Prometheus + ES          |
-| **Dashboard Layouts**     | `dashboards/*.json`                        | Base JSON for visual design (16 dashboards)     |
-| **Metric Scrapes**        | `tf-configs/prometheus.yml`                | Node-exporter targets & intervals               |
-| **Alert Rules**           | `terraform/main.tf`                        | 14 rules in 4 groups (Terraform SSoT)           |
-| **Interpolated JSON**     | `tf-configs/*.json`                        | Rendered dashboards with injected host IPs      |
-| **Log Collection Health** | `dashboards/log-collection-health.json`    | Filebeat coverage and ingestion rate monitoring |
+| Task                      | Location                                   | Notes                                            |
+| ------------------------- | ------------------------------------------ | ------------------------------------------------ |
+| **Datasource Config**     | `provisioning/datasources/datasources.yml` | Connection strings for Prometheus + ES           |
+| **Dashboard Layouts**     | `dashboards/*.json`                        | Base JSON for visual design (16 dashboards)      |
+| **Metric Scrapes**        | `tf-configs/prometheus.yml`                | Node-exporter targets & intervals                |
+| **Alert Rules**           | `terraform/main.tf`                        | 14 rules in 4 groups (Terraform SSoT)            |
+| **Interpolated JSON**     | `tf-configs/*.json`                        | Rendered dashboards with injected host IPs       |
+| **Log Collection Health** | `dashboards/log-collection-health.json`    | Filebeat coverage and ingestion rate monitoring  |
 | **GlitchTip Bridge**      | `terraform/main.tf`                        | n8n contact point forwarding alerts to GlitchTip |
-| **Logstash Metrics**      | `dashboards/logstash-metrics.json`         | Pipeline throughput, DLQ, exporter metrics      |
+| **Logstash Metrics**      | `dashboards/logstash-metrics.json`         | Pipeline throughput, DLQ, exporter metrics       |
 
 ## CONVENTIONS
 

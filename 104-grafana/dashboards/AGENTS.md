@@ -1,8 +1,4 @@
-# PROJECT KNOWLEDGE BASE
-
-**Generated:** 2026-02-22 22:31:51 Asia/Seoul
-**Commit:** b6e4683
-**Branch:** master
+# AGENTS: 104-grafana/dashboards
 
 ## OVERVIEW
 
@@ -31,7 +27,7 @@ Dashboard JSON files in this directory are the source of truth for Grafana dashb
 - Keep dashboard titles deterministic; avoid cosmetic renames without reason.
 - Preserve datasource/query compatibility with ELK-backed observability.
 
-## ANTI-PATTERNS (THIS DIRECTORY)
+## ANTI-PATTERNS
 
 - NEVER delete/recreate dashboards just to change panel layout when a targeted JSON edit works.
 - NEVER introduce temporary test dashboards in committed JSON.

@@ -1,8 +1,4 @@
-# PROJECT KNOWLEDGE BASE
-
-**Generated:** 2026-02-25 14:15:00 Asia/Seoul
-**Commit:** ce04972
-**Branch:** master
+# AGENTS: docs/runbooks
 
 ## OVERVIEW
 
@@ -18,14 +14,14 @@ docs/runbooks/
 
 ## WHERE TO LOOK
 
-| Task                       | Location                                    | Notes                                     |
-| -------------------------- | ------------------------------------------- | ----------------------------------------- |
-| Service outage response    | `docs/runbooks/*incident*.md`               | Follow ordered triage and recovery steps. |
-| Deployment/maintenance ops | `docs/runbooks/*maintenance*.md`            | Use rollback-ready command sequences.     |
-| Cross-service references   | `docs/architecture.md`, service `AGENTS.md` | Confirm system boundaries before action.  |
+| Task                       | Location                                    | Notes                                       |
+| -------------------------- | ------------------------------------------- | ------------------------------------------- |
+| Service outage response    | `docs/runbooks/*incident*.md`               | Follow ordered triage and recovery steps.   |
+| Deployment/maintenance ops | `docs/runbooks/*maintenance*.md`            | Use rollback-ready command sequences.       |
+| Cross-service references   | `docs/architecture.md`, service `AGENTS.md` | Confirm system boundaries before action.    |
 | ELK index migration        | `docs/runbooks/elk-index-migration.md`      | Logstash index pattern fix + stale cleanup. |
 | MCP health triage          | `docs/runbooks/mcp-health-check.md`         | Fix procedures for 1P, Supabase, GlitchTip. |
-| Policy baseline            | `docs/AGENTS.md`                            | Parent docs conventions and constraints.  |
+| Policy baseline            | `docs/AGENTS.md`                            | Parent docs conventions and constraints.    |
 
 ## CONVENTIONS
 
@@ -34,7 +30,7 @@ docs/runbooks/
 - Use concrete host/service identifiers matching Terraform inventory naming.
 - Update runbook steps after real incidents when drift is discovered.
 
-## ANTI-PATTERNS (THIS DIRECTORY)
+## ANTI-PATTERNS
 
 - NEVER store secrets, tokens, or private keys in runbook text.
 - NEVER leave ambiguous instructions like "check logs" without command/path.

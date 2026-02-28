@@ -1,4 +1,4 @@
-# PROJECT KNOWLEDGE BASE: 215-SYNOLOGY
+# AGENTS: 215-synology
 
 **Updated:** 2026-02-22
 **Target:** Synology NAS (Physical Device)

@@ -1,4 +1,4 @@
-# ELK Stack (LXC 105)
+# AGENTS: 105-elk
 
 ## OVERVIEW
 

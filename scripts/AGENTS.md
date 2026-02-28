@@ -1,4 +1,4 @@
-# scripts/ Utility Scripts
+# AGENTS: scripts
 
 ## OVERVIEW
 
@@ -23,7 +23,7 @@ scripts/
     └── ...                       # Other exported workflows
 ```
 
-## KEY DETAILS
+## CONVENTIONS
 
 - `production_verification_v2.sh`: Checks HTTP reachability, PostgreSQL (via GlitchTip), Prometheus targets, n8n healthz. Run after any deploy.
 - `terraform-drift-check.sh`: **DEPRECATED** — replaced by `terraform-drift.yml` workflow (7-workspace matrix).

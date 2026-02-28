@@ -1,6 +1,4 @@
-# PROJECT KNOWLEDGE BASE
-
-**Updated:** 2026-02-22
+# AGENTS: 300-cloudflare/workers/synology-proxy
 
 ## OVERVIEW
 

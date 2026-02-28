@@ -1,19 +1,17 @@
-# 103-coredns
-
-**Generated:** 2026-02-23
-**Commit:** b6e4683
-**Branch:** master
+# AGENTS: 103-coredns
 
 ## OVERVIEW
 
-Split DNS resolver on LXC 103. CoreDNS resolves `*.jclee.me` to Traefik (192.168.50.102) for internal clients, bypassing Cloudflare Tunnel. All other queries forwarded upstream.
+Split DNS resolver on LXC 103 (192.168.50.103, 256MB RAM, 1 core, 4GB disk). CoreDNS resolves `*.jclee.me` to Traefik (192.168.50.102) for internal clients, bypassing Cloudflare Tunnel. All other queries forwarded upstream.
 
-## IDENTITY
+## WHERE TO LOOK
 
-- **VMID:** 103
-- **IP:** 192.168.50.103
-- **Role:** Internal DNS resolver (split-horizon)
-- **Specs:** 256MB RAM, 256MB swap, 1 core, 4GB disk
+| Task             | Location                             | Notes                                    |
+| ---------------- | ------------------------------------ | ---------------------------------------- |
+| CoreDNS config   | `templates/Corefile.tftpl`           | Zone definitions and upstream forwarders |
+| Docker compose   | `templates/docker-compose.yml.tftpl` | Container runtime config                 |
+| Filebeat config  | `templates/filebeat.yml.tftpl`       | Log collection agent                     |
+| Rendered outputs | `100-pve/configs/rendered/coredns/`  | Generated — do not edit                  |
 
 ## STRUCTURE
 

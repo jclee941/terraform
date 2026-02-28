@@ -1,4 +1,4 @@
-# docs/ Documentation
+# AGENTS: docs
 
 ## OVERVIEW
 

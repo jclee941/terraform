@@ -1,4 +1,4 @@
-# PROJECT KNOWLEDGE BASE: 106-GLITCHTIP
+# AGENTS: 106-glitchtip
 
 **Generated:** 2026-02-12
 **VMID:** 106

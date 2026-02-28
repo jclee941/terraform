@@ -1,4 +1,4 @@
-# PROXMOX MODULES KNOWLEDGE BASE
+# AGENTS: modules/proxmox
 
 **Location:** `modules/proxmox/`
 **Status:** Core Infrastructure Logic

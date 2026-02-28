@@ -1,4 +1,4 @@
-# 320-slack — Slack Workspace Management
+# AGENTS: 320-slack
 
 ## OVERVIEW
 

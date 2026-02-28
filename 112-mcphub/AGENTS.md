@@ -1,4 +1,4 @@
-# 112-MCPHUB — Unified MCP Gateway
+# AGENTS: 112-mcphub
 
 ## OVERVIEW
 
@@ -18,14 +18,16 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 
 ## WHERE TO LOOK
 
-- `mcp_servers.json`: SSoT catalog (location, transport, command/url, port, env placeholders).
-- `validate_mcps.py`: schema + port uniqueness + secret-pattern validation.
-- `templates/mcp_settings.json.tftpl`: OpenCode MCP settings render target.
-- `templates/docker-compose.yml.tftpl`: mcphub + sidecar runtime template.
-- `templates/docker-compose-n8n.yml.tftpl`: n8n automation service runtime template.
-- `op-mcp-server/`: 1Password MCP server sidecar (Node.js, `index.mjs` + `package.json`).
-- `Dockerfile.proxmox`, `Dockerfile.playwright`: sidecar build definitions.
-- `n8n-workflows/`: exported automation workflows that must match runtime state.
+| Task                  | Location                                      | Notes                                            |
+| --------------------- | --------------------------------------------- | ------------------------------------------------ |
+| MCP server registry   | `mcp_servers.json`                            | SSoT catalog (transport, port, env placeholders) |
+| Catalog validation    | `validate_mcps.py`                            | Schema + port uniqueness + secret-pattern checks |
+| OpenCode MCP settings | `templates/mcp_settings.json.tftpl`           | Render target for MCP client config              |
+| Runtime template      | `templates/docker-compose.yml.tftpl`          | mcphub + sidecar containers                      |
+| n8n template          | `templates/docker-compose-n8n.yml.tftpl`      | Automation service runtime                       |
+| 1Password MCP sidecar | `op-mcp-server/`                              | Node.js (`index.mjs` + `package.json`)           |
+| Sidecar Dockerfiles   | `Dockerfile.proxmox`, `Dockerfile.playwright` | Build definitions                                |
+| n8n workflows         | `n8n-workflows/`                              | Exported workflows — must match runtime          |
 
 ## CONVENTIONS
 
