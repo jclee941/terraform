@@ -54,9 +54,9 @@ jobs:
       - name: Check Logstash Pipeline Status
         id: logstash_health
         run: |
-          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:8080/" >/dev/null 2>&1; then
+          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:9600/" >/dev/null 2>&1; then
             echo "has_failures=true" >> "$GITHUB_OUTPUT"
-            echo "failed=Logstash API (192.168.50.105:8080) unreachable" >> "$GITHUB_OUTPUT"
+            echo "failed=Logstash API (192.168.50.105:9600) unreachable" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "has_failures=false" >> "$GITHUB_OUTPUT"
