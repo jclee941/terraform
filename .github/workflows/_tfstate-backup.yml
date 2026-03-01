@@ -87,6 +87,7 @@ jobs:
           path: .backups/
           retention-days: ${{ inputs.retention-days }}
           if-no-files-found: error
+          include-hidden-files: true
 
       - name: Create Issue on Failure
         if: failure()
