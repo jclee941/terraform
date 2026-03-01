@@ -81,6 +81,13 @@ locals {
   vm_firewall = {
     # NOTE: jclee (ID 80, physical PC) excluded — Proxmox provider requires vm_id >= 100
     # Firewall rules for jclee must be managed via PVE GUI or CLI
+    ollama = {
+      vmid = module.hosts.hosts.ollama.vmid
+      rules = [
+        { dport = "22", proto = "tcp", comment = "SSH" },
+        { dport = "11434", proto = "tcp", comment = "Ollama API" },
+      ]
+    }
     mcphub = {
       vmid = module.hosts.hosts.mcphub.vmid
       rules = [
@@ -95,6 +102,12 @@ locals {
       rules = [
         { dport = "22", proto = "tcp", comment = "SSH" },
         { dport = "3389", proto = "tcp", comment = "RDP" },
+      ]
+    }
+    youtube = {
+      vmid = module.hosts.hosts.youtube.vmid
+      rules = [
+        { dport = "22", proto = "tcp", comment = "SSH" },
       ]
     }
   }
