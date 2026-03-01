@@ -139,7 +139,7 @@ locals {
 }
 
 resource "slack_conversation" "channels" {
-  for_each = local.channels
+  for_each = local._slack_enabled ? local.channels : {}
 
   name                   = each.value.name
   topic                  = lookup(each.value, "topic", null)

@@ -15,4 +15,7 @@ locals {
 
   # Effective value: 1Password takes priority, variable fallback
   effective_slack_token = local._slack_token_from_1password != "" ? local._slack_token_from_1password : trimspace(var.slack_bot_token)
+
+  # Guard: channel management requires a bot token (xoxb) — user tokens lack channels:manage scope
+  _slack_enabled = nonsensitive(local._slack_xoxb != "")
 }
