@@ -61,7 +61,7 @@ services:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
       API_EXTERNAL_URL: http://${hosts.supabase.ip}:${hosts.supabase.ports.api}
-      GOTRUE_SITE_URL: http://supabase.jclee.me
+      GOTRUE_SITE_URL: http://supabase.${domain}
       GOTRUE_URI_ALLOW_LIST: "http://localhost:3000,http://${hosts.supabase.ip}:${hosts.supabase.ports.studio}"
       GOTRUE_JWT_SECRET: ${supabase_jwt_secret}
       GOTRUE_JWT_AUD: authenticated

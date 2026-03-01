@@ -85,6 +85,17 @@ variable "network_cidr" {
   }
 }
 
+variable "github_org" {
+  description = "GitHub organization/user name"
+  type        = string
+  default     = "qws941"
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9-]+$", var.github_org))
+    error_message = "GitHub org must contain only alphanumeric characters and hyphens."
+  }
+}
+
 variable "dns_servers" {
   description = "DNS servers for containers"
   type        = list(string)

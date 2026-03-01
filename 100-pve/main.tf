@@ -913,6 +913,8 @@ module "config_renderer" {
     {
       hosts                = module.hosts.hosts
       domain               = "jclee.me"
+      network_cidr         = var.network_cidr
+      github_org           = var.github_org
       infrastructure_nodes = local.infrastructure_nodes
 
       elk_version = "8.17.0"
