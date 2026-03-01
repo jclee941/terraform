@@ -2,15 +2,6 @@ name: MCP Health Check (Reusable)
 
 on:
   workflow_call:
-    inputs:
-      mcphub_host:
-        description: 'MCPHub host IP'
-        type: string
-        default: '192.168.50.112'
-      mcphub_port:
-        description: 'MCPHub port'
-        type: string
-        default: '3000'
 
 permissions:
   contents: read
@@ -31,13 +22,13 @@ jobs:
       - name: Check MCPHub gateway and servers
         id: health
         run: |
-          MCPHUB_URL="http://${{ inputs.mcphub_host }}:${{ inputs.mcphub_port }}"
+          MCPHUB_URL="http://192.168.50.112:3000"
 
           # Check gateway reachability
           if ! HEALTH_JSON=$(curl -sf --connect-timeout 10 "${MCPHUB_URL}/health" 2>/dev/null); then
             {
               echo "has_failures=true"
-              echo "failed=MCPHub gateway (${{ inputs.mcphub_host }}:${{ inputs.mcphub_port }}) unreachable"
+              echo "failed=MCPHub gateway (192.168.50.112:3000) unreachable"
               echo "report<<EOF"
               echo -e "| Service | Status |\n|---------|--------|\n| **MCPHub Gateway** | **🔴 Unreachable** |\n"
               echo "EOF"
@@ -175,8 +166,8 @@ jobs:
             ### Action Required
 
             - [ ] Check `docs/runbooks/mcp-health-check.md` for fix procedures
-            - [ ] Verify MCPHub gateway: `curl http://${{ inputs.mcphub_host }}:${{ inputs.mcphub_port }}/health`
-            - [ ] Check server status: `curl -s http://${{ inputs.mcphub_host }}:${{ inputs.mcphub_port }}/api/servers | jq`
+            - [ ] Verify MCPHub gateway: `curl http://192.168.50.112:3000/health`
+            - [ ] Check server status: `curl -s http://192.168.50.112:3000/api/servers | jq`
             - [ ] Review MCPHub logs: `docker logs mcphub`
 
       - name: Summary

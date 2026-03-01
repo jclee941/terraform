@@ -33,7 +33,19 @@ variable "vms" {
     deploy         = optional(bool, false)
   }))
 
-  default = {}
+  default = {
+
+    sandbox = {
+      vmid       = 220
+      hostname   = "sandbox"
+      ip_address = "192.168.50.220"
+
+      cloud_init = {
+        packages = ["qemu-guest-agent", "curl", "vim", "git"]
+        runcmd   = ["systemctl enable qemu-guest-agent", "systemctl start qemu-guest-agent"]
+      }
+    }
+  }
 }
 
 variable "deploy_vm_configs" {
