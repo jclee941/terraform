@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 7 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (958 lines) coordinates host inventory, container sizing, validation, config rendering, and Filebeat deployment. `firewall.tf` (130 lines) defines Proxmox firewall rules for cluster and VM-level security groups.
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 8 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (958 lines) coordinates host inventory, container sizing, validation, config rendering, and Filebeat deployment. `firewall.tf` (130 lines) defines Proxmox firewall rules for cluster and VM-level security groups.
 
 ## STRUCTURE
 
@@ -30,7 +30,7 @@ Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions
 | **Container Sizing** | `main.tf` → `container_sizing`          | Memory, swap, cores, disk. Budget: 16.3 GB + 9.3 GB swap.     |
 | **VM Definitions**   | `main.tf` → `vm_definitions`            | QEMU VMs (mcphub=112). Cloud-init refs in `cloud_init_files`. |
 | **Validation**       | `main.tf` check blocks                  | VMID range, IP subnet, memory (TF 1.5+ checks).               |
-| **LXC Provisioning** | `module.lxc`                            | `../modules/proxmox/lxc` — all 7 containers.                  |
+| **LXC Provisioning** | `module.lxc`                            | `../modules/proxmox/lxc` — all 8 containers.                  |
 | **VM Provisioning**  | `module.vm`                             | `../modules/proxmox/vm` — cloud-init via snippets.            |
 | **Config Rendering** | `module.vm_config`                      | Renders service templates → `configs/`.                       |
 | **Rendered Outputs** | `configs/lxc-{VMID}-{name}/`            | Terraform-generated. Never hand-edit.                         |

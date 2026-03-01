@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests data from **Filebeat** agents deployed across all 7 LXC containers, VM 112 (mcphub), and PVE bare-metal host (100) via Docker autodiscovery and filestream inputs. **Synology NAS** (215) forwards via syslog. **Cloudflare Logpush** sends Worker trace events via HTTP input (port 8080). **YouTube VM** (220) runs Filebeat when active. Alerting is handled by Grafana (104-grafana).
+Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests data from **Filebeat** agents deployed across all 8 LXC containers, VM 112 (mcphub), and PVE bare-metal host (100) via Docker autodiscovery and filestream inputs. **Synology NAS** (215) forwards via syslog. **Cloudflare Logpush** sends Worker trace events via HTTP input (port 8080). **YouTube VM** (220) runs Filebeat when active. Alerting is handled by Grafana (104-grafana).
 
 ## STRUCTURE
 
