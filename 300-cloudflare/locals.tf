@@ -33,17 +33,18 @@ locals {
   # ============================================
 
   homelab_services = {
-    elk       = { subdomain = "elk" }
-    kibana    = { subdomain = "kibana" }
-    es        = { subdomain = "es" }
-    glitchtip = { subdomain = "glitchtip" }
-    grafana   = { subdomain = "grafana" }
-    mcphub    = { subdomain = "mcphub" }
-    archon    = { subdomain = "archon" }
-    supabase  = { subdomain = "supabase" }
-    nas       = { subdomain = "nas" }
-    n8n       = { subdomain = "n8n" }
-    opencode  = { subdomain = "opencode" }
+    elk          = { subdomain = "elk" }
+    kibana       = { subdomain = "kibana" }
+    es           = { subdomain = "es" }
+    glitchtip    = { subdomain = "glitchtip" }
+    grafana      = { subdomain = "grafana" }
+    mcphub       = { subdomain = "mcphub" }
+    archon       = { subdomain = "archon" }
+    supabase     = { subdomain = "supabase" }
+    nas          = { subdomain = "nas" }
+    n8n          = { subdomain = "n8n" }
+    opencode     = { subdomain = "opencode" }
+    opencode-api = { subdomain = "opencode-api" }
   }
 
   # TCP/non-HTTP services exposed directly via Cloudflare Tunnel (bypass Traefik)
