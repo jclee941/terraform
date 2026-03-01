@@ -74,6 +74,11 @@ if [[ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]]; then
   fi
 fi
 
+# --- Clear Connect Server vars (conflicts with Service Account auth) ---
+# 1Password provider v3.2+ rejects simultaneous OP_CONNECT_HOST + OP_SERVICE_ACCOUNT_TOKEN.
+# If both are set (e.g., from ~/.bashrc), the provider errors out.
+unset OP_CONNECT_HOST OP_CONNECT_TOKEN 2>/dev/null || true
+
 # --- Validate 1Password connectivity ---
 printf "${_BOLD}Validating 1Password credentials...${_NC}\n"
 
