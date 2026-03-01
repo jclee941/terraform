@@ -11,7 +11,7 @@ terraform {
 
 variable "template_vars" {
   description = "Variables for rendering templates"
-  type        = map(any)
+  type        = any
 }
 
 variable "template_files" {
