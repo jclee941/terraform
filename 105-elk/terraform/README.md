@@ -33,6 +33,7 @@
 | [elasticstack_elasticsearch_index_template.logs_ephemeral](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_template) | resource |
 | [elasticstack_elasticsearch_snapshot_repository.homelab_backups](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) | resource |
 | [elasticstack_kibana_data_view.logs](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/kibana_data_view) | resource |
+| [elasticstack_kibana_data_view.service_logs](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/kibana_data_view) | resource |
 | [elasticstack_kibana_space.homelab](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/kibana_space) | resource |
 | [terraform_data.validate_credentials](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
