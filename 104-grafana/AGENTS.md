@@ -10,8 +10,8 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 - `provisioning/`: Standard Grafana configuration for datasources (ES/Prometheus) and dashboard providers.
 - `tf-configs/`: Terraform-rendered outputs (Prometheus scrape targets, interpolated dashboard JSON).
 - `templates/`: `.tftpl` sources for dynamic configuration rendering.
-- `terraform/`: Standalone Grafana provider workspace. Alert rules (14 rules, 4 groups), dashboard folders, notification policies, GlitchTip bridge contact point (n8n webhook forwarding alerts to GlitchTip).
-- `alerting.yaml`: Deprecated. Alert rules now managed in `terraform/main.tf`.
+- `terraform/`: Standalone Grafana provider workspace. Split into: `main.tf` (folders, data sources, dashboards), `contact_points.tf` (4 contact points incl. GlitchTip bridge), `notification_policy.tf` (default policy with 7 sub-policies), `alerting_locals.tf` (ES + Prometheus alert rule definitions), `alerting_rules.tf` (3 rule groups: homelab_logs, infrastructure_health, mcp_alerts — 14 rules total), `service_accounts.tf` (2 service accounts + tokens).
+- `alerting.yaml`: Deprecated. Alert rules now managed in `terraform/alerting_rules.tf` and `terraform/alerting_locals.tf`.
 
 ## WHERE TO LOOK
 
@@ -20,10 +20,10 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 | **Datasource Config**     | `provisioning/datasources/datasources.yml` | Connection strings for Prometheus + ES           |
 | **Dashboard Layouts**     | `dashboards/*.json`                        | Base JSON for visual design (16 dashboards)      |
 | **Metric Scrapes**        | `tf-configs/prometheus.yml`                | Node-exporter targets & intervals                |
-| **Alert Rules**           | `terraform/main.tf`                        | 14 rules in 4 groups (Terraform SSoT)            |
+| **Alert Rules**           | `terraform/alerting_rules.tf`              | 14 rules in 3 groups (Terraform SSoT); locals in `alerting_locals.tf` |
 | **Interpolated JSON**     | `tf-configs/*.json`                        | Rendered dashboards with injected host IPs       |
 | **Log Collection Health** | `dashboards/log-collection-health.json`    | Filebeat coverage and ingestion rate monitoring  |
-| **GlitchTip Bridge**      | `terraform/main.tf`                        | n8n contact point forwarding alerts to GlitchTip |
+| **GlitchTip Bridge**      | `terraform/contact_points.tf`              | n8n contact point forwarding alerts to GlitchTip |
 | **Logstash Metrics**      | `dashboards/logstash-metrics.json`         | Pipeline throughput, DLQ, exporter metrics       |
 
 ## CONVENTIONS
@@ -40,4 +40,4 @@ Centralized metrics stack and visualization engine (Prometheus/Grafana). Orchest
 - **NO Manual UI Edits**: Do not save changes directly in the Grafana UI; they will be overwritten by Terraform/Provisioning.
 - **NO Hardcoded Node IPs**: Use Terraform template variables (`${host_ip}`) for all cross-host references.
 - **NO Loki/Promtail**: Deprecated. Use the Elasticsearch datasource for all log-based panels.
-- **NO Local Alert Files**: Alert rules are Terraform-managed (`terraform/main.tf`). Do not create standalone alert YAML files.
+- **NO Local Alert Files**: Alert rules are Terraform-managed (`terraform/alerting_rules.tf`). Do not create standalone alert YAML files.
