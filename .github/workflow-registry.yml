@@ -181,13 +181,6 @@ templates:
     callers:
       - codex-pr-review.yml
 
-  - file: _codex-triage.yml
-    name: Codex Triage (Reusable)
-    purpose: AI-assisted issue triage for failure-related issues
-    runner: ubuntu-latest
-    callers:
-      - codex-triage.yml
-
   - file: _issue-lifecycle.yml
     name: Issue Lifecycle (Reusable)
     purpose: Auto-close issues linked to merged PRs
@@ -201,14 +194,6 @@ templates:
     runner: ubuntu-latest
     callers:
       - milestone-automation.yml
-
-  # --- Maintenance ---
-  - file: _stale.yml
-    name: Stale Issue/PR Cleanup (Reusable)
-    purpose: Mark and close stale issues/PRs
-    runner: ubuntu-latest
-    callers:
-      - stale.yml
 
 direct:
   # --- Terraform dispatch ---
@@ -240,7 +225,7 @@ direct:
   - file: labeler.yml
     name: Auto-label PRs
     trigger: pull_request_target
-    purpose: Auto-apply labels based on changed paths
+    purpose: Auto-apply labels based on changed paths (SSoT-synced)
     runner: ubuntu-latest
 
   - file: pr-size.yml
@@ -273,4 +258,16 @@ direct:
     name: Lock Threads
     trigger: schedule
     purpose: Lock stale resolved issues/PRs
+    runner: ubuntu-latest
+
+  - file: stale.yml
+    name: Stale issue/PR cleanup
+    trigger: schedule + workflow_dispatch
+    purpose: Mark and close stale issues/PRs (SSoT-synced)
+    runner: ubuntu-latest
+
+  - file: codex-triage.yml
+    name: Codex Triage
+    trigger: issues (opened)
+    purpose: AI-assisted issue triage for failure-related issues (SSoT-synced)
     runner: ubuntu-latest
