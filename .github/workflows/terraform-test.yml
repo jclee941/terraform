@@ -22,6 +22,10 @@ on:
       - "105-elk/terraform/variables.tf"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 concurrency:
   group: terraform-test-${{ github.ref }}
   cancel-in-progress: true

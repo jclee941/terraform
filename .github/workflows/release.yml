@@ -10,6 +10,10 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+  issues: write
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
