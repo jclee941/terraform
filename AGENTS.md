@@ -6,7 +6,7 @@ Homelab infrastructure-as-code monorepo. Provisions Proxmox LXC/VM fleet, networ
 
 - **Domain**: jclee.me | **Subnet**: 192.168.50.0/24 | **PVE host**: .100
 - **Workspaces**: 19 directories (7 active TF, 11 template-only)
-- **Providers**: bpg/proxmox ~>0.94, 1Password/onepassword ~>3.2, grafana/grafana ~>3.0, elastic/elasticstack ~>0.10, cloudflare/cloudflare ~>4.0
+- **Providers**: bpg/proxmox ~>0.94, 1Password/onepassword ~>3.2, grafana/grafana ~>4.0, elastic/elasticstack ~>0.13, cloudflare/cloudflare ~>5.0
 
 ## WORKSPACE TIERS
 
