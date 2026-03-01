@@ -19,6 +19,7 @@ USER.md
 *.tfstate
 *.tfstate.backup
 *.tfstate.backup-*
+*.tfstate.bak
 *.tfvars
 *.plan
 .terraform.tfstate.lock.info
