@@ -1,8 +1,17 @@
 name: Terraform State Backup
 
 on:
-  schedule:
-    - cron: "0 18 * * 0" # Weekly Sunday 03:00 KST (18:00 UTC Saturday)
+  workflow_run:
+    workflows:
+      - "Terraform Apply"
+      - "Archon Apply"
+      - "Traefik Apply"
+      - "ELK Apply"
+      - "Grafana Apply"
+      - "Cloudflare Apply"
+      - "Slack Apply"
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:

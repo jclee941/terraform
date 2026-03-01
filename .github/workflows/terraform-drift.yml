@@ -14,8 +14,18 @@ on:
       - "320-slack/**"
       - "modules/**"
       - ".github/workflows/terraform-drift.yml"
-  schedule:
-    - cron: "0 0 * * 1-5" # Weekday 00:00 UTC (09:00 KST)
+  workflow_run:
+    workflows:
+      - "Terraform Apply"
+      - "Archon Apply"
+      - "Traefik Apply"
+      - "ELK Apply"
+      - "Grafana Apply"
+      - "Cloudflare Apply"
+      - "Slack Apply"
+    types: [completed]
+    branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: read

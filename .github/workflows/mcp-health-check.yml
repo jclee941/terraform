@@ -1,9 +1,13 @@
 name: MCP Health Check
 
 on:
+  workflow_run:
+    workflows:
+      - "Terraform Apply"
+      - "Archon Apply"
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
-  schedule:
-    - cron: "0 1 * * 1-5" # Mon-Fri 01:00 UTC (10:00 KST), after drift check
 
 permissions:
   contents: read
