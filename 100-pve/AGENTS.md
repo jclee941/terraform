@@ -2,18 +2,18 @@
 
 ## OVERVIEW
 
-Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 8 LXC containers (101-108) and 4 VMs (109, 112, 200, 220) via reusable modules. Split across `main.tf` (516 lines), `locals.tf` (311 lines), `checks.tf` (79 lines), `outputs.tf` (88 lines), `data.tf` (5 lines), and `firewall.tf` (152 lines).
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 8 LXC containers (101-108) and 4 VMs (109, 112, 200, 220) via reusable modules. Split across `main.tf` (78 lines — providers, host inventory, LXC/VM modules), `vm_configs.tf` (110 lines — VM config deployment), `lxc_configs.tf` (262 lines — LXC config deployment), `secrets.tf` (66 lines — 1Password secrets + config renderer), `locals.tf` (311 lines), `checks.tf` (79 lines), `outputs.tf` (88 lines), `data.tf` (5 lines), and `firewall.tf` (152 lines).
 
 ## STRUCTURE
 
 ```
 100-pve/
-├── main.tf              # Providers, modules, moved blocks (516 lines)
+├── main.tf              # Providers, host inventory, LXC/VM modules, moved blocks (78 lines)
+├── vm_configs.tf        # VM config deployment modules (110 lines)
+├── lxc_configs.tf       # LXC config deployment modules (262 lines)
+├── secrets.tf           # 1Password secrets + config renderer (66 lines)
 ├── locals.tf            # All locals: sizing, VM defs, config maps (311 lines)
 ├── checks.tf            # TF 1.5+ check blocks: validation (79 lines)
-├── outputs.tf           # All output blocks (88 lines)
-├── data.tf              # Data sources (5 lines)
-├── firewall.tf          # Proxmox firewall rules per LXC/VM (152 lines)
 ├── variables.tf         # Input variables + validation
 ├── versions.tf          # Provider + backend config (local)
 ├── terraform.tfvars     # Variable values (gitignored)
@@ -36,11 +36,11 @@ Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions
 | **Validation**       | `checks.tf`                             | VMID range, IP subnet, memory (TF 1.5+ checks).               |
 | **LXC Provisioning** | `module.lxc`                            | `../modules/proxmox/lxc` — all 8 containers.                  |
 | **VM Provisioning**  | `module.vm`                             | `../modules/proxmox/vm` — cloud-init via snippets.            |
-| **Config Rendering** | `module.vm_config`                      | Renders service templates → `configs/`.                       |
+| **Config Rendering** | `vm_configs.tf`, `lxc_configs.tf`       | Renders service templates → `configs/`.                       |
 | **Rendered Outputs** | `configs/lxc-{VMID}-{name}/`            | Terraform-generated. Never hand-edit.                         |
 | **Firewall Rules**   | `firewall.tf`                           | Cluster + VM-level firewall security groups.                  |
 | **Filebeat Configs** | `config/`                               | Host-level Filebeat configuration templates.                  |
-| **Filebeat Deploy**  | `module.lxc_config`, `module.vm_config` | `setup_filebeat` provisioner in deploy modules.               |
+| **Filebeat Deploy**  | `lxc_configs.tf`, `vm_configs.tf`       | `setup_filebeat` provisioner in deploy modules.               |
 
 ## DATA FLOW
 
