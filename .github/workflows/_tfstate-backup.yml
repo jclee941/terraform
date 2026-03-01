@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   backup:
-    name: Encrypted State Backup
+    name: State Backup
     runs-on: self-hosted
     timeout-minutes: 10
 
@@ -54,11 +54,16 @@ jobs:
             STATE_FILE="$ws/terraform.tfstate"
             if [ -f "$STATE_FILE" ]; then
               SAFE_NAME=$(echo "$ws" | tr '/' '-')
-              openssl enc -aes-256-cbc -pbkdf2 -salt \
-                -in "$STATE_FILE" \
-                -out "$BACKUP_DIR/${SAFE_NAME}.tfstate.enc" \
-                -pass env:TF_BACKUP_PASSPHRASE
-              echo "✅ Backed up: $ws"
+              if [ -n "$TF_BACKUP_PASSPHRASE" ]; then
+                openssl enc -aes-256-cbc -pbkdf2 -salt \
+                  -in "$STATE_FILE" \
+                  -out "$BACKUP_DIR/${SAFE_NAME}.tfstate.enc" \
+                  -pass env:TF_BACKUP_PASSPHRASE
+                echo "✅ Backed up (encrypted): $ws"
+              else
+                cp "$STATE_FILE" "$BACKUP_DIR/${SAFE_NAME}.tfstate"
+                echo "✅ Backed up (plain): $ws"
+              fi
               BACKED_UP=$((BACKED_UP + 1))
             else
               echo "⚠️ No state file: $ws"
@@ -71,6 +76,9 @@ jobs:
           echo "Backed up: $BACKED_UP"
           echo "Missing:   $MISSING"
           echo "Location:  $BACKUP_DIR"
+          if [ -z "$TF_BACKUP_PASSPHRASE" ]; then
+            echo "⚠️ TF_BACKUP_PASSPHRASE not set — backups are unencrypted"
+          fi
 
       - name: Upload backup artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
