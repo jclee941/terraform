@@ -7,7 +7,7 @@
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
 #
 # Secrets (sensitive=true): API keys, passwords, tokens — 36 keys.
-# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 10 keys.
+# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 7 keys.
 output "secrets" {
   description = "Flat map of all homelab secrets for template_vars merge (36 keys)"
   sensitive   = true

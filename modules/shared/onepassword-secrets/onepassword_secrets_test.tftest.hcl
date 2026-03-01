@@ -87,4 +87,9 @@ run "all_item_titles" {
     condition     = data.onepassword_item.archon.title == "archon"
     error_message = "Archon item title should be 'archon'."
   }
+
+  assert {
+    condition     = data.onepassword_item.slack.title == "slack"
+    error_message = "Slack item title should be 'slack'."
+  }
 }
