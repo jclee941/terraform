@@ -138,3 +138,51 @@ run "onepassword_vault_name_empty" {
 
   expect_failures = [var.onepassword_vault_name]
 }
+
+# =============================================================================
+# _slack_enabled GUARD TESTS
+# =============================================================================
+# Verifies conditional Slack contact point creation.
+# Default override omits slack_webhook_url from secrets, and var defaults to "".
+# So _slack_enabled = false by default in tests.
+# =============================================================================
+
+# --- slack disabled by default (no webhook URL in secrets or var) ---
+
+run "slack_disabled_by_default" {
+  command = plan
+
+  module {
+    source = "../../../104-grafana/terraform"
+  }
+
+  # Default overrides: no slack_webhook_url in secrets, var defaults to ""
+  # _slack_enabled = false -> grafana_contact_point.slack_alerts count = 0
+}
+
+# --- slack enabled when webhook URL provided via 1Password ---
+
+run "slack_enabled_with_webhook" {
+  command = plan
+
+  module {
+    source = "../../../104-grafana/terraform"
+  }
+
+  override_module {
+    target = module.onepassword_secrets
+    outputs = {
+      secrets = {
+        grafana_service_account_token = "mock-grafana-token"                     # pragma: allowlist secret
+        slack_webhook_url             = "https://hooks.slack.com/services/mock"  # pragma: allowlist secret
+      }
+      metadata = {
+        vault_name                = "homelab"
+        n8n_webhook_url           = "http://mock:5678/webhook/grafana-alert"
+        n8n_glitchtip_webhook_url = "http://mock:5678/webhook/grafana-to-glitchtip"
+      }
+    }
+  }
+
+  # _slack_enabled = true -> grafana_contact_point.slack_alerts count = 1
+}

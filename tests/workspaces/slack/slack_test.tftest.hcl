@@ -109,3 +109,49 @@ run "slack_bot_token_valid" {
     slack_bot_token = "xoxb-1234567890-abcdef"
   }
 }
+
+# =============================================================================
+# _slack_enabled GUARD TESTS
+# =============================================================================
+# Verifies conditional channel creation based on bot token availability.
+# When _slack_xoxb is empty (no var override AND no 1Password secret),
+# _slack_enabled = false and zero channels are created.
+# =============================================================================
+
+# --- slack disabled: empty bot token from both var and 1Password ---
+
+run "slack_disabled_no_bot_token" {
+  command = plan
+
+  module {
+    source = "../../../320-slack"
+  }
+
+  override_module {
+    target = module.onepassword_secrets
+    outputs = {
+      secrets = {
+        slack_bot_token = "" # pragma: allowlist secret
+      }
+      metadata = {
+        vault_name = "homelab"
+      }
+    }
+  }
+
+  variables {
+    slack_bot_token = ""
+  }
+}
+
+# --- slack enabled: bot token provided via 1Password override ---
+
+run "slack_enabled_with_bot_token" {
+  command = plan
+
+  module {
+    source = "../../../320-slack"
+  }
+
+  # Uses top-level override_module which provides slack_bot_token = "xoxb-mock-token"
+}

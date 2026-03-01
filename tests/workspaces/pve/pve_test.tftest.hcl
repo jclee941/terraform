@@ -323,3 +323,31 @@ run "test_ssh_key_invalid_type_rejected" {
   }
   expect_failures = [var.ssh_public_keys]
 }
+
+# --- onepassword_vault_name: must not be empty ---
+
+run "test_onepassword_vault_name_empty_rejected" {
+  command = plan
+  module {
+    source = "../../../100-pve"
+  }
+  variables {
+    proxmox_api_token      = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
+    onepassword_vault_name = ""
+  }
+  expect_failures = [var.onepassword_vault_name]
+}
+
+# --- github_org: must match ^[a-zA-Z0-9-]+$ ---
+
+run "test_github_org_invalid_chars_rejected" {
+  command = plan
+  module {
+    source = "../../../100-pve"
+  }
+  variables {
+    proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
+    github_org        = "my_org@invalid"
+  }
+  expect_failures = [var.github_org]
+}

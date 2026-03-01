@@ -279,3 +279,161 @@ run "test_invalid_secrets_store_id_empty" {
     var.cloudflare_secrets_store_id,
   ]
 }
+
+# --- github_token: must be empty or start with ghp_ / github_pat_ ---
+
+run "test_github_token_invalid_prefix" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    github_token          = "gho_invalid_prefix_token"
+  }
+
+  expect_failures = [var.github_token]
+}
+
+# --- onepassword_vault_name: must not be empty ---
+
+run "test_onepassword_vault_name_empty" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id  = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id     = "1234567890abcdef1234567890abcdef"
+    synology_domain        = "nas.jclee.me"
+    access_allowed_emails  = ["admin@example.com"]
+    onepassword_vault_name = ""
+  }
+
+  expect_failures = [var.onepassword_vault_name]
+}
+
+# --- access_allowed_emails: must not be empty ---
+
+run "test_access_allowed_emails_empty_list" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = []
+  }
+
+  expect_failures = [var.access_allowed_emails]
+}
+
+# --- access_allowed_emails: must be valid email format ---
+
+run "test_access_allowed_emails_invalid_format" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["not-an-email"]
+  }
+
+  expect_failures = [var.access_allowed_emails]
+}
+
+# --- jclee_ip: must be valid IPv4 ---
+
+run "test_jclee_ip_invalid" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    jclee_ip              = "not-an-ip"
+  }
+
+  expect_failures = [var.jclee_ip]
+}
+
+# --- jclee_dev_ip: must be valid IPv4 ---
+
+run "test_jclee_dev_ip_invalid" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    jclee_dev_ip          = "not-an-ip"
+  }
+
+  expect_failures = [var.jclee_dev_ip]
+}
+
+# --- elk_ip: must be valid IPv4 ---
+
+run "test_elk_ip_invalid" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    elk_ip                = "not-an-ip"
+  }
+
+  expect_failures = [var.elk_ip]
+}
+
+# --- youtube_ip: must be valid IPv4 ---
+
+run "test_youtube_ip_invalid" {
+  command = plan
+
+  module {
+    source = "../../../300-cloudflare"
+  }
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+    access_allowed_emails = ["admin@example.com"]
+    youtube_ip            = "not-an-ip"
+  }
+
+  expect_failures = [var.youtube_ip]
+}
