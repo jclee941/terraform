@@ -2,6 +2,23 @@ name: ELK Health Check (Reusable)
 
 on:
   workflow_call:
+    inputs:
+      elk_host:
+        description: 'ELK host IP'
+        type: string
+        default: '192.168.50.105'
+      elasticsearch_port:
+        description: 'Elasticsearch port'
+        type: string
+        default: '9200'
+      logstash_http_port:
+        description: 'Logstash HTTP API port'
+        type: string
+        default: '8080'
+      logstash_exporter_port:
+        description: 'Logstash Exporter port'
+        type: string
+        default: '9198'
 
 permissions:
   contents: read
@@ -19,10 +36,10 @@ jobs:
       - name: Check Elasticsearch Cluster Health
         id: es_health
         run: |
-          if ! HEALTH_JSON=$(curl -sf --connect-timeout 10 "http://192.168.50.105:9200/_cluster/health" 2>/dev/null); then
+          if ! HEALTH_JSON=$(curl -sf --connect-timeout 10 "http://${{ inputs.elk_host }}:${{ inputs.elasticsearch_port }}/_cluster/health" 2>/dev/null); then
             {
               echo "has_failures=true"
-              echo "failed=Elasticsearch (192.168.50.105:9200) unreachable"
+              echo "failed=Elasticsearch (${{ inputs.elk_host }}:${{ inputs.elasticsearch_port }}) unreachable"
               echo "report<<EOF_REPORT"
               echo -e "| Service | Status |\n|---------|--------|\n| **Elasticsearch** | **🔴 Unreachable** |\n"
               echo "EOF_REPORT"
@@ -54,9 +71,9 @@ jobs:
       - name: Check Logstash Pipeline Status
         id: logstash_health
         run: |
-          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:8080/" >/dev/null 2>&1; then
+          if ! curl -sf --connect-timeout 10 "http://${{ inputs.elk_host }}:${{ inputs.logstash_http_port }}/" >/dev/null 2>&1; then
             echo "has_failures=true" >> "$GITHUB_OUTPUT"
-            echo "failed=Logstash API (192.168.50.105:8080) unreachable" >> "$GITHUB_OUTPUT"
+            echo "failed=Logstash API (${{ inputs.elk_host }}:${{ inputs.logstash_http_port }}) unreachable" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "has_failures=false" >> "$GITHUB_OUTPUT"
@@ -64,9 +81,9 @@ jobs:
       - name: Check Logstash Exporter
         id: logstash_exporter
         run: |
-          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:9198/metrics" >/dev/null 2>&1; then
+          if ! curl -sf --connect-timeout 10 "http://${{ inputs.elk_host }}:${{ inputs.logstash_exporter_port }}/metrics" >/dev/null 2>&1; then
             echo "has_failures=true" >> "$GITHUB_OUTPUT"
-            echo "failed=Logstash Exporter (192.168.50.105:9198) unreachable" >> "$GITHUB_OUTPUT"
+            echo "failed=Logstash Exporter (${{ inputs.elk_host }}:${{ inputs.logstash_exporter_port }}) unreachable" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "has_failures=false" >> "$GITHUB_OUTPUT"
@@ -74,7 +91,7 @@ jobs:
       - name: Check Indices and ILM
         id: index_health
         run: |
-          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:9200/_ilm/policy" >/dev/null 2>&1; then
+          if ! curl -sf --connect-timeout 10 "http://${{ inputs.elk_host }}:${{ inputs.elasticsearch_port }}/_ilm/policy" >/dev/null 2>&1; then
             echo "has_failures=true" >> "$GITHUB_OUTPUT"
             echo "failed=ILM API unreachable" >> "$GITHUB_OUTPUT"
             exit 0
