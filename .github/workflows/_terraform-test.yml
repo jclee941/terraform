@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   unit-tests:
@@ -93,3 +94,18 @@ jobs:
       - name: Run integration tests
         working-directory: tests/integration
         run: terraform test
+
+  notify:
+    name: Notify on Failure
+    needs: [unit-tests, workspace-tests, integration-tests]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Create Issue on Failure
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 Terraform Test"

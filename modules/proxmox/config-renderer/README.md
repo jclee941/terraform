@@ -7,7 +7,10 @@ variable map (including the hosts inventory), renders them via
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7, < 2.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5 |
 
 ## Providers
 
@@ -31,7 +34,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_output_dir"></a> [output\_dir](#input\_output\_dir) | Directory to write rendered configs | `string` | `"../../configs/rendered"` | no |
 | <a name="input_template_files"></a> [template\_files](#input\_template\_files) | Map of config name to template source path and output filename | <pre>map(object({<br/>    source = string<br/>    output = string<br/>  }))</pre> | n/a | yes |
-| <a name="input_template_vars"></a> [template\_vars](#input\_template\_vars) | Variables for rendering templates | `any` | n/a | yes |
+| <a name="input_template_vars"></a> [template\_vars](#input\_template\_vars) | Variables for rendering templates | `map(any)` | n/a | yes |
 
 ## Outputs
 

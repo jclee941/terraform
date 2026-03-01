@@ -207,3 +207,9 @@ jobs:
                 '[View failed run](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/${{ inputs.run-id }})',
               ].join('\n'),
             });
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 Auto Fix CI"

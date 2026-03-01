@@ -1,6 +1,17 @@
+terraform {
+  required_version = ">= 1.7, < 2.0"
+
+  required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
+  }
+}
+
 variable "template_vars" {
   description = "Variables for rendering templates"
-  type        = any
+  type        = map(any)
 }
 
 variable "template_files" {

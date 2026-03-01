@@ -61,3 +61,9 @@ jobs:
           use_github_token: "true"
           share: "false"
           prompt: ${{ inputs.prompt }}
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 OpenCode AI"
