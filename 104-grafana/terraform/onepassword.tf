@@ -19,4 +19,5 @@ locals {
   effective_n8n_webhook_url           = local._n8n_webhook_url_from_1password != "" ? local._n8n_webhook_url_from_1password : var.n8n_webhook_url
   effective_n8n_glitchtip_webhook_url = local._n8n_glitchtip_webhook_url_from_1password != "" ? local._n8n_glitchtip_webhook_url_from_1password : var.n8n_glitchtip_webhook_url
   effective_slack_webhook_url         = local._slack_webhook_url_from_1password != "" ? local._slack_webhook_url_from_1password : var.slack_webhook_url
+  _slack_enabled                      = local.effective_slack_webhook_url != ""
 }
