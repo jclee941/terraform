@@ -78,3 +78,6 @@ in-memoria*.db
 *.backup.*
 **/*.backup
 **/*.backup.*
+
+# Agent thoughts (session-specific scratch)
+thoughts/

@@ -2,17 +2,21 @@
 
 ## OVERVIEW
 
-Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 8 LXC containers (101-108) and VMs (112) via reusable modules. `main.tf` (958 lines) coordinates host inventory, container sizing, validation, config rendering, and Filebeat deployment. `firewall.tf` (130 lines) defines Proxmox firewall rules for cluster and VM-level security groups.
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 8 LXC containers (101-108) and 4 VMs (109, 112, 200, 220) via reusable modules. Split across `main.tf` (516 lines), `locals.tf` (311 lines), `checks.tf` (79 lines), `outputs.tf` (88 lines), `data.tf` (5 lines), and `firewall.tf` (152 lines).
 
 ## STRUCTURE
 
 ```
 100-pve/
-├── main.tf              # Central orchestration (958 lines)
-├── firewall.tf          # Proxmox firewall rules + security groups (130 lines)
+├── main.tf              # Providers, modules, moved blocks (516 lines)
+├── locals.tf            # All locals: sizing, VM defs, config maps (311 lines)
+├── checks.tf            # TF 1.5+ check blocks: validation (79 lines)
+├── outputs.tf           # All output blocks (88 lines)
+├── data.tf              # Data sources (5 lines)
+├── firewall.tf          # Proxmox firewall rules per LXC/VM (152 lines)
 ├── variables.tf         # Input variables + validation
-├── terraform.tfvars     # Variable values (gitignored)
 ├── versions.tf          # Provider + backend config (local)
+├── terraform.tfvars     # Variable values (gitignored)
 ├── envs/prod/
 │   └── hosts.tf         # SSoT: ALL host IPs, ports, roles, VMIDs
 ├── configs/             # TF-rendered outputs (NOT hand-editable)
@@ -27,9 +31,9 @@ Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions
 | Task                 | Location                                | Notes                                                         |
 | -------------------- | --------------------------------------- | ------------------------------------------------------------- |
 | **All IPs/Ports**    | `envs/prod/hosts.tf`                    | SSoT. `module.hosts.hosts[name].{ip,vmid,ports,roles}`.       |
-| **Container Sizing** | `main.tf` → `container_sizing`          | Memory, swap, cores, disk. Budget: 16.3 GB + 9.3 GB swap.     |
-| **VM Definitions**   | `main.tf` → `vm_definitions`            | QEMU VMs (mcphub=112). Cloud-init refs in `cloud_init_files`. |
-| **Validation**       | `main.tf` check blocks                  | VMID range, IP subnet, memory (TF 1.5+ checks).               |
+| **Container Sizing** | `locals.tf` → `container_sizing`        | Memory, swap, cores, disk. Budget: 16.3 GB + 9.3 GB swap.     |
+| **VM Definitions**   | `locals.tf` → `vm_definitions`          | QEMU VMs (mcphub=112). Cloud-init refs in `cloud_init_files`. |
+| **Validation**       | `checks.tf`                             | VMID range, IP subnet, memory (TF 1.5+ checks).               |
 | **LXC Provisioning** | `module.lxc`                            | `../modules/proxmox/lxc` — all 8 containers.                  |
 | **VM Provisioning**  | `module.vm`                             | `../modules/proxmox/vm` — cloud-init via snippets.            |
 | **Config Rendering** | `module.vm_config`                      | Renders service templates → `configs/`.                       |
@@ -43,7 +47,7 @@ Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions
 ```
 envs/prod/hosts.tf (SSoT)
   → module.hosts (exposes IPs/ports/roles)
-    → main.tf locals (merges sizing + inventory)
+    → locals.tf (merges sizing + inventory)
       → module.lxc / module.vm (provisions infra)
       → module.lxc_config / module.vm_config (renders + deploys service configs + Filebeat)
         → configs/ (outputs pushed to guests)
