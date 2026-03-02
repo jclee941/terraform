@@ -150,19 +150,3 @@ resource "proxmox_virtual_environment_firewall_rules" "vm" {
     }
   }
 }
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Import blocks — bring existing Proxmox firewall rules into Terraform state.
-# These VMs had rules created outside of state (added in #286 without import).
-# Safe to remove after first successful apply imports them.
-# ──────────────────────────────────────────────────────────────────────────────
-
-import {
-  to = proxmox_virtual_environment_firewall_rules.vm["ollama"]
-  id = "vm/pve3/109"
-}
-
-import {
-  to = proxmox_virtual_environment_firewall_rules.vm["youtube"]
-  id = "vm/pve3/220"
-}
