@@ -162,8 +162,8 @@ resource "github_repository" "repos" {
   allow_auto_merge       = local.repository_defaults.allow_auto_merge
   is_template            = try(each.value.is_template, false)
 
-  squash_merge_commit_title   = "PR_TITLE"
-  squash_merge_commit_message = "PR_BODY"
+  squash_merge_commit_title   = local.repository_defaults.squash_merge_commit_title
+  squash_merge_commit_message = local.repository_defaults.squash_merge_commit_message
 
   vulnerability_alerts        = try(each.value.archived, false) ? false : local.repository_defaults.vulnerability_alerts
   web_commit_signoff_required = local.repository_defaults.web_commit_signoff_required

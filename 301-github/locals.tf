@@ -32,6 +32,9 @@ locals {
     archived                    = false
     allow_auto_merge            = true
     web_commit_signoff_required = false
+    squash_merge_commit_title   = "PR_TITLE"
+    squash_merge_commit_message = "PR_BODY"
+    allowed_merge_methods       = ["squash", "rebase"]
   }
 
   common_topics = []

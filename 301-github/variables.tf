@@ -333,6 +333,29 @@ variable "enable_repository_rulesets" {
   default     = true
 }
 
+variable "ruleset_bypass_actors" {
+  description = "Bypass actors for repository rulesets (admin, integrations, etc.)."
+  type = list(object({
+    actor_id    = number
+    actor_type  = string
+    bypass_mode = optional(string, "always")
+  }))
+  default = [
+    {
+      actor_id   = 5 # RepositoryRole: admin
+      actor_type = "RepositoryRole"
+    },
+    {
+      actor_id   = 1144995 # Integration: OpenAI Codex
+      actor_type = "Integration"
+    },
+    {
+      actor_id   = 1549082 # Integration: OpenCode
+      actor_type = "Integration"
+    },
+  ]
+}
+
 
 variable "enable_repository_imports" {
   description = "Enable import blocks for existing repositories."

@@ -33,22 +33,13 @@ resource "github_repository_ruleset" "code_scanning" {
     }
   }
 
-  bypass_actors {
-    actor_id    = 5 # RepositoryRole: admin
-    actor_type  = "RepositoryRole"
-    bypass_mode = "always"
-  }
-
-  bypass_actors {
-    actor_id    = 1144995 # Integration: OpenAI Codex
-    actor_type  = "Integration"
-    bypass_mode = "always"
-  }
-
-  bypass_actors {
-    actor_id    = 1549082 # Integration: OpenCode
-    actor_type  = "Integration"
-    bypass_mode = "always"
+  dynamic "bypass_actors" {
+    for_each = var.ruleset_bypass_actors
+    content {
+      actor_id    = bypass_actors.value.actor_id
+      actor_type  = bypass_actors.value.actor_type
+      bypass_mode = bypass_actors.value.bypass_mode
+    }
   }
 
   rules {

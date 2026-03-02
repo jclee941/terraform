@@ -66,22 +66,13 @@ resource "github_repository_ruleset" "branch" {
     }
   }
 
-  bypass_actors {
-    actor_id    = 5 # RepositoryRole: admin
-    actor_type  = "RepositoryRole"
-    bypass_mode = "always"
-  }
-
-  bypass_actors {
-    actor_id    = 1144995 # Integration: OpenAI Codex
-    actor_type  = "Integration"
-    bypass_mode = "always"
-  }
-
-  bypass_actors {
-    actor_id    = 1549082 # Integration: OpenCode
-    actor_type  = "Integration"
-    bypass_mode = "always"
+  dynamic "bypass_actors" {
+    for_each = var.ruleset_bypass_actors
+    content {
+      actor_id    = bypass_actors.value.actor_id
+      actor_type  = bypass_actors.value.actor_type
+      bypass_mode = bypass_actors.value.bypass_mode
+    }
   }
 
   rules {
@@ -98,7 +89,7 @@ resource "github_repository_ruleset" "branch" {
       require_last_push_approval        = local.protection_profiles[try(each.value.protection, "minimal")].require_last_push_approval
       required_approving_review_count   = local.protection_profiles[try(each.value.protection, "minimal")].required_approving_review_count
       required_review_thread_resolution = local.protection_profiles[try(each.value.protection, "minimal")].required_review_thread_resolution
-      allowed_merge_methods             = ["squash", "rebase"]
+      allowed_merge_methods             = local.repository_defaults.allowed_merge_methods
     }
 
     dynamic "required_status_checks" {
@@ -138,22 +129,13 @@ resource "github_repository_ruleset" "tags" {
     }
   }
 
-  bypass_actors {
-    actor_id    = 5 # RepositoryRole: admin
-    actor_type  = "RepositoryRole"
-    bypass_mode = "always"
-  }
-
-  bypass_actors {
-    actor_id    = 1144995 # Integration: OpenAI Codex
-    actor_type  = "Integration"
-    bypass_mode = "always"
-  }
-
-  bypass_actors {
-    actor_id    = 1549082 # Integration: OpenCode
-    actor_type  = "Integration"
-    bypass_mode = "always"
+  dynamic "bypass_actors" {
+    for_each = var.ruleset_bypass_actors
+    content {
+      actor_id    = bypass_actors.value.actor_id
+      actor_type  = bypass_actors.value.actor_type
+      bypass_mode = bypass_actors.value.bypass_mode
+    }
   }
 
   rules {
