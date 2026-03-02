@@ -118,7 +118,7 @@ jobs:
           echo '${{ secrets.ANTIGRAVITY_ACCOUNTS_JSON }}' | base64 -d > ~/.config/opencode/antigravity-accounts.json
 
       - name: Auto-fix with OpenCode
-        uses: anomalyco/opencode/github@8c739b4a7db455a33fd77b4c997f2a9eaf27648a # v1.2.6
+        uses: anomalyco/opencode/github@1cd77b10724ad87acc96790bec4a524614b20ad6 # v1.2.6
         with:
           model: ${{ inputs.model }}
           prompt: |
