@@ -1,5 +1,7 @@
 # AGENTS: 215-synology
 
+> **IP**: 192.168.50.215 | **Status**: template-only
+
 **Updated:** 2026-02-22
 **Target:** Synology NAS (Physical Device)
 **IP:** 192.168.50.215

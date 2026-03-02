@@ -8,6 +8,7 @@ Terraform-native tests for shared modules. Current scope validates `onepassword-
 tests/modules/shared/
 ├── main.tf                              # Test provider requirements
 ├── onepassword_secrets_test.tftest.hcl  # Shared module contract tests
+├── README.md                            # Shared-module test notes
 ├── BUILD.bazel
 └── OWNERS
 ```
@@ -33,5 +34,7 @@ tests/modules/shared/
 
 ## COMMANDS
 ```bash
+make test-unit
 cd tests/modules/shared && terraform init -backend=false && terraform test
+cd tests/modules/shared && terraform test -filter=onepassword_secrets_test.tftest.hcl
 ```

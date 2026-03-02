@@ -3,6 +3,26 @@
 ## OVERVIEW
 Generic rendering module that converts template maps into generated config files consumed by 100-pve and service deploy modules.
 
+## STRUCTURE
+```text
+config-renderer/
+├── main.tf
+└── AGENTS.md
+```
+
+## INTERFACE
+| Kind | Name | Type | Required | Description |
+|------|------|------|----------|-------------|
+| variable | `template_vars` | `any` | Yes | Template context passed to all `templatefile(...)` calls. |
+| variable | `template_files` | `map(object({source,output}))` | Yes | Template source path + output filename map. |
+| variable | `output_dir` | `string` | No | Render destination directory (default `../../configs/rendered`). |
+| output | `rendered_configs` | - | - | Map of rendered template content by key. |
+| output | `rendered_files` | - | - | Map of emitted file paths by key. |
+
+## CONSUMERS
+- Called by `100-pve/secrets.tf` via `module.config_renderer`.
+- Rendered outputs are consumed in `100-pve/lxc_configs.tf` and `100-pve/vm_configs.tf`.
+
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|

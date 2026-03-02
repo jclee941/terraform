@@ -1,5 +1,7 @@
 # AGENTS: 220-youtube
 
+> **Host**: VM 220 | **IP**: 192.168.50.220 | **Status**: template-only
+
 **VMID:** 220 | **IP:** 192.168.50.220 | **Status:** Ephemeral
 **Specs:** 4GB RAM, 2 cores, 50GB disk (q35/OVMF)
 

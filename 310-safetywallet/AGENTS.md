@@ -1,5 +1,7 @@
 # AGENTS: 310-safetywallet — SafetyWallet Service
 
+> **Status**: template-only
+
 **Tunnel ID:** abd283cf-032a-402b-8c41-5689315bd47b
 **Status:** Active (CF tunnel: 310-safetywallet)
 

@@ -1,5 +1,7 @@
 # AGENTS: 112-mcphub
 
+> **Host**: VM 112 | **IP**: 192.168.50.112 | **Status**: template-only
+
 ## OVERVIEW
 
 MCP service catalog and gateway scope for VM 112. Primary ownership is server catalog integrity (`mcp_servers.json`), template rendering inputs, and MCP sidecar container assets.

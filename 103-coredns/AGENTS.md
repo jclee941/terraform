@@ -1,5 +1,7 @@
 # AGENTS: 103-coredns
 
+> **Host**: LXC 103 | **IP**: 192.168.50.103 | **Status**: template-only
+
 ## OVERVIEW
 
 Split DNS resolver on LXC 103 (192.168.50.103, 256MB RAM, 1 core, 4GB disk). CoreDNS resolves `*.jclee.me` to Traefik (192.168.50.102) for internal clients, bypassing Cloudflare Tunnel. All other queries forwarded upstream.

@@ -3,6 +3,18 @@
 ## OVERVIEW
 Workspace-level variable validation tests for standalone stacks (`100-pve`, `300-cloudflare`, `320-slack`) using mock providers and negative assertions.
 
+## STRUCTURE
+```text
+tests/workspaces/
+├── cloudflare/                  # Cloudflare workspace validation tests
+├── elk/                         # ELK workspace validation tests
+├── grafana/                     # Grafana workspace validation tests
+├── pve/                         # Proxmox workspace validation tests
+├── slack/                       # Slack workspace validation tests
+├── BUILD.bazel
+└── OWNERS
+```
+
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|
@@ -18,3 +30,11 @@ Workspace-level variable validation tests for standalone stacks (`100-pve`, `300
 ## ANTI-PATTERNS
 - Do not introduce live API dependencies in workspace validation tests.
 - Do not rely on broad assertions when exact `expect_failures` targets are available.
+
+## COMMANDS
+```bash
+make test-workspace
+cd tests/workspaces/pve && terraform init -backend=false && terraform test
+cd tests/workspaces/cloudflare && terraform test -filter=cloudflare_test.tftest.hcl
+cd tests/workspaces/slack && terraform test -filter=slack_test.tftest.hcl
+```

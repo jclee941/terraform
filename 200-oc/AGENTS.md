@@ -1,5 +1,7 @@
 # AGENTS: 200-oc — OpenCode Dev Machine
 
+> **Host**: VM 200 | **IP**: 192.168.50.200 | **Status**: template-only
+
 **IP:** 192.168.50.200
 **VMID:** 200
 **Type:** VM (QEMU)

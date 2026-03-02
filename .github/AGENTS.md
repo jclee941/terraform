@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-35 GitHub Actions workflows governing Terraform plan/apply, drift detection, PR automation, and security scanning. Includes 2 reusable `_terraform-*` templates and `opencode.yml` for dev VM config deployment. Each of the 8 TF workspaces has standalone plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
+70 GitHub Actions workflows (24 reusable `_`-prefixed templates + 46 standalone) governing Terraform plan/apply, drift detection, PR automation, and security scanning. Each of the 9 active TF workspaces except 109-ollama has dedicated plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
 
 ## STRUCTURE
 

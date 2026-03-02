@@ -3,6 +3,33 @@
 ## OVERVIEW
 Provisioning module for Proxmox LXC containers with strict input validation and lifecycle protections.
 
+## STRUCTURE
+```text
+lxc/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+└── AGENTS.md
+```
+
+## INTERFACE
+| Kind | Name | Type | Required | Description |
+|------|------|------|----------|-------------|
+| variable | `node_name` | `string` | Yes | Proxmox node target for container deployment. |
+| variable | `vmid` | `number` | Yes | Container ID (validated 100-999 and managed range). |
+| variable | `hostname` | `string` | Yes | DNS-safe LXC hostname label. |
+| variable | `ip_address` | `string` | Yes | Static IPv4 address (without CIDR suffix). |
+| variable | `memory` | `number` | Yes | Dedicated RAM in MB (validated bounds). |
+| variable | `datastore_id` | `string` | Yes | Storage backend for root disk. |
+| variable | `template_file_id` | `string` | No | LXC template reference (`storage:vztmpl/...`). |
+| output | `vmid` | - | - | Provisioned container VMID. |
+| output | `ip_address` | - | - | Container IP passed from module input. |
+| output | `status` | - | - | Started state + node summary map. |
+See `variables.tf` for full list.
+
+## CONSUMERS
+- Called by `100-pve/main.tf` via `module.lxc`.
+
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|

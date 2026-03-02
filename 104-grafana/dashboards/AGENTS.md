@@ -8,8 +8,14 @@ Dashboard JSON files in this directory are the source of truth for Grafana dashb
 
 ```text
 104-grafana/dashboards/
-├── *.json        # Dashboard definitions (UID/title stable)
-└── README.md     # Inventory and usage notes
+├── archon-service.json
+├── infra-overview.json
+├── log-collection-health.json
+├── logstash-metrics.json
+├── ...                    # Remaining dashboard JSON definitions
+├── README.md              # Inventory and usage notes
+├── BUILD.bazel
+└── OWNERS
 ```
 
 ## WHERE TO LOOK
@@ -18,8 +24,11 @@ Dashboard JSON files in this directory are the source of truth for Grafana dashb
 | ------------------------------- | ---------------------------------- | ------------------------------------------- |
 | Dashboard source edits          | `104-grafana/dashboards/*.json`    | Edit panel/query/layout JSON directly.      |
 | Dashboard catalog and ownership | `104-grafana/dashboards/README.md` | Keep list and usage guidance aligned.       |
-| Terraform wiring                | `104-grafana/terraform/`           | Provider applies dashboard JSON to Grafana. |
-| Service-level constraints       | `104-grafana/AGENTS.md`            | Parent scope for stack-wide rules.          |
+| Terraform dashboard resources   | `../terraform/main.tf`             | `grafana_dashboard` resources load JSON files. |
+| Alert and contact point linkage | `../terraform/contact_points.tf`   | Dashboard alerts route to n8n/GlitchTip pipeline. |
+| Rendered output counterpart     | `../tf-configs/*.json`             | Terraform-rendered/interpolated dashboard outputs (read-only). |
+| Service-level constraints       | `../AGENTS.md`                     | Parent scope for stack-wide rules. |
+| Incident procedure linkage      | `../../docs/runbooks/AGENTS.md`    | Runbooks that depend on dashboard/alert semantics. |
 
 ## CONVENTIONS
 

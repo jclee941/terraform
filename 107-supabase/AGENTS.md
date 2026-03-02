@@ -1,5 +1,7 @@
 # AGENTS: 107-supabase
 
+> **Host**: LXC 107 | **IP**: 192.168.50.107 | **Status**: template-only
+
 ## OVERVIEW
 Self-hosted Supabase instance providing PostgreSQL database, Auth, REST API, Realtime, and Storage services for the homelab infrastructure.
 

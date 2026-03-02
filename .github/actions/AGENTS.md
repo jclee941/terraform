@@ -25,3 +25,18 @@ Reusable composite actions shared across workflow domains. Keep action behavior 
 - Do not hardcode secrets in action definitions.
 - Do not duplicate caller workflow logic inside action internals.
 - Do not change input names without updating all calling workflows.
+
+## COMMANDS
+```yaml
+# .github/workflows/<workflow>.yml
+- name: Setup Terraform
+  uses: ./.github/actions/terraform-setup
+
+- name: Notify Failure
+  if: failure()
+  uses: ./.github/actions/notify-failure
+```
+
+```bash
+make lint
+```

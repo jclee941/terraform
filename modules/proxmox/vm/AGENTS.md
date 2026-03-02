@@ -3,6 +3,33 @@
 ## OVERVIEW
 Provisioning module for Proxmox VMs using clone and cloud-init inputs with validation on hardware and network boundaries.
 
+## STRUCTURE
+```text
+vm/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+└── AGENTS.md
+```
+
+## INTERFACE
+| Kind | Name | Type | Required | Description |
+|------|------|------|----------|-------------|
+| variable | `node_name` | `string` | Yes | Proxmox node hosting the VM resource. |
+| variable | `vmid` | `number` | Yes | VMID with validation and lifecycle range checks. |
+| variable | `hostname` | `string` | Yes | VM name used for guest identity and resource naming. |
+| variable | `clone_template_id` | `number` | No | Source template VMID for full clone operations. |
+| variable | `cloud_init_file_id` | `string` | No | Snippet file ID for cloud-init user-data injection. |
+| variable | `bios` | `string` | No | Firmware mode (`seabios` or `ovmf`). |
+| variable | `hostpci_devices` | `list(object)` | No | Optional PCI passthrough devices for workloads. |
+| output | `vmid` | - | - | Provisioned VM ID. |
+| output | `ip_address` | - | - | VM IP passed from module input. |
+| output | `status` | - | - | Started state + node summary map. |
+See `variables.tf` for full list.
+
+## CONSUMERS
+- Called by `100-pve/main.tf` via `module.vm`.
+
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|

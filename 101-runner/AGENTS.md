@@ -1,5 +1,7 @@
 # AGENTS: 101-runner
 
+> **Host**: LXC 101 | **IP**: 192.168.50.101 | **Status**: template-only
+
 **Updated:** 2026-02-13
 **Target:** LXC 101 (Debian 12)
 **IP:** 192.168.50.101

@@ -3,6 +3,16 @@
 ## OVERVIEW
 Cross-module tests validating real rendering behavior for the config pipeline and hosts-map substitution patterns.
 
+## STRUCTURE
+```text
+tests/integration/
+├── config_pipeline_test.tftest.hcl  # End-to-end config pipeline assertions
+├── fixtures/                         # Template inputs and expected render fragments
+├── main.tf                           # Test provider requirements
+├── BUILD.bazel
+└── OWNERS
+```
+
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|
@@ -17,3 +27,10 @@ Cross-module tests validating real rendering behavior for the config pipeline an
 ## ANTI-PATTERNS
 - Do not replace integration checks with pure mock assertions already covered by unit tests.
 - Do not treat fixture outputs as source of truth for template logic.
+
+## COMMANDS
+```bash
+make test-integration
+cd tests/integration && terraform init -backend=false && terraform test
+cd tests/integration && terraform test -filter=config_pipeline_test.tftest.hcl
+```

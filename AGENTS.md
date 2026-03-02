@@ -5,17 +5,17 @@
 Homelab infrastructure-as-code monorepo. Provisions Proxmox LXC/VM fleet, networking, monitoring, and external services via Terraform workspaces with 1Password secret injection and GitHub Actions CI/CD.
 
 - **Domain**: jclee.me | **Subnet**: 192.168.50.0/24 | **PVE host**: .100
-- **Workspaces**: 19 directories (8 active TF, 11 template-only)
+- **Workspaces**: 19 directories (9 active TF, 10 template-only)
 - **Providers**: bpg/proxmox ~>0.94, 1Password/onepassword ~>3.2, grafana/grafana ~>4.0, elastic/elasticstack ~>0.13, cloudflare/cloudflare ~>5.0, integrations/github ~>6.6
 
 ## WORKSPACE TIERS
 
 | Tier | Workspaces | Role |
 | ---- | ---------- | ---- |
-| 0 (core) | `100-pve` | Central orchestrator. Provisions 8 LXC (101-108) + 2 VM (112, 220). All others depend on its remote state. |
-| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon` | Consume `terraform_remote_state.infra` from 100-pve. |
+| 0 (core) | `100-pve` | Central orchestrator. Provisions 8 LXC (101-108) + 4 VM (109, 112, 200, 220). All others depend on its remote state. |
+| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon`, `109-ollama` | Consume `terraform_remote_state.infra` from 100-pve. |
 | Independent | `300-cloudflare`, `301-github`, `320-slack` | No Proxmox dependency. CF: DNS/tunnels/Access/Workers/secrets. GitHub: repos/rulesets/Actions. |
-| Template-only | `80-jclee`, `101-runner`, `103-coredns`, `106-glitchtip`, `107-supabase`, `109-ollama`, `112-mcphub`, `200-oc`, `215-synology`, `220-youtube`, `310-safetywallet` | Config templates + docker-compose only, no `.tf` files. |
+| Template-only | `80-jclee`, `101-runner`, `103-coredns`, `106-glitchtip`, `107-supabase`, `112-mcphub`, `200-oc`, `215-synology`, `220-youtube`, `310-safetywallet` | Config templates + docker-compose only, no `.tf` files. |
 
 Apply order: 100-pve first, then Tier 1 parallel, then Independent parallel. See `docs/workspace-ordering.md`.
 

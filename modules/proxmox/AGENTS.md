@@ -8,16 +8,23 @@
 Unified IaC pipeline for Proxmox resource lifecycle. Abstracted layer between global host inventory and raw `bpg/proxmox` provider resources. Orchestrates config rendering, hardware provisioning, and environment mapping.
 
 ## STRUCTURE
-- `lxc/`: Direct PCT container provisioning (CPU, RAM, Storage, Network).
-- `vm/`: QEMU VM provisioning (CPU, RAM, Storage, Cloud-init).
-- `lxc-config/`: Container-level configuration snippet generation.
-- `vm-config/`: VM-level configuration rendering (Cloud-init templates).
-- `config-renderer/`: Central pipeline for rendering `.tftpl` to service configs.
+```
+modules/proxmox/
+├── lxc/              # PCT container provisioning primitives
+├── vm/               # QEMU VM provisioning primitives
+├── lxc-config/       # LXC config deployment/render wiring
+├── vm-config/        # VM config deployment/render wiring
+├── config-renderer/  # Shared .tftpl render pipeline
+├── BUILD.bazel
+└── OWNERS
+```
 
 ## WHERE TO LOOK (Config Flow)
 1. **Source:** `100-pve/envs/prod/hosts.tf` defines IDs, IPs, and service metadata (SSoT).
-2. **Templating:** `config-renderer/` renders `.tftpl` with `hosts` map + inline vars from `main.tf`.
-3. **Deployment:** `lxc/` or `vm/` provisions hardware; `lxc-config/` or `vm-config/` deploys rendered configs.
+2. **Templating:** `config-renderer/main.tf` + `config-renderer/variables.tf` render `.tftpl` with `hosts` map + inline vars.
+3. **Provisioning:** `lxc/main.tf` and `vm/main.tf` manage `proxmox_virtual_environment_*` resources.
+4. **Config deploy:** `lxc-config/main.tf` and `vm-config/main.tf` push rendered artifacts to guests.
+5. **Parent/sibling refs:** See `../AGENTS.md` for module governance and `../../100-pve/AGENTS.md` for workspace orchestration.
 
 ## CONVENTIONS
 - **Templates:** App-level logic belongs in `templates/*.tftpl`. Never in `.tf`.

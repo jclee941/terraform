@@ -3,6 +3,20 @@
 ## OVERVIEW
 Unit and contract tests for `modules/proxmox/*` using Terraform test files, mocked providers, and fixture templates.
 
+## STRUCTURE
+```text
+tests/modules/proxmox/
+├── lxc_test.tftest.hcl              # LXC module validation and contract tests
+├── vm_test.tftest.hcl               # VM module validation and contract tests
+├── lxc_config_test.tftest.hcl       # LXC config template rendering checks
+├── vm_config_test.tftest.hcl        # VM config template rendering checks
+├── config_renderer_test.tftest.hcl  # Multi-template config renderer behavior
+├── fixtures/                        # Template fixtures and expected outputs
+├── main.tf                          # Test provider requirements
+├── BUILD.bazel
+└── OWNERS
+```
+
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
@@ -26,4 +40,6 @@ Unit and contract tests for `modules/proxmox/*` using Terraform test files, mock
 ```bash
 make test-unit
 cd tests/modules/proxmox && terraform test
+cd tests/modules/proxmox && terraform test -filter=lxc_test.tftest.hcl
+cd tests/modules/proxmox && terraform test -filter=config_renderer_test.tftest.hcl
 ```

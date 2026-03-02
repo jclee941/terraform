@@ -3,6 +3,30 @@
 ## OVERVIEW
 Data-source module that reads homelab secrets from 1Password and exposes a stable output map for template rendering.
 
+## STRUCTURE
+```text
+onepassword-secrets/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+└── AGENTS.md
+```
+
+## INTERFACE
+| Kind | Name | Type | Required | Description |
+|------|------|------|----------|-------------|
+| variable | `vault_name` | `string` | No | 1Password vault name (default `homelab`). |
+| output | `secrets` | - | - | Sensitive flat secret map for template and provider auth injection. |
+| output | `metadata` | - | - | Non-sensitive usernames/URLs/IDs map for config wiring. |
+
+## CONSUMERS
+- Called by `100-pve/secrets.tf` via `module.onepassword_secrets`.
+- Called by `104-grafana/terraform/onepassword.tf` via `module.onepassword_secrets`.
+- Called by `105-elk/terraform/onepassword.tf` via `module.onepassword_secrets`.
+- Called by `300-cloudflare/onepassword.tf` via `module.onepassword_secrets`.
+- Called by `301-github/onepassword.tf` via `module.onepassword_secrets`.
+- Called by `320-slack/onepassword.tf` via `module.onepassword_secrets`.
+
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|

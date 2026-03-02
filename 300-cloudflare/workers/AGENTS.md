@@ -8,7 +8,8 @@ Boundary guidance for Cloudflare Worker implementations under `300-cloudflare/wo
 300-cloudflare/workers/
 ├── synology-proxy/   # Hono Worker implementation
 ├── BUILD.bazel
-└── OWNERS
+├── OWNERS
+└── AGENTS.md
 ```
 
 ## WHERE TO LOOK
@@ -16,7 +17,11 @@ Boundary guidance for Cloudflare Worker implementations under `300-cloudflare/wo
 |------|----------|-------|
 | Worker runtime behavior | `synology-proxy/src/` | Request handling, middleware, cache, and client logic. |
 | Worker scripts and tooling | `synology-proxy/package.json` | `dev`, `test`, `build`, `deploy`, `type-check`. |
+| Worker deployment config | `synology-proxy/wrangler.jsonc` | Route, compatibility date, bindings, and env config. |
+| Worker tests | `synology-proxy/test/` | Vitest suites and request/response assertions. |
 | Worker-specific conventions | `synology-proxy/AGENTS.md` | Most specific rules for current worker. |
+| Parent workspace policy | `../AGENTS.md` | Cloudflare workspace-level Terraform + worker constraints. |
+| Secret automation scripts | `../scripts/AGENTS.md` | Script-side secret/binding generation and sync workflow. |
 
 ## CONVENTIONS
 - Keep worker-level implementation rules in each worker subdirectory AGENTS file.
@@ -29,7 +34,8 @@ Boundary guidance for Cloudflare Worker implementations under `300-cloudflare/wo
 
 ## COMMANDS
 ```bash
-cd 300-cloudflare/workers/synology-proxy && npm run dev
-cd 300-cloudflare/workers/synology-proxy && npm test
-cd 300-cloudflare/workers/synology-proxy && npm run deploy  # DISABLED — use worker-deploy.yml CI workflow
+npm --prefix 300-cloudflare/workers/synology-proxy run dev
+npm --prefix 300-cloudflare/workers/synology-proxy test
+npm --prefix 300-cloudflare/workers/synology-proxy run build
+npm --prefix 300-cloudflare/workers/synology-proxy run deploy  # DISABLED — use worker-deploy.yml CI workflow
 ```

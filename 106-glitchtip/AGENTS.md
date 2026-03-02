@@ -1,5 +1,7 @@
 # AGENTS: 106-glitchtip
 
+> **Host**: LXC 106 | **IP**: 192.168.50.106 | **Status**: template-only
+
 **Generated:** 2026-02-12
 **VMID:** 106
 **IP:** 192.168.50.106
