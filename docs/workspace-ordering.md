@@ -44,6 +44,8 @@ They are independent of each other and can run in parallel.
 | Workspace | CI Workflow | Triggers On |
 |-----------|-------------|-------------|
 | `300-cloudflare` | `cloudflare-plan.yml` / `cloudflare-apply.yml` | `300-cloudflare/**` |
+| `301-github` | `github-plan.yml` / `github-apply.yml` | `301-github/**` |
+| `320-slack` | `slack-plan.yml` / `slack-apply.yml` | `320-slack/**` |
 
 ## CI/CD Notes
 

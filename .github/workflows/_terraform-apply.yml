@@ -175,6 +175,9 @@ jobs:
             "resume",
             "hycu_fsds",
             "youtube",
+            "splunk",
+            "slack-opencode-bridge",
+            ".github",
 
           ]
 

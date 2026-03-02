@@ -1,0 +1,34 @@
+name: GitHub Apply
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "301-github/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: github-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    uses: ./.github/workflows/_terraform-apply.yml
+    with:
+      service-name: GitHub
+      working-directory: 301-github
+      enable-repository-imports: true
+      needs-infra-state: true
+      failure-title-prefix: "[GitHub] Apply failed on master"
+      failure-extra-body: |
+        ### Workspace: `301-github`
+        - [ ] Check GitHub provider credentials
+        - [ ] Verify 1Password Connect availability
+        - [ ] Review repository import state
+        - [ ] Check for manual GitHub UI changes
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret

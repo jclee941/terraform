@@ -48,6 +48,20 @@ locals {
       default_branch = "master"
       protection     = "minimal"
     }
+    slack-opencode-bridge = {
+      description    = "Slack ↔ OpenCode bridge for notifications and approvals"
+      visibility     = "public"
+      topics         = ["slack", "opencode", "integration"]
+      default_branch = "master"
+      protection     = "standard"
+    }
+    ".github" = {
+      description    = "GitHub community health files — reusable workflows, issue templates, and governance"
+      visibility     = "public"
+      topics         = ["github", "governance", "ci-cd"]
+      default_branch = "master"
+      protection     = "strict"
+    }
 
     # --- Data & ML Competitions ---
     aimo3-prize = {
