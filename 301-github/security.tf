@@ -19,7 +19,6 @@ resource "github_repository_dependabot_security_updates" "repositories" {
 resource "github_repository_ruleset" "code_scanning" {
   for_each = var.enable_repository_rulesets ? {
     for k, v in local.security_repositories : k => v
-    if try(local.repositories[k].visibility, "public") != "private"
   } : {}
 
   name        = "code-scanning"

@@ -1,8 +1,11 @@
 locals {
   ruleset_repositories = {
     for repo_name, repo_cfg in local.repositories :
-    repo_name => repo_cfg
-    if !try(repo_cfg.archived, false) && try(repo_cfg.visibility, "public") != "private"
+    repo_name => {
+      protection          = try(repo_cfg.protection, "minimal")
+      extra_status_checks = try(repo_cfg.extra_status_checks, [])
+    }
+    if !try(repo_cfg.archived, false)
   }
 
   protection_profiles = {
