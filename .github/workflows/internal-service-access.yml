@@ -24,6 +24,10 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: internal-service-access-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     uses: ./.github/workflows/_internal-service-access.yml

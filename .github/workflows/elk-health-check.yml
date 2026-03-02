@@ -18,6 +18,10 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: elk-health-check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   health-check:
     uses: ./.github/workflows/_elk-health-check.yml

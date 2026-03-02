@@ -12,6 +12,10 @@ permissions:
   contents: read
   issues: write
 
+concurrency:
+  group: worker-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     uses: ./.github/workflows/_worker-deploy.yml

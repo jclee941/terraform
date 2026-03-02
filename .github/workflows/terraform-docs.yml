@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: terraform-docs-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   docs:
     uses: ./.github/workflows/_terraform-docs.yml
