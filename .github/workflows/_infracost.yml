@@ -33,7 +33,7 @@ jobs:
 
       - name: Setup Infracost
         if: steps.check_key.outputs.available == 'true'
-        uses: infracost/actions/setup@0d27b734c72a1abb0aba3e2c3f54e4982cbd2591 # v2
+        uses: infracost/actions/setup@e9d6e6cd65e168e76b0de50ff9957d2fe8bb1832 # v3.0.1
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
