@@ -1,4 +1,4 @@
-# 107-archon: AI Knowledge Management System
+# 108-archon: AI Knowledge Management System
 
 ## OVERVIEW
 Archon is an AI-powered knowledge management system that provides MCP (Model Context Protocol) server capabilities for AI coding assistants like Claude Code, Cursor, and Windsurf. It indexes codebases, documents, and knowledge bases with vector embeddings for intelligent retrieval.
@@ -8,8 +8,8 @@ Archon is an AI-powered knowledge management system that provides MCP (Model Con
 ## INFRASTRUCTURE
 | Component | Value |
 |-----------|-------|
-| **VMID** | 107 |
-| **IP Address** | 192.168.50.107 |
+| **VMID** | 108 |
+| **IP Address** | 192.168.50.108 |
 | **Hostname** | archon |
 | **Public URL** | https://archon.jclee.me |
 | **Type** | LXC Container (Docker-based) |
@@ -67,7 +67,7 @@ SUPABASE_SERVICE_KEY=eyJhbGc...
 All other secrets (OpenAI API, Gemini API, GitHub tokens) are managed via the web UI and stored encrypted in the database.
 
 ### Secrets Management
-- **Supabase credentials**: Injected via Vault Agent from `vault/archon/supabase`
+- **Supabase credentials**: Injected via 1Password Connect from `op://Infrastructure/supabase`
 - **API keys**: Configured via Archon UI (stored in `credentials` table, encrypted)
 
 ### Database Migration
@@ -84,7 +84,7 @@ This creates:
 ## NETWORKING
 | Port | Service | Exposure | Traefik Route |
 |------|---------|----------|---------------|
-| 3737 | archon-ui | Public | `archon.jclee.me` → 192.168.50.107:3737 |
+| 3737 | archon-ui | Public | `archon.jclee.me` → 192.168.50.108:3737 |
 | 8181 | archon-server | Internal | N/A |
 | 8051 | archon-mcp | Internal | N/A (MCP clients connect directly) |
 | 8052 | archon-agents | Internal | Optional |
@@ -93,12 +93,12 @@ This creates:
 ## DEPLOYMENT
 ### Terraform
 - **Module**: Uses `module.lxc` from `terraform/modules/lxc/`
-- **Config**: Defined in `107-archon/terraform/main.tf`
+- **Config**: Defined in `100-pve/` (hosts.tf + lxc_configs.tf)
 - **Sizing**: 4 cores, 6144 MB RAM, 20 GB disk (defined in `terraform/envs/prod/sizing.tf`)
 - **Cloud-Init**: Installs Docker + Docker Compose via cloud-init snippet
 
 ### Docker Compose
-- **File**: `107-archon/docker-compose.yml` (customized from upstream)
+- **File**: `108-archon/docker-compose.yml` (customized from upstream)
 - **Profiles**: Default (ui, server, mcp) + optional (`agents`, `work-orders`)
 - **Start**: `docker compose up -d`
 - **Logs**: `docker compose logs -f`
@@ -115,9 +115,9 @@ This creates:
 - **Alerts**: Container down, high memory usage
 
 ### Health Checks
-- UI: `http://192.168.50.107:3737/health`
-- Server: `http://192.168.50.107:8181/health`
-- MCP: `http://192.168.50.107:8051/health`
+- UI: `http://192.168.50.108:3737/health`
+- Server: `http://192.168.50.108:8181/health`
+- MCP: `http://192.168.50.108:8051/health`
 
 ## MCP CLIENT INTEGRATION
 ### Claude Code / Cursor / Windsurf
@@ -128,7 +128,7 @@ Add to MCP client settings:
     "archon": {
       "command": "ssh",
       "args": [
-        "root@192.168.50.107",
+        "root@192.168.50.108",
         "docker", "compose", "-f", "/opt/archon/docker-compose.yml",
         "exec", "-T", "archon-mcp", "python", "mcp_server.py"
       ]
@@ -182,7 +182,7 @@ Archon's default `docker-compose.yml` disables Docker socket mounting. No action
 ### API Key Storage
 - API keys stored encrypted in Supabase `credentials` table
 - Never commit `.env` files with Supabase credentials
-- Use Vault Agent for secret injection
+- Use 1Password Connect for secret injection
 
 ## REFERENCES
 - **Setup Video**: https://youtu.be/DMXyDpnzNpY

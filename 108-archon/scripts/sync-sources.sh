@@ -126,7 +126,7 @@ json.dump(result, sys.stdout)
 # Get existing sources from Archon
 # ---------------------------------------------------------------------------
 get_existing_sources() {
-  curl -s "${ARCHON_API}/knowledge-items/sources" 2>/dev/null || echo "[]"
+  curl -s "${ARCHON_API}/rag/sources" 2>/dev/null || echo '{"sources":[]}'
 }
 
 # ---------------------------------------------------------------------------
@@ -139,10 +139,12 @@ is_already_crawled() {
 import json, sys
 data = json.load(sys.stdin)
 url = '${url}'
-# Check if URL exists in any source
-if isinstance(data, list):
-    for item in data:
-        if isinstance(item, dict) and item.get('url', '') == url:
+# API returns {success, sources[], count} — extract sources list
+sources = data.get('sources', []) if isinstance(data, dict) else data
+for item in sources:
+    if isinstance(item, dict):
+        orig = item.get('metadata', {}).get('original_url', '')
+        if orig == url:
             print('true')
             sys.exit(0)
 print('false')
@@ -246,7 +248,7 @@ echo -e "${CYAN}Sources:${NC} ${SOURCES_FILE}"
 echo ""
 
 # Verify Archon is reachable
-if ! curl -s -o /dev/null -w "%{http_code}" "${ARCHON_API}/knowledge-items/sources" | grep -q "200"; then
+if ! curl -s -o /dev/null -w "%{http_code}" "${ARCHON_API}/rag/sources" | grep -q "200"; then
   echo -e "${RED}Error: Archon API is not reachable at ${ARCHON_API}${NC}"
   exit 1
 fi
@@ -332,4 +334,4 @@ echo -e "${BOLD}${BLUE}═══════════════════
 echo -e "${BOLD}${BLUE}  Sync complete${NC}"
 echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════${NC}"
 echo -e "Run ${CYAN}bash 108-archon/scripts/sync-sources.sh --dry-run${NC} to preview."
-echo -e "Verify via: ${CYAN}curl -s ${ARCHON_API}/knowledge-items/sources | python3 -m json.tool${NC}"
+echo -e "Verify via: ${CYAN}curl -s ${ARCHON_API}/rag/sources | python3 -m json.tool${NC}"
