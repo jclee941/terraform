@@ -46,7 +46,8 @@ module "vm_config" {
           "git",
           "htop",
           "docker.io",
-          "docker-compose-v2"
+          "docker-compose-v2",
+          "sshfs"
         ]
         runcmd = [
           "systemctl enable qemu-guest-agent",
@@ -55,6 +56,11 @@ module "vm_config" {
           "systemctl start docker",
           "mkdir -p /opt/mcphub",
           "mkdir -p /opt/n8n",
+          "mkdir -p /mnt/oc-dev /mnt/oc-kratos",
+          "grep -q oc-dev /etc/fstab || echo 'jclee@192.168.50.200:/home/jclee/dev /mnt/oc-dev fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab",
+          "grep -q oc-kratos /etc/fstab || echo 'jclee@192.168.50.200:/home/jclee/.kratos /mnt/oc-kratos fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab",
+          "mountpoint -q /mnt/oc-dev || mount /mnt/oc-dev || true",
+          "mountpoint -q /mnt/oc-kratos || mount /mnt/oc-kratos || true",
           "systemctl daemon-reload",
           "cd /opt/mcphub && docker compose build && docker compose up -d",
           "cd /opt/n8n && docker compose up -d"
@@ -101,7 +107,13 @@ module "vm_config" {
             content     = module.config_renderer.rendered_configs["mcphub_n8n_docker_compose"]
             permissions = "0644"
             owner       = "root:root"
-          }
+          },
+          {
+            path        = "/opt/mcphub/.gitconfig"
+            content     = file("${path.module}/../112-mcphub/config/.gitconfig")
+            permissions = "0644"
+            owner       = "root:root"
+          },
         ]
       }
     }

@@ -1,0 +1,11 @@
+[safe]
+	directory = /home/jclee/dev/terraform
+	directory = /home/jclee/dev/blacklist
+	directory = /home/jclee/dev/oh-my-opencode
+	directory = /home/jclee/dev/prize
+	directory = /home/jclee/dev/propose
+	directory = /home/jclee/dev/resume
+	directory = /home/jclee/dev/safetywallet
+	directory = /home/jclee/dev/splunk
+	directory = /home/jclee/dev/tmux
+	directory = /home/jclee/dev/youtube
