@@ -150,3 +150,15 @@ resource "proxmox_virtual_environment_firewall_rules" "vm" {
     }
   }
 }
+
+# Import existing VM firewall rules into state
+# These VMs had rules created outside Terraform that need to be adopted
+import {
+  to = proxmox_virtual_environment_firewall_rules.vm["ollama"]
+  id = "vm/pve3/109"
+}
+
+import {
+  to = proxmox_virtual_environment_firewall_rules.vm["youtube"]
+  id = "vm/pve3/220"
+}
