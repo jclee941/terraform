@@ -57,7 +57,7 @@ locals {
     }
     "host-silent" = {
       group        = "homelab_logs"
-      query        = "host_name:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR supabase OR archon OR oc)"
+      query        = "host_name:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR supabase OR archon OR oc OR ollama OR coredns OR youtube)"
       from         = 900
       threshold    = 5
       condition    = "lt"
@@ -95,7 +95,7 @@ locals {
     }
     "service-log-gap" = {
       group        = "homelab_logs"
-      query        = "fields.service:(traefik OR grafana OR elk OR glitchtip OR supabase OR archon OR mcphub OR runner OR opencode)"
+      query        = "fields.service:(traefik OR grafana OR elk OR glitchtip OR supabase OR archon OR mcphub OR runner OR opencode OR ollama OR coredns OR youtube)"
       from         = 3600
       threshold    = 1
       condition    = "lt"

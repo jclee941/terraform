@@ -11,10 +11,11 @@ module "vm_config" {
 
   vms = {
     youtube = {
-      vmid       = module.hosts.hosts.youtube.vmid
-      hostname   = "youtube"
-      ip_address = module.hosts.hosts.youtube.ip
-      deploy     = var.deploy_vm_configs
+      vmid           = module.hosts.hosts.youtube.vmid
+      hostname       = "youtube"
+      ip_address     = module.hosts.hosts.youtube.ip
+      deploy         = var.deploy_vm_configs
+      setup_filebeat = true
 
       cloud_init = {
         packages = [
@@ -27,6 +28,14 @@ module "vm_config" {
         runcmd = [
           "systemctl enable qemu-guest-agent",
           "systemctl start qemu-guest-agent",
+        ]
+        write_files = [
+          {
+            path        = "/etc/filebeat/filebeat.yml"
+            content     = module.config_renderer.rendered_configs["youtube_filebeat"]
+            permissions = "0644"
+            owner       = "root:root"
+          },
         ]
       }
     }
