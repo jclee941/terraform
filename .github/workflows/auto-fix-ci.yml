@@ -9,6 +9,14 @@ on:
       - "Security Scan"
       - "ELK Health Check"
       - "Internal Service Access Test"
+      - "Archon Plan"
+      - "Cloudflare Plan"
+      - "ELK Plan"
+      - "GitHub Plan"
+      - "Grafana Plan"
+      - "Ollama Plan"
+      - "Slack Plan"
+      - "Traefik Plan"
     types: [completed]
 
 permissions:

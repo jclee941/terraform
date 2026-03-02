@@ -6,6 +6,7 @@ Reusable composite actions shared across workflow domains. Keep action behavior 
 ## STRUCTURE
 ```text
 .github/actions/
+|- proxmox-import/    # Import existing Proxmox LXC/VM/firewall into TF state
 |- terraform-setup/   # Install Terraform + run init in target workspace
 `- notify-failure/    # Create/update failure issues with dedup behavior
 ```
@@ -14,6 +15,7 @@ Reusable composite actions shared across workflow domains. Keep action behavior 
 | Task | File | Notes |
 |------|------|-------|
 | Terraform setup behavior | `terraform-setup/action.yml` | Input contract: version, working directory, init args. |
+| Proxmox resource import | `proxmox-import/action.yml` | Idempotent import of 21 resources (11 LXC/VM + 10 firewall). Input: working-directory. |
 | Failure issue behavior | `notify-failure/action.yml` | Dedup logic and issue/comment update path. |
 
 ## CONVENTIONS
@@ -35,6 +37,10 @@ Reusable composite actions shared across workflow domains. Keep action behavior 
 - name: Notify Failure
   if: failure()
   uses: ./.github/actions/notify-failure
+
+- name: Import Proxmox Resources
+  if: inputs.enable-proxmox-imports
+  uses: ./.github/actions/proxmox-import
 ```
 
 ```bash

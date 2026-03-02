@@ -27,6 +27,10 @@ on:
         description: "Create stub 100-pve state file for workspaces that read terraform_remote_state.infra"
         type: boolean
         default: false
+      enable-proxmox-imports:
+        description: 'Import Proxmox resources before apply (100-pve workspace only)'
+        type: boolean
+        default: false
       failure-title-prefix:
         description: 'Title prefix for failure issue (e.g. "[Archon] Apply failed on master")'
         type: string
@@ -61,6 +65,12 @@ on:
       OP_CONNECT_HOST:
         required: false
       OP_CONNECT_TOKEN:
+        required: false
+      PROXMOX_VE_ENDPOINT:
+        required: false
+      PROXMOX_VE_API_TOKEN:
+        required: false
+      PROXMOX_VE_SSH_PRIVATE_KEY:
         required: false
 
 permissions:
@@ -134,6 +144,16 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/100-pve"
           echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{},"resources":[]}' > "$GITHUB_WORKSPACE/100-pve/terraform.tfstate"
 
+
+      - name: Import Proxmox resources
+        if: inputs.enable-proxmox-imports
+        uses: ./.github/actions/proxmox-import
+        with:
+          working-directory: ${{ inputs.working-directory }}
+        env:
+          PROXMOX_VE_ENDPOINT: ${{ secrets.PROXMOX_VE_ENDPOINT }}
+          PROXMOX_VE_API_TOKEN: ${{ secrets.PROXMOX_VE_API_TOKEN }}
+          PROXMOX_VE_SSH_PRIVATE_KEY: ${{ secrets.PROXMOX_VE_SSH_PRIVATE_KEY }}
 
       - name: Terraform Validate
         run: terraform validate -no-color
@@ -362,6 +382,9 @@ jobs:
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
           TF_VAR_enable_repository_imports: ${{ inputs.enable-repository-imports && 'true' || 'false' }}
+          PROXMOX_VE_ENDPOINT: ${{ secrets.PROXMOX_VE_ENDPOINT }}
+          PROXMOX_VE_API_TOKEN: ${{ secrets.PROXMOX_VE_API_TOKEN }}
+          PROXMOX_VE_SSH_PRIVATE_KEY: ${{ secrets.PROXMOX_VE_SSH_PRIVATE_KEY }}
 
 
       - name: Persist state
