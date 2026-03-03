@@ -1,14 +1,15 @@
 # AGENTS: 215-synology
 
-> **IP**: 192.168.50.215 | **Status**: template-only
+> **IP**: 192.168.50.215 | **Status**: active TF workspace
 
-**Updated:** 2026-02-22
+**Updated:** 2026-03-03
 **Target:** Synology NAS (Physical Device)
 **IP:** 192.168.50.215
+**Provider:** synology-community/synology ~>0.6
 
 ## OVERVIEW
 
-Synology NAS providing network-attached storage for the homelab. Serves as the primary storage backend for backups, media, and shared data. Exposed via Traefik reverse proxy at `nas.jclee.me` (DSM port 5000). Also hosts Cloudflare tunnel connector (`cloudflared`) for external access. Sends syslog events to ELK stack.
+Synology NAS providing network-attached storage for the homelab. Managed via the `synology-community/synology` Terraform provider for DSM packages, Docker Compose projects, and file operations. Exposed via Traefik reverse proxy at `nas.jclee.me` (DSM port 5000). Also hosts Cloudflare tunnel connector (`cloudflared`) for external access. Sends syslog events to ELK stack.
 
 ## STRUCTURE
 
@@ -18,7 +19,13 @@ Synology NAS providing network-attached storage for the homelab. Serves as the p
 ├── OWNERS            # Access control (Infrastructure)
 ├── AGENTS.md         # This file
 ├── README.md         # Device documentation
-└── syslog-config.md  # Syslog forwarding setup to ELK (105)
+├── syslog-config.md  # Syslog forwarding setup to ELK (105)
+├── versions.tf       # Provider + backend config
+├── variables.tf      # Input variables (DSM host, credentials)
+├── terraform.tfvars  # Non-secret variable values
+├── onepassword.tf    # 1Password secret integration
+├── main.tf           # Provider config + resources
+└── outputs.tf        # Exported values
 ```
 
 ## WHERE TO LOOK
@@ -26,22 +33,25 @@ Synology NAS providing network-attached storage for the homelab. Serves as the p
 | Task                   | Location                                   | Notes                                    |
 | ---------------------- | ------------------------------------------ | ---------------------------------------- |
 | **Host definition**    | `100-pve/envs/prod/hosts.tf`               | `synology` entry (IP, ports, roles)      |
+| **Provider config**    | `main.tf`                                  | Synology + 1Password providers           |
+| **Credentials**        | `onepassword.tf`                           | 1Password priority, variable fallback    |
+| **DSM packages**       | `main.tf`                                  | `synology_core_package` resources        |
+| **Container projects** | `main.tf`                                  | `synology_container_project` resources   |
 | **Traefik routing**    | `102-traefik/templates/synology.yml.tftpl` | `nas.jclee.me` → DSM                     |
-| **Env config**         | `modules/proxmox/env-config/main.tf`       | `synology_ip`, `synology_ports`          |
-| **Main orchestration** | `100-pve/main.tf`                          | Traefik-synology config rendering        |
 | **Cloudflare tunnel**  | `300-cloudflare/`                          | `cloudflared` connector on NAS           |
 | **Syslog to ELK**      | `syslog-config.md`                         | DSM syslog forwarding to Logstash on 105 |
 
 ## CONVENTIONS
 
-- **Physical Device**: NOT a Proxmox VM/LXC. Managed as an inventory host only.
+- **Physical Device**: NOT a Proxmox VM/LXC. Managed as an inventory host in `hosts.tf` and via Synology provider.
 - **Governance**: Referenced in Terraform via `module.hosts` for IP/port injection into dependent services (Traefik, Cloudflare).
-- **DSM Access**: Port 5000 (HTTP). Proxied through Traefik with TLS.
+- **Credentials**: DSM admin credentials stored in 1Password vault "homelab" under item "synology".
+- **DSM Access**: Port 5001 (HTTPS) for provider API. Port 5000 (HTTP) proxied through Traefik with TLS.
 - **Naming**: Follows `{NNN}-{HOSTNAME}` convention where 215 = `192.168.50.215`.
 - **Syslog**: DSM configured to forward syslog to Logstash syslog input on LXC 105.
 
 ## ANTI-PATTERNS
 
-- **NO Terraform provisioning**. Synology DSM is managed via its own web UI.
 - **NO hardcoded IPs** in service configs. Use `module.hosts.synology_ip`.
 - **NO direct external exposure**. All access must route through Traefik or Cloudflare tunnel.
+- **NO plaintext credentials**. Use 1Password integration via `onepassword.tf`.
