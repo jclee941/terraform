@@ -111,7 +111,7 @@ mock_provider "onepassword" {
 
 # --- Output structure tests ---
 
-# All 36 secret keys default to "" when section_map is empty (try() fallback)
+# All 37 secret keys default to "" when section_map is empty (try() fallback)
 run "test_secrets_default_to_empty_string" {
   command = plan
 
@@ -292,7 +292,7 @@ run "test_secrets_default_to_empty_string" {
   }
 }
 
-# All 7 metadata keys default to "" when section_map is empty (try() fallback)
+# All 11 metadata keys default to "" when section_map is empty (try() fallback)
 run "test_metadata_default_to_empty_string" {
   command = plan
 
@@ -339,7 +339,7 @@ run "test_metadata_default_to_empty_string" {
   }
 }
 
-# Verify secrets output contains exactly 36 keys
+# Verify secrets output contains exactly 37 keys
 run "test_secrets_key_count" {
   command = plan
 
@@ -352,12 +352,12 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 36
-    error_message = "Secrets output should contain exactly 36 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 37
+    error_message = "Secrets output should contain exactly 37 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
-# Verify metadata output contains exactly 7 keys
+# Verify metadata output contains exactly 11 keys
 run "test_metadata_key_count" {
   command = plan
 
@@ -370,8 +370,8 @@ run "test_metadata_key_count" {
   }
 
   assert {
-    condition     = length(output.metadata) == 7
-    error_message = "Metadata output should contain exactly 7 keys, got ${length(output.metadata)}"
+    condition     = length(output.metadata) == 11
+    error_message = "Metadata output should contain exactly 11 keys, got ${length(output.metadata)}"
   }
 }
 
@@ -554,6 +554,12 @@ run "test_all_secret_key_names_exist" {
     condition     = contains(nonsensitive(keys(output.secrets)), "elk_kibana_password")
     error_message = "Missing secret key: elk_kibana_password"
   }
+
+  # PBS
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "pbs_password")
+    error_message = "Missing secret key: pbs_password"
+  }
 }
 
 # Verify every expected metadata key name exists in the output map
@@ -601,6 +607,24 @@ run "test_all_metadata_key_names_exist" {
     condition     = contains(keys(output.metadata), "n8n_glitchtip_webhook_url")
     error_message = "Missing metadata key: n8n_glitchtip_webhook_url"
   }
+
+  # PBS
+  assert {
+    condition     = contains(keys(output.metadata), "pbs_server")
+    error_message = "Missing metadata key: pbs_server"
+  }
+  assert {
+    condition     = contains(keys(output.metadata), "pbs_datastore")
+    error_message = "Missing metadata key: pbs_datastore"
+  }
+  assert {
+    condition     = contains(keys(output.metadata), "pbs_username")
+    error_message = "Missing metadata key: pbs_username"
+  }
+  assert {
+    condition     = contains(keys(output.metadata), "pbs_fingerprint")
+    error_message = "Missing metadata key: pbs_fingerprint"
+  }
 }
 
 # Verify no overlap between secrets and metadata keys
@@ -632,7 +656,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 43
-    error_message = "Total keys (secrets + metadata) should equal 43"
+    condition     = length(output.secrets) + length(output.metadata) == 48
+    error_message = "Total keys (secrets + metadata) should equal 48"
   }
 }

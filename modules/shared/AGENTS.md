@@ -15,7 +15,7 @@ modules/shared/
 ## WHERE TO LOOK
 | Task | Module | Notes |
 |------|--------|-------|
-| **Retrieve Secrets** | `onepassword-secrets` | Uses `1Password/onepassword` provider with `section_map` access pattern. Outputs `secrets` (sensitive, 36 keys) + `metadata` (non-sensitive, 7 keys). |
+| **Retrieve Secrets** | `onepassword-secrets` | Uses `1Password/onepassword` provider with `section_map` access pattern. Outputs `secrets` (sensitive, 37 keys) + `metadata` (non-sensitive, 11 keys). |
 | **Module Interface** | `onepassword-secrets/variables.tf`, `onepassword-secrets/outputs.tf` | Input/output contract for all consuming workspaces. |
 | **Provider wiring** | `onepassword-secrets/main.tf` | Data lookups and secret mapping logic. |
 | **Parent module policy** | `../AGENTS.md` | Shared module governance and boundaries. |
