@@ -25,7 +25,6 @@ All MCP servers are **STDIO child processes** inside the MCPHub container — th
 | github      | stdio     | ✅ Connected             | —                                       |
 | git         | stdio     | ✅ Connected             | —                                       |
 | onepassword | stdio     | ✅ Connected             | [1Password](#1password-empty-vault)     |
-| supabase    | stdio     | ✅ Connected             | [Supabase](#supabase-db-auth-failure)   |
 | glitchtip   | stdio     | ✅ Connected             | [GlitchTip](#glitchtip-api-unreachable) |
 | **archon**  | **streamable-http** | ✅ Connected (native HTTP) | [Archon](#archon-streamable-http) |
 | slack       | stdio     | ✅ Connected             | —                                       |
@@ -195,58 +194,6 @@ gh secret set OP_CONNECT_TOKEN
 gh secret set OP_CONNECT_HOST
 ```
 
----
-
-### Supabase: DB Auth Failure
-
-**Symptom:** `password authentication failed for user "supabase_read_only_user"`.
-
-**Root cause:** MCP server configured with `supabase_read_only_user` role, but this role was never created in the Supabase PostgreSQL database. The database only has `supabase_admin` and `authenticator` roles (per `.env.tftpl`).
-
-**Fix:**
-
-```bash
-# 1. SSH into Supabase LXC
-ssh root@192.168.50.107
-# Or from Proxmox:
-pct exec 107 -- bash
-
-# 2. Connect to PostgreSQL
-docker exec -it supabase-db psql -U supabase_admin -d postgres
-
-# 3. Create read-only role
-CREATE ROLE supabase_read_only_user WITH LOGIN PASSWORD '<generate-secure-password>';
-GRANT CONNECT ON DATABASE postgres TO supabase_read_only_user;
-GRANT USAGE ON SCHEMA public TO supabase_read_only_user;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO supabase_read_only_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO supabase_read_only_user;
-
--- Also grant on supabase-specific schemas
-GRANT USAGE ON SCHEMA auth TO supabase_read_only_user;
-GRANT SELECT ON ALL TABLES IN SCHEMA auth TO supabase_read_only_user;
-GRANT USAGE ON SCHEMA storage TO supabase_read_only_user;
-GRANT SELECT ON ALL TABLES IN SCHEMA storage TO supabase_read_only_user;
-
-\q
-
-# 4. Update MCP server env with the password
-ssh root@192.168.50.112
-nano /opt/mcphub/.env
-# Update SUPABASE connection string with new password
-
-# 5. Restart MCPHub
-docker restart mcphub
-
-# 6. Verify
-sleep 15
-curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "supabase") | {name, status}'
-```
-
-**Store password in 1Password:**
-
-After 1Password is fixed, store the `supabase_read_only_user` password in the Homelab vault under the `supabase` item.
-
----
 
 ### GlitchTip: API Unreachable
 

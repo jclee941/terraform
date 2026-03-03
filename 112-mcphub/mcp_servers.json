@@ -58,14 +58,6 @@
       "port": 8056,
       "description": "Browser automation via Playwright"
     },
-    "supabase": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://192.168.50.107:8000/mcp", "--allow-http", "--transport", "http-only"],
-      "port": 8076,
-      "description": "Supabase database and API management"
-    },
     "terraform": {
       "location": "hub",
       "transport": "stdio",
