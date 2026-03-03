@@ -111,6 +111,14 @@
         "OP_SERVICE_ACCOUNT_TOKEN": "${OP_SERVICE_ACCOUNT_TOKEN}"
       },
       "description": "1Password vault and secret management"
+    },
+    "gcloud": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@google-cloud/gcloud-mcp"],
+      "port": 8080,
+      "description": "Google Cloud Platform CLI operations"
     }
   }
 }

@@ -71,6 +71,10 @@ module "vm_config" {
           "mountpoint -q /mnt/oc-dev || mount /mnt/oc-dev || true",
           "mountpoint -q /mnt/oc-kratos || mount /mnt/oc-kratos || true",
           "systemctl daemon-reload",
+          "curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg",
+          "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' > /etc/apt/sources.list.d/google-cloud-sdk.list",
+          "apt-get update && apt-get install -y google-cloud-cli",
+          "mkdir -p /opt/mcphub/gcloud-config",
           "mkdir -p /opt/mcphub/patches",
           "cd /opt/mcphub && docker compose build && docker compose up -d",
           "cd /opt/n8n && docker compose up -d"

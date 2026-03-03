@@ -16,6 +16,9 @@ services:
       - /mnt/oc-kratos:/root/.kratos
       - ./slack-users-cache.json:/tmp/slack-users-cache.json
       - ./patches:/app/patches:ro
+      - /usr/lib/google-cloud-sdk:/usr/lib/google-cloud-sdk:ro
+      - /usr/bin/gcloud:/usr/bin/gcloud:ro
+      - ./gcloud-config:/root/.config/gcloud
     env_file:
       - .env
     environment:
