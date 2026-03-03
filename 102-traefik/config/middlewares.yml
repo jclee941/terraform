@@ -31,3 +31,23 @@ http:
         average: 100
         burst: 50
         period: 1s
+
+    # Security headers for all external-facing routes
+    security-headers:
+      headers:
+        # HSTS: enforce HTTPS for 1 year, include subdomains
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        # Prevent clickjacking
+        frameDeny: true
+        # Prevent MIME-type sniffing
+        contentTypeNosniff: true
+        # XSS protection
+        browserXssFilter: true
+        # Referrer policy
+        referrerPolicy: strict-origin-when-cross-origin
+        # Permissions policy
+        permissionsPolicy: camera=(), microphone=(), geolocation=(), payment=()
+        # Content Security Policy
+        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss: https:; frame-ancestors 'none'"
