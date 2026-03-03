@@ -27,7 +27,7 @@ on:
         description: "AI model to use for auto-fix"
         required: false
         type: string
-        default: "anthropic/claude-sonnet-4-5"
+        default: "google/antigravity-claude-opus-4-6-thinking"
     secrets:
       ANTIGRAVITY_ACCOUNTS_JSON:
         required: true

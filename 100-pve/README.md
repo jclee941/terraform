@@ -89,7 +89,7 @@ As the host node, 100-pve is the foundation for:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.97.0 |
+| <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.97.1 |
 
 ## Modules
 
