@@ -71,6 +71,7 @@ module "vm_config" {
           "mountpoint -q /mnt/oc-dev || mount /mnt/oc-dev || true",
           "mountpoint -q /mnt/oc-kratos || mount /mnt/oc-kratos || true",
           "systemctl daemon-reload",
+          "mkdir -p /opt/mcphub/patches",
           "cd /opt/mcphub && docker compose build && docker compose up -d",
           "cd /opt/n8n && docker compose up -d"
         ]
@@ -121,6 +122,18 @@ module "vm_config" {
             path        = "/opt/mcphub/.gitconfig"
             content     = file("${path.module}/../112-mcphub/config/.gitconfig")
             permissions = "0644"
+            owner       = "root:root"
+          },
+          {
+            path        = "/opt/mcphub/patches/patch-placeholder.js"
+            content     = file("${path.module}/../112-mcphub/config/patch-placeholder.js")
+            permissions = "0644"
+            owner       = "root:root"
+          },
+          {
+            path        = "/opt/mcphub/patches/entrypoint-patch.sh"
+            content     = file("${path.module}/../112-mcphub/config/entrypoint-patch.sh")
+            permissions = "0755"
             owner       = "root:root"
           },
         ]

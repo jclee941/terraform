@@ -15,10 +15,12 @@ services:
       - ./.gitconfig:/root/.gitconfig:ro
       - /mnt/oc-kratos:/root/.kratos
       - ./slack-users-cache.json:/tmp/slack-users-cache.json
+      - ./patches:/app/patches:ro
     env_file:
       - .env
     environment:
       - MCPHUB_PORT=3000
+    entrypoint: ["/bin/sh", "/app/patches/entrypoint-patch.sh"]
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:3000/ || exit 1"]
       interval: 30s
