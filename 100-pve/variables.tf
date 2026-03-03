@@ -21,13 +21,14 @@ variable "proxmox_endpoint" {
 }
 
 variable "proxmox_api_token" {
-  description = "Proxmox API token in format 'user@realm!tokenid=uuid'"
+  description = "Proxmox API token in format 'user@realm!tokenid=uuid' (optional — 1Password is preferred source)"
   type        = string
+  default     = ""
   sensitive   = true
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9]+@[a-zA-Z]+![a-zA-Z0-9-]+=", var.proxmox_api_token))
-    error_message = "API token must be in format 'user@realm!tokenid=uuid'."
+    condition     = var.proxmox_api_token == "" || can(regex("^[a-zA-Z0-9]+@[a-zA-Z]+![a-zA-Z0-9-]+=", var.proxmox_api_token))
+    error_message = "API token must be empty (use 1Password) or in format 'user@realm!tokenid=uuid'."
   }
 }
 

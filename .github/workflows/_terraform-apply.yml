@@ -283,34 +283,28 @@ jobs:
             tf_import(f'github_repository_dependabot_security_updates.repositories["{repo}"]', repo)
             time.sleep(1)
 
-            # Check repo visibility — rulesets only exist for non-private repos in TF config
-            repo_info = gh_get(f"/repos/{owner}/{repo}")
-            is_private = repo_info.get("private", False) if isinstance(repo_info, dict) else True
+            # Import rulesets for all repos (visibility-agnostic)
+            rulesets = gh_get(f"/repos/{owner}/{repo}/rulesets?per_page=100")
+            by_name = {r.get("name", ""): r.get("id") for r in rulesets if r.get("name") and r.get("id")}
 
-            if not is_private:
-              rulesets = gh_get(f"/repos/{owner}/{repo}/rulesets?per_page=100")
-              by_name = {r.get("name", ""): r.get("id") for r in rulesets if r.get("name") and r.get("id")}
-
-              if by_name.get("default-branch-protection"):
-                tf_import(
-                  f'github_repository_ruleset.branch["{repo}"]',
-                  f'{repo}:{by_name["default-branch-protection"]}',
-                )
-                time.sleep(1)
-              if by_name.get("tag-protection"):
-                tf_import(
-                  f'github_repository_ruleset.tags["{repo}"]',
-                  f'{repo}:{by_name["tag-protection"]}',
-                )
-                time.sleep(1)
-              if by_name.get("code-scanning"):
-                tf_import(
-                  f'github_repository_ruleset.code_scanning["{repo}"]',
-                  f'{repo}:{by_name["code-scanning"]}',
-                )
-                time.sleep(1)
-            else:
-              print(f"skipping rulesets for {repo} (private repo)")
+            if by_name.get("default-branch-protection"):
+              tf_import(
+                f'github_repository_ruleset.branch["{repo}"]',
+                f'{repo}:{by_name["default-branch-protection"]}',
+              )
+              time.sleep(1)
+            if by_name.get("tag-protection"):
+              tf_import(
+                f'github_repository_ruleset.tags["{repo}"]',
+                f'{repo}:{by_name["tag-protection"]}',
+              )
+              time.sleep(1)
+            if by_name.get("code-scanning"):
+              tf_import(
+                f'github_repository_ruleset.code_scanning["{repo}"]',
+                f'{repo}:{by_name["code-scanning"]}',
+              )
+              time.sleep(1)
 
             hooks = gh_get(f"/repos/{owner}/{repo}/hooks?per_page=100")
             for hook in hooks:

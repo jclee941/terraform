@@ -126,7 +126,7 @@ As the host node, 100-pve is the foundation for:
 | <a name="input_network_gateway"></a> [network\_gateway](#input\_network\_gateway) | Network gateway IP address | `string` | `"192.168.50.1"` | no |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node name to deploy containers | `string` | `"pve3"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for shared infrastructure secrets | `string` | `"homelab"` | no |
-| <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | Proxmox API token in format 'user@realm!tokenid=uuid' | `string` | n/a | yes |
+| <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | Proxmox API token in format 'user@realm!tokenid=uuid' (optional — 1Password is preferred source) | `string` | `""` | no |
 | <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | Proxmox VE API endpoint URL | `string` | `"https://192.168.50.100:8006/"` | no |
 | <a name="input_proxmox_insecure"></a> [proxmox\_insecure](#input\_proxmox\_insecure) | Skip TLS verification (use only for self-signed certs) | `bool` | `true` | no |
 | <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | SSH public keys for LXC containers (root user) | `list(string)` | `[]` | no |

@@ -117,29 +117,36 @@ jobs:
           mkdir -p ~/.config/opencode
           echo '${{ secrets.ANTIGRAVITY_ACCOUNTS_JSON }}' | base64 -d > ~/.config/opencode/antigravity-accounts.json
 
+      - name: Install OpenCode CLI
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
+
       - name: Auto-fix with OpenCode
-        uses: anomalyco/opencode/github@1cd77b10724ad87acc96790bec4a524614b20ad6 # v1.2.6
-        with:
-          model: ${{ inputs.model }}
-          prompt: |
-            CI workflow "${{ inputs.workflow-name }}" failed on branch "${{ inputs.head-branch }}" (PR #${{ inputs.pr-number }}).
-            Failed jobs (${{ steps.logs.outputs.failed_count }}): ${{ steps.logs.outputs.failed_jobs }}
-
-            ## Project Context
-            $(cat /tmp/project-context.txt)
-
-            ## Instructions
-            1. Read the CI failure logs below
-            2. Identify the root cause of each failure
-            3. Fix ONLY what is needed to make CI pass
-            4. Do NOT refactor unrelated code
-            5. Do NOT modify CI workflow files unless the workflow itself is broken
-            6. Do NOT suppress errors with ignore comments or type casts
-            7. Follow existing code patterns and conventions
-            8. If the failure is infrastructure-related (network, secrets, runner), do NOT make code changes — just note it
-
-            ## CI Failure Logs
-            $(cat /tmp/ci-failure-logs.txt)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo 'CI workflow "${{ inputs.workflow-name }}" failed on branch "${{ inputs.head-branch }}" (PR #${{ inputs.pr-number }})."'
+            echo 'Failed jobs (${{ steps.logs.outputs.failed_count }}): ${{ steps.logs.outputs.failed_jobs }}'
+            echo ''
+            echo '## Project Context'
+            cat /tmp/project-context.txt 2>/dev/null || echo 'No project context available'
+            echo ''
+            echo '## Instructions'
+            echo '1. Read the CI failure logs below'
+            echo '2. Identify the root cause of each failure'
+            echo '3. Fix ONLY what is needed to make CI pass'
+            echo '4. Do NOT refactor unrelated code'
+            echo '5. Do NOT modify CI workflow files unless the workflow itself is broken'
+            echo '6. Do NOT suppress errors with ignore comments or type casts'
+            echo '7. Follow existing code patterns and conventions'
+            echo '8. If the failure is infrastructure-related (network, secrets, runner), do NOT make code changes — just note it'
+            echo ''
+            echo '## CI Failure Logs'
+            cat /tmp/ci-failure-logs.txt 2>/dev/null || echo 'No failure logs available'
+          } > /tmp/opencode-prompt.txt
+          opencode run -m "${{ inputs.model }}" "$(cat /tmp/opencode-prompt.txt)"
 
       - name: Check for changes
         id: changes
