@@ -22,9 +22,9 @@ scripts/setup-github-secrets.sh --audit
 ## Architecture
 
 ```
-1Password (homelab vault, 11 items)
+1Password (homelab vault, 14 items)
   │
-  ├── onepassword-secrets module (35 secret keys)
+  ├── onepassword-secrets module (39 secret keys)
   │     │
   │     ├── 104-grafana/terraform ──────────────┐
   │     ├── 105-elk/terraform ────────────────┤
@@ -48,7 +48,7 @@ scripts/setup-github-secrets.sh --audit
 
 ## 1Password Item Inventory
 
-The shared module (`modules/shared/onepassword-secrets/`) manages 11 items:
+The shared module (`modules/shared/onepassword-secrets/`) manages 14 items:
 
 | Item         | Description          | Key Secrets                                                                                                                  |
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -63,11 +63,14 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 11 items:
 | `n8n`        | n8n automation       | `encryption_key`, `webhook_url`                                                                                              |
 | `mcphub`     | MCPHub service       | `admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `glitchtip_token`, `es_password`, `proxmox_token`, `slack_tokens` |
 | `elk`        | ELK stack            | `elastic_password`, `kibana_password`                                                                                        |
+| `synology`   | Synology NAS         | `username`, `password`                                                                                                       |
+| `slack`      | Slack workspace      | `bot_token`, `app_token`                                                                                                     |
+| `youtube`    | YouTube API          | `client_id`, `client_secret`, `access_token`, `refresh_token`                                                               |
 
 **Module outputs:**
 
-- 35 secret keys (sensitive=true, not printed in Terraform output)
- 7 metadata keys (sensitive=false)
+- 39 secret keys (sensitive=true, not printed in Terraform output)
+- 11 metadata keys (sensitive=false)
 
 **Access pattern:**
 
@@ -156,14 +159,14 @@ module "secrets" {
 | Secret                         | Source File                       | Variable                | Priority |
 | ------------------------------ | --------------------------------- | ----------------------- | -------- |
 | `TF_VAR_PROXMOX_ENDPOINT`      | `100-pve/terraform.tfvars`        | `proxmox_endpoint`      | P0       |
-| `TF_VAR_PROXMOX_API_TOKEN`     | `100-pve/terraform.tfvars`        | `proxmox_api_token`     | P0       |
-| `TF_VAR_PROXMOX_INSECURE`      | `100-pve/terraform.tfvars`        | `proxmox_insecure`      | P0       |
-| `TF_VAR_CLOUDFLARE_ACCOUNT_ID` | `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P1       |
-| `TF_VAR_CLOUDFLARE_ZONE_ID`    | `300-cloudflare/terraform.tfvars` | `cloudflare_zone_id`    | P1       |
-| `TF_VAR_SYNOLOGY_DOMAIN`       | `300-cloudflare/terraform.tfvars` | `synology_domain`       | P1       |
+| `TF_VAR_PROXMOX_API_TOKEN`    | `100-pve/terraform.tfvars`        | `proxmox_api_token`     | P0       |
+| `TF_VAR_PROXMOX_INSECURE`     | `100-pve/terraform.tfvars`        | `proxmox_insecure`      | P0       |
+| `TF_VAR_CLOUDFLARE_ACCOUNT_ID`| `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P1       |
+| `TF_VAR_CLOUDFLARE_ZONE_ID`   | `300-cloudflare/terraform.tfvars` | `cloudflare_zone_id`    | P1       |
+| `TF_VAR_SYNOLOGY_DOMAIN`      | `300-cloudflare/terraform.tfvars` | `synology_domain`       | P1       |
 | `TF_VAR_ACCESS_ALLOWED_EMAILS` | `300-cloudflare/terraform.tfvars` | `access_allowed_emails` | P1       |
-| `CLOUDFLARE_API_TOKEN`         | env / CF dashboard                | —                       | P2       |
-| `CLOUDFLARE_ACCOUNT_ID`        | `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P2       |
+| `CLOUDFLARE_API_TOKEN`        | env / CF dashboard                | —                       | P2       |
+| `CLOUDFLARE_ACCOUNT_ID`       | `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P2       |
 
 ### Manual (3/17 — not in 1Password)
 
@@ -192,6 +195,14 @@ scripts/setup-github-secrets.sh --audit
 The `secret-audit.yml` workflow runs every Monday at 09:00 UTC.
 It validates all 17 secrets and reports missing ones.
 Trigger manually: Actions → Secret Audit → Run workflow.
+
+## Credential Rotation Reminder
+
+The `credential-rotation-reminder.yml` workflow runs weekly on Monday at 09:00 UTC.
+It checks known expiry dates and creates GitHub issues if any credential is within 14 days of expiry.
+Credentials tracked:
+- n8n MCP API Key (fixed expiry: 2026-05-11)
+- Cloudflare Access service token (60-day rotation cycle via terraform)
 
 ## Cross-References
 
