@@ -107,6 +107,8 @@ As the host node, 100-pve is the foundation for:
 
 | Name | Type |
 |------|------|
+| [proxmox_virtual_environment_firewall_options.container](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_firewall_options) | resource |
+| [proxmox_virtual_environment_firewall_options.vm](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_firewall_options) | resource |
 | [proxmox_virtual_environment_firewall_rules.container](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_firewall_rules) | resource |
 | [proxmox_virtual_environment_firewall_rules.vm](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_firewall_rules) | resource |
 | [proxmox_virtual_environment_storage_pbs.pbs](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_storage_pbs) | resource |

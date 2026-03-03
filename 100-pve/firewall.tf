@@ -1,9 +1,11 @@
 # ──────────────────────────────────────────────────────────────────────────────
-# Proxmox Firewall Rules — data-driven per-guest inbound port restrictions
+# Proxmox Firewall Rules — data-driven per-guest port restrictions
 # ──────────────────────────────────────────────────────────────────────────────
 # Port definitions derived from hosts.tf SSoT with per-host overrides.
 # SSH (port 22/tcp) auto-injected for all managed guests.
-# Default policy: DROP all inbound except explicitly allowed ports.
+#
+# Inbound:  DROP all except explicitly allowed ports.
+# Outbound: DROP all except local subnet + essential internet (DNS/HTTP/HTTPS/NTP).
 #
 # To add a new host:   add entry to firewall_guests map below.
 # To add a new port:   add to hosts.tf ports map (auto-exposed in firewall).
@@ -85,6 +87,20 @@ locals {
     }
   }
 
+  # ── Egress filtering ──────────────────────────────────────────────────────
+  # Default outbound policy: DROP. These rules whitelist essential egress.
+  # Local subnet is fully allowed for inter-service communication.
+  # Internet egress restricted to DNS, HTTP, HTTPS, NTP.
+  _egress_common = [
+    { dest = "192.168.50.0/24", proto = "tcp", dport = null, comment = "Local subnet (TCP)" },
+    { dest = "192.168.50.0/24", proto = "udp", dport = null, comment = "Local subnet (UDP)" },
+    { dest = null, proto = "tcp", dport = "53", comment = "DNS" },
+    { dest = null, proto = "udp", dport = "53", comment = "DNS (UDP)" },
+    { dest = null, proto = "tcp", dport = "80", comment = "HTTP outbound" },
+    { dest = null, proto = "tcp", dport = "443", comment = "HTTPS outbound" },
+    { dest = null, proto = "udp", dport = "123", comment = "NTP" },
+  ]
+
   # ── Generated rules (do not edit below) ────────────────────────────────────
 
   _firewall_rules = {
@@ -145,6 +161,19 @@ resource "proxmox_virtual_environment_firewall_rules" "container" {
       log     = "nolog"
     }
   }
+
+  dynamic "rule" {
+    for_each = local._egress_common
+    content {
+      type    = "out"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      dest    = rule.value.dest
+      comment = "${each.key}: Egress ${rule.value.comment}"
+      log     = "nolog"
+    }
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "vm" {
@@ -164,6 +193,47 @@ resource "proxmox_virtual_environment_firewall_rules" "vm" {
       log     = "nolog"
     }
   }
+
+  dynamic "rule" {
+    for_each = local._egress_common
+    content {
+      type    = "out"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      dest    = rule.value.dest
+      comment = "${each.key}: Egress ${rule.value.comment}"
+      log     = "nolog"
+    }
+  }
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Firewall Options — enable firewall + set default policies per guest
+# ──────────────────────────────────────────────────────────────────────────────
+# input_policy:  DROP (only explicitly allowed inbound ports accepted)
+# output_policy: DROP (only whitelisted egress allowed — see _egress_common)
+
+resource "proxmox_virtual_environment_firewall_options" "container" {
+  for_each = local.container_firewall
+
+  node_name    = var.node_name
+  container_id = each.value.vmid
+
+  enabled       = true
+  input_policy  = "DROP"
+  output_policy = "DROP"
+}
+
+resource "proxmox_virtual_environment_firewall_options" "vm" {
+  for_each = local.vm_firewall
+
+  node_name = var.node_name
+  vm_id     = each.value.vmid
+
+  enabled       = true
+  input_policy  = "DROP"
+  output_policy = "DROP"
 }
 
 # Import commands (run manually, not as HCL import blocks which break terraform test):
