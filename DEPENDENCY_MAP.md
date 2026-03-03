@@ -1,6 +1,6 @@
 # Terraform Monorepo — Dependency Graph & Entry Points
 
-**Generated:** 2026-02-20
+**Generated:** 2026-03-03
 **Scope:** Complete module dependency mapping, template inventory, provider matrix
 
 ---
@@ -11,17 +11,20 @@
 
 | Workspace   | Entry Point           | Role              | Modules Used                                                         |
 | ----------- | --------------------- | ----------------- | -------------------------------------------------------------------- |
-| **100-pve** | `main.tf` (844 lines) | Central infra hub | lxc, vm, vm-config, lxc-config, config-renderer, onepassword-secrets |
+| **100-pve** | `main.tf` (77 lines) | Central infra hub | lxc, vm, vm-config, lxc-config, config-renderer, onepassword-secrets |
 
 ### SECONDARY WORKSPACES (Terraform-managed)
 
 | Workspace          | Entry Point         | Role                     | Modules Used            | Providers                      |
 | ------------------ | ------------------- | ------------------------ | ----------------------- | ------------------------------ |
 | **102-traefik**    | `terraform/main.tf` | Reverse proxy config     | None (direct resources) | None (template-only)           |
-| **104-grafana**    | `terraform/main.tf` | Observability dashboards | None                    | grafana ~>3.0                  |
-| **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.10            |
+| **104-grafana**    | `terraform/main.tf` | Observability dashboards | None                    | grafana ~>4.0                  |
+| **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.13            |
 | **108-archon**     | `terraform/main.tf` | AI knowledge mgmt        | None                    | None (LXC-managed)             |
-| **300-cloudflare** | `main.tf`           | External DNS/tunnel      | None                    | cloudflare ~>4.0, github ~>6.0 |
+| **300-cloudflare** | `main.tf`           | External DNS/tunnel      | None                    | cloudflare ~>5.0, github ~>6.6 |
+| **109-ollama**     | `terraform/main.tf` | LLM inference            | None (reserved)         | None                           |
+| **301-github**     | `main.tf`           | GitHub repo/ruleset mgmt | None                    | github ~>6.6, onepassword ~>3.2 |
+| **320-slack**      | `main.tf`           | Slack integration        | None                    | slack ~>1.0, onepassword ~>3.2  |
 
 ### TEMPLATE-ONLY WORKSPACES (No Terraform)
 
@@ -95,15 +98,15 @@ modules/shared/
 │
 ├── module "lxc"
 │   └── source: ../modules/proxmox/lxc
-│       └── Provisions 7 containers (101-108)
+│       └── Provisions 8 containers (101-108)
 │
 ├── module "vm"
 │   └── source: ../modules/proxmox/vm
-│       └── Provisions 1 VM (112-mcphub)
+│       └── Provisions 4 VMs (109, 112, 200, 220)
 │
 ├── module "vm_config"
 │   └── source: ../modules/proxmox/vm-config
-│       └── Renders cloud-init for VM 112
+│       └── Renders cloud-init for VMs
 │
 ├── module "lxc_config"
 │   └── source: ../modules/proxmox/lxc-config
@@ -205,11 +208,16 @@ template_vars = {
 | **100-pve**        | bpg/proxmox           | ~>0.94  | API token (env)       | LXC/VM provisioning  |
 |                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching      |
 | **102-traefik**    | None                  | —       | —                     | Template-only        |
-| **104-grafana**    | grafana/grafana       | ~>3.0   | API token (env)       | Dashboard/alert mgmt |
-| **105-elk**        | elastic/elasticstack  | ~>0.10  | API key (env)         | Index/ILM/space mgmt |
+| **104-grafana**    | grafana/grafana       | ~>4.0   | API token (env)       | Dashboard/alert mgmt |
+| **105-elk**        | elastic/elasticstack  | ~>0.13  | API key (env)         | Index/ILM/space mgmt |
 | **108-archon**     | None                  | —       | —                     | LXC-managed          |
-| **300-cloudflare** | cloudflare/cloudflare | ~>4.0   | API token (env)       | DNS/tunnel/access    |
-|                    | github/github         | ~>6.0   | Token (env)           | Repo/secret mgmt     |
+| **109-ollama**     | None                  | —       | —                     | Reserved             |
+| **300-cloudflare** | cloudflare/cloudflare | ~>5.0   | API token (env)       | DNS/tunnel/access    |
+|                    | integrations/github   | ~>6.6   | Token (env)           | Repo/secret mgmt     |
+| **301-github**     | integrations/github   | ~>6.6   | Token (env)           | Repo/ruleset mgmt    |
+|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching      |
+| **320-slack**      | pablovarela/slack     | ~>1.0   | Token (env)           | Channel management   |
+|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching      |
 
 ### Environment Variables (Required for CI/Local)
 
@@ -241,7 +249,7 @@ export GITHUB_TOKEN="ghp_..."
 | `data "onepassword_item"`                               | 100-pve (via module) | Fetch 12 service secrets                       |
 | `data "grafana_data_source"`                            | 104-grafana          | Reference Prometheus/Elasticsearch datasources |
 | `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare       | Fetch tunnel token                             |
-| `data "terraform_remote_state"`                         | (none currently)     | Cross-workspace state reference (reserved)     |
+| `data "terraform_remote_state"`                         | 102, 104, 105, 108, 109, 301 | Cross-workspace state reference (from 100-pve) |
 
 ---
 
@@ -249,7 +257,7 @@ export GITHUB_TOKEN="ghp_..."
 
 ### For New Contributors
 
-1. **Understanding Infrastructure**: Start at `/home/jclee/dev/terraform/100-pve/main.tf` (844 lines)
+1. **Understanding Infrastructure**: Start at `/home/jclee/dev/terraform/100-pve/main.tf` (77 lines)
 2. **Host Inventory**: Read `/home/jclee/dev/terraform/100-pve/envs/prod/hosts.tf` (SSoT)
 3. **Module Behavior**: Read `/home/jclee/dev/terraform/modules/proxmox/AGENTS.md`
 4. **Service Config**: Check `/home/jclee/dev/terraform/{NNN}-{svc}/templates/` for template logic

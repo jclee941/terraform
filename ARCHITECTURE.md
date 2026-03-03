@@ -31,7 +31,7 @@ Homelab infrastructure-as-code monorepo. Provisions a Proxmox LXC/VM fleet, netw
 ```
 terraform/
 ├── 100-pve/                    # Tier 0: Central orchestrator (all LXC/VM lifecycle)
-│   ├── main.tf                 # Providers, module calls (516 lines)
+│   ├── main.tf                 # Providers, module calls (77 lines)
 │   ├── locals.tf               # Sizing, VM defs, config maps (311 lines)
 │   ├── checks.tf               # TF 1.5+ validation checks
 │   ├── firewall.tf             # Proxmox firewall rules
@@ -48,13 +48,13 @@ terraform/
 ├── 103-coredns/                # Template-only: Split DNS
 ├── 106-glitchtip/              # Template-only: Error tracking
 ├── 107-supabase/               # Template-only: Backend-as-a-Service
-├── 109-ollama/                 # Template-only: LLM inference
+├── 109-ollama/                 # Tier 1: LLM inference (reserved)
 ├── 112-mcphub/                 # Template-only: MCP Hub + 1Password Connect
 ├── 200-oc/                     # Template-only
 ├── 215-synology/               # Template-only: NAS inventory
 ├── 220-youtube/                # Template-only: YouTube VM
 ├── 310-safetywallet/           # Template-only
-├── _archived/301-github/       # Archived workspace
+├── 301-github/                 # Independent: GitHub repo/ruleset management
 ├── modules/
 │   ├── proxmox/
 │   │   ├── lxc/                # LXC container provisioning
@@ -63,14 +63,14 @@ terraform/
 │   │   ├── vm-config/          # VM config rendering (cloud-init)
 │   │   └── config-renderer/    # Central template → config pipeline
 │   └── shared/
-│       └── onepassword-secrets/# 1Password secret retrieval (11 items, 35 keys)
+│       └── onepassword-secrets/# 1Password secret retrieval (12 items, 48 keys)
 ├── tests/
 │   ├── modules/                # Unit tests (proxmox, shared)
 │   ├── integration/            # Cross-module integration tests
 │   └── workspaces/             # Workspace validation (pve, cloudflare, grafana, elk, slack)
 ├── scripts/                    # Operational tooling (Go + shell)
 ├── docs/                       # Architecture docs, ADRs, runbooks
-├── .github/workflows/          # 70 CI/CD workflows
+├── .github/workflows/          # 72 CI/CD workflows
 ├── AGENTS.md                   # AI agent project context (SSoT)
 ├── DEPENDENCY_MAP.md           # Module dependency graph + template inventory
 ├── Makefile                    # Build/lint/test/verify targets
@@ -81,11 +81,10 @@ terraform/
 
 | Tier | Workspaces | Role | Apply Order |
 | ---- | ---------- | ---- | ----------- |
-| 0 (core) | `100-pve` | Central orchestrator. Provisions 8 LXC + 2 VM. | First |
-| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
-| Independent | `300-cloudflare`, `320-slack` | No Proxmox dependency. | Third (parallel) |
-| Template-only | 11 workspaces | Config templates + docker-compose only, no `.tf` files. | N/A |
-| Archived | `_archived/301-github` | Deprecated. | N/A |
+| 0 (core) | `100-pve` | Central orchestrator. Provisions 8 LXC + 4 VM. | First |
+| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon`, `109-ollama` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
+| Independent | `300-cloudflare`, `301-github`, `320-slack` | No Proxmox dependency. | Third (parallel) |
+| Template-only | 10 workspaces | Config templates + docker-compose only, no `.tf` files. | N/A |
 
 ## Service Inventory
 
@@ -100,7 +99,9 @@ terraform/
 | 106 | glitchtip | .106 | LXC | Error tracking |
 | 107 | supabase | .107 | LXC | Backend-as-a-Service |
 | 108 | archon | .108 | LXC | AI knowledge management |
+| 109 | ollama | .109 | VM | LLM inference (Ollama) |
 | 112 | mcphub | .112 | VM | MCP Hub + n8n + 1Password Connect |
+| 200 | oc | .200 | VM | OpenCode dev environment |
 | 215 | synology | .215 | Physical | NAS storage |
 | 220 | sandbox | .220 | VM | Dev sandbox (disabled) |
 
@@ -156,7 +157,7 @@ Services → node_exporter → Prometheus:9090 → Grafana:3000
 
 | Module | Purpose | Key Resource |
 | ------ | ------- | ------------ |
-| `onepassword-secrets/` | 1Password secret retrieval | `data.onepassword_item` × 11 services |
+| `onepassword-secrets/` | 1Password secret retrieval | `data.onepassword_item` × 12 services |
 
 ## State Management
 
@@ -166,7 +167,7 @@ Services → node_exporter → Prometheus:9090 → Grafana:3000
 
 ## Secrets
 
-1Password vault `homelab` (11 items, 35 secret keys) → `onepassword-secrets` module → `.tftpl` templates → `.env` files on hosts.
+1Password vault `homelab` (12 items, 48 keys) → `onepassword-secrets` module → `.tftpl` templates → `.env` files on hosts.
 
 - **Connect Server**: LXC 112, port 8090
 - **Auth**: `OP_CONNECT_TOKEN` + `OP_CONNECT_HOST` environment variables
@@ -180,7 +181,7 @@ Services → node_exporter → Prometheus:9090 → Grafana:3000
 - **Local apply**: Disabled (`make apply` exits with error)
 - **Drift detection**: Mon–Fri 00:00 UTC via scheduled workflow
 - **Actions**: All SHA-pinned with `# vN` version comment
-- **Workflows**: 70 files in `.github/workflows/`, reusable `_*.yml` from `qws941/.github`
+- **Workflows**: 72 files in `.github/workflows/`, reusable `_*.yml` from `qws941/.github`
 
 ## Testing
 
