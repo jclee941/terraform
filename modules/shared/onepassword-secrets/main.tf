@@ -16,7 +16,7 @@ data "onepassword_vault" "this" {
 }
 
 # ---------------------------------------------------------------------------
-# Data sources — one per service, mirroring Vault KV v2 paths.
+# Data sources — one per service via for_each.
 # Each 1Password item should contain a section named "secrets" with fields
 # matching the original Vault KV key names.
 #
@@ -27,69 +27,33 @@ data "onepassword_vault" "this" {
 #         └── Field: "service_account_token" (CONCEALED)
 # ---------------------------------------------------------------------------
 
-data "onepassword_item" "grafana" {
-  vault = data.onepassword_vault.this.uuid
-  title = "grafana"
+locals {
+  # Items that are always looked up.
+  required_items = toset([
+    "archon",
+    "cloudflare",
+    "elk",
+    "exa",
+    "github",
+    "glitchtip",
+    "grafana",
+    "mcphub",
+    "n8n",
+    "proxmox",
+    "slack",
+    "supabase",
+    "synology",
+  ])
+
+  # Items conditionally looked up.
+  optional_items = var.enable_pbs ? toset(["pbs"]) : toset([])
+
+  # Combined set for the for_each.
+  all_items = setunion(local.required_items, local.optional_items)
 }
 
-data "onepassword_item" "glitchtip" {
-  vault = data.onepassword_vault.this.uuid
-  title = "glitchtip"
-}
-
-data "onepassword_item" "proxmox" {
-  vault = data.onepassword_vault.this.uuid
-  title = "proxmox"
-}
-
-data "onepassword_item" "github" {
-  vault = data.onepassword_vault.this.uuid
-  title = "github"
-}
-
-data "onepassword_item" "exa" {
-  vault = data.onepassword_vault.this.uuid
-  title = "exa"
-}
-
-
-data "onepassword_item" "supabase" {
-  vault = data.onepassword_vault.this.uuid
-  title = "supabase"
-}
-
-data "onepassword_item" "archon" {
-  vault = data.onepassword_vault.this.uuid
-  title = "archon"
-}
-
-data "onepassword_item" "cloudflare" {
-  vault = data.onepassword_vault.this.uuid
-  title = "cloudflare"
-}
-
-data "onepassword_item" "n8n" {
-  vault = data.onepassword_vault.this.uuid
-  title = "n8n"
-}
-
-data "onepassword_item" "mcphub" {
-  vault = data.onepassword_vault.this.uuid
-  title = "mcphub"
-}
-
-data "onepassword_item" "slack" {
-  vault = data.onepassword_vault.this.uuid
-  title = "slack"
-}
-
-data "onepassword_item" "elk" {
-  vault = data.onepassword_vault.this.uuid
-  title = "elk"
-}
-
-data "onepassword_item" "pbs" {
-  count = var.enable_pbs ? 1 : 0
-  vault = data.onepassword_vault.this.uuid
-  title = "pbs"
+data "onepassword_item" "this" {
+  for_each = local.all_items
+  vault    = data.onepassword_vault.this.uuid
+  title    = each.key
 }

@@ -43,19 +43,7 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [onepassword_item.archon](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.cloudflare](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.elk](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.exa](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.github](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.glitchtip](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.grafana](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.mcphub](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.n8n](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.pbs](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.proxmox](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.slack](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
-| [onepassword_item.supabase](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
+| [onepassword_item.this](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_vault.this](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/vault) | data source |
 
 ## Inputs
@@ -70,5 +58,5 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (11 keys) |
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (37 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (39 keys) |
 <!-- END_TF_DOCS -->
