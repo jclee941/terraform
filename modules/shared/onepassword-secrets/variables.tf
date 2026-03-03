@@ -3,3 +3,9 @@ variable "vault_name" {
   type        = string
   default     = "homelab"
 }
+
+variable "enable_pbs" {
+  description = "Whether to look up PBS secrets from 1Password (requires 'pbs' item in vault)"
+  type        = bool
+  default     = false
+}

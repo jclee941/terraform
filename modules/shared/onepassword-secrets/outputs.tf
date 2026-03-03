@@ -73,7 +73,7 @@ output "secrets" {
     elk_kibana_password  = try(data.onepassword_item.elk.section_map["secrets"].field_map["kibana_password"].value, "")
 
     # PBS (Proxmox Backup Server)
-    pbs_password = try(data.onepassword_item.pbs.section_map["secrets"].field_map["password"].value, "")
+    pbs_password = var.enable_pbs ? try(data.onepassword_item.pbs[0].section_map["secrets"].field_map["password"].value, "") : ""
   }
 }
 
@@ -95,9 +95,9 @@ output "metadata" {
     n8n_glitchtip_webhook_url = try(data.onepassword_item.n8n.section_map["secrets"].field_map["glitchtip_webhook_url"].value, "")
 
     # PBS (Proxmox Backup Server)
-    pbs_server      = try(data.onepassword_item.pbs.section_map["secrets"].field_map["server"].value, "")
-    pbs_datastore   = try(data.onepassword_item.pbs.section_map["secrets"].field_map["datastore"].value, "")
-    pbs_username    = try(data.onepassword_item.pbs.section_map["secrets"].field_map["username"].value, "")
-    pbs_fingerprint = try(data.onepassword_item.pbs.section_map["secrets"].field_map["fingerprint"].value, "")
+    pbs_server      = var.enable_pbs ? try(data.onepassword_item.pbs[0].section_map["secrets"].field_map["server"].value, "") : ""
+    pbs_datastore   = var.enable_pbs ? try(data.onepassword_item.pbs[0].section_map["secrets"].field_map["datastore"].value, "") : ""
+    pbs_username    = var.enable_pbs ? try(data.onepassword_item.pbs[0].section_map["secrets"].field_map["username"].value, "") : ""
+    pbs_fingerprint = var.enable_pbs ? try(data.onepassword_item.pbs[0].section_map["secrets"].field_map["fingerprint"].value, "") : ""
   }
 }

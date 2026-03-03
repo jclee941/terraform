@@ -5,6 +5,7 @@
 module "onepassword_secrets" {
   source     = "../modules/shared/onepassword-secrets"
   vault_name = var.onepassword_vault_name
+  enable_pbs = var.enable_pbs
 }
 
 # =============================================================================

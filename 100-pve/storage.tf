@@ -3,6 +3,7 @@
 # =============================================================================
 
 resource "proxmox_virtual_environment_storage_pbs" "pbs" {
+  count       = var.enable_pbs ? 1 : 0
   id          = "pbs"
   server      = module.onepassword_secrets.metadata["pbs_server"]
   datastore   = module.onepassword_secrets.metadata["pbs_datastore"]

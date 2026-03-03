@@ -88,8 +88,8 @@ data "onepassword_item" "elk" {
   title = "elk"
 }
 
-
 data "onepassword_item" "pbs" {
+  count = var.enable_pbs ? 1 : 0
   vault = data.onepassword_vault.this.uuid
   title = "pbs"
 }

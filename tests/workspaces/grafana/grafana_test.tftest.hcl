@@ -173,8 +173,8 @@ run "slack_enabled_with_webhook" {
     target = module.onepassword_secrets
     outputs = {
       secrets = {
-        grafana_service_account_token = "mock-grafana-token"                     # pragma: allowlist secret
-        slack_webhook_url             = "https://hooks.slack.com/services/mock"  # pragma: allowlist secret
+        grafana_service_account_token = "mock-grafana-token"                    # pragma: allowlist secret
+        slack_webhook_url             = "https://hooks.slack.com/services/mock" # pragma: allowlist secret
       }
       metadata = {
         vault_name                = "homelab"

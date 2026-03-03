@@ -182,3 +182,9 @@ variable "homelab_tunnel_token" {
   sensitive   = true
   default     = ""
 }
+
+variable "enable_pbs" {
+  description = "Enable Proxmox Backup Server storage registration (requires 'pbs' item in 1Password vault)"
+  type        = bool
+  default     = false
+}
