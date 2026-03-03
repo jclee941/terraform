@@ -62,11 +62,8 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@supabase/mcp-server-supabase"],
+      "args": ["-y", "mcp-remote", "http://192.168.50.107:8000/mcp", "--allow-http", "--transport", "http-only"],
       "port": 8076,
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
-      },
       "description": "Supabase database and API management"
     },
     "terraform": {

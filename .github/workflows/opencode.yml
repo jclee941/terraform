@@ -24,7 +24,7 @@ jobs:
       contains(fromJson('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     uses: ./.github/workflows/_opencode.yml
     with:
-      model: anthropic/claude-sonnet-4-5
+      model: google/antigravity-claude-opus-4-6-thinking
       prompt: |
         You are an AI assistant for a Terraform infrastructure monorepo managing a Proxmox homelab
         (jclee.me). The repo uses Google3/Bazel conventions, bpg/proxmox provider (~>0.94), and
