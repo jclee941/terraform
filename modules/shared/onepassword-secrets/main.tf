@@ -87,3 +87,9 @@ data "onepassword_item" "elk" {
   vault = data.onepassword_vault.this.uuid
   title = "elk"
 }
+
+
+data "onepassword_item" "pbs" {
+  vault = data.onepassword_vault.this.uuid
+  title = "pbs"
+}

@@ -6,10 +6,10 @@
 # Each 1Password item must have a section named "secrets" with matching field labels.
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
 #
-# Secrets (sensitive=true): API keys, passwords, tokens — 36 keys.
-# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 7 keys.
+# Secrets (sensitive=true): API keys, passwords, tokens — 37 keys.
+# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 11 keys.
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (36 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (37 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -71,11 +71,14 @@ output "secrets" {
     # ELK / Elasticsearch
     elk_elastic_password = try(data.onepassword_item.elk.section_map["secrets"].field_map["elastic_password"].value, "")
     elk_kibana_password  = try(data.onepassword_item.elk.section_map["secrets"].field_map["kibana_password"].value, "")
+
+    # PBS (Proxmox Backup Server)
+    pbs_password = try(data.onepassword_item.pbs.section_map["secrets"].field_map["password"].value, "")
   }
 }
 
 output "metadata" {
-  description = "Non-secret configuration metadata: usernames, URLs, IDs (7 keys)"
+  description = "Non-secret configuration metadata: usernames, URLs, IDs (11 keys)"
   sensitive   = false
   value = {
     # Supabase
@@ -90,5 +93,11 @@ output "metadata" {
     # n8n
     n8n_webhook_url           = try(data.onepassword_item.n8n.section_map["secrets"].field_map["webhook_url"].value, "")
     n8n_glitchtip_webhook_url = try(data.onepassword_item.n8n.section_map["secrets"].field_map["glitchtip_webhook_url"].value, "")
+
+    # PBS (Proxmox Backup Server)
+    pbs_server      = try(data.onepassword_item.pbs.section_map["secrets"].field_map["server"].value, "")
+    pbs_datastore   = try(data.onepassword_item.pbs.section_map["secrets"].field_map["datastore"].value, "")
+    pbs_username    = try(data.onepassword_item.pbs.section_map["secrets"].field_map["username"].value, "")
+    pbs_fingerprint = try(data.onepassword_item.pbs.section_map["secrets"].field_map["fingerprint"].value, "")
   }
 }
