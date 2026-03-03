@@ -198,6 +198,28 @@ locals {
       summary      = "Log collection stopped"
       description  = "Logstash has received zero events for 10 minutes — filebeat or pipeline may be down"
     }
+    "ssl-cert-expiry-warning" = {
+      group        = "infrastructure_health"
+      expr         = "(probe_ssl_earliest_cert_expiry - time()) / 86400"
+      from         = 3600
+      threshold    = 14
+      condition    = "lt"
+      severity     = "warning"
+      for_duration = "1h"
+      summary      = "SSL certificate expiring soon"
+      description  = "SSL certificate for {{ $labels.instance }} expires in less than 14 days"
+    }
+    "ssl-cert-expiry-critical" = {
+      group        = "infrastructure_health"
+      expr         = "(probe_ssl_earliest_cert_expiry - time()) / 86400"
+      from         = 3600
+      threshold    = 7
+      condition    = "lt"
+      severity     = "critical"
+      for_duration = "1h"
+      summary      = "SSL certificate expiry imminent"
+      description  = "SSL certificate for {{ $labels.instance }} expires in less than 7 days"
+    }
   }
 
   # Group filters

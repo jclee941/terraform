@@ -50,6 +50,24 @@ scrape_configs:
           - 'http://${hosts.archon.ip}:${hosts.archon.ports.ui}/'
           - 'http://${hosts.ollama.ip}:${hosts.ollama.ports.api}/api/tags'
           - 'http://${hosts.coredns.ip}:${hosts.coredns.ports.health}/'
+          - 'http://${hosts.mcphub.ip}:${hosts.mcphub.ports.op_connect}/heartbeat'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: 'blackbox-https'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - 'https://grafana.jclee.me'
+          - 'https://archon.jclee.me'
+          - 'https://supabase.jclee.me'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
