@@ -55,7 +55,7 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 - **Secret values**: NEVER in code/git. Only in `.tfvars` (gitignored) or env vars.
 - **inventory/secrets.yaml**: Metadata only (name, targets[], description). No values.
 - **Scripts**: Assume `~/dev/` sibling project layout for cross-project harvesting.
-- **Tunnel architecture**: 3 tunnels — `synology` (direct to NAS, no_tls_verify), `homelab`/`traefik` (HTTP via Traefik + TCP direct + logstash-ingest), and `jclee` (physical PC, host ID 80).
+- **Tunnel architecture**: 3 tunnels — `synology` (direct to NAS, HTTP origin), `homelab`/`traefik` (HTTP via Traefik + TCP direct + logstash-ingest), and `jclee` (physical PC, host ID 80).
 - **Access tiers**: HTTP services get 24h sessions with email auth. TCP services (SSH/RDP) get 720h sessions. M2M (Logpush→Logstash) uses service token with `non_identity` policy.
 
 ## ANTI-PATTERNS

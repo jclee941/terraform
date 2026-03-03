@@ -198,7 +198,7 @@ scripts/generate-bindings.sh --out wrangler.toml
 | <a name="input_secret_values"></a> [secret\_values](#input\_secret\_values) | Runtime secret values map, keyed by secret name (never commit) | `map(string)` | `{}` | no |
 | <a name="input_synology_domain"></a> [synology\_domain](#input\_synology\_domain) | Domain/subdomain for Synology proxy (e.g., nas.jclee.me) | `string` | n/a | yes |
 | <a name="input_synology_nas_ip"></a> [synology\_nas\_ip](#input\_synology\_nas\_ip) | Synology NAS IP address on local network | `string` | `"192.168.50.215"` | no |
-| <a name="input_synology_nas_port"></a> [synology\_nas\_port](#input\_synology\_nas\_port) | Synology DSM HTTPS port | `number` | `5001` | no |
+| <a name="input_synology_nas_port"></a> [synology\_nas\_port](#input\_synology\_nas\_port) | Synology DSM HTTP port | `number` | `5000` | no |
 | <a name="input_youtube_ip"></a> [youtube\_ip](#input\_youtube\_ip) | YouTube media server IP address (VMID 220) | `string` | `"192.168.50.220"` | no |
 
 ## Outputs

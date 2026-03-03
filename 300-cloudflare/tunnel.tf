@@ -24,10 +24,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "synology" {
     ingress = [
       {
         hostname = var.synology_domain
-        service  = "https://${var.synology_nas_ip}:${var.synology_nas_port}"
-        origin_request = {
-          no_tls_verify = true
-        }
+        service  = "http://${var.synology_nas_ip}:${var.synology_nas_port}"
       },
       {
         service = "http_status:404"

@@ -91,9 +91,9 @@ variable "synology_nas_ip" {
 }
 
 variable "synology_nas_port" {
-  description = "Synology DSM HTTPS port"
+  description = "Synology DSM HTTP port"
   type        = number
-  default     = 5001
+  default     = 5000
 
   validation {
     condition     = var.synology_nas_port >= 1 && var.synology_nas_port <= 65535
