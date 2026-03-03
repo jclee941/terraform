@@ -32,6 +32,7 @@ Terraform-managed Slack workspace: channel lifecycle, usergroups, and membership
 ## CONVENTIONS
 
 - Auth: Bot token via 1Password, with variable fallback.
+- Channel management is conditional: `local._slack_enabled` gates all `slack_conversation` resources. When bot token is unavailable, channels are skipped gracefully.
 - Channel naming: kebab-case, prefixed by purpose (e.g. `ops-`, `dev-`, `alert-`).
 - Existing channels: use `adopt_existing_channel = true` for import.
 

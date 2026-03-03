@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-70 GitHub Actions workflows (24 reusable `_`-prefixed templates + 46 standalone) governing Terraform plan/apply, drift detection, PR automation, and security scanning. Each of the 9 active TF workspaces except 109-ollama has dedicated plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
+72 GitHub Actions workflows (24 reusable `_`-prefixed templates + 48 standalone) governing Terraform plan/apply, drift detection, PR automation, and security scanning. Each of the 10 active TF workspaces has dedicated plan/apply workflow pairs (~120 lines each). All TF workflows run on `self-hosted` runner (LXC 101).
 
 ## STRUCTURE
 
@@ -21,9 +21,9 @@
 │   ├── _terraform-apply.yml    # Reusable apply template (called by service workflows)
 │   ├── terraform-plan.yml      # 100-pve plan (PR trigger)
 │   ├── terraform-apply.yml     # 100-pve apply (push to master + workflow_dispatch)
-│   ├── terraform-drift.yml     # Drift check (Mon-Fri 00:00 UTC, 7-workspace matrix)
-│   ├── {svc}-plan.yml          # Per-service plan (7 services: archon, cloudflare, elk, github, grafana, slack, traefik)
-│   ├── {svc}-apply.yml         # Per-service apply (7 services)
+│   ├── terraform-drift.yml     # Drift check (Mon-Fri 00:00 UTC, 9-workspace matrix)
+│   ├── {svc}-plan.yml          # Per-service plan (8 services: archon, cloudflare, elk, github, grafana, ollama, slack, traefik)
+│   ├── {svc}-apply.yml         # Per-service apply (8 services)
 │   ├── auto-merge.yml          # Risk-tier labeling + auto-merge (low only)
 │   ├── pr-review.yml           # Automated PR review
 │   ├── labeler.yml             # Auto-label by changed paths
@@ -48,7 +48,7 @@
 | Task                        | Location                                  | Notes                                                                                                                               |
 | --------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **Add Service Workflow**    | Copy `{svc}-plan.yml` + `{svc}-apply.yml` | Standalone workflows per service. Each contains full TF init + plan/apply logic (~120 lines).                                       |
-| **Drift Detection**         | `terraform-drift.yml`                     | Matrix: proxmox, grafana, elk, traefik, archon, cloudflare, github. Mon-Fri 00:00 UTC (09:00 KST). Slack not yet in drift matrix. |
+| **Drift Detection**         | `terraform-drift.yml`                     | Matrix: proxmox, grafana, elk, traefik, archon, ollama, cloudflare, github, slack. Mon-Fri 00:00 UTC (09:00 KST). |
 | **Risk Tiers**              | `auto-merge.yml`                          | Critical (100-pve, modules, 300-cf, 301-gh, 102-traefik), medium (elk, supabase, archon, mcphub, 220-youtube), low (slack) = auto-merge. |
 | **Workflow Pattern**        | `{svc}-plan.yml`                          | Each standalone workflow has: TF setup, init, plan/apply, PR comment. No reusable workflow abstraction (consolidation opportunity). |
 | **Secrets Pattern**         | Per-workflow steps                        | `secrets.*` → `TF_VAR_*` env export in plan/apply steps.                                                                            |
@@ -62,7 +62,7 @@
 - **Runner**: All TF workflows use `self-hosted` (LXC 101). Non-TF automation uses `ubuntu-latest`.
 - **Backend Config**: All workspaces use local backend. No `-backend-config` needed — `terraform init` uses default local state.
 - **Pin Actions**: All `uses:` pinned to full commit SHA, not version tags.
-- **Services**: archon, cloudflare, elk, github, grafana, slack, traefik each have dedicated standalone plan/apply pairs (~120 lines each, significant duplication — consolidation candidate).
+- **Services**: archon, cloudflare, elk, github, grafana, ollama, slack, traefik each have dedicated standalone plan/apply pairs (~120 lines each, significant duplication — consolidation candidate).
 - **Issue Templates**: Use YAML forms (not markdown) for structured input and automatic labeling.
 - **Pre-deploy Verification**: `_terraform-plan.yml` runs `terraform validate` + `terraform fmt -check -recursive` before every plan. Gates propagate to all service workflows.
 - **Post-deploy Verification**: `_terraform-apply.yml` runs `terraform validate` before apply and post-apply output validation after apply.

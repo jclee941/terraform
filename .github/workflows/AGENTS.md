@@ -44,11 +44,11 @@ Workflow implementation layer for CI/CD. Keep this scope focused on trigger path
   - Apply pipeline includes a unique Proxmox resource import script (8 LXC + 1 VM) with show→import→skip-if-managed logic and graceful not-provisioned handling (`non-existent`/`not found`/`does not exist` → skip) that has no equivalent in the reusable template.
   - Plan workflow uploads `tfplan` artifact (7-day retention) for plan-then-apply-from-file flow, vs reusable's `-auto-approve`.
   - Path triggers span `100-pve/**`, `modules/**`, and 13 service-template directories across all services.
-- All 8 Terraform workspaces use `backend "local" {}`. State locking is enforced via:
+- All 9 Terraform workspaces use `backend "local" {}`. State locking is enforced via:
   - GHA `concurrency` groups with `cancel-in-progress: false` on all apply workflows — prevents parallel applies to same workspace.
   - Local `make apply` is disabled (`exit 1`) — all applies route through CI.
   - `.tfstate` files tracked in git for CI reliability (single-writer model via concurrency).
-- Drift detection (`terraform-drift.yml`) runs on push to master AND weekday schedule (Mon-Fri 00:00 UTC). Matrix covers 7 workspaces (slack not yet included) with `fail-fast: false`.
+- Drift detection (`terraform-drift.yml`) runs on push to master AND weekday schedule (Mon-Fri 00:00 UTC). Matrix covers 9 workspaces (proxmox, grafana, elk, traefik, archon, ollama, cloudflare, github, slack) with `fail-fast: false`.
 
 ## COMMANDS
 ```bash

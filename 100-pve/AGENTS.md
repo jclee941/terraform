@@ -2,14 +2,14 @@
 
 ## OVERVIEW
 
-Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 8 LXC containers (101-108) and 4 VMs (109, 112, 200, 220) via reusable modules. Split across `main.tf` (78 lines — providers, host inventory, LXC/VM modules), `vm_configs.tf` (110 lines — VM config deployment), `lxc_configs.tf` (262 lines — LXC config deployment), `secrets.tf` (66 lines — 1Password secrets + config renderer), `locals.tf` (311 lines), `checks.tf` (79 lines), `outputs.tf` (88 lines), `data.tf` (5 lines), and `firewall.tf` (152 lines).
+Central Terraform workspace orchestrating ALL Proxmox infrastructure. Provisions 8 LXC containers (101-108) and 4 VMs (109, 112, 200, 220) via reusable modules. Split across `main.tf` (77 lines — providers, host inventory, LXC/VM modules), `vm_configs.tf` (143 lines — VM config deployment), `lxc_configs.tf` (261 lines — LXC config deployment), `secrets.tf` (66 lines — 1Password secrets + config renderer), `locals.tf` (311 lines), `checks.tf` (79 lines), `outputs.tf` (88 lines), `data.tf` (5 lines), and `firewall.tf` (156 lines).
 
 ## STRUCTURE
 
 ```
 100-pve/
-├── main.tf              # Providers, host inventory, LXC/VM modules, moved blocks (78 lines)
-├── vm_configs.tf        # VM config deployment modules (110 lines)
+├── main.tf              # Providers, host inventory, LXC/VM modules, moved blocks (77 lines)
+├── vm_configs.tf        # VM config deployment modules (143 lines)
 ├── lxc_configs.tf       # LXC config deployment modules (262 lines)
 ├── secrets.tf           # 1Password secrets + config renderer (66 lines)
 ├── locals.tf            # All locals: sizing, VM defs, config maps (311 lines)
