@@ -75,3 +75,15 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: blackbox-exporter:9115
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets:
+          - '${hosts.grafana.ip}:${hosts.grafana.ports.cadvisor}'
+          - '${hosts.mcphub.ip}:${hosts.mcphub.ports.cadvisor}'
+          - '${hosts.youtube.ip}:${hosts.youtube.ports.cadvisor}'
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '192\.168\.50\.(\d+):.*'
+        replacement: '$${1}'
+        target_label: vmid

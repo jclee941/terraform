@@ -64,6 +64,7 @@ locals {
       ports = {
         grafana    = 3000
         prometheus = 9090
+        cadvisor   = 8888
       }
     }
 
@@ -137,6 +138,7 @@ locals {
         proxmox    = 8055
         playwright = 8056
         op_connect = 8090
+        cadvisor   = 8888
       }
     }
 
@@ -164,7 +166,9 @@ locals {
       vmid  = 220
       ip    = "192.168.50.220"
       roles = ["youtube", "media"]
-      ports = {}
+      ports = {
+        cadvisor = 8888
+      }
     }
   }
 }

@@ -165,6 +165,39 @@ locals {
       summary      = "CPU usage high"
       description  = "CPU usage above 90% on {{ $labels.instance }} for 10 minutes"
     }
+    "container-memory-high" = {
+      group        = "infrastructure_health"
+      expr         = "container_memory_usage_bytes{name!=\"\"} / container_spec_memory_limit_bytes{name!=\"\"} > 0.9"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "5m"
+      summary      = "Container {{ $labels.name }} memory > 90%"
+      description  = "Container {{ $labels.name }} memory usage is above 90%"
+    }
+    "container-cpu-high" = {
+      group        = "infrastructure_health"
+      expr         = "rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]) > 0.9"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "5m"
+      summary      = "Container {{ $labels.name }} CPU > 90%"
+      description  = "Container {{ $labels.name }} CPU usage is above 90%"
+    }
+    "container-restart-frequent" = {
+      group        = "infrastructure_health"
+      expr         = "increase(container_restart_count{name!=\"\"}[1h]) > 3"
+      from         = 3600
+      threshold    = 0
+      condition    = "gt"
+      severity     = "critical"
+      for_duration = "0s"
+      summary      = "Container {{ $labels.name }} restarted 3+ times in 1h"
+      description  = "Container {{ $labels.name }} restarted more than 3 times in 1 hour"
+    }
     "prometheus-target-down" = {
       group        = "infrastructure_health"
       expr         = "up == 0"
