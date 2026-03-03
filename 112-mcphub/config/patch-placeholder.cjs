@@ -28,7 +28,7 @@ try {
     '  if (!args || typeof args !== "object") return args;',
     "  const clean = { ...args };",
     "  delete clean._placeholder;",
-    "  return Object.keys(clean).length === 0 ? undefined : clean;",
+    "  return Object.keys(clean).length === 0 ? {} : clean;",
     "}",
     "",
   ].join("\n");
