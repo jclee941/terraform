@@ -1,115 +1,130 @@
 # ──────────────────────────────────────────────────────────────────────────────
-# Proxmox Firewall Rules — per-container/VM inbound port restrictions
+# Proxmox Firewall Rules — data-driven per-guest inbound port restrictions
 # ──────────────────────────────────────────────────────────────────────────────
-# Security boundary enforcement for all TF-managed LXC/VM hosts.
-# Port definitions sourced from module.hosts inventory (hosts.tf).
+# Port definitions derived from hosts.tf SSoT with per-host overrides.
+# SSH (port 22/tcp) auto-injected for all managed guests.
 # Default policy: DROP all inbound except explicitly allowed ports.
+#
+# To add a new host:   add entry to firewall_guests map below.
+# To add a new port:   add to hosts.tf ports map (auto-exposed in firewall).
+# To exclude a port:   add to firewall_overrides[host].exclude list.
 
 locals {
-  container_firewall = {
-    runner = {
-      vmid = module.hosts.hosts.runner.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-      ]
-    }
-    traefik = {
-      vmid = module.hosts.hosts.traefik.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "80", proto = "tcp", comment = "HTTP ingress" },
-        { dport = "443", proto = "tcp", comment = "HTTPS ingress" },
-        { dport = "8080", proto = "tcp", comment = "Traefik API" },
-      ]
-    }
-    coredns = {
-      vmid = module.hosts.hosts.coredns.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "53", proto = "tcp", comment = "DNS (TCP)" },
-        { dport = "53", proto = "udp", comment = "DNS (UDP)" },
-        { dport = "8080", proto = "tcp", comment = "Health check" },
-      ]
-    }
-    grafana = {
-      vmid = module.hosts.hosts.grafana.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "3000", proto = "tcp", comment = "Grafana UI" },
-        { dport = "9090", proto = "tcp", comment = "Prometheus" },
-      ]
-    }
-    elk = {
-      vmid = module.hosts.hosts.elk.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "9200", proto = "tcp", comment = "Elasticsearch" },
-        { dport = "5601", proto = "tcp", comment = "Kibana" },
-        { dport = "5044", proto = "tcp", comment = "Logstash beats input" },
-        { dport = "5000", proto = "tcp", comment = "Logstash TCP input" },
-        { dport = "9198", proto = "tcp", comment = "Logstash Prometheus exporter" },
-      ]
-    }
-    glitchtip = {
-      vmid = module.hosts.hosts.glitchtip.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "8000", proto = "tcp", comment = "GlitchTip web" },
-      ]
-    }
-    supabase = {
-      vmid = module.hosts.hosts.supabase.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "3000", proto = "tcp", comment = "Supabase Studio" },
-        { dport = "8000", proto = "tcp", comment = "Supabase API" },
-        { dport = "5432", proto = "tcp", comment = "PostgreSQL" },
-        { dport = "4000", proto = "tcp", comment = "Supabase Realtime" },
-      ]
-    }
-    archon = {
-      vmid = module.hosts.hosts.archon.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "3737", proto = "tcp", comment = "Archon UI" },
-        { dport = "8181", proto = "tcp", comment = "Archon server" },
-        { dport = "8051", proto = "tcp", comment = "Archon MCP" },
-      ]
-    }
+  # ── Guest registry ─────────────────────────────────────────────────────────
+  # Guest type determines firewall resource (container_id vs vm_id).
+  # Add new hosts here when provisioning — port rules auto-derived from hosts.tf.
+  firewall_guests = {
+    runner      = "container"
+    traefik     = "container"
+    coredns     = "container"
+    grafana     = "container"
+    elk         = "container"
+    glitchtip   = "container"
+    supabase    = "container"
+    archon      = "container"
+    ollama      = "vm"
+    mcphub      = "vm"
+    "jclee-dev" = "vm"
+    youtube     = "vm"
   }
 
-  vm_firewall = {
-    # NOTE: jclee (ID 80, physical PC) excluded — Proxmox provider requires vm_id >= 100
-    # Firewall rules for jclee must be managed via PVE GUI or CLI
-    ollama = {
-      vmid = module.hosts.hosts.ollama.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "11434", proto = "tcp", comment = "Ollama API" },
-      ]
+  # ── Port labels ────────────────────────────────────────────────────────────
+  # Human-readable labels for Proxmox firewall UI comments.
+  # Fallback: port key name with underscores replaced by spaces.
+  port_labels = {
+    api                 = "API"
+    db                  = "PostgreSQL"
+    dns                 = "DNS"
+    elasticsearch       = "Elasticsearch"
+    grafana             = "Grafana UI"
+    health              = "Health check"
+    http                = "HTTP ingress"
+    https               = "HTTPS ingress"
+    kibana              = "Kibana"
+    logstash_beat       = "Logstash beats input"
+    logstash_prometheus = "Logstash Prometheus exporter"
+    logstash_tcp        = "Logstash TCP input"
+    mcp                 = "MCP"
+    n8n                 = "n8n"
+    prometheus          = "Prometheus"
+    rdp                 = "RDP"
+    realtime            = "Realtime"
+    server              = "Server"
+    studio              = "Supabase Studio"
+    traefik             = "Traefik API"
+    ui                  = "UI"
+    web                 = "Web UI"
+  }
+
+  # ── Per-host overrides ─────────────────────────────────────────────────────
+  # Only hosts with non-default behavior need entries here.
+  #   exclude:    port names from hosts.tf to NOT expose (internal-only services)
+  #   dual_proto: port names needing both TCP and UDP rules
+  #   extra:      additional rules not derivable from hosts.tf (port ranges, etc.)
+  firewall_overrides = {
+    coredns = {
+      dual_proto = ["dns"]
+    }
+    elk = {
+      exclude = ["es_transport", "logstash_api", "logstash_http"]
+    }
+    glitchtip = {
+      exclude = ["postgres", "redis"]
+    }
+    supabase = {
+      exclude = ["inbucket"]
     }
     mcphub = {
-      vmid = module.hosts.hosts.mcphub.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "3000", proto = "tcp", comment = "MCPHub web" },
-        { dport = "5678", proto = "tcp", comment = "n8n" },
+      exclude = ["proxmox", "playwright", "op_connect"]
+      extra = [
         { dport = "8055:8079", proto = "tcp", comment = "MCP server ports" },
       ]
     }
-    jclee_dev = {
-      vmid = module.hosts.hosts["jclee-dev"].vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-        { dport = "3389", proto = "tcp", comment = "RDP" },
-      ]
+    "jclee-dev" = {
+      exclude = ["opencode", "ssh"]
     }
-    youtube = {
-      vmid = module.hosts.hosts.youtube.vmid
-      rules = [
-        { dport = "22", proto = "tcp", comment = "SSH" },
-      ]
+  }
+
+  # ── Generated rules (do not edit below) ────────────────────────────────────
+
+  _firewall_rules = {
+    for name, guest_type in local.firewall_guests : name => {
+      vmid = module.hosts.hosts[name].vmid
+      rules = concat(
+        # SSH auto-injected for all guests
+        [{ dport = "22", proto = "tcp", comment = "SSH" }],
+        # TCP rules derived from hosts.tf ports map
+        [
+          for port_name, port_num in module.hosts.hosts[name].ports : {
+            dport   = tostring(port_num)
+            proto   = "tcp"
+            comment = lookup(local.port_labels, port_name, replace(port_name, "_", " "))
+          }
+          if !contains(try(local.firewall_overrides[name].exclude, []), port_name)
+          && port_name != "ssh" # SSH already auto-injected above
+        ],
+        # UDP duplicates for dual-protocol ports (e.g., DNS)
+        [
+          for port_name in try(local.firewall_overrides[name].dual_proto, []) : {
+            dport   = tostring(module.hosts.hosts[name].ports[port_name])
+            proto   = "udp"
+            comment = "${lookup(local.port_labels, port_name, port_name)} (UDP)"
+          }
+        ],
+        # Extra rules: port ranges or special cases not in hosts.tf
+        try(local.firewall_overrides[name].extra, []),
+      )
     }
+  }
+
+  container_firewall = {
+    for name, fw in local._firewall_rules : name => fw
+    if local.firewall_guests[name] == "container"
+  }
+
+  vm_firewall = {
+    for name, fw in local._firewall_rules : name => fw
+    if local.firewall_guests[name] == "vm"
   }
 }
 
