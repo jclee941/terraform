@@ -5,8 +5,20 @@ services:
     container_name: youtube-automation
     restart: unless-stopped
     network_mode: bridge
+    stop_grace_period: 10s
     env_file:
       - .env
     volumes:
       - ./gcloud-config:/root/.config/gcloud
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -v grep | grep -q 'tail -f' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     command: ["sh", "-c", "tail -f /dev/null"]

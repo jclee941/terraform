@@ -24,18 +24,21 @@ module "vm_config" {
           "vim",
           "git",
           "gnupg",
+          "docker.io",
+          "docker-compose-v2",
         ]
         runcmd = [
           "systemctl enable qemu-guest-agent",
           "systemctl start qemu-guest-agent",
-          # Google Cloud CLI
-          "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg",
+          "systemctl enable docker",
+          "systemctl start docker",
+          "# Google Cloud CLI",
+          "curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg",
           "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' | tee /etc/apt/sources.list.d/google-cloud-sdk.list",
           "apt-get update && apt-get install -y google-cloud-cli",
-          # YouTube automation setup
-          "mkdir -p /opt/youtube",
+          "# YouTube automation setup",
           "mkdir -p /opt/youtube/gcloud-config",
-          "cd /opt/youtube && docker compose up -d",
+          "cd /opt/youtube && docker compose up -d || true",
         ]
         write_files = [
           {
