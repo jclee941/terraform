@@ -6,8 +6,8 @@
 set -e
 
 # Apply _placeholder sanitization patch
-if [ -f /app/patches/patch-placeholder.js ]; then
-  node /app/patches/patch-placeholder.js
+if [ -f /app/patches/patch-placeholder.cjs ]; then
+  node /app/patches/patch-placeholder.cjs
 fi
 
 # Delegate to original entrypoint

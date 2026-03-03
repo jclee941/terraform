@@ -21,6 +21,7 @@ services:
     environment:
       - MCPHUB_PORT=3000
     entrypoint: ["/bin/sh", "/app/patches/entrypoint-patch.sh"]
+    command: ["pnpm", "start"]
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:3000/ || exit 1"]
       interval: 30s

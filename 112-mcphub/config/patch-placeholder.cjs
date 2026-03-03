@@ -35,14 +35,10 @@ try {
 
   code = sanitizeFn + code;
 
-  // Wrap argument-passing in callTool paths (covers main and duplicate call sites)
+  // Wrap argument-passing in callTool path (only finalArgs — toolArgs appears in destructuring)
   code = code.replace(
     /arguments:\s*finalArgs\b/g,
     "arguments: sanitizeToolArguments(finalArgs)"
-  );
-  code = code.replace(
-    /arguments:\s*toolArgs\b/g,
-    "arguments: sanitizeToolArguments(toolArgs)"
   );
 
   fs.writeFileSync(MCPSERVICE, code);

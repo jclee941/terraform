@@ -125,8 +125,8 @@ module "vm_config" {
             owner       = "root:root"
           },
           {
-            path        = "/opt/mcphub/patches/patch-placeholder.js"
-            content     = file("${path.module}/../112-mcphub/config/patch-placeholder.js")
+            path        = "/opt/mcphub/patches/patch-placeholder.cjs"
+            content     = file("${path.module}/../112-mcphub/config/patch-placeholder.cjs")
             permissions = "0644"
             owner       = "root:root"
           },
