@@ -5,6 +5,8 @@ http:
       entryPoints:
         - websecure
       service: glitchtip
+      middlewares:
+        - rate-limit-standard@file
       tls:
         certResolver: cf
       priority: 10

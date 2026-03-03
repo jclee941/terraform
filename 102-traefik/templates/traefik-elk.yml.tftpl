@@ -5,6 +5,8 @@ http:
       entryPoints:
         - websecure
       service: kibana
+      middlewares:
+        - rate-limit-standard@file
       tls:
         certResolver: cf
       priority: 10
@@ -16,6 +18,7 @@ http:
       service: elasticsearch
       middlewares:
         - elk-ipallowlist
+        - rate-limit-api@file
       tls:
         certResolver: cf
       priority: 10

@@ -5,6 +5,8 @@ http:
       entryPoints:
         - websecure
       service: nas
+      middlewares:
+        - rate-limit-relaxed@file
       tls:
         certResolver: cf
       priority: 10

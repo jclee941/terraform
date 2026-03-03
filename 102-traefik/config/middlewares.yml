@@ -1,53 +1,72 @@
-# Traefik Dynamic Configuration - Resilient Middleware Chain
-# Applied to all internal/MCP routes for retry + circuit breaker protection
-#
-# Usage: Add "mcp-resilient" middleware to any route:
-#   middlewares:
-#     - mcp-resilient@file
+#MJ|# Traefik Dynamic Configuration - Resilient Middleware Chain
+#QV|# Applied to all internal/MCP routes for retry + circuit breaker protection
+#KH|#
+#HB|# Usage: Add "mcp-resilient" middleware to any route:
+#SZ|#   middlewares:
+#NN|#     - mcp-resilient@file
+#HN|
+#YP|http:
+#WP|  middlewares:
+#VJ|    # Retry failed requests up to 5 times with exponential backoff
+#PV|    mcp-retry:
+#KZ|      retry:
+#QP|        attempts: 5
+#YM|        initialInterval: 100ms
+#RJ|
+#XJ|    # Trip circuit breaker on high error rates
+#NY|    mcp-circuit-breaker:
+#NH|      circuitBreaker:
+#TR|        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+#YQ|
+#QK|    # Combined resilient chain: retry first, then circuit breaker
+#TH|    mcp-resilient:
+#ZM|      chain:
+#WP|        middlewares:
+#JZ|          - mcp-retry
+#XM|          - mcp-circuit-breaker
+#JJ|
+#WR|    # Rate limiting for external-facing endpoints
+#KN|    rate-limit:
+#YQ|      rateLimit:
+#HB|        average: 100
+#JP|        burst: 50
+#ZT|        period: 1s
 
-http:
-  middlewares:
-    # Retry failed requests up to 5 times with exponential backoff
-    mcp-retry:
-      retry:
-        attempts: 5
-        initialInterval: 100ms
+#ZV|    # Per-service rate limiting tiers
+#KN|    rate-limit-api:
+#YQ|      rateLimit:
+#HB|        average: 30
+#JP|        burst: 15
+#ZT|        period: 1s
 
-    # Trip circuit breaker on high error rates
-    mcp-circuit-breaker:
-      circuitBreaker:
-        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+#ZV|    rate-limit-standard:
+#YQ|      rateLimit:
+#HB|        average: 60
+#JP|        burst: 30
+#ZT|        period: 1s
 
-    # Combined resilient chain: retry first, then circuit breaker
-    mcp-resilient:
-      chain:
-        middlewares:
-          - mcp-retry
-          - mcp-circuit-breaker
+#ZV|    rate-limit-relaxed:
+#YQ|      rateLimit:
+#HB|        average: 120
+#JP|        burst: 60
+#ZT|        period: 1s
 
-    # Rate limiting for external-facing endpoints
-    rate-limit:
-      rateLimit:
-        average: 100
-        burst: 50
-        period: 1s
-
-    # Security headers for all external-facing routes
-    security-headers:
-      headers:
-        # HSTS: enforce HTTPS for 1 year, include subdomains
-        stsSeconds: 31536000
-        stsIncludeSubdomains: true
-        stsPreload: true
-        # Prevent clickjacking
-        frameDeny: true
-        # Prevent MIME-type sniffing
-        contentTypeNosniff: true
-        # XSS protection
-        browserXssFilter: true
-        # Referrer policy
-        referrerPolicy: strict-origin-when-cross-origin
-        # Permissions policy
-        permissionsPolicy: camera=(), microphone=(), geolocation=(), payment=()
-        # Content Security Policy
-        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss: https:; frame-ancestors 'none'"
+#ZV|    # Security headers for all external-facing routes
+#ZB|    security-headers:
+#QW|      headers:
+#TK|        # HSTS: enforce HTTPS for 1 year, include subdomains
+#NJ|        stsSeconds: 31536000
+#KM|        stsIncludeSubdomains: true
+#QJ|        stsPreload: true
+#VB|        # Prevent clickjacking
+#TW|        frameDeny: true
+#HX|        # Prevent MIME-type sniffing
+#WS|        contentTypeNosniff: true
+#ZZ|        # XSS protection
+#ZK|        browserXssFilter: true
+#SQ|        # Referrer policy
+#MS|        referrerPolicy: strict-origin-when-cross-origin
+#WQ|        # Permissions policy
+#MH|        permissionsPolicy: camera=(), microphone=(), geolocation=(), payment=()
+#MT|        # Content Security Policy
+#XQ|        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss: https:; frame-ancestors 'none'"
