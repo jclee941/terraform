@@ -150,6 +150,7 @@ scripts/generate-bindings.sh --out wrangler.toml
 | [cloudflare_dns_record.tcp_services](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
 | [cloudflare_logpush_job.worker_traces](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/logpush_job) | resource |
 | [cloudflare_r2_bucket.synology_cache](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/r2_bucket) | resource |
+| [cloudflare_ruleset.waf_custom](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/ruleset) | resource |
 | [cloudflare_workers_route.synology_proxy](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/workers_route) | resource |
 | [cloudflare_zero_trust_access_application.homelab](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_application) | resource |
 | [cloudflare_zero_trust_access_application.logstash_ingest](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_application) | resource |
