@@ -279,7 +279,9 @@ locals {
       op_connect_compose = "docker-compose-op-connect.yml.tftpl"
     } }
     "220-youtube" = { prefix = "youtube", files = {
-      filebeat = "filebeat.yml.tftpl"
+      filebeat       = "filebeat.yml.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      env            = ".env.tftpl"
     } }
   }
 

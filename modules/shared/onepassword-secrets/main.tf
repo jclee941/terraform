@@ -43,6 +43,7 @@ locals {
     "slack",
     "supabase",
     "synology",
+    "youtube",
   ])
 
   # Items conditionally looked up.
