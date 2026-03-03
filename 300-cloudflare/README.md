@@ -129,7 +129,7 @@ scripts/generate-bindings.sh --out wrangler.toml
 
 | Name | Version |
 |------|---------|
-| <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.17.0 |
+| <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.18.0 |
 | <a name="provider_github"></a> [github](#provider\_github) | 6.11.1 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |

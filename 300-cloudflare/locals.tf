@@ -74,11 +74,6 @@ locals {
       name      = "YouTube SSH"
       origin    = "tcp://${var.youtube_ip}:22"
     }
-    oc-ssh = {
-      subdomain = "oc-ssh"
-      name      = "OpenCode SSH"
-      origin    = "tcp://${var.jclee_dev_ip}:22"
-    }
     ssh = {
       subdomain = "ssh"
       name      = "SSH"
