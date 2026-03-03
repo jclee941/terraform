@@ -89,9 +89,11 @@ locals {
       ip    = "192.168.50.106"
       roles = ["error-tracking", "monitoring"]
       ports = {
-        web      = 8000
-        postgres = 5432
-        redis    = 6379
+        web               = 8000
+        postgres          = 5432
+        redis             = 6379
+        postgres_exporter = 9187
+        redis_exporter    = 9121
       }
     }
 
@@ -100,11 +102,12 @@ locals {
       ip    = "192.168.50.107"
       roles = ["database", "backend-as-a-service", "auth"]
       ports = {
-        studio   = 3000
-        api      = 8000
-        db       = 5432
-        realtime = 4000
-        inbucket = 9000
+        studio            = 3000
+        api               = 8000
+        db                = 5432
+        realtime          = 4000
+        inbucket          = 9000
+        postgres_exporter = 9187
       }
     }
 

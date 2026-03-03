@@ -253,6 +253,50 @@ locals {
       summary      = "SSL certificate expiry imminent"
       description  = "SSL certificate for {{ $labels.instance }} expires in less than 7 days"
     }
+    "postgres-connection-high" = {
+      group        = "infrastructure_health"
+      expr         = "pg_stat_activity_count / pg_settings_max_connections * 100 > 80"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "5m"
+      summary      = "PostgreSQL connection usage high"
+      description  = "PostgreSQL connection usage above 80% on {{ $labels.instance }}"
+    }
+    "postgres-replication-lag" = {
+      group        = "infrastructure_health"
+      expr         = "pg_replication_lag > 30"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "5m"
+      summary      = "PostgreSQL replication lag high"
+      description  = "PostgreSQL replication lag exceeds 30 seconds on {{ $labels.instance }}"
+    }
+    "redis-memory-high" = {
+      group        = "infrastructure_health"
+      expr         = "redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "5m"
+      summary      = "Redis memory usage high"
+      description  = "Redis memory usage above 80% on {{ $labels.instance }}"
+    }
+    "postgres-deadlocks" = {
+      group        = "infrastructure_health"
+      expr         = "rate(pg_stat_database_deadlocks_total[5m]) > 0"
+      from         = 300
+      threshold    = 0
+      condition    = "gt"
+      severity     = "warning"
+      for_duration = "0s"
+      summary      = "PostgreSQL deadlocks detected"
+      description  = "Deadlocks detected on {{ $labels.instance }} database {{ $labels.datname }}"
+    }
   }
 
   # Group filters

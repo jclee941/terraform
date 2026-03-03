@@ -72,6 +72,31 @@ services:
       retries: 5
     restart: unless-stopped
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    container_name: glitchtip-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: postgresql://glitchtip:${glitchtip_postgres_password}@postgres:5432/glitchtip?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.67.0
+    container_name: glitchtip-redis-exporter
+    environment:
+      REDIS_ADDR: redis://redis:6379
+      REDIS_PASSWORD: ${glitchtip_redis_password}
+    ports:
+      - "9121:9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   glitchtip_postgres_data:
     driver: local

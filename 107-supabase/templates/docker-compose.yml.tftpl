@@ -190,6 +190,20 @@ services:
     networks:
       - supabase
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    container_name: supabase-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: postgresql://supabase_admin:${supabase_db_password}@db:5432/postgres?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - supabase
+
 networks:
   supabase:
     driver: bridge
