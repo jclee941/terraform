@@ -265,6 +265,32 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [1130, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: ':red_circle: *GlitchTip Error*\\n*' + $json.title + '*\\nLevel: ' + $json.level + ' | Project: ' + $json.project + '\\nCulprit: ' + $json.culprit + '\\n' + ($json.message ? $json.message + '\\n' : '') + ($json.url ? '<' + $json.url + '|View in GlitchTip>' : '') }) }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-5678-9012-3456-abcdef012345",
+      "name": "Notify Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [630, 400],
+      "continueOnFail": true,
+      "alwaysOutputData": true
     }
   ],
   "connections": {
@@ -284,6 +310,11 @@
         [
           {
             "node": "Rate Limiter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Slack",
             "type": "main",
             "index": 0
           }
