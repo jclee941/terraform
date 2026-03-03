@@ -1,0 +1,20 @@
+name: Runner Health Check
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+concurrency:
+  group: runner-health-check
+  cancel-in-progress: true
+
+jobs:
+  health-check:
+    uses: ./.github/workflows/_runner-health-check.yml
+    secrets: inherit  # pragma: allowlist secret

@@ -1,0 +1,70 @@
+name: Runner Health Check (Reusable)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    name: Self-hosted Runner Health
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e5f6fbbc376e95a00e6d96e95009e9e92 # v6
+
+      - name: Check Runner Status
+        run: |
+          # System info
+          UPTIME=$(uptime -p)
+          DISK_USAGE=$(df -h / | awk 'NR==2{print $5}')
+          MEM_TOTAL=$(free -m | awk 'NR==2{printf "%.0f", $2}')
+          MEM_USED=$(free -m | awk 'NR==2{printf "%.0f", $3}')
+          MEM_PCT=$(free -m | awk 'NR==2{printf "%.0f", $3/$2*100}')
+          LOAD=$(awk '{print $1, $2, $3}' /proc/loadavg)
+
+          {
+            echo "## Runner Health Check"
+            echo ""
+            echo "| Metric | Value |"
+            echo "|--------|-------|"
+            echo "| Uptime | $UPTIME |"
+            echo "| Disk Usage | $DISK_USAGE |"
+            echo "| Memory | ${MEM_USED}MB / ${MEM_TOTAL}MB (${MEM_PCT}%) |"
+            echo "| Load Average | $LOAD |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Check disk critical threshold
+          DISK_NUM=$(echo "$DISK_USAGE" | tr -d '%')
+          if [ "$DISK_NUM" -gt 90 ]; then
+            echo "::error::Runner disk usage critical: ${DISK_USAGE}"
+            exit 1
+          fi
+
+          # Check memory critical threshold
+          if [ "$MEM_PCT" -gt 95 ]; then
+            echo "::error::Runner memory critical: ${MEM_PCT}%"
+            exit 1
+          fi
+
+          echo "✅ Runner healthy" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check Docker
+        run: |
+          if ! docker info > /dev/null 2>&1; then
+            echo "::error::Docker daemon is not running"
+            exit 1
+          fi
+          CONTAINERS=$(docker ps --format '{{.Names}}' | wc -l)
+          echo "Docker: $CONTAINERS container(s) running" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 Runner Health Check"
+          labels: "bug,automation,infrastructure"
