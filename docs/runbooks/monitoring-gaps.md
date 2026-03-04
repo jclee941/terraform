@@ -90,3 +90,4 @@ gh issue list --repo qws941/terraform --label automated
 - Review `alerting.yaml` quarterly for stale/missing rules
 - Document alert thresholds in service's AGENTS.md
 - Test alert pipeline after any Grafana/ELK config changes
+- Verify PR automation workflows trigger correctly on new PRs
