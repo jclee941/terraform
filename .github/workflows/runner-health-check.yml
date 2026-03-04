@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: runner-health-check
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   health-check:

@@ -27,7 +27,13 @@ jobs:
             -H "Content-Type: application/json" \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/cfd_tunnel")
 
-          # Parse tunnel statuses
+          # Parse tunnel statuses (null-safe: API may return null result)
+          if ! echo "$TUNNELS" | jq -e '.result' > /dev/null 2>&1; then
+            echo "::error::Cloudflare API returned no tunnel data (check token permissions)"
+            echo "Response: $(echo "$TUNNELS" | jq -c '.errors // .messages // empty')"
+            exit 1
+          fi
+
           TOTAL=$(echo "$TUNNELS" | jq '.result | length')
           HEALTHY=$(echo "$TUNNELS" | jq '[.result[] | select(.status == "healthy")] | length')
           UNHEALTHY=$(echo "$TUNNELS" | jq '[.result[] | select(.status != "healthy")] | length')
