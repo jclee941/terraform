@@ -11,7 +11,7 @@ set -euo pipefail
 #   scripts/sync-vault-secrets.sh --dry-run    # Show what would be set
 #   scripts/sync-vault-secrets.sh --force      # Overwrite existing secrets
 
-REPO="qws941-lab/terraform"
+REPO="qws941/terraform"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

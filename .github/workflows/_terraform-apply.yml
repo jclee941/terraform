@@ -173,7 +173,7 @@ jobs:
           import time
           import urllib.error
 
-          owner = "qws941-lab"
+          owner = "qws941"
           token = os.getenv("TF_VAR_github_token", "").strip()
           if not token:
             print("TF_VAR_github_token is required for GitHub imports")

@@ -9,7 +9,7 @@ permissions:
 
 env:
   # Managed via GitHub repo variable. Override by setting vars.ALL_REPOS in repo settings.
-  ALL_REPOS: ${{ vars.ALL_REPOS || 'qws941-lab/blacklist,qws941-lab/claude,qws941-lab/propose,qws941-lab/proxmox,qws941-lab/resume,qws941-lab/safework2' }}
+  ALL_REPOS: ${{ vars.ALL_REPOS || 'qws941/blacklist,qws941/claude,qws941/propose,qws941/proxmox,qws941/resume,qws941/safework2' }}
 
 jobs:
   # ──────────────────────────────────────────────

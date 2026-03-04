@@ -1,7 +1,7 @@
 # 요구사항정의서 (Requirements Specification)
 
 **프로젝트**: Cloudflare Secrets Management Hub & Synology Proxy Worker
-**저장소**: [qws941-lab/terraform](https://github.com/qws941-lab/terraform)
+**저장소**: [qws941/terraform](https://github.com/qws941/terraform)
 **최종 수정**: 2026-02-12
 **버전**: v1.0
 

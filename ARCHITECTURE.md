@@ -181,7 +181,7 @@ Services → node_exporter → Prometheus:9090 → Grafana:3000
 - **Local apply**: Disabled (`make apply` exits with error)
 - **Drift detection**: Mon–Fri 00:00 UTC via scheduled workflow
 - **Actions**: All SHA-pinned with `# vN` version comment
-- **Workflows**: 72 files in `.github/workflows/`, reusable `_*.yml` from `qws941-lab/.github`
+- **Workflows**: 72 files in `.github/workflows/`, reusable `_*.yml` from `qws941/.github`
 
 ## Testing
 

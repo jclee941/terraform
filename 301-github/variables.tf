@@ -13,7 +13,7 @@ variable "github_token" {
 variable "github_owner" {
   description = "GitHub organization or user"
   type        = string
-  default     = "qws941-lab"
+  default     = "qws941"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$", var.github_owner))
@@ -24,7 +24,7 @@ variable "github_owner" {
 variable "manage_as_organization" {
   description = "Enable organization-only resources (teams, org actions, runner groups)."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "infra_domain" {
@@ -330,7 +330,7 @@ variable "security_code_scanning_tools" {
 variable "enable_repository_rulesets" {
   description = "Enable repository rulesets management."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "ruleset_bypass_actors" {

@@ -1,7 +1,7 @@
 # AGENTS: 301-github — GitHub Organization Management
 
 ## OVERVIEW
-Terraform workspace managing GitHub resources for `qws941-lab`. Provisions 17 repositories, branch protection rulesets (3 tiers: strict/standard/minimal), Actions permissions, webhooks (n8n integration), environments, deploy keys, teams, and security scanning (Dependabot + CodeQL). Provider: `integrations/github` (~>6.6).
+Terraform workspace managing GitHub resources for `qws941`. Provisions 17 repositories, branch protection rulesets (3 tiers: strict/standard/minimal), Actions permissions, webhooks (n8n integration), environments, deploy keys, teams, and security scanning (Dependabot + CodeQL). Provider: `integrations/github` (~>6.6).
 
 ## STRUCTURE
 ```

@@ -84,7 +84,7 @@ curl -s -o /dev/null -w "%{http_code}" http://192.168.50.108:3737
 ```bash
 # 1. Fresh PVE install
 # 2. Clone terraform repo
-git clone git@github.com:qws941-lab/terraform.git
+git clone git@github.com:qws941/terraform.git
 cd terraform
 # 3. Init + apply
 cd 100-pve && terraform init && terraform apply

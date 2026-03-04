@@ -188,7 +188,7 @@ scripts/generate-bindings.sh --out wrangler.toml
 | <a name="input_elk_ip"></a> [elk\_ip](#input\_elk\_ip) | ELK stack IP address (VMID 105) | `string` | `"192.168.50.105"` | no |
 | <a name="input_enable_cf_store_sync"></a> [enable\_cf\_store\_sync](#input\_enable\_cf\_store\_sync) | Enable local-exec wrangler sync for CF Secrets Store beta workflow | `bool` | `false` | no |
 | <a name="input_enable_worker_route"></a> [enable\_worker\_route](#input\_enable\_worker\_route) | Enable Workers route (set to true after Worker is deployed via wrangler) | `bool` | `false` | no |
-| <a name="input_github_owner"></a> [github\_owner](#input\_github\_owner) | GitHub organization/user owner | `string` | `"qws941-lab"` | no |
+| <a name="input_github_owner"></a> [github\_owner](#input\_github\_owner) | GitHub organization/user owner | `string` | `"qws941"` | no |
 | <a name="input_github_token"></a> [github\_token](#input\_github\_token) | GitHub token with actions secret write permissions (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_google_oauth_client_id"></a> [google\_oauth\_client\_id](#input\_google\_oauth\_client\_id) | Google OAuth 2.0 Client ID for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_google_oauth_client_secret"></a> [google\_oauth\_client\_secret](#input\_google\_oauth\_client\_secret) | Google OAuth 2.0 Client Secret for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |

@@ -20,7 +20,7 @@ variable "cloudflare_secrets_store_id" {
 variable "github_owner" {
   description = "GitHub organization/user owner"
   type        = string
-  default     = "qws941-lab"
+  default     = "qws941"
 }
 
 variable "github_token" {

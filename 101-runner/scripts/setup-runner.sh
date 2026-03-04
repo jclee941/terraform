@@ -6,13 +6,13 @@
 # Prepares the environment for multi-instance runner registration.
 #
 # Multi-instance model:
-#   - RUNNER_COUNT org-level instances (default: 2, set via env var)
+#   - RUNNER_COUNT instances per repo (default: 2, set via env var)
 #   - Runner names: homelab-101-1, homelab-101-2, ..., homelab-101-N
-#   - Directory layout: /home/runner/runners/instance-N/
-#   - Systemd services: github-runner-N.service
+#   - Directory layout: /home/runner/runners/instance-N/<repo>/
+#   - Systemd services: github-runner-<instance>-<repo>.service
 #
 # This script only installs dependencies and the runner binary.
-# Registration is handled separately by register-runners.sh.
+# Registration is handled separately by register-all-repos.sh.
 #
 # Prerequisites:
 #   - LXC container running Debian 12 (created by Terraform)
@@ -20,12 +20,12 @@
 # Environment:
 #   RUNNER_VERSION — Runner binary version (default: 2.322.0)
 #   RUNNER_ARCH    — Runner architecture (default: linux-x64)
-#   GITHUB_ORG     — GitHub organization (default: qws941-lab)
+#   GITHUB_USER    — GitHub username (default: runner)
 #   SKIP_DOCKER    — Set to 1 to skip Docker install (unprivileged LXC)
 #
 # Usage:
 #   ./setup-runner.sh
-#   GITHUB_ORG="myorg" ./setup-runner.sh
+#   GITHUB_USER="myuser" ./setup-runner.sh
 # =============================================================================
 
 set -euo pipefail
@@ -50,7 +50,7 @@ RUNNER_HOME="/home/${RUNNER_USER}"
 RUNNER_DIR="${RUNNER_HOME}/actions-runner"
 export RUNNER_LABELS="self-hosted,linux,x64,homelab"
 
-GITHUB_ORG="${GITHUB_ORG:-qws941-lab}"
+GITHUB_USER="${GITHUB_USER:-runner}"
 
 # --- Colors ------------------------------------------------------------------
 RED='\033[0;31m'
@@ -179,16 +179,16 @@ install_infra_tools() {
     fi
 }
 
-# --- Phase 5b: Registration (via register-runners.sh) ----------------------
-# Runner registration is handled separately by register-runners.sh.
+# --- Phase 5b: Registration (via register-all-repos.sh) ----------------------
+# Runner registration is handled separately by register-all-repos.sh.
 # This keeps setup idempotent and registration decoupled.
-# Use RUNNER_COUNT env var to control org-level instances (default: 2).
-# Each instance registers once at org level, serving all repos automatically.
+# Use RUNNER_COUNT env var to control instances per repo (default: 2).
+# Each instance registers as homelab-101-N to every discovered repo.
 
 # --- Phase 6: Systemd Service (template only) --------------------------------
-# NOTE: register-runners.sh creates per-instance unit files directly
-# (github-runner-N.service). This template is kept for backward
-# compatibility with manual systemd instantiation.
+# NOTE: register-all-repos.sh and register-repo.sh create per-service unit
+# files directly (github-runner-<instance>-<repo>.service). This template
+# is kept for backward compatibility with manual systemd instantiation.
 install_service() {
     log "Installing runner service template..."
 
@@ -224,7 +224,7 @@ EOF
 main() {
     log "=== GitHub Actions Runner Setup ==="
     log "Target: VMID 101 (192.168.50.101)"
-    log "Org: ${GITHUB_ORG}"
+    log "User: ${GITHUB_USER}"
     log ""
 
     install_dependencies
@@ -240,7 +240,7 @@ main() {
 
     log ""
     log "=== Setup Complete ==="
-    log "Next: Run register-runners.sh to register org-level runner instances"
+    log "Next: Run register-all-repos.sh to register runner instances to all repos"
     log ""
 }
 

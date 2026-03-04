@@ -23,7 +23,7 @@ locals {
     "github" = {
       name    = "github"
       topic   = "GitHub activity — PRs, issues, CI/CD, releases"
-      purpose = "Unified GitHub webhook notifications for all qws941-lab repositories."
+      purpose = "Unified GitHub webhook notifications for all qws941 repositories."
     }
     "alerts" = {
       name    = "alerts"

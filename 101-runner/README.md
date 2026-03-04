@@ -1,6 +1,6 @@
 # 101-runner: GitHub Actions Self-hosted Runner
 
-LXC container (VMID 101) running multiple GitHub Actions self-hosted runner instances registered at the **organization level** (`qws941-lab`). A single registration serves all repos in the org automatically.
+LXC container (VMID 101) running multiple GitHub Actions self-hosted runner instances for shared CI/CD across all repositories.
 
 ## Specs
 
@@ -14,19 +14,18 @@ LXC container (VMID 101) running multiple GitHub Actions self-hosted runner inst
 | Disk | 32 GB |
 | Privileged | No (unprivileged, nesting enabled) |
 
-## Org-Level Runner Model
+## Multi-Instance Runner Model
 
-Runners register once at the organization level and automatically serve **all repositories** in `qws941-lab`. No per-repo registration needed.
+Each repo gets `RUNNER_COUNT` (default: 2) independent runner instances:
 
 | Component | Naming Convention |
 |-----------|------------------|
 | Runner name | `homelab-101-{N}` (e.g. `homelab-101-1`, `homelab-101-2`) |
-| Directory | `/home/runner/runners/instance-{N}/` |
-| Systemd service | `github-runner-{N}.service` |
+| Directory | `/home/runner/runners/instance-{N}/{repo}/` |
+| Systemd service | `github-runner-{N}-{repo}.service` |
 | Labels | `self-hosted,linux,x64,homelab` |
-| Instance count | `RUNNER_COUNT` env var (default: 2) |
 
-With 2 instances, GitHub picks an idle runner automatically when any repo triggers a job.
+With 2 instances and 7 repos, GitHub picks an idle instance automatically when a job starts.
 
 ## Quick Start
 
@@ -49,13 +48,13 @@ ssh root@192.168.50.100 'pct exec 101 -- bash'
 # Install dependencies (run once)
 bash /opt/runner/scripts/setup-runner.sh
 
-# Register org-level runners (2 instances by default)
-GITHUB_TOKEN="ghp_xxx" \
-  bash /opt/runner/scripts/register-runners.sh
+# Register all repos with 2 instances each (default)
+GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
+  bash /opt/runner/scripts/register-all-repos.sh
 
-# Register with 3 instances
-RUNNER_COUNT=3 GITHUB_TOKEN="ghp_xxx" \
-  bash /opt/runner/scripts/register-runners.sh
+# Register all repos with 3 instances each
+RUNNER_COUNT=3 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
+  bash /opt/runner/scripts/register-all-repos.sh
 ```
 
 ### 3. Using in Workflows
@@ -85,11 +84,19 @@ jobs:
 systemctl list-units 'github-runner-*'
 
 # Status of specific instance
-systemctl status github-runner-1
-journalctl -u github-runner-2 -f
+systemctl status github-runner-1-terraform
+journalctl -u github-runner-2-terraform -f
 
-# Unregister all instances
-GITHUB_TOKEN="ghp_xxx" \
+# Register a single repo (all instances)
+GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
+  bash /opt/runner/scripts/register-repo.sh <repo-name>
+
+# Register a single repo (specific instance only)
+GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
+  bash /opt/runner/scripts/register-repo.sh <repo-name> 1
+
+# Unregister all
+GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
   bash /opt/runner/scripts/unregister-all.sh
 ```
 
@@ -102,13 +109,13 @@ GITHUB_TOKEN="ghp_xxx" \
                     │                                          │
                     │  ┌──────────────────────────────────┐    │
                     │  │  instance-1/                      │    │
-                    │  │    → github-runner-1.service       │    │
-                    │  │    → homelab-101-1                 │    │
+                    │  │    repo-A/ → github-runner-1-A    │    │
+                    │  │    repo-B/ → github-runner-1-B    │    │
                     │  └──────────────────────────────────┘    │
                     │  ┌──────────────────────────────────┐    │
                     │  │  instance-2/                      │    │
-                    │  │    → github-runner-2.service       │    │
-                    │  │    → homelab-101-2                 │    │
+                    │  │    repo-A/ → github-runner-2-A    │    │
+                    │  │    repo-B/ → github-runner-2-B    │    │
                     │  └──────────────────────────────────┘    │
                     │                                          │
                     │  ┌──────────────────────────────────┐    │
@@ -118,11 +125,10 @@ GITHUB_TOKEN="ghp_xxx" \
                     └──────────────┬──────────────────────────┘
                                    │
                     ┌──────────────▼──────────────────────────┐
-                    │   GitHub (qws941-lab org)                 │
-                    │  ┌──────────────────────────────────┐    │
-                    │  │  Org-level runner pool             │    │
-                    │  │  Serves ALL repos automatically    │    │
-                    │  └──────────────────────────────────┘    │
+                    │      GitHub API                          │
+                    │  ┌──────┐ ┌──────┐ ┌──────┐             │
+                    │  │repo-A│ │repo-B│ │repo-N│ ...         │
+                    │  └──────┘ └──────┘ └──────┘             │
                     └─────────────────────────────────────────┘
 ```
 
@@ -130,15 +136,15 @@ GITHUB_TOKEN="ghp_xxx" \
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `GITHUB_TOKEN` | Yes | — | GitHub PAT with `admin:org` scope |
-| `GITHUB_ORG` | No | `qws941-lab` | GitHub organization name |
-| `RUNNER_COUNT` | No | `2` | Number of runner instances |
+| `GITHUB_TOKEN` | Yes | — | GitHub PAT with `repo` scope |
+| `GITHUB_USER` | Yes | — | GitHub username (e.g. `qws941`) |
+| `RUNNER_COUNT` | No | `2` | Number of runner instances per repo |
 | `RUNNER_VERSION` | No | `2.322.0` | Runner binary version |
 | `RUNNER_ARCH` | No | `linux-x64` | Runner architecture |
 | `SKIP_DOCKER` | No | — | Set to `1` to skip Docker install |
 
 ## Security Notes
 
-- **GITHUB_TOKEN**: Requires `admin:org` scope for org-level runner registration. Store securely (1Password recommended).
+- **GITHUB_TOKEN**: Requires `repo` scope for registration. Store securely (1Password recommended).
 - **Unprivileged LXC**: Nesting enabled for Docker-in-Docker. Only trusted code should run.
 - **Network**: Internal 192.168.50.0/24 only. Outbound via gateway for GitHub API access.
