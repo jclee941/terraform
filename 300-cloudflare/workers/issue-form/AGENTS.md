@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Hono-based Cloudflare Worker serving a Korean-language GitHub issue submission form. Renders an inline HTML form at `/` and creates issues in `qws941/terraform` via the GitHub API.
+Hono-based Cloudflare Worker serving a Korean-language GitHub issue submission form. Renders an inline HTML form at `/` and creates issues in `qws941-lab/terraform` via the GitHub API.
 
 ## STRUCTURE
 

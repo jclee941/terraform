@@ -125,7 +125,7 @@ As the host node, 100-pve is the foundation for:
 | <a name="input_enable_pbs"></a> [enable\_pbs](#input\_enable\_pbs) | Enable Proxmox Backup Server storage registration (requires 'pbs' item in 1Password vault) | `bool` | `false` | no |
 | <a name="input_enable_synology"></a> [enable\_synology](#input\_enable\_synology) | Whether to look up Synology secrets from 1Password | `bool` | `false` | no |
 | <a name="input_enable_youtube"></a> [enable\_youtube](#input\_enable\_youtube) | Whether to look up YouTube secrets from 1Password | `bool` | `false` | no |
-| <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization/user name | `string` | `"qws941"` | no |
+| <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization/user name | `string` | `"qws941-lab"` | no |
 | <a name="input_homelab_tunnel_token"></a> [homelab\_tunnel\_token](#input\_homelab\_tunnel\_token) | Cloudflare Tunnel token for homelab connector (from 300-cloudflare workspace) | `string` | `""` | no |
 | <a name="input_managed_vmid_range"></a> [managed\_vmid\_range](#input\_managed\_vmid\_range) | VMID range for Terraform-managed containers and VMs (101-220) | <pre>object({<br/>    min = number<br/>    max = number<br/>  })</pre> | <pre>{<br/>  "max": 220,<br/>  "min": 101<br/>}</pre> | no |
 | <a name="input_network_cidr"></a> [network\_cidr](#input\_network\_cidr) | Network CIDR for container IPs | `string` | `"192.168.50.0/24"` | no |

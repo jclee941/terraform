@@ -89,7 +89,7 @@ variable "network_cidr" {
 variable "github_org" {
   description = "GitHub organization/user name"
   type        = string
-  default     = "qws941"
+  default     = "qws941-lab"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9-]+$", var.github_org))

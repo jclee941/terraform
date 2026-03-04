@@ -1,5 +1,5 @@
 # Auto-merge for Dependabot, owner, sync, and Codex PRs
-# SSoT: qws941/.github — synced to all repos
+# SSoT: qws941-lab/.github — synced to all repos
 # Synced via: .github/sync.yml → Group 2
 #
 # Triggers:
@@ -36,7 +36,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "::error::GH_PAT secret is not set — see qws941/.github README"
+            echo "::error::GH_PAT secret is not set — see qws941-lab/.github README"
             exit 1
           fi
           gh pr merge "$PR_NUMBER" \

@@ -81,7 +81,7 @@ curl -s http://192.168.50.104:3000/api/v1/provisioning/alert-rules \
 # n8n UI: 192.168.50.112:5678 → Executions → Check recent
 
 # 4. Verify: GitHub Issue created
-gh issue list --repo qws941/terraform --label automated
+gh issue list --repo qws941-lab/terraform --label automated
 ```
 
 ## Prevention

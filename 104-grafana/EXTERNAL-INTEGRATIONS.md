@@ -34,7 +34,7 @@ curl -X POST "$SLACK_WEBHOOK" \
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "*GitHub Actions*\n*Build #123 Failed*\nRepository: qws941/terraform\nBranch: main\nAuthor: @jclee"
+          "text": "*GitHub Actions*\n*Build #123 Failed*\nRepository: qws941-lab/terraform\nBranch: main\nAuthor: @jclee"
         }
       },
       {
@@ -59,7 +59,7 @@ curl -X POST "$SLACK_WEBHOOK" \
               "type": "plain_text",
               "text": "View Run"
             },
-            "url": "https://github.com/qws941/terraform/actions/runs/123"
+            "url": "https://github.com/qws941-lab/terraform/actions/runs/123"
           }
         ]
       }

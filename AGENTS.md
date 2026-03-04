@@ -30,7 +30,7 @@ Apply order: 100-pve first, then Tier 1 parallel, then Independent parallel. See
 | Secret definitions | `modules/shared/onepassword-secrets/` (14 items) |
 | 1Password Connect Server | LXC 112 port 8090 |
 | CI/CD workflows | `.github/workflows/` (72 workflows) |
-| Reusable workflow calls | `.github/workflows/_*.yml` (from `qws941/.github` repo) |
+| Reusable workflow calls | `.github/workflows/_*.yml` (from `qws941-lab/.github` repo) |
 | Bazel build targets | `BUILD.bazel` in every directory |
 | Dependency graph | `DEPENDENCY_MAP.md` |
 | Architecture overview | `docs/architecture.md` |

@@ -80,7 +80,7 @@ body:
     attributes:
       label: Failing Run URL
       description: Link to the failing GitHub Actions run.
-      placeholder: "https://github.com/qws941/terraform/actions/runs/..."
+      placeholder: "https://github.com/qws941-lab/terraform/actions/runs/..."
     validations:
       required: false
 

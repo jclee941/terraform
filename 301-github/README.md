@@ -62,10 +62,10 @@
 | <a name="input_enable_infra_actions_variables"></a> [enable\_infra\_actions\_variables](#input\_enable\_infra\_actions\_variables) | Populate GitHub Actions variables with infrastructure endpoints from remote state. | `bool` | `false` | no |
 | <a name="input_enable_repository_imports"></a> [enable\_repository\_imports](#input\_enable\_repository\_imports) | Enable import blocks for existing repositories. | `bool` | `false` | no |
 | <a name="input_enable_repository_rulesets"></a> [enable\_repository\_rulesets](#input\_enable\_repository\_rulesets) | Enable repository rulesets management. | `bool` | `true` | no |
-| <a name="input_github_owner"></a> [github\_owner](#input\_github\_owner) | GitHub organization or user | `string` | `"qws941"` | no |
+| <a name="input_github_owner"></a> [github\_owner](#input\_github\_owner) | GitHub organization or user | `string` | `"qws941-lab"` | no |
 | <a name="input_github_token"></a> [github\_token](#input\_github\_token) | GitHub personal access token (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_infra_domain"></a> [infra\_domain](#input\_infra\_domain) | Infrastructure domain used to derive service URLs (e.g., mcphub.{domain}). | `string` | `"jclee.me"` | no |
-| <a name="input_manage_as_organization"></a> [manage\_as\_organization](#input\_manage\_as\_organization) | Enable organization-only resources (teams, org actions, runner groups). | `bool` | `false` | no |
+| <a name="input_manage_as_organization"></a> [manage\_as\_organization](#input\_manage\_as\_organization) | Enable organization-only resources (teams, org actions, runner groups). | `bool` | `true` | no |
 | <a name="input_n8n_webhook_github_issue_url"></a> [n8n\_webhook\_github\_issue\_url](#input\_n8n\_webhook\_github\_issue\_url) | n8n webhook URL for GitHub issue automation. | `string` | `""` | no |
 | <a name="input_n8n_webhook_github_pr_url"></a> [n8n\_webhook\_github\_pr\_url](#input\_n8n\_webhook\_github\_pr\_url) | n8n webhook URL for GitHub PR automation. | `string` | `""` | no |
 | <a name="input_n8n_webhook_glitchtip_error_url"></a> [n8n\_webhook\_glitchtip\_error\_url](#input\_n8n\_webhook\_glitchtip\_error\_url) | n8n webhook URL for GlitchTip error workflows. | `string` | `""` | no |
