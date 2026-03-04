@@ -50,7 +50,7 @@ jobs:
           chmod 600 "$HOME/.config/opencode/antigravity-accounts.json"
 
       - name: Run OpenCode
-        uses: anomalyco/opencode/github@1cd77b10724ad87acc96790bec4a524614b20ad6 # v1.2.6
+        uses: anomalyco/opencode/github@e4f0825c56300286ec0aa82b1006e4006a17e1e1 # v1.2.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Auth is via opencode-antigravity-auth plugin (no ANTHROPIC_API_KEY needed).
