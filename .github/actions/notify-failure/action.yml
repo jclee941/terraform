@@ -16,7 +16,7 @@ inputs:
   labels:
     description: "Comma-separated labels for the issue"
     required: false
-    default: "bug,automation"
+    default: "bug,automation,codex"
   github-token:
     description: "GitHub token for creating issues"
     required: false
@@ -70,6 +70,13 @@ runs:
           const updateTitle = process.env.INPUT_UPDATE_TITLE === 'true';
           const customCommentBody = process.env.INPUT_COMMENT_BODY;
           const labels = process.env.INPUT_LABELS.split(',').map(l => l.trim()).filter(Boolean);
+
+          // GraphQL mutation for assigning Codex bot
+          const assignMutation = `mutation($issueId: ID!, $assigneeIds: [ID!]!) {
+            addAssigneesToAssignable(input: {assignableId: $issueId, assigneeIds: $assigneeIds}) {
+              clientMutationId
+            }
+          }`;
 
           // Build issue title
           const issueTitle = customTitle || `${titlePrefix} (${today})`;
@@ -159,13 +166,35 @@ runs:
               });
             }
 
+            // Assign Codex bot via GraphQL (REST silently ignores bot accounts)
+            try {
+              await github.graphql(assignMutation, {
+                issueId: duplicate.node_id,
+                assigneeIds: ['BOT_kgDODnSAjQ'],
+              });
+            } catch (e) {
+              core.warning('Failed to assign Codex: ' + e.message);
+            }
+
             core.info(`Updated existing issue #${duplicate.number} instead of creating duplicate`);
           } else {
-            await github.rest.issues.create({
+            const created = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: issueTitle,
               body,
               labels,
             });
+
+            // Assign Codex bot via GraphQL (REST silently ignores bot accounts)
+            try {
+              await github.graphql(assignMutation, {
+                issueId: created.data.node_id,
+                assigneeIds: ['BOT_kgDODnSAjQ'],
+              });
+            } catch (e) {
+              core.warning('Failed to assign Codex: ' + e.message);
+            }
+
+            core.info(`Created issue #${created.data.number}`);
           }
