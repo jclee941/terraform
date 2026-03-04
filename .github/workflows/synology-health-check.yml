@@ -1,0 +1,19 @@
+name: Synology Health Check
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # Daily at 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: synology-health-check
+  cancel-in-progress: true
+
+jobs:
+  health-check:
+    uses: ./.github/workflows/_synology-health-check.yml
+    secrets: inherit  # pragma: allowlist secret

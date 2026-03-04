@@ -1,0 +1,211 @@
+name: Backup Restore Test (Reusable)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  restore-test:
+    name: Vzdump Restore Verification
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 15
+    env:
+      TEMP_VMID: 9999
+      NODE: pve3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e5f6fbbc376e95a00e6d96e95009e9e92 # v6
+
+      - name: Find Latest Backup
+        id: find-backup
+        env:
+          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+        run: |
+          # List backup storage contents
+          BACKUPS=$(curl -sk \
+            -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/storage/local/content" \
+            --data-urlencode "content=backup" \
+            -G)
+
+          # Find most recent vzdump backup
+          LATEST=$(echo "$BACKUPS" | jq -r '[.data[] | select(.volid | startswith("local:backup/"))] | sort_by(.ctime) | last')
+
+          if [ "$LATEST" = "null" ] || [ -z "$LATEST" ]; then
+            echo "::error::No backups found in storage"
+            exit 1
+          fi
+
+          VOLID=$(echo "$LATEST" | jq -r '.volid')
+          SIZE=$(echo "$LATEST" | jq -r '.size')
+          CTIME=$(echo "$LATEST" | jq -r '.ctime | todate')
+
+          echo "volid=$VOLID" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Backup Restore Test"
+            echo ""
+            echo "### Source Backup"
+            echo "- **Volume**: $VOLID"
+            echo "- **Size**: $((SIZE / 1048576)) MB"
+            echo "- **Created**: $CTIME"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify Temp VMID Available
+        env:
+          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+        run: |
+          # Ensure temp VMID is not in use
+          STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
+            -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/lxc/${TEMP_VMID}/status/current")
+
+          if [ "$STATUS" = "200" ]; then
+            echo "::error::VMID ${TEMP_VMID} already in use — aborting to prevent data loss"
+            exit 1
+          fi
+
+      - name: Restore Backup to Temp Container
+        env:
+          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+        run: |
+          VOLID="${{ steps.find-backup.outputs.volid }}"
+
+          # Restore to temp VMID (unprivileged, no start)
+          RESTORE=$(curl -sk \
+            -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+            -X POST \
+            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/lxc" \
+            -d "vmid=${TEMP_VMID}" \
+            -d "ostemplate=${VOLID}" \
+            -d "storage=local-lvm" \
+            -d "restore=1" \
+            -d "start=0" \
+            -d "unprivileged=1")
+
+          UPID=$(echo "$RESTORE" | jq -r '.data')
+          echo "Restore task: $UPID"
+
+          # Wait for restore task to complete (max 5 min)
+          for _ in $(seq 1 60); do
+            TASK_STATUS=$(curl -sk \
+              -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+              "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/tasks/${UPID}/status" | jq -r '.data.status')
+
+            if [ "$TASK_STATUS" = "stopped" ]; then
+              EXIT_STATUS=$(curl -sk \
+                -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+                "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/tasks/${UPID}/status" | jq -r '.data.exitstatus')
+
+              if [ "$EXIT_STATUS" = "OK" ]; then
+                echo "Restore completed successfully"
+                break
+              else
+                echo "::error::Restore failed with exit status: $EXIT_STATUS"
+                exit 1
+              fi
+            fi
+            sleep 5
+          done
+
+          if [ "$TASK_STATUS" != "stopped" ]; then
+            echo "::error::Restore timed out after 5 minutes"
+            exit 1
+          fi
+
+      - name: Start and Verify Container
+        env:
+          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+        run: |
+          # Start the restored container
+          curl -sk \
+            -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+            -X POST \
+            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/lxc/${TEMP_VMID}/status/start"
+
+          # Wait for container to reach running state (max 60s)
+          RUNNING=false
+          for i in $(seq 1 12); do
+            sleep 5
+            STATUS=$(curl -sk \
+              -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+              "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/lxc/${TEMP_VMID}/status/current" | jq -r '.data.status')
+
+            if [ "$STATUS" = "running" ]; then
+              RUNNING=true
+              break
+            fi
+          done
+
+          if [ "$RUNNING" = true ]; then
+            {
+              echo ""
+              echo "### Restore Verification"
+              echo "- **Temp VMID**: ${TEMP_VMID}"
+              echo "- **Status**: ✅ Container started successfully"
+              echo "- **Boot time**: $((i * 5))s"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo ""
+              echo "### Restore Verification"
+              echo "- **Temp VMID**: ${TEMP_VMID}"
+              echo "- **Status**: ❌ Container failed to start (status: $STATUS)"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Restored container failed to reach running state"
+            # Continue to cleanup even on failure
+          fi
+
+      - name: Cleanup Temp Container
+        if: always()
+        env:
+          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+        run: |
+          # Stop container if running
+          curl -sk \
+            -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+            -X POST \
+            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/lxc/${TEMP_VMID}/status/stop" 2>/dev/null || true
+
+          # Wait for stop
+          sleep 10
+
+          # Destroy temp container
+          DESTROY=$(curl -sk -o /dev/null -w "%{http_code}" \
+            -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+            -X DELETE \
+            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/lxc/${TEMP_VMID}?purge=1&destroy-unreferenced-disks=1")
+
+          if [ "$DESTROY" = "200" ]; then
+            {
+              echo ""
+              echo "### Cleanup"
+              echo "- ✅ Temp container ${TEMP_VMID} destroyed"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo ""
+              echo "### Cleanup"
+              echo "- ⚠️ Temp container ${TEMP_VMID} cleanup returned HTTP $DESTROY (may need manual cleanup)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 Backup Restore Test"
+          labels: "bug,automation,infrastructure"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "Backup restore test completed at $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_STEP_SUMMARY"

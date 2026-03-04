@@ -1,0 +1,19 @@
+name: External Uptime Check
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: external-uptime-check
+  cancel-in-progress: true
+
+jobs:
+  uptime-check:
+    uses: ./.github/workflows/_external-uptime-check.yml
+    secrets: inherit  # pragma: allowlist secret

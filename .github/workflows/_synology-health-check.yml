@@ -1,0 +1,191 @@
+name: Synology Health Check (Reusable)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    name: Synology NAS Health
+    runs-on: [self-hosted, homelab]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e5f6fbbc376e95a00e6d96e95009e9e92 # v6
+
+      - name: Authenticate with DSM
+        id: auth
+        env:
+          SYNOLOGY_HOST: "192.168.50.215"
+          SYNOLOGY_PORT: "5000"
+          SYNOLOGY_USER: ${{ secrets.SYNOLOGY_USER }}
+          SYNOLOGY_PASSWORD: ${{ secrets.SYNOLOGY_PASSWORD }}
+        run: |
+          # Login to DSM API
+          AUTH=$(curl -sk \
+            "http://${SYNOLOGY_HOST}:${SYNOLOGY_PORT}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${SYNOLOGY_USER}&passwd=${SYNOLOGY_PASSWORD}&format=sid")
+
+          SID=$(echo "$AUTH" | jq -r '.data.sid // empty')
+
+          if [ -z "$SID" ]; then
+            echo "::error::Failed to authenticate with Synology DSM"
+            exit 1
+          fi
+
+          echo "::add-mask::$SID"
+          echo "sid=$SID" >> "$GITHUB_OUTPUT"
+          echo "base_url=http://${SYNOLOGY_HOST}:${SYNOLOGY_PORT}" >> "$GITHUB_OUTPUT"
+
+      - name: Check System Health
+        env:
+          SID: ${{ steps.auth.outputs.sid }}
+          BASE_URL: ${{ steps.auth.outputs.base_url }}
+        run: |
+          # Get system info
+          SYSTEM=$(curl -sk \
+            "${BASE_URL}/webapi/entry.cgi?api=SYNO.DSM.Info&version=2&method=getinfo&_sid=${SID}")
+
+          MODEL=$(echo "$SYSTEM" | jq -r '.data.model // "unknown"')
+          RAM=$(echo "$SYSTEM" | jq -r '.data.ram // 0')
+          UPTIME=$(echo "$SYSTEM" | jq -r '.data.uptime // 0')
+          TEMP=$(echo "$SYSTEM" | jq -r '.data.temperature // 0')
+
+          UPTIME_DAYS=$((UPTIME / 86400))
+          UPTIME_HOURS=$(( (UPTIME % 86400) / 3600 ))
+
+          {
+            echo "## Synology NAS Health"
+            echo ""
+            echo "### System Info"
+            echo "| Metric | Value |"
+            echo "|--------|-------|"
+            echo "| Model | $MODEL |"
+            echo "| RAM | ${RAM} MB |"
+            echo "| Uptime | ${UPTIME_DAYS}d ${UPTIME_HOURS}h |"
+            echo "| Temperature | ${TEMP}°C |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Alert if temperature is high
+          if [ "$TEMP" -gt 60 ]; then
+            echo "::warning::System temperature is ${TEMP}°C (threshold: 60°C)"
+          fi
+
+      - name: Check Storage Health
+        env:
+          SID: ${{ steps.auth.outputs.sid }}
+          BASE_URL: ${{ steps.auth.outputs.base_url }}
+        run: |
+          FAILED=0
+
+          # Get storage pool/volume info
+          STORAGE=$(curl -sk \
+            "${BASE_URL}/webapi/entry.cgi?api=SYNO.Storage.CGI.Storage&version=1&method=load_info&_sid=${SID}")
+
+          # Check disks
+          {
+            echo ""
+            echo "### Disk Health"
+            echo "| Disk | Status | Temperature | S.M.A.R.T. |"
+            echo "|------|--------|-------------|------------|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          DISK_COUNT=$(echo "$STORAGE" | jq '.data.disks | length')
+
+          for i in $(seq 0 $((DISK_COUNT - 1))); do
+            DISK=$(echo "$STORAGE" | jq ".data.disks[$i]")
+            NAME=$(echo "$DISK" | jq -r '.name // "unknown"')
+            STATUS=$(echo "$DISK" | jq -r '.status // "unknown"')
+            DISK_TEMP=$(echo "$DISK" | jq -r '.temp // 0')
+            SMART=$(echo "$DISK" | jq -r '.smart_status // "unknown"')
+
+            SMART_ICON="✅"
+            if [ "$SMART" != "normal" ]; then
+              SMART_ICON="❌"
+              FAILED=$((FAILED + 1))
+            fi
+
+            STATUS_DISPLAY="$STATUS"
+            if [ "$STATUS" != "normal" ]; then
+              STATUS_DISPLAY="⚠️ $STATUS"
+              FAILED=$((FAILED + 1))
+            fi
+
+            echo "| $NAME | $STATUS_DISPLAY | ${DISK_TEMP}°C | $SMART_ICON $SMART |" >> "$GITHUB_STEP_SUMMARY"
+
+            # Alert if disk temp is high
+            if [ "$DISK_TEMP" -gt 50 ]; then
+              echo "::warning::Disk $NAME temperature is ${DISK_TEMP}°C (threshold: 50°C)"
+            fi
+          done
+
+          # Check RAID/volumes
+          {
+            echo ""
+            echo "### Volume Status"
+            echo "| Volume | Status | Used |"
+            echo "|--------|--------|------|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          VOL_COUNT=$(echo "$STORAGE" | jq '.data.volumes | length')
+
+          for i in $(seq 0 $((VOL_COUNT - 1))); do
+            VOL=$(echo "$STORAGE" | jq ".data.volumes[$i]")
+            VOL_ID=$(echo "$VOL" | jq -r '.id // "unknown"')
+            VOL_STATUS=$(echo "$VOL" | jq -r '.status // "unknown"')
+            TOTAL=$(echo "$VOL" | jq -r '.size.total // 0')
+            USED=$(echo "$VOL" | jq -r '.size.used // 0')
+
+            if [ "$TOTAL" -gt 0 ]; then
+              USED_PCT=$((USED * 100 / TOTAL))
+            else
+              USED_PCT=0
+            fi
+
+            STATUS_DISPLAY="✅ $VOL_STATUS"
+            if [ "$VOL_STATUS" != "normal" ]; then
+              STATUS_DISPLAY="❌ $VOL_STATUS"
+              FAILED=$((FAILED + 1))
+            fi
+
+            echo "| $VOL_ID | $STATUS_DISPLAY | ${USED_PCT}% |" >> "$GITHUB_STEP_SUMMARY"
+
+            # Alert if volume usage is high
+            if [ "$USED_PCT" -gt 90 ]; then
+              echo "::warning::Volume $VOL_ID usage is ${USED_PCT}% (threshold: 90%)"
+            fi
+          done
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::error::$FAILED storage health issue(s) detected"
+            exit 1
+          fi
+
+          {
+            echo ""
+            echo "✅ All disks and volumes healthy"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Logout
+        if: always()
+        env:
+          SID: ${{ steps.auth.outputs.sid }}
+          BASE_URL: ${{ steps.auth.outputs.base_url }}
+        run: |
+          if [ -n "$SID" ]; then
+            curl -sk "${BASE_URL}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=logout&_sid=${SID}" > /dev/null 2>&1 || true
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/notify-failure
+        with:
+          title-prefix: "🔴 Synology Health Check"
+          labels: "bug,automation,infrastructure"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "Synology health check completed at $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_STEP_SUMMARY"
