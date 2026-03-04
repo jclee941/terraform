@@ -1,0 +1,16 @@
+name = "issue-form"
+main = "src/index.ts"
+compatibility_date = "2025-12-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "a8d9c67f586acdd15eebcc65ca3aa5bb"
+workers_dev = true
+
+[vars]
+ENVIRONMENT = "production"
+GITHUB_OWNER = "qws941"
+GITHUB_REPO = "terraform"
+
+
+# Secrets (set via `wrangler secret put`):
+#   GITHUB_TOKEN    - GitHub PAT for issue creation
+#   WEBHOOK_SECRET  - Bearer token for ELK webhook auth
