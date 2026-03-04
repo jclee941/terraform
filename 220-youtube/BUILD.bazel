@@ -14,3 +14,8 @@ filegroup(
     name = "scripts",
     srcs = glob(["scripts/**"], allow_empty = True),
 )
+
+filegroup(
+    name = "templates",
+    srcs = glob(["templates/**"], allow_empty = True),
+)

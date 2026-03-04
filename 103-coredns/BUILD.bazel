@@ -4,3 +4,8 @@ filegroup(
     name = "config",
     srcs = glob(["config/**"], allow_empty = True),
 )
+
+filegroup(
+    name = "templates",
+    srcs = glob(["templates/**"], allow_empty = True),
+)

@@ -1,5 +1,6 @@
+package(default_visibility = ["//visibility:public"])
+
 filegroup(
-    name = "templates",
-    srcs = glob(["*.tftpl"]),
-    visibility = ["//visibility:public"],
+    name = "files",
+    srcs = glob(["**"], allow_empty = True),
 )

@@ -1,9 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
-    name = "all_files",
-    srcs = [
-        "OWNERS",
-        "README.md",
-    ],
+    name = "docs",
+    srcs = glob(["*.md"]),
 )
