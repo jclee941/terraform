@@ -1,4 +1,12 @@
-name: OpenCode AI
+# OpenCode Agent
+# SSoT: qws941-lab/.github — synced to all repos
+# Synced via: .github/sync.yml
+# Template: _opencode.yml
+#
+# Required secrets:
+#   - ANTHROPIC_API_KEY: API key for the AI model
+
+name: OpenCode
 
 on:
   issue_comment:
@@ -7,58 +15,12 @@ on:
     types: [created]
 
 permissions:
+  id-token: write
   contents: write
   pull-requests: write
   issues: write
-  id-token: write
 
 jobs:
   opencode:
-    if: |
-      (
-        startsWith(github.event.comment.body, '/opencode') ||
-        startsWith(github.event.comment.body, '/oc') ||
-        contains(github.event.comment.body, ' /opencode') ||
-        contains(github.event.comment.body, ' /oc')
-      ) &&
-      contains(fromJson('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
-    uses: ./.github/workflows/_opencode.yml
-    with:
-      model: google/antigravity-claude-opus-4-6-thinking
-      prompt: |
-        You are an AI assistant for a Terraform infrastructure monorepo managing a Proxmox homelab
-        (jclee.me). The repo uses Google3/Bazel conventions, bpg/proxmox provider (~>0.94), and
-        1Password for secret management via 1Password Connect Server on LXC 112. # pragma: allowlist secret
-
-        ARCHITECTURE:
-        - 100-pve/main.tf: Central orchestration (~810 lines). NO hardcoded IPs — use module.hosts.
-        - 100-pve/envs/prod/hosts.tf: SSoT for ALL IPs/ports (192.168.50.0/24, GW .1).
-        - modules/proxmox/{lxc,vm,lxc-config,vm-config,config-renderer}: Reusable TF modules.
-        - modules/shared/onepassword-secrets/: Cross-stack 1Password secret retrieval.
-        - 300-cloudflare/: DNS, tunnels, access, R2, Workers (cloudflare/cloudflare ~>5.0).
-        - Per-service dirs: {NNN}-{svc}/ (101-runner through 220-youtube).
-
-        CONVENTIONS TO ENFORCE:
-        - Every directory with code MUST have BUILD.bazel and OWNERS files.
-        - Use relative module paths: ../modules/{provider}/{module}.
-        - No hardcoded IPs in main.tf — reference module.hosts outputs.
-        - State backend is local (no -backend-config needed for terraform init).
-        - Terraform format: run terraform fmt -recursive before pushing.
-        - Pin all GitHub Actions to full commit SHA (not version tags).
-        - Secrets: never commit .env files; use 1Password service account pattern.
-
-        SECURITY FOCUS:
-        - Flag exposed ports, overly permissive firewall rules in Proxmox LXC/VM configs.
-        - Flag any hardcoded credentials or tokens in .tf, .tfvars, or template files.
-        - Highlight any changes to 100-pve/, modules/, 300-cloudflare/, or 102-traefik/ as CRITICAL.
-        - Identify missing persist-credentials: false in workflow checkouts.
-
-        INFRASTRUCTURE (VMIDs to IPs):
-        101=runner(.101), 102=traefik(.102), 104=grafana(.104), 105=elk(.105),
-        106=glitchtip(.106), 107=supabase(.107), 108=archon(.108), 112=mcphub(.112),
-        220=youtube(.220).
-
-        DEFAULT BEHAVIOR: Prefer reviewing and commenting over pushing changes.
-        Only modify files if the user explicitly requests it (e.g., /oc fix this).
-        When creating PRs for issues, follow existing naming: branch opencode/issueNNN-TIMESTAMP.
-    secrets: inherit  # pragma: allowlist secret
+    uses: qws941-lab/.github/.github/workflows/_opencode.yml@master
+    secrets: inherit

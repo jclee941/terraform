@@ -21,31 +21,6 @@ body:
         - Developer experience — Tooling, CI/CD, or workflow improvement
     validations:
       required: true
-
-  - type: dropdown
-    id: workspace
-    attributes:
-      label: Target Workspace
-      description: Which workspace or area should this feature affect?
-      options:
-        - 100-pve
-        - 102-traefik
-        - 104-grafana
-        - 105-elk
-        - 108-archon
-        - 109-ollama
-        - 112-mcphub
-        - 215-synology
-        - 220-youtube
-        - 300-cloudflare
-        - 301-github
-        - 320-slack
-        - Shared modules
-        - CI/CD workflows
-        - Other
-    validations:
-      required: true
-
   - type: dropdown
     id: priority
     attributes:
@@ -58,6 +33,7 @@ body:
         - P3 - Low (cosmetic)
     validations:
       required: true
+
 
   - type: textarea
     id: summary

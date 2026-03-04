@@ -1,13 +1,18 @@
 name: "📋 이슈 등록"
-description: 버그, 기능 요청, 유지보수, 문서 관련 이슈를 등록합니다.
+description: 버그, 기능 요청, 유지보수, 문서 등 모든 이슈를 등록합니다.
 labels: []
 assignees: [qws941]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        이슈를 등록해 주세요. 유형과 우선순위를 선택하고 상세 내용을 작성합니다.
+
   - type: dropdown
     id: type
     attributes:
       label: 유형
-      description: 이슈 유형을 선택하세요.
+      description: 이슈의 유형을 선택하세요.
       options:
         - 🐛 버그
         - ✨ 기능 요청
@@ -20,45 +25,21 @@ body:
     id: priority
     attributes:
       label: 우선순위
-      description: 우선순위를 선택하세요.
+      description: 이슈의 우선순위를 선택하세요.
       options:
-        - 🔴 긴급
-        - 🟠 높음
-        - 🟡 보통
-        - 🟢 낮음
-    validations:
-      required: true
-
-  - type: dropdown
-    id: workspace
-    attributes:
-      label: 대상 워크스페이스
-      description: 관련 워크스페이스를 선택하세요.
-      options:
-        - 100-pve
-        - 102-traefik
-        - 104-grafana
-        - 105-elk
-        - 108-archon
-        - 109-ollama
-        - 112-mcphub
-        - 215-synology
-        - 220-youtube
-        - 300-cloudflare
-        - 301-github
-        - 320-slack
-        - 공용 모듈
-        - CI/CD 워크플로우
-        - 기타
+        - 🔴 긴급 (P0)
+        - 🟠 높음 (P1)
+        - 🟡 보통 (P2)
+        - 🟢 낮음 (P3)
     validations:
       required: true
 
   - type: input
-    id: title-summary
+    id: summary
     attributes:
       label: 요약
-      description: 이슈를 한 줄로 요약하세요. (최대 256자)
-      placeholder: "예: Logstash 에러 분류 tier 3 누락"
+      description: 이슈를 한 줄로 요약하세요.
+      placeholder: 간결하게 작성해 주세요.
     validations:
       required: true
 
@@ -66,12 +47,11 @@ body:
     id: description
     attributes:
       label: 상세 설명
-      description: 이슈에 대한 상세 내용을 작성하세요.
+      description: 이슈에 대한 상세한 설명을 작성하세요.
       placeholder: |
-        - 현상:
+        - 현재 동작:
+        - 기대 동작:
         - 재현 방법:
-        - 예상 동작:
-        - 실제 동작:
     validations:
       required: true
 
@@ -79,6 +59,6 @@ body:
     id: context
     attributes:
       label: 추가 정보
-      description: 로그, 스크린샷, 환경 정보 등 참고할 내용을 첨부하세요.
+      description: 관련 로그, 스크린샷, 환경 정보 등을 첨부하세요.
     validations:
       required: false

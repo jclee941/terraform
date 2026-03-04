@@ -1,6 +1,7 @@
-# Welcome first-time contributors
+# Welcome First-Time Contributors
 # SSoT: qws941-lab/.github — synced to all repos
-# Synced via: .github/sync.yml → Group 1
+# Synced via: .github/sync.yml
+# Template: _welcome.yml
 
 name: Welcome
 
@@ -16,14 +17,4 @@ permissions:
 
 jobs:
   welcome:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          issue_message: |
-            Welcome! 👋 Thanks for opening your first issue in this repository.
-            A maintainer will review it shortly.
-          pr_message: |
-            Welcome! 👋 Thanks for your first pull request to this repository.
-            A maintainer will review it shortly. Please make sure your PR follows the [contributing guidelines](../blob/master/CONTRIBUTING.md).
+    uses: qws941-lab/.github/.github/workflows/_welcome.yml@master
