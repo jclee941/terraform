@@ -1,6 +1,7 @@
 name: Traefik Apply
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
