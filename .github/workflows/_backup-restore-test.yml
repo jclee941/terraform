@@ -22,8 +22,8 @@ jobs:
       - name: Find Latest Backup
         id: find-backup
         env:
-          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
-          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+          PROXMOX_ENDPOINT: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
         run: |
           # List backup storage contents
           BACKUPS=$(curl -sk \
@@ -57,8 +57,8 @@ jobs:
 
       - name: Verify Temp VMID Available
         env:
-          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
-          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+          PROXMOX_ENDPOINT: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
         run: |
           # Ensure temp VMID is not in use
           STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
@@ -72,8 +72,8 @@ jobs:
 
       - name: Restore Backup to Temp Container
         env:
-          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
-          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+          PROXMOX_ENDPOINT: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
         run: |
           VOLID="${{ steps.find-backup.outputs.volid }}"
 
@@ -121,8 +121,8 @@ jobs:
 
       - name: Start and Verify Container
         env:
-          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
-          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+          PROXMOX_ENDPOINT: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
         run: |
           # Start the restored container
           curl -sk \
@@ -166,8 +166,8 @@ jobs:
       - name: Cleanup Temp Container
         if: always()
         env:
-          PROXMOX_ENDPOINT: ${{ secrets.PROXMOX_ENDPOINT }}
-          PROXMOX_API_TOKEN: ${{ secrets.PROXMOX_API_TOKEN }}
+          PROXMOX_ENDPOINT: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
+          PROXMOX_API_TOKEN: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
         run: |
           # Stop container if running
           curl -sk \
