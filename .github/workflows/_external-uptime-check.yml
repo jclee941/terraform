@@ -35,7 +35,8 @@ jobs:
 
           for url in "${ENDPOINTS[@]}"; do
             STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 10 --connect-timeout 5 "$url" || echo "000")
-            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            # 2xx/3xx = healthy, 4xx = CF Access auth wall (infrastructure alive), 5xx/000 = down
+            if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 500 ]; then
               RESULTS+="| $url | $STATUS | ✅ |\n"
             else
               RESULTS+="| $url | $STATUS | ❌ |\n"
