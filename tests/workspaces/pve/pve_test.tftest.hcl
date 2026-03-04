@@ -52,6 +52,16 @@ override_module {
       n8n_github_token                = "mock-secret"              # pragma: allowlist secret
       n8n_glitchtip_api_token         = "mock-secret"              # pragma: allowlist secret
       slack_webhook_url               = "mock-secret"              # pragma: allowlist secret
+      cloudflare_tunnel_token         = "mock-secret"              # pragma: allowlist secret
+      google_oauth_client_id          = "mock-secret"              # pragma: allowlist secret
+      google_oauth_client_secret      = "mock-secret"              # pragma: allowlist secret
+      slack_bot_token                 = "mock-secret"              # pragma: allowlist secret
+      pbs_password                    = "mock-secret"              # pragma: allowlist secret
+      synology_user                   = "mock-secret"              # pragma: allowlist secret
+      synology_password               = "mock-secret"              # pragma: allowlist secret
+      youtube_google_client_id        = "mock-secret"              # pragma: allowlist secret
+      youtube_google_client_secret    = "mock-secret"              # pragma: allowlist secret
+      youtube_google_refresh_token    = "mock-secret"              # pragma: allowlist secret
     }
     metadata = {
       supabase_url                = "https://supabase.jclee.me"
@@ -59,6 +69,14 @@ override_module {
       cloudflare_email            = "test@example.com"
       cloudflare_account_id       = "abcdef0123456789abcdef0123456789"
       cloudflare_zone_id          = "1234567890abcdef1234567890abcdef"
+      n8n_webhook_url             = "https://n8n.jclee.me/webhook"
+      n8n_glitchtip_webhook_url   = "https://n8n.jclee.me/webhook/glitchtip"
+      pbs_server                  = "192.168.50.200"
+      pbs_datastore               = "backup"
+      pbs_username                = "backup@pbs"
+      pbs_fingerprint             = "aa:bb:cc:dd"
+      youtube_google_project_id   = "mock-project-id"
+      youtube_channel_id          = "mock-channel-id"
     }
   }
 }

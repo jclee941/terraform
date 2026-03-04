@@ -13,7 +13,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.grafana
+    target = data.onepassword_item.this["grafana"]
     values = {
       title       = "grafana"
       section_map = {}
@@ -21,7 +21,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.glitchtip
+    target = data.onepassword_item.this["glitchtip"]
     values = {
       title       = "glitchtip"
       section_map = {}
@@ -29,7 +29,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.proxmox
+    target = data.onepassword_item.this["proxmox"]
     values = {
       title       = "proxmox"
       section_map = {}
@@ -37,7 +37,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.github
+    target = data.onepassword_item.this["github"]
     values = {
       title       = "github"
       section_map = {}
@@ -45,7 +45,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.exa
+    target = data.onepassword_item.this["exa"]
     values = {
       title       = "exa"
       section_map = {}
@@ -53,7 +53,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.supabase
+    target = data.onepassword_item.this["supabase"]
     values = {
       title       = "supabase"
       section_map = {}
@@ -61,7 +61,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.archon
+    target = data.onepassword_item.this["archon"]
     values = {
       title       = "archon"
       section_map = {}
@@ -69,7 +69,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.cloudflare
+    target = data.onepassword_item.this["cloudflare"]
     values = {
       title       = "cloudflare"
       section_map = {}
@@ -77,7 +77,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.n8n
+    target = data.onepassword_item.this["n8n"]
     values = {
       title       = "n8n"
       section_map = {}
@@ -85,7 +85,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.mcphub
+    target = data.onepassword_item.this["mcphub"]
     values = {
       title       = "mcphub"
       section_map = {}
@@ -93,7 +93,7 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.slack
+    target = data.onepassword_item.this["slack"]
     values = {
       title       = "slack"
       section_map = {}
@@ -101,9 +101,25 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.elk
+    target = data.onepassword_item.this["elk"]
     values = {
       title       = "elk"
+      section_map = {}
+    }
+  }
+
+  override_data {
+    target = data.onepassword_item.this["synology"]
+    values = {
+      title       = "synology"
+      section_map = {}
+    }
+  }
+
+  override_data {
+    target = data.onepassword_item.this["youtube"]
+    values = {
+      title       = "youtube"
       section_map = {}
     }
   }
@@ -111,7 +127,7 @@ mock_provider "onepassword" {
 
 # --- Output structure tests ---
 
-# All 37 secret keys default to "" when section_map is empty (try() fallback)
+# All 42 secret keys default to "" when section_map is empty (try() fallback)
 run "test_secrets_default_to_empty_string" {
   command = plan
 
@@ -290,9 +306,33 @@ run "test_secrets_default_to_empty_string" {
     condition     = output.secrets.elk_kibana_password == ""
     error_message = "elk_kibana_password should default to empty string"
   }
+
+  # --- Synology (2 keys) ---
+  assert {
+    condition     = output.secrets.synology_user == ""
+    error_message = "synology_user should default to empty string"
+  }
+  assert {
+    condition     = output.secrets.synology_password == ""
+    error_message = "synology_password should default to empty string"
+  }
+
+  # --- YouTube (3 keys) ---
+  assert {
+    condition     = output.secrets.youtube_google_client_id == ""
+    error_message = "youtube_google_client_id should default to empty string"
+  }
+  assert {
+    condition     = output.secrets.youtube_google_client_secret == ""
+    error_message = "youtube_google_client_secret should default to empty string"
+  }
+  assert {
+    condition     = output.secrets.youtube_google_refresh_token == ""
+    error_message = "youtube_google_refresh_token should default to empty string"
+  }
 }
 
-# All 11 metadata keys default to "" when section_map is empty (try() fallback)
+# All 13 metadata keys default to "" when section_map is empty (try() fallback)
 run "test_metadata_default_to_empty_string" {
   command = plan
 
@@ -337,9 +377,19 @@ run "test_metadata_default_to_empty_string" {
     condition     = output.metadata.n8n_glitchtip_webhook_url == ""
     error_message = "n8n_glitchtip_webhook_url should default to empty string"
   }
+
+  # --- YouTube (2 keys) ---
+  assert {
+    condition     = output.metadata.youtube_google_project_id == ""
+    error_message = "youtube_google_project_id should default to empty string"
+  }
+  assert {
+    condition     = output.metadata.youtube_channel_id == ""
+    error_message = "youtube_channel_id should default to empty string"
+  }
 }
 
-# Verify secrets output contains exactly 37 keys
+# Verify secrets output contains exactly 42 keys
 run "test_secrets_key_count" {
   command = plan
 
@@ -352,12 +402,12 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 37
-    error_message = "Secrets output should contain exactly 37 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 42
+    error_message = "Secrets output should contain exactly 42 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
-# Verify metadata output contains exactly 11 keys
+# Verify metadata output contains exactly 13 keys
 run "test_metadata_key_count" {
   command = plan
 
@@ -370,8 +420,8 @@ run "test_metadata_key_count" {
   }
 
   assert {
-    condition     = length(output.metadata) == 11
-    error_message = "Metadata output should contain exactly 11 keys, got ${length(output.metadata)}"
+    condition     = length(output.metadata) == 13
+    error_message = "Metadata output should contain exactly 13 keys, got ${length(output.metadata)}"
   }
 }
 
@@ -560,6 +610,30 @@ run "test_all_secret_key_names_exist" {
     condition     = contains(nonsensitive(keys(output.secrets)), "pbs_password")
     error_message = "Missing secret key: pbs_password"
   }
+
+  # Synology
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "synology_user")
+    error_message = "Missing secret key: synology_user"
+  }
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "synology_password")
+    error_message = "Missing secret key: synology_password"
+  }
+
+  # YouTube
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "youtube_google_client_id")
+    error_message = "Missing secret key: youtube_google_client_id"
+  }
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "youtube_google_client_secret")
+    error_message = "Missing secret key: youtube_google_client_secret"
+  }
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "youtube_google_refresh_token")
+    error_message = "Missing secret key: youtube_google_refresh_token"
+  }
 }
 
 # Verify every expected metadata key name exists in the output map
@@ -625,6 +699,16 @@ run "test_all_metadata_key_names_exist" {
     condition     = contains(keys(output.metadata), "pbs_fingerprint")
     error_message = "Missing metadata key: pbs_fingerprint"
   }
+
+  # YouTube
+  assert {
+    condition     = contains(keys(output.metadata), "youtube_google_project_id")
+    error_message = "Missing metadata key: youtube_google_project_id"
+  }
+  assert {
+    condition     = contains(keys(output.metadata), "youtube_channel_id")
+    error_message = "Missing metadata key: youtube_channel_id"
+  }
 }
 
 # Verify no overlap between secrets and metadata keys
@@ -656,7 +740,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 48
-    error_message = "Total keys (secrets + metadata) should equal 48"
+    condition     = length(output.secrets) + length(output.metadata) == 55
+    error_message = "Total keys (secrets + metadata) should equal 55"
   }
 }
