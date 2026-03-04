@@ -1,6 +1,7 @@
-name: New Service Request
-description: Request a new service (LXC container or VM) on the homelab
+name: "🚀 Service Request"
+description: Request a new homelab service with deployment details for smooth provisioning.
 labels: ["service-request", "terraform"]
+assignees: [qws941]
 body:
   - type: input
     id: service-name
@@ -10,16 +11,26 @@ body:
       placeholder: my-service
     validations:
       required: true
-  - type: input
+  - type: dropdown
     id: container-id
     attributes:
       label: Proposed Container/VM ID
       description: |
-        Next available ID in the 100-255 range (internal) or 300+ (external).
-        Current allocations: 100(PVE), 101(runner), 102(traefik), 104(grafana),
-        105(elk), 106(glitchtip), 107(supabase), 108(archon), 112(mcphub),
-        200(oc), 215(synology), 220(youtube).
-      placeholder: "109"
+        Select the Terraform-managed container/VM ID for this request.
+        Common service IDs currently include 101-108, 109, 112, 200, and 220.
+      options:
+        - "101"
+        - "102"
+        - "103"
+        - "104"
+        - "105"
+        - "106"
+        - "107"
+        - "108"
+        - "109"
+        - "112"
+        - "200"
+        - "220"
     validations:
       required: true
   - type: dropdown

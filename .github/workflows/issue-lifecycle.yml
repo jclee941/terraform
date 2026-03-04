@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, edited, closed]
   issues:
-    types: [closed]
+    types: [opened, closed]
 
 permissions:
   contents: read

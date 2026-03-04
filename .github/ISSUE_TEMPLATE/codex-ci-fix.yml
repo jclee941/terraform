@@ -1,6 +1,7 @@
-name: "Codex: CI/CD Fix"
-description: Fix a broken or failing CI/CD workflow via Codex
+name: "🔧 Codex CI Fix"
+description: Capture a failing workflow run so Codex can diagnose root cause and land a reliable fix.
 labels: ["codex", "automated", "ci"]
+assignees: [qws941]
 body:
   - type: markdown
     attributes:
@@ -15,31 +16,62 @@ body:
       label: Failing Workflow
       description: Which workflow is broken?
       options:
-        - terraform-plan.yml (100-pve plan)
-        - terraform-apply.yml (100-pve apply)
-        - _terraform-plan.yml (reusable plan)
-        - _terraform-apply.yml (reusable apply)
-        - archon-plan.yml / archon-apply.yml
-        - cloudflare-plan.yml / cloudflare-apply.yml
-        - elk-plan.yml / elk-apply.yml
-        - github-plan.yml / github-apply.yml
-        - grafana-plan.yml / grafana-apply.yml
-        - slack-plan.yml / slack-apply.yml
-        - traefik-plan.yml / traefik-apply.yml
-        - terraform-drift.yml
-        - auto-merge.yml
-        - pr-review.yml
-        - labeler.yml
-        - terraform-docs.yml
-        - mcp-health-check.yml
-        - tfstate-backup.yml
-        - secret-audit.yml
-        - security-scan.yml
-        - worker-deploy.yml
-        - milestone-automation.yml
-        - stale.yml
-        - codex-auto-issue.yml
-        - Other
+        - Archon Apply
+        - Archon Plan
+        - Auto Fix CI
+        - Auto Merge
+        - Backup Health Check
+        - Backup Restore Test
+        - Branch Cleanup
+        - Cloudflare Apply
+        - Cloudflare Health Check
+        - Cloudflare Plan
+        - Codex Auto Issue
+        - Codex PR Review
+        - Codex Triage
+        - Commitlint
+        - Credential Rotation Reminder
+        - ELK Apply
+        - ELK Health Check
+        - ELK Plan
+        - External Uptime Check
+        - GitHub Apply
+        - GitHub Plan
+        - Grafana Apply
+        - Grafana Plan
+        - Internal Service Access
+        - Issue Lifecycle
+        - Labeler
+        - Lock Threads
+        - MCP Health Check
+        - Milestone Automation
+        - Ollama Apply
+        - Ollama Plan
+        - 1Password Integration Test
+        - OpenCode
+        - PR Review
+        - PR Size
+        - Production Verify
+        - Release
+        - Release Drafter
+        - Runner Health Check
+        - Secret Audit
+        - Secret Sync
+        - Security Scan
+        - Slack Apply
+        - Slack Plan
+        - Stale
+        - Synology Health Check
+        - Terraform Apply
+        - Terraform Docs
+        - Terraform Drift
+        - Terraform Plan
+        - Terraform Test
+        - TFState Backup
+        - Traefik Apply
+        - Traefik Plan
+        - Welcome
+        - Worker Deploy
     validations:
       required: true
 

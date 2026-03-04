@@ -1,6 +1,7 @@
-name: Bug Report
-description: Report a bug or unexpected behavior
+name: "🐛 Bug Report"
+description: Report an issue with enough context for quick triage and resolution.
 labels: ["type:bug"]
+assignees: [qws941]
 body:
   - type: markdown
     attributes:
@@ -54,6 +55,43 @@ body:
         - Medium — Broken feature with workaround available
         - High — Broken feature with no workaround
         - Critical — Data loss, security issue, or system outage
+    validations:
+      required: true
+
+  - type: dropdown
+    id: workspace
+    attributes:
+      label: Affected Workspace
+      description: Which workspace or area is impacted by this bug?
+      options:
+        - 100-pve
+        - 102-traefik
+        - 104-grafana
+        - 105-elk
+        - 108-archon
+        - 109-ollama
+        - 112-mcphub
+        - 215-synology
+        - 220-youtube
+        - 300-cloudflare
+        - 301-github
+        - 320-slack
+        - Shared modules
+        - CI/CD workflows
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgently does this need attention?
+      options:
+        - P0 - Critical (service down)
+        - P1 - High (degraded)
+        - P2 - Medium (workaround exists)
+        - P3 - Low (cosmetic)
     validations:
       required: true
 

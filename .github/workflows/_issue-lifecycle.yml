@@ -9,6 +9,39 @@ permissions:
   pull-requests: write
 
 jobs:
+  issue-opened:
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Auto-assign issue owner
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const issueAuthor = issue.user.login;
+            const isBotAuthor = issue.user.type === 'Bot';
+            const assignee = isBotAuthor ? 'qws941' : issueAuthor;
+            const currentAssignees = issue.assignees.map(a => a.login);
+
+            if (currentAssignees.includes(assignee)) {
+              core.info(`Issue #${issue.number} already assigned to ${assignee}`);
+              return;
+            }
+
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              assignees: [assignee]
+            });
+
+            if (isBotAuthor) {
+              core.info(`Issue #${issue.number} created by bot (${issueAuthor}); assigned default owner qws941`);
+            } else {
+              core.info(`Assigned issue creator ${issueAuthor} to issue #${issue.number}`);
+            }
+
   # Auto-assign PR author and detect linked issues
   pr-opened:
     if: >-

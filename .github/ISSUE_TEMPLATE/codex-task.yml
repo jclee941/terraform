@@ -1,6 +1,7 @@
-name: "Codex Task"
-description: Automated task for Codex — general implementation, fix, or improvement
+name: "🤖 Codex Task"
+description: Create a clear execution-ready task for Codex to implement changes confidently.
 labels: ["codex", "automated"]
+assignees: [qws941]
 body:
   - type: markdown
     attributes:
