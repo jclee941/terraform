@@ -1,7 +1,6 @@
 name: "🚀 Service Request"
 description: Request a new homelab service with deployment details for smooth provisioning.
 labels: ["service-request", "terraform"]
-assignees: [qws941]
 body:
   - type: input
     id: service-name

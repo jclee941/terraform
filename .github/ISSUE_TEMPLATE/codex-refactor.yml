@@ -1,7 +1,6 @@
 name: "🔄 Codex Refactor"
 description: Plan a safe, behavior-preserving refactor or migration that Codex can execute end-to-end.
 labels: ["codex", "automated", "refactor"]
-assignees: [qws941]
 body:
   - type: markdown
     attributes:

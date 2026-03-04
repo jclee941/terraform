@@ -1,7 +1,6 @@
 name: "🔧 Codex CI Fix"
 description: Capture a failing workflow run so Codex can diagnose root cause and land a reliable fix.
 labels: ["codex", "automated", "ci"]
-assignees: [qws941]
 body:
   - type: markdown
     attributes:
