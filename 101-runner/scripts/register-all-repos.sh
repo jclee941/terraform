@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Bulk Register Runner to All GitHub Repos
+# Bulk Register Runner Instances to All GitHub Repos
 # =============================================================================
-# Uses GitHub API to discover all repos and sets up a multi-runner
-# configuration using the jit-config approach for repo-level runners.
+# Uses GitHub API to discover all repos and sets up multiple runner instances
+# per repo using the jit-config approach for repo-level runners.
 #
 # Since GitHub doesn't support user-level (non-org) shared runners,
-# this creates a separate runner directory per repo with systemd services.
+# this creates a separate runner directory per instance×repo combination
+# with independent systemd services.
+#
+# Environment:
+#   GITHUB_TOKEN  — Required. GitHub PAT with repo/admin:org scope.
+#   GITHUB_USER   — Required. GitHub username (e.g. qws941).
+#   RUNNER_COUNT   — Number of runner instances per repo (default: 2).
+#   RUNNER_VERSION — Runner binary version (default: 2.322.0).
+#   RUNNER_ARCH    — Runner architecture (default: linux-x64).
 #
 # Usage:
 #   GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" ./register-all-repos.sh
+#   RUNNER_COUNT=3 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" ./register-all-repos.sh
 # =============================================================================
 
 set -euo pipefail
@@ -23,7 +32,7 @@ RUNNER_BASE="/home/${RUNNER_USER}/runners"
 RUNNER_VERSION="${RUNNER_VERSION:-2.322.0}"
 RUNNER_ARCH="${RUNNER_ARCH:-linux-x64}"
 RUNNER_LABELS="self-hosted,linux,x64,homelab"
-RUNNER_NAME="homelab-101"
+RUNNER_COUNT="${RUNNER_COUNT:-2}"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -58,12 +67,14 @@ fetch_repos() {
 
 # --- Setup Runner Instance Per Repo ------------------------------------------
 setup_runner_instance() {
-    local repo="$1"
-    local runner_dir="${RUNNER_BASE}/${repo}"
+    local instance="$1"
+    local repo="$2"
+    local runner_name="homelab-101-${instance}"
+    local runner_dir="${RUNNER_BASE}/instance-${instance}/${repo}"
     local tarball="actions-runner-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz"
-    local service_name="github-runner-${repo}"
+    local service_name="github-runner-${instance}-${repo}"
 
-    log "Setting up runner for ${GITHUB_USER}/${repo}..."
+    log "Setting up instance ${instance} for ${GITHUB_USER}/${repo} (runner: ${runner_name})..."
 
     # Create runner directory
     sudo -u "${RUNNER_USER}" mkdir -p "${runner_dir}"
@@ -81,7 +92,7 @@ setup_runner_instance() {
         "${GITHUB_API}/repos/${GITHUB_USER}/${repo}/actions/runners/registration-token" | jq -r '.token // empty')
 
     if [[ -z "${token}" ]]; then
-        warn "Failed to get token for ${repo}. Skipping."
+        warn "Failed to get token for ${repo} (instance ${instance}). Skipping."
         return 1
     fi
 
@@ -91,20 +102,20 @@ setup_runner_instance() {
         ./config.sh \
             --url 'https://github.com/${GITHUB_USER}/${repo}' \
             --token '${token}' \
-            --name '${RUNNER_NAME}' \
+            --name '${runner_name}' \
             --labels '${RUNNER_LABELS}' \
             --work '${runner_dir}/_work' \
             --replace \
             --unattended
     " 2>&1 || {
-        warn "Failed to register ${repo}. Skipping."
+        warn "Failed to register instance ${instance} for ${repo}. Skipping."
         return 1
     }
 
     # Create systemd service
     cat > "/etc/systemd/system/${service_name}.service" <<EOF
 [Unit]
-Description=GitHub Actions Runner - ${repo}
+Description=GitHub Actions Runner - instance ${instance} - ${repo}
 After=network.target docker.service
 Wants=docker.service
 
@@ -130,13 +141,14 @@ EOF
     systemctl enable "${service_name}.service"
     systemctl start "${service_name}.service"
 
-    log "Runner started for ${repo}: systemctl status ${service_name}"
+    log "Runner started: systemctl status ${service_name}"
 }
 
 # --- Main --------------------------------------------------------------------
 main() {
     log "=== Bulk Runner Registration ==="
     log "User: ${GITHUB_USER}"
+    log "Instances per repo: ${RUNNER_COUNT}"
     log ""
 
     # Download runner tarball once
@@ -160,16 +172,21 @@ main() {
     local success=0
     local failed=0
 
-    while IFS= read -r repo; do
-        [[ -z "${repo}" ]] && continue
-        total=$((total + 1))
+    for i in $(seq 1 "${RUNNER_COUNT}"); do
+        log ""
+        log "--- Instance ${i} of ${RUNNER_COUNT} ---"
 
-        if setup_runner_instance "${repo}"; then
-            success=$((success + 1))
-        else
-            failed=$((failed + 1))
-        fi
-    done <<< "${repos}"
+        while IFS= read -r repo; do
+            [[ -z "${repo}" ]] && continue
+            total=$((total + 1))
+
+            if setup_runner_instance "${i}" "${repo}"; then
+                success=$((success + 1))
+            else
+                failed=$((failed + 1))
+            fi
+        done <<< "${repos}"
+    done
 
     log ""
     log "=== Registration Complete ==="
@@ -177,8 +194,8 @@ main() {
     log ""
     log "Manage runners:"
     log "  systemctl list-units 'github-runner-*'"
-    log "  systemctl status github-runner-<repo>"
-    log "  journalctl -u github-runner-<repo> -f"
+    log "  systemctl status github-runner-<instance>-<repo>"
+    log "  journalctl -u github-runner-<instance>-<repo> -f"
 }
 
 main "$@"

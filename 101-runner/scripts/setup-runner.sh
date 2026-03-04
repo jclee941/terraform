@@ -3,10 +3,25 @@
 # GitHub Actions Self-hosted Runner Setup Script
 # =============================================================================
 # Installs and configures GitHub Actions runner on LXC container (VMID 101).
-# Registers runner to all user repos for shared CI/CD.
+# Prepares the environment for multi-instance runner registration.
+#
+# Multi-instance model:
+#   - RUNNER_COUNT instances per repo (default: 2, set via env var)
+#   - Runner names: homelab-101-1, homelab-101-2, ..., homelab-101-N
+#   - Directory layout: /home/runner/runners/instance-N/<repo>/
+#   - Systemd services: github-runner-<instance>-<repo>.service
+#
+# This script only installs dependencies and the runner binary.
+# Registration is handled separately by register-all-repos.sh.
 #
 # Prerequisites:
 #   - LXC container running Debian 12 (created by Terraform)
+#
+# Environment:
+#   RUNNER_VERSION — Runner binary version (default: 2.322.0)
+#   RUNNER_ARCH    — Runner architecture (default: linux-x64)
+#   GITHUB_USER    — GitHub username (default: runner)
+#   SKIP_DOCKER    — Set to 1 to skip Docker install (unprivileged LXC)
 #
 # Usage:
 #   ./setup-runner.sh
@@ -165,10 +180,15 @@ install_infra_tools() {
 }
 
 # --- Phase 5b: Registration (via register-all-repos.sh) ----------------------
-# Runner registration is handled separately by register-all-repos.sh
+# Runner registration is handled separately by register-all-repos.sh.
 # This keeps setup idempotent and registration decoupled.
+# Use RUNNER_COUNT env var to control instances per repo (default: 2).
+# Each instance registers as homelab-101-N to every discovered repo.
 
 # --- Phase 6: Systemd Service (template only) --------------------------------
+# NOTE: register-all-repos.sh and register-repo.sh create per-service unit
+# files directly (github-runner-<instance>-<repo>.service). This template
+# is kept for backward compatibility with manual systemd instantiation.
 install_service() {
     log "Installing runner service template..."
 
@@ -197,13 +217,7 @@ WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload
-    log "Systemd template service installed: github-runner@<repo>.service"
-}
-
-# --- Phase 7: Summary --------------------------------------------------------
-register_all_repos() {
-    log "Skipping registration (use register-all-repos.sh separately)."
-    log "Available repos will each get their own runner instance."
+    log "Systemd template service installed: github-runner@<name>.service"
 }
 
 # --- Main --------------------------------------------------------------------
@@ -226,7 +240,7 @@ main() {
 
     log ""
     log "=== Setup Complete ==="
-    log "Next: Run register-all-repos.sh to register runner to all repos"
+    log "Next: Run register-all-repos.sh to register runner instances to all repos"
     log ""
 }
 

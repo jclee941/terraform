@@ -1,6 +1,6 @@
 # 101-runner: GitHub Actions Self-hosted Runner
 
-LXC container (VMID 101) running GitHub Actions self-hosted runner for shared CI/CD across all repositories.
+LXC container (VMID 101) running multiple GitHub Actions self-hosted runner instances for shared CI/CD across all repositories.
 
 ## Specs
 
@@ -13,6 +13,19 @@ LXC container (VMID 101) running GitHub Actions self-hosted runner for shared CI
 | Memory | 2048 MB |
 | Disk | 32 GB |
 | Privileged | No (unprivileged, nesting enabled) |
+
+## Multi-Instance Runner Model
+
+Each repo gets `RUNNER_COUNT` (default: 2) independent runner instances:
+
+| Component | Naming Convention |
+|-----------|------------------|
+| Runner name | `homelab-101-{N}` (e.g. `homelab-101-1`, `homelab-101-2`) |
+| Directory | `/home/runner/runners/instance-{N}/{repo}/` |
+| Systemd service | `github-runner-{N}-{repo}.service` |
+| Labels | `self-hosted,linux,x64,homelab` |
+
+With 2 instances and 7 repos, GitHub picks an idle instance automatically when a job starts.
 
 ## Quick Start
 
@@ -32,18 +45,19 @@ SSH into the container and run the setup script:
 # From PVE host
 ssh root@192.168.50.100 'pct exec 101 -- bash'
 
-# Inside container — single repo
-GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
-  bash /opt/runner/scripts/setup-runner.sh
+# Install dependencies (run once)
+bash /opt/runner/scripts/setup-runner.sh
 
-# Inside container — ALL repos (creates runner per repo)
+# Register all repos with 2 instances each (default)
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
+  bash /opt/runner/scripts/register-all-repos.sh
+
+# Register all repos with 3 instances each
+RUNNER_COUNT=3 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
   bash /opt/runner/scripts/register-all-repos.sh
 ```
 
 ### 3. Using in Workflows
-
-Add `runs-on: self-hosted` to your GitHub Actions workflow:
 
 ```yaml
 jobs:
@@ -66,18 +80,20 @@ jobs:
 ## Management
 
 ```bash
-# Single runner mode
-systemctl status github-runner
-journalctl -u github-runner -f
-
-# Multi-repo mode
+# List all running instances
 systemctl list-units 'github-runner-*'
-systemctl status github-runner-<repo>
-journalctl -u github-runner-<repo> -f
 
-# Register additional repo
+# Status of specific instance
+systemctl status github-runner-1-terraform
+journalctl -u github-runner-2-terraform -f
+
+# Register a single repo (all instances)
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
   bash /opt/runner/scripts/register-repo.sh <repo-name>
+
+# Register a single repo (specific instance only)
+GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
+  bash /opt/runner/scripts/register-repo.sh <repo-name> 1
 
 # Unregister all
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
@@ -87,31 +103,48 @@ GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
 ## Architecture
 
 ```
-                    ┌─────────────────────────────────────┐
-                    │        LXC 101 (runner)              │
-                    │        192.168.50.101                │
-                    │                                      │
-                    │  ┌─────────────────────────────────┐ │
-                    │  │   GitHub Actions Runner          │ │
-                    │  │   (systemd: github-runner-*)     │ │
-                    │  └─────────┬───────────────────────┘ │
-                    │            │                          │
-                    │  ┌─────────▼───────────────────────┐ │
-                    │  │   Docker Engine                  │ │
-                    │  │   (for container-based jobs)     │ │
-                    │  └─────────────────────────────────┘ │
-                    └──────────────┬──────────────────────┘
+                    ┌─────────────────────────────────────────┐
+                    │        LXC 101 (runner)                  │
+                    │        192.168.50.101                    │
+                    │                                          │
+                    │  ┌──────────────────────────────────┐    │
+                    │  │  instance-1/                      │    │
+                    │  │    repo-A/ → github-runner-1-A    │    │
+                    │  │    repo-B/ → github-runner-1-B    │    │
+                    │  └──────────────────────────────────┘    │
+                    │  ┌──────────────────────────────────┐    │
+                    │  │  instance-2/                      │    │
+                    │  │    repo-A/ → github-runner-2-A    │    │
+                    │  │    repo-B/ → github-runner-2-B    │    │
+                    │  └──────────────────────────────────┘    │
+                    │                                          │
+                    │  ┌──────────────────────────────────┐    │
+                    │  │   Docker Engine                   │    │
+                    │  │   (for container-based jobs)      │    │
+                    │  └──────────────────────────────────┘    │
+                    └──────────────┬──────────────────────────┘
                                    │
-                    ┌──────────────▼──────────────────────┐
-                    │      GitHub API                      │
-                    │  ┌──────┐ ┌──────┐ ┌──────┐         │
-                    │  │repo-1│ │repo-2│ │repo-N│ ...     │
-                    │  └──────┘ └──────┘ └──────┘         │
-                    └─────────────────────────────────────┘
+                    ┌──────────────▼──────────────────────────┐
+                    │      GitHub API                          │
+                    │  ┌──────┐ ┌──────┐ ┌──────┐             │
+                    │  │repo-A│ │repo-B│ │repo-N│ ...         │
+                    │  └──────┘ └──────┘ └──────┘             │
+                    └─────────────────────────────────────────┘
 ```
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GITHUB_TOKEN` | Yes | — | GitHub PAT with `repo` scope |
+| `GITHUB_USER` | Yes | — | GitHub username (e.g. `qws941`) |
+| `RUNNER_COUNT` | No | `2` | Number of runner instances per repo |
+| `RUNNER_VERSION` | No | `2.322.0` | Runner binary version |
+| `RUNNER_ARCH` | No | `linux-x64` | Runner architecture |
+| `SKIP_DOCKER` | No | — | Set to `1` to skip Docker install |
 
 ## Security Notes
 
-- **GITHUB_TOKEN**: Requires `repo` scope for registration. Store securely (Vault recommended).
-- **Privileged LXC**: Required for Docker-in-Docker. Only trusted code should run on this runner.
+- **GITHUB_TOKEN**: Requires `repo` scope for registration. Store securely (1Password recommended).
+- **Unprivileged LXC**: Nesting enabled for Docker-in-Docker. Only trusted code should run.
 - **Network**: Internal 192.168.50.0/24 only. Outbound via gateway for GitHub API access.
