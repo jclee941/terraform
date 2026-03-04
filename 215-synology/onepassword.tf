@@ -4,8 +4,9 @@
 # -----------------------------------------------------------------------------
 
 module "onepassword_secrets" {
-  source     = "../modules/shared/onepassword-secrets"
-  vault_name = var.onepassword_vault_name
+  source          = "../modules/shared/onepassword-secrets"
+  vault_name      = var.onepassword_vault_name
+  enable_synology = true
 }
 
 locals {

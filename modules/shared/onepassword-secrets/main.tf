@@ -42,12 +42,14 @@ locals {
     "proxmox",
     "slack",
     "supabase",
-    "synology",
-    "youtube",
   ])
 
   # Items conditionally looked up.
-  optional_items = var.enable_pbs ? toset(["pbs"]) : toset([])
+  optional_items = setunion(
+    var.enable_pbs ? toset(["pbs"]) : toset([]),
+    var.enable_synology ? toset(["synology"]) : toset([]),
+    var.enable_youtube ? toset(["youtube"]) : toset([]),
+  )
 
   # Combined set for the for_each.
   all_items = setunion(local.required_items, local.optional_items)

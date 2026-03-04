@@ -51,6 +51,8 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_enable_pbs"></a> [enable\_pbs](#input\_enable\_pbs) | Whether to look up PBS secrets from 1Password (requires 'pbs' item in vault) | `bool` | `false` | no |
+| <a name="input_enable_synology"></a> [enable\_synology](#input\_enable\_synology) | Whether to look up Synology secrets from 1Password (requires 'synology' item in vault) | `bool` | `false` | no |
+| <a name="input_enable_youtube"></a> [enable\_youtube](#input\_enable\_youtube) | Whether to look up YouTube secrets from 1Password (requires 'youtube' item in vault) | `bool` | `false` | no |
 | <a name="input_vault_name"></a> [vault\_name](#input\_vault\_name) | 1Password vault name containing homelab secrets | `string` | `"homelab"` | no |
 
 ## Outputs

@@ -76,13 +76,13 @@ output "secrets" {
     pbs_password = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["secrets"].field_map["password"].value, "") : ""
 
     # Synology
-    synology_user     = try(data.onepassword_item.this["synology"].section_map["secrets"].field_map["user"].value, "")
-    synology_password = try(data.onepassword_item.this["synology"].section_map["secrets"].field_map["password"].value, "")
+    synology_user     = var.enable_synology ? try(data.onepassword_item.this["synology"].section_map["secrets"].field_map["user"].value, "") : ""
+    synology_password = var.enable_synology ? try(data.onepassword_item.this["synology"].section_map["secrets"].field_map["password"].value, "") : ""
 
     # YouTube (Google OAuth)
-    youtube_google_client_id     = try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_client_id"].value, "")
-    youtube_google_client_secret = try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_client_secret"].value, "")
-    youtube_google_refresh_token = try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_refresh_token"].value, "")
+    youtube_google_client_id     = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_client_id"].value, "") : ""
+    youtube_google_client_secret = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_client_secret"].value, "") : ""
+    youtube_google_refresh_token = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_refresh_token"].value, "") : ""
   }
 }
 
@@ -110,7 +110,7 @@ output "metadata" {
     pbs_fingerprint = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["secrets"].field_map["fingerprint"].value, "") : ""
 
     # YouTube
-    youtube_google_project_id = try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_project_id"].value, "")
-    youtube_channel_id        = try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["channel_id"].value, "")
+    youtube_google_project_id = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_project_id"].value, "") : ""
+    youtube_channel_id        = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["channel_id"].value, "") : ""
   }
 }
