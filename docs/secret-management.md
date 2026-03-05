@@ -196,14 +196,6 @@ The `secret-audit.yml` workflow runs every Monday at 09:00 UTC.
 It validates all 17 secrets and reports missing ones.
 Trigger manually: Actions → Secret Audit → Run workflow.
 
-## Credential Rotation Reminder
-
-The `credential-rotation-reminder.yml` workflow runs weekly on Monday at 09:00 UTC.
-It checks known expiry dates and creates GitHub issues if any credential is within 14 days of expiry.
-Credentials tracked:
-- n8n MCP API Key (fixed expiry: 2026-05-11)
-- Cloudflare Access service token (60-day rotation cycle via terraform)
-
 ## Cross-References
 
 - [Cloudflare Token Rotation](../cloudflare-token-rotation.md)

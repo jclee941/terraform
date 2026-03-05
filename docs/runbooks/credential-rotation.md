@@ -216,6 +216,5 @@ scripts/setup-github-secrets.sh --audit
 - Set calendar reminders 2 weeks before expiry.
 - Monitor auth failures in Grafana/ELK dashboards.
 - n8n MCP API key expiry: **2026-05-11** — rotate before then.
-- Use the `credential-rotation-reminder.yml` workflow for automated alerts.
 
 **Cross-reference:** `docs/secret-management.md` for full secret architecture.
