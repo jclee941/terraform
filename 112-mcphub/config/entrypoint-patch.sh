@@ -1,7 +1,7 @@
 #!/bin/sh
 # Entrypoint wrapper that applies runtime patches before starting MCPHub.
-# Workaround for: https://github.com/samanhappy/mcphub/pull/654
-# Remove this file after PR #654 merges and mcphub image version is bumped.
+# Origin: https://github.com/samanhappy/mcphub/pull/654 (closed without merge 2026-03-04)
+# Permanent patch — upstream and MCP SDK do not handle _placeholder stripping.
 
 set -e
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Strips _placeholder from MCP tool arguments in mcpService.js at container startup.
-// Workaround for: https://github.com/samanhappy/mcphub/pull/654
-// Remove this file after PR #654 merges and mcphub image version is bumped.
+// Origin: https://github.com/samanhappy/mcphub/pull/654 (closed without merge 2026-03-04)
+// Permanent patch — upstream and MCP SDK do not handle _placeholder stripping.
 
 "use strict";
 
@@ -23,7 +23,7 @@ try {
 
   // Inject sanitize function at top of file
   const sanitizeFn = [
-    "// [PATCH] Strip _placeholder from MCP tool args — github.com/samanhappy/mcphub/pull/654",
+    "// [PATCH] Strip _placeholder from MCP tool args (permanent — PR #654 closed unmerged)",
     "function sanitizeToolArguments(args) {",
     '  if (!args || typeof args !== "object") return args;',
     "  const clean = { ...args };",

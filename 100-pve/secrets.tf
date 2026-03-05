@@ -32,7 +32,7 @@ module "config_renderer" {
       glitchtip_version          = "v6.0.5"
       glitchtip_postgres_version = "15.16-alpine"
       glitchtip_redis_version    = "7.4.7-alpine"
-      mcphub_version             = "0.12.5"
+      mcphub_version             = "0.12.6"
 
       es_heap                     = "3g"
       logstash_heap               = "1g"
