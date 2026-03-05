@@ -24,14 +24,13 @@ permissions:
   pull-requests: write
   actions: read
   issues: write
-  id-token: write
 
 jobs:
   auto-fix:
     if: >-
       github.event.workflow_run.conclusion == 'failure' &&
       !startsWith(github.event.workflow_run.head_branch, 'opencode/auto-fix-')
-    uses: ./.github/workflows/_auto-fix-ci.yml
+    uses: qws941/.github/.github/workflows/_auto-fix-ci.yml@master
     with:
       run-id: ${{ github.event.workflow_run.id }}
       head-branch: ${{ github.event.workflow_run.head_branch }}

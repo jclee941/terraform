@@ -13,5 +13,5 @@ concurrency:
 
 jobs:
   cleanup:
-    uses: ./.github/workflows/_branch-cleanup.yml
+    uses: qws941/.github/.github/workflows/_branch-cleanup.yml@master
     secrets: inherit  # pragma: allowlist secret

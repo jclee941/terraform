@@ -16,5 +16,5 @@ concurrency:
 
 jobs:
   codex-review:
-    uses: ./.github/workflows/_codex-pr-review.yml
+    uses: qws941/.github/.github/workflows/_codex-pr-review.yml@master
     secrets: inherit  # pragma: allowlist secret
