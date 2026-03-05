@@ -28,6 +28,10 @@
             {
               "name": "Content-Type",
               "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Basic {{ Buffer.from(`${$env.ES_USERNAME || 'elastic'}:${$env.ES_PASSWORD || ''}`).toString('base64') }}"
             }
           ]
         },
