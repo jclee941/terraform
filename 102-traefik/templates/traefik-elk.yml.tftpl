@@ -11,6 +11,13 @@ http:
         certResolver: cf
       priority: 10
 
+    kibana-http:
+      rule: Host(`elk.${domain}`) || Host(`kibana.${domain}`)
+      entryPoints:
+        - web
+      service: kibana
+      priority: 10
+
     elasticsearch:
       rule: Host(`es.${domain}`)
       entryPoints:
@@ -21,6 +28,15 @@ http:
         - rate-limit-api@file
       tls:
         certResolver: cf
+      priority: 10
+
+    elasticsearch-http:
+      rule: Host(`es.${domain}`)
+      entryPoints:
+        - web
+      service: elasticsearch
+      middlewares:
+        - elk-ipallowlist
       priority: 10
 
   middlewares:

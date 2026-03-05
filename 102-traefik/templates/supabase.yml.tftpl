@@ -11,6 +11,13 @@ http:
         certResolver: cf
       priority: 10
 
+    supabase-http:
+      rule: Host(`supabase.${domain}`)
+      entryPoints:
+        - web
+      service: supabase
+      priority: 10
+
   services:
     supabase:
       loadBalancer:

@@ -10,6 +10,14 @@ http:
       tls:
         certResolver: cf
       priority: 10
+
+    mcphub-http:
+      rule: "Host(`mcphub.${domain}`)"
+      entryPoints:
+        - web
+      service: mcphub
+      priority: 10
+
   services:
     mcphub:
       loadBalancer:

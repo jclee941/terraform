@@ -10,6 +10,14 @@ http:
       tls:
         certResolver: cf
       priority: 10
+
+    nas-http:
+      rule: "Host(`nas.${domain}`)"
+      entryPoints:
+        - web
+      service: nas
+      priority: 10
+
   services:
     nas:
       loadBalancer:

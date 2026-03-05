@@ -11,6 +11,13 @@ http:
         certResolver: cf
       priority: 10
 
+    archon-http:
+      rule: Host(`archon.${domain}`)
+      entryPoints:
+        - web
+      service: archon
+      priority: 10
+
   services:
     archon:
       loadBalancer:

@@ -11,6 +11,13 @@ http:
         certResolver: cf
       priority: 10
 
+    grafana-http:
+      rule: Host(`grafana.${domain}`)
+      entryPoints:
+        - web
+      service: grafana
+      priority: 10
+
   services:
     grafana:
       loadBalancer:

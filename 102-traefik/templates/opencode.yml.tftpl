@@ -11,6 +11,13 @@ http:
         certResolver: cf
       priority: 10
 
+    opencode-http:
+      rule: Host(`opencode.${domain}`)
+      entryPoints:
+        - web
+      service: opencode
+      priority: 10
+
   services:
     opencode:
       loadBalancer:

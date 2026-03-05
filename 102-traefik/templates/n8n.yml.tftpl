@@ -3,13 +3,19 @@ http:
     n8n:
       rule: Host(`n8n.${domain}`)
       entryPoints:
-        - web
         - websecure
       service: n8n
       middlewares:
         - rate-limit-api@file
       tls:
         certResolver: cf
+      priority: 10
+
+    n8n-http:
+      rule: Host(`n8n.${domain}`)
+      entryPoints:
+        - web
+      service: n8n
       priority: 10
 
   services:

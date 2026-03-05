@@ -11,6 +11,13 @@ http:
         certResolver: cf
       priority: 10
 
+    glitchtip-http:
+      rule: Host(`glitchtip.${domain}`)
+      entryPoints:
+        - web
+      service: glitchtip
+      priority: 10
+
   services:
     glitchtip:
       loadBalancer:
