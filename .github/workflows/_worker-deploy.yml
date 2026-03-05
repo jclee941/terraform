@@ -12,6 +12,8 @@ on:
         type: string
         required: true
     secrets:
+      GH_PAT:
+        required: false
       CLOUDFLARE_API_TOKEN:
         required: false
       CLOUDFLARE_ACCOUNT_ID:
@@ -77,6 +79,7 @@ jobs:
         if: failure() && steps.secrets_check.outputs.creds_ok == 'true'
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "[Worker] Deploy failed"
           extra-body: |
             **Worker:** `${{ inputs.worker-name }}`

@@ -24,6 +24,8 @@ on:
         type: string
         default: '192.168.50.100'
     secrets:
+      GH_PAT:
+        required: false
       GRAFANA_TOKEN:
         required: false
 
@@ -57,6 +59,7 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "🔴 Production Verification Failed"
           custom-title: "🔴 Production Verification Failed"
           title-match: prefix

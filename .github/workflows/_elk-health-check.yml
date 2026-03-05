@@ -85,6 +85,7 @@ jobs:
         if: steps.es_health.outputs.has_failures == 'true' || steps.logstash_health.outputs.has_failures == 'true' || steps.logstash_exporter.outputs.has_failures == 'true' || steps.index_health.outputs.has_failures == 'true'
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "🔴 ELK Health Check"
           custom-title: "🔴 ELK Health Check Failed"
           title-match: prefix

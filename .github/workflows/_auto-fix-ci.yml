@@ -29,6 +29,8 @@ on:
         type: string
         default: "google/antigravity-claude-opus-4-6-thinking"
     secrets:
+      GH_PAT:
+        required: false
       ANTIGRAVITY_ACCOUNTS_JSON:
         required: true
 
@@ -219,4 +221,5 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "🔴 Auto Fix CI"

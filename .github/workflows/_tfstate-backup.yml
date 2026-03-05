@@ -19,6 +19,8 @@ on:
         type: number
         default: 90
     secrets:
+      GH_PAT:
+        required: false
       TF_BACKUP_PASSPHRASE:
         required: false
 
@@ -93,4 +95,5 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "🔴 State Backup"

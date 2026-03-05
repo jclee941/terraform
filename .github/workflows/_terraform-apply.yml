@@ -44,6 +44,8 @@ on:
         type: string
         default: "terraform-drift,automated,infrastructure"
     secrets:
+      GH_PAT:
+        required: false
       TF_API_TOKEN:
         required: false
       TF_VAR_GRAFANA_AUTH:
@@ -405,6 +407,7 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: ${{ inputs.failure-title-prefix }}
           extra-body: ${{ inputs.failure-extra-body }}
           labels: ${{ inputs.failure-labels }}

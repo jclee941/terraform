@@ -12,6 +12,8 @@ on:
         type: string
         default: "1.10.5"
     secrets:
+      GH_PAT:
+        required: false
       TF_API_TOKEN:
         required: false
       CLOUDFLARE_API_TOKEN:
@@ -88,6 +90,7 @@ jobs:
         if: steps.plan.outputs.drift_detected == 'true'
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "[Drift] [${{ matrix.workspace.name }}] Infrastructure drift detected"
           title-match: contains
           custom-body: |
@@ -126,6 +129,7 @@ jobs:
         if: steps.plan.outputs.drift_detected == 'error'
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "[Drift] [${{ matrix.workspace.name }}] Terraform plan failed"
           custom-body: |
             ## Terraform Plan Error

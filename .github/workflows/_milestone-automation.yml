@@ -91,6 +91,7 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "[Milestone] Weekly creation failed"
           labels: "bug,automation"
 
@@ -199,6 +200,7 @@ jobs:
         if: failure()
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "[Milestone] Close and rollover failed"
           labels: "bug,automation"
 

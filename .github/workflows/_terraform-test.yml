@@ -108,4 +108,5 @@ jobs:
       - name: Create Issue on Failure
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "🔴 Terraform Test"

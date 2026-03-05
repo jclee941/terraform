@@ -141,6 +141,7 @@ jobs:
         if: steps.health.outputs.has_failures == 'true' || steps.op_check.outputs.has_failure == 'true'
         uses: ./.github/actions/notify-failure
         with:
+          github-token: ${{ secrets.GH_PAT }}
           title-prefix: "🔴 MCP Health Check:"
           custom-title: "🔴 MCP Health Check: ${{ steps.health.outputs.failed }}${{ steps.health.outputs.failed != '' && steps.op_check.outputs.has_failure == 'true' && ', ' || '' }}${{ steps.op_check.outputs.has_failure == 'true' && format('1Password {0}', steps.op_check.outputs.status) || '' }}"
           title-match: prefix
