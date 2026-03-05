@@ -16,13 +16,78 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - name: Fetch Elasticsearch credentials from 1Password
+        id: elk_creds
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
+            echo "status=missing" >> "$GITHUB_OUTPUT"
+            echo "reason=OP_SERVICE_ACCOUNT_TOKEN not configured" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! command -v op >/dev/null 2>&1; then
+            OP_VERSION="2.32.1"
+            curl -sSfo /tmp/op.zip "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_amd64_v${OP_VERSION}.zip"
+            unzip -o /tmp/op.zip -d /tmp/op-bin >/dev/null
+            sudo install -m 755 /tmp/op-bin/op /usr/local/bin/op
+            rm -rf /tmp/op.zip /tmp/op-bin
+          fi
+
+          if ! op --version >/dev/null 2>&1; then
+            echo "status=error" >> "$GITHUB_OUTPUT"
+            echo "reason=1Password CLI unavailable" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! op whoami --format json >/dev/null 2>&1; then
+            echo "status=error" >> "$GITHUB_OUTPUT"
+            echo "reason=1Password authentication failed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          ES_PASSWORD=$(op read "op://homelab/elk/secrets/elastic_password" 2>/dev/null || true)
+
+          if [ -z "$ES_PASSWORD" ]; then
+            echo "status=error" >> "$GITHUB_OUTPUT"
+            echo "reason=elastic_password missing in 1Password" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "::add-mask::$ES_PASSWORD"
+          {
+            echo "status=ok"
+            echo "elastic_password=$ES_PASSWORD"
+            echo "reason="
+          } >> "$GITHUB_OUTPUT"
+
       - name: Check Elasticsearch Cluster Health
         id: es_health
+        env:
+          ES_USERNAME: elastic
+          ES_PASSWORD: ${{ steps.elk_creds.outputs.elastic_password }}
+          AUTH_STATUS: ${{ steps.elk_creds.outputs.status }}
+          AUTH_REASON: ${{ steps.elk_creds.outputs.reason }}
         run: |
-          if ! HEALTH_JSON=$(curl -sf --connect-timeout 10 "http://192.168.50.105:9200/_cluster/health" 2>/dev/null); then
+          AUTH_STATUS="${AUTH_STATUS:-missing}"
+          AUTH_REASON="${AUTH_REASON:-}"
+          AUTH_ARGS=()
+
+          if [ "$AUTH_STATUS" = "ok" ] && [ -n "${ES_PASSWORD:-}" ]; then
+            AUTH_ARGS+=("-u" "${ES_USERNAME}:${ES_PASSWORD}")
+          fi
+
+          if ! HEALTH_JSON=$(curl -sf --connect-timeout 10 "${AUTH_ARGS[@]}" "http://192.168.50.105:9200/_cluster/health" 2>/dev/null); then
+            FAILURE_REASON="Elasticsearch (192.168.50.105:9200) unreachable"
+
+            if [ "$AUTH_STATUS" != "ok" ]; then
+              FAILURE_REASON="Elasticsearch auth unavailable (${AUTH_REASON:-missing credentials})"
+            fi
+
             {
               echo "has_failures=true"
-              echo "failed=Elasticsearch (192.168.50.105:9200) unreachable"
+              echo "failed=${FAILURE_REASON}"
               echo "report<<EOF_REPORT"
               echo -e "| Service | Status |\n|---------|--------|\n| **Elasticsearch** | **🔴 Unreachable** |\n"
               echo "EOF_REPORT"
@@ -73,10 +138,29 @@ jobs:
 
       - name: Check Indices and ILM
         id: index_health
+        env:
+          ES_USERNAME: elastic
+          ES_PASSWORD: ${{ steps.elk_creds.outputs.elastic_password }}
+          AUTH_STATUS: ${{ steps.elk_creds.outputs.status }}
+          AUTH_REASON: ${{ steps.elk_creds.outputs.reason }}
         run: |
-          if ! curl -sf --connect-timeout 10 "http://192.168.50.105:9200/_ilm/policy" >/dev/null 2>&1; then
+          AUTH_STATUS="${AUTH_STATUS:-missing}"
+          AUTH_REASON="${AUTH_REASON:-}"
+          AUTH_ARGS=()
+
+          if [ "$AUTH_STATUS" = "ok" ] && [ -n "${ES_PASSWORD:-}" ]; then
+            AUTH_ARGS+=("-u" "${ES_USERNAME}:${ES_PASSWORD}")
+          fi
+
+          if ! curl -sf --connect-timeout 10 "${AUTH_ARGS[@]}" "http://192.168.50.105:9200/_ilm/policy" >/dev/null 2>&1; then
+            FAILURE_REASON="ILM API unreachable"
+
+            if [ "$AUTH_STATUS" != "ok" ]; then
+              FAILURE_REASON="ILM API auth unavailable (${AUTH_REASON:-missing credentials})"
+            fi
+
             echo "has_failures=true" >> "$GITHUB_OUTPUT"
-            echo "failed=ILM API unreachable" >> "$GITHUB_OUTPUT"
+            echo "failed=${FAILURE_REASON}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "has_failures=false" >> "$GITHUB_OUTPUT"
