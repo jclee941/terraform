@@ -93,7 +93,6 @@ locals {
     archon    = { subdomain = "archon", name = "Archon" }
     supabase  = { subdomain = "supabase", name = "Supabase" }
     nas       = { subdomain = "nas", name = "NAS" }
-    n8n       = { subdomain = "n8n", name = "n8n" }
     opencode  = { subdomain = "opencode", name = "OpenCode" }
   }
 
