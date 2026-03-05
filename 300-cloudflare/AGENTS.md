@@ -16,10 +16,10 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 ├── workers/
 │   └── synology-proxy/      # Hono Worker: Synology FileStation proxy + R2 cache
 ├── scripts/
-│   ├── collect.sh           # Harvest .env/.tfvars from sibling projects
-│   ├── audit.sh             # Drift detection: inventory vs actual
-│   ├── sync.sh              # Push secrets to targets (CF/GitHub/Vault)
-│   └── generate-bindings.sh # Generate wrangler secret bindings
+│   ├── collect.go           # Harvest .env/.tfvars from sibling projects
+│   ├── audit.go             # Drift detection: inventory vs actual
+│   ├── sync.go              # Push secrets to targets (CF/GitHub/Vault)
+│   └── generate-bindings.go # Generate wrangler secret bindings
 ├── inventory/
 │   └── secrets.yaml         # SSoT: secret metadata registry (NO values)
 ├── docker/
@@ -62,7 +62,7 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 
 - **NEVER** commit `.tfvars`, `.env`, or `data/` output files.
 - **NEVER** commit `.tfstate` files. Backend is local (state tracked in git for CI reliability).
-- `collect.sh` output files contain `# DO NOT COMMIT` header — respect it.
+- `collect.go` output files contain `# DO NOT COMMIT` header — respect it.
 - CF Secrets Store sync (`enable_cf_store_sync`) is beta — don't enable without testing.
 - Worker route (`enable_worker_route`) requires Worker deployed via wrangler first.
 
@@ -72,12 +72,13 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 terraform init && terraform plan                                # TF workspace (apply via CI only)
 cd workers/synology-proxy && npm run dev               # Worker dev
 cd workers/synology-proxy && npm test                            # Worker test (deploy via CI only)
-./scripts/collect.sh && ./scripts/audit.sh             # Secret harvest + drift
+./scripts/audit.go && ./scripts/sync.go             # Secret harvest + drift
 ```
 
 ## NOTES
 
 - R2 bucket `synology-cache`: APAC region, 7-day TTL. Worker uses SID-based Synology FileStation auth (50min session cache).
-- `collect.sh` scans 12 hardcoded project dirs — update when adding projects.
+R2 bucket `synology-cache`: APAC region, 7-day TTL. Worker uses SID-based Synology FileStation auth (50min session cache).
+- `audit.go` scans 12 hardcoded project dirs — update when adding projects.
 - Logpush pipeline: CF Worker traces → `logpush.tf` job → HTTPS `logstash-ingest.jclee.me` → CF tunnel → Logstash `:8080` → `logs-cloudflare-workers-*`. M2M service token 8760h (1yr), rotated via `access.tf`.
 - TCP tunnels bypass Traefik; connect directly to origin IPs via variables (`var.jclee_ip`, `var.jclee_dev_ip`, `var.synology_nas_ip`, `var.youtube_ip`). Migrated from `~/dev/cloudflare/` (2026-02-13).

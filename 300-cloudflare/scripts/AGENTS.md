@@ -6,10 +6,10 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 ## STRUCTURE
 ```
 300-cloudflare/scripts/
-├── collect.sh            # Harvest .env/.tfvars into Terraform-compatible values
-├── sync.sh               # Push secret values to configured targets
-├── audit.sh              # Compare inventory metadata vs target stores
-├── generate-bindings.sh  # Build Wrangler secret binding declarations
+├── collect.go            # Harvest .env/.tfvars into Terraform-compatible values
+├── sync.go               # Push secret values to configured targets
+├── audit.go              # Compare inventory metadata vs target stores
+├── generate-bindings.go  # Build Wrangler secret binding declarations
 ├── deploy-worker.sh      # Disabled local deploy wrapper (CI-only policy)
 ├── BUILD.bazel
 ├── OWNERS
@@ -19,10 +19,10 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 ## WHERE TO LOOK
 | Task | Script | Notes |
 |------|--------|-------|
-| Collect local secret values | `collect.sh` | Reads sibling `.env`/`.tfvars` inputs and emits Terraform-compatible output. |
-| Sync to targets | `sync.sh` | Pushes secret values to CF/GitHub/Vault targets. |
-| Inventory drift checks | `audit.sh` | Compares registry to target stores. |
-| Worker secret bindings | `generate-bindings.sh` | Generates Wrangler binding declarations from inventory metadata. |
+| Collect local secret values | `collect.go` | Reads sibling `.env`/`.tfvars` inputs and emits Terraform-compatible output. |
+| Sync to targets | `sync.go` | Pushes secret values to CF/GitHub/Vault targets. |
+|| Inventory drift checks | `audit.go` | Compares registry to target stores. |
+|| Worker secret bindings | `generate-bindings.go` | Generates Wrangler binding declarations from inventory metadata. |
 | Worker deployment wrapper | `deploy-worker.sh` | **DISABLED** — prints error and exits 1. Deploy via `worker-deploy.yml` CI workflow only. |
 | Secret metadata source | `../inventory/secrets.yaml` | Registry SSoT for secret names/targets (no values). |
 | Parent workspace policy | `../AGENTS.md` | Cloudflare workspace constraints and Terraform wiring. |
@@ -30,10 +30,10 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 
 ## COMMANDS
 ```bash
-./300-cloudflare/scripts/collect.sh
-./300-cloudflare/scripts/audit.sh
-./300-cloudflare/scripts/sync.sh --dry-run
-./300-cloudflare/scripts/generate-bindings.sh
+go run 300-cloudflare/scripts/collect.go
+go run scripts/audit.go
+go run 300-cloudflare/scripts/sync.go --dry-run
+go run scripts/generate-bindings.go
 ./300-cloudflare/scripts/deploy-worker.sh  # expected failure (CI-only deploy)
 ```
 

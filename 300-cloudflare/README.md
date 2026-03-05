@@ -29,10 +29,10 @@ inventory/secrets.yaml (메타데이터 레지스트리, 값 없음)
 │   ├── vault-secrets.tf      # Vault KV v2 리소스
 │   └── outputs.tf            # 결과 출력
 ├── scripts/
-│   ├── collect.sh            # 로컬 .env/.tfvars에서 시크릿 값 수집
-│   ├── sync.sh               # 수집된 값을 타겟 스토어에 주입
-│   ├── audit.sh              # 시크릿 존재 여부 검증
-│   └── generate-bindings.sh  # wrangler.toml/jsonc 바인딩 생성
+│   ├── collect.go            # 로컬 .env/.tfvars에서 시크릿 값 수집 (Go)
+│   ├── sync.go               # 수집된 값을 타겟 스토어에 주입 (Go)
+│   ├── audit.go              # 시크릿 존재 여부 검증
+│   └── generate-bindings.go  # wrangler.toml/jsonc 바인딩 생성
 ├── .env.example              # Terraform 인증 변수 템플릿
 └── .gitignore
 ```
@@ -63,10 +63,10 @@ cd terraform && terraform init
 
 ```bash
 # 드라이런 (미리보기)
-scripts/collect.sh --dry-run
+go run scripts/collect.go --dry-run
 
 # 실행 (secret-values.tfvars 생성)
-scripts/collect.sh
+go run scripts/collect.go
 ```
 
 ### Terraform 적용
@@ -80,16 +80,16 @@ terraform apply -var-file=secret-values.tfvars
 ### 감사
 
 ```bash
-scripts/audit.sh               # 모든 타겟 검증
-scripts/audit.sh --help         # 사용법
+go run scripts/audit.go               # 모든 타겟 검증
+go run scripts/audit.go --help         # 사용법
 ```
 
 ### Worker 바인딩 생성
 
 ```bash
-scripts/generate-bindings.sh                # TOML (기본)
-scripts/generate-bindings.sh --format jsonc  # JSON with comments
-scripts/generate-bindings.sh --out wrangler.toml
+go run scripts/generate-bindings.go                # TOML (기본)
+go run scripts/generate-bindings.go --format jsonc  # JSON with comments
+go run scripts/generate-bindings.go --out wrangler.toml
 ```
 
 ## 시크릿 추가
@@ -104,7 +104,7 @@ scripts/generate-bindings.sh --out wrangler.toml
      rotate_days: 90
      sensitive: true
    ```
-2. `scripts/collect.sh` 재실행 → `terraform apply`
+2. `go run scripts/collect.go` 재실행 → `terraform apply`
 
 ## 보안
 

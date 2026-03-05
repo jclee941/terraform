@@ -52,8 +52,7 @@ jobs:
           N8N_HOST: ${{ inputs.n8n_host }}
           PSQL_HOST: ${{ inputs.psql_host }}
         run: |
-          chmod +x scripts/production_verification_v2.sh
-          ./scripts/production_verification_v2.sh
+          go run scripts/production-verification.go
 
       - name: Create or update issue on failure
         if: failure()

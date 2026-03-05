@@ -6,30 +6,33 @@ Single source of truth for the homelab secret lifecycle. All secrets flow throug
 
 ```bash
 # Sync all secrets from 1Password → GitHub (recommended)
-scripts/sync-vault-secrets.sh
+go run scripts/sync-vault-secrets.go
 
 # Audit 1Password sync state
-scripts/sync-vault-secrets.sh --audit
+go run scripts/sync-vault-secrets.go --audit
 
 # Force rotation (overwrite existing)
-scripts/sync-vault-secrets.sh --force
+go run scripts/sync-vault-secrets.go --force
 
 # Fallback: resolve from .tfvars + 1Password + env vars
-scripts/setup-github-secrets.sh
-scripts/setup-github-secrets.sh --audit
+go run scripts/setup-github-secrets.go
+go run scripts/setup-github-secrets.go --audit
 ```
 
 ## Architecture
 
 ```
-1Password (homelab vault, 14 items)
+1Password (homelab vault, 15 items)
   │
-  ├── onepassword-secrets module (39 secret keys)
+  ├── onepassword-secrets module (42 secret keys)
   │     │
-  │     ├── 104-grafana/terraform ──────────────┐
+  │     ├── 100-pve (via versions.tf provider) ┤
+  │     ├── 104-grafana/terraform ──────────────┤
   │     ├── 105-elk/terraform ────────────────┤
+  │     ├── 215-synology ────────────────────┤
   │     ├── 300-cloudflare ───────────────────┤
-  │     └── 100-pve (via versions.tf provider) ┤
+  │     ├── 301-github ──────────────────────┤
+  │     └── 320-slack ───────────────────────┤
   │           │
   │           ▼
   │     config-renderer module (templates .tftpl)
@@ -40,7 +43,7 @@ scripts/setup-github-secrets.sh --audit
   │           ▼
   │     cloud-init deploy to LXC/VM hosts
   │
-  ├── sync-vault-secrets.sh → GitHub Actions Secrets
+  go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
   │
   └── MCPHub .env (OP_SERVICE_ACCOUNT_TOKEN for MCP servers)
         LXC 112 at /opt/mcphub/.env
@@ -48,7 +51,7 @@ scripts/setup-github-secrets.sh --audit
 
 ## 1Password Item Inventory
 
-The shared module (`modules/shared/onepassword-secrets/`) manages 14 items:
+The shared module (`modules/shared/onepassword-secrets/`) manages 15 items:
 
 | Item         | Description          | Key Secrets                                                                                                                  |
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -66,11 +69,12 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 14 items:
 | `synology`   | Synology NAS         | `username`, `password`                                                                                                       |
 | `slack`      | Slack workspace      | `bot_token`, `app_token`                                                                                                     |
 | `youtube`    | YouTube API          | `client_id`, `client_secret`, `access_token`, `refresh_token`                                                               |
+| `pbs`        | Proxmox Backup       | `username`, `password` (optional, gated by `enable_pbs`)                                                                     |
 
 **Module outputs:**
 
-- 39 secret keys (sensitive=true, not printed in Terraform output)
-- 11 metadata keys (sensitive=false)
+- 42 secret keys (sensitive=true, not printed in Terraform output)
+- 13 metadata keys (sensitive=false)
 
 **Access pattern:**
 
@@ -89,7 +93,9 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | 100-pve               | via versions.tf provider | `proxmox_api_token`, all template secrets          |
 | 104-grafana/terraform | ✅                       | `grafana_service_account_token`, `n8n_webhook_url` |
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
+| 215-synology          | ✅                       | `synology_username`, `synology_password`           |
 | 300-cloudflare        | ✅                       | `cloudflare_account_id`, `zone_id`, `github_token` |
+| 301-github            | ✅                       | `github_personal_access_token`                     |
 | 320-slack             | ✅                       | `slack_bot_token`                                  |
 | 102-traefik           | ❌                       | —                                                  |
 | 108-archon            | ❌                       | —                                                  |
@@ -139,7 +145,7 @@ module "secrets" {
 
 ## Secret Inventory (GitHub Actions)
 
-### 1Password-Sourced (via `sync-vault-secrets.sh`)
+### 1Password-Sourced (via `sync-vault-secrets.go`)
 
 | Secret                | 1Password Reference                                  | Field                   | Priority |
 | --------------------- | ---------------------------------------------------- | ----------------------- | -------- |
@@ -154,7 +160,7 @@ module "secrets" {
 | ------------------------ | ------------------------------------ | -------- |
 | `TF_VAR_N8N_WEBHOOK_URL` | `http://192.168.50.112:5678/webhook` | P1       |
 
-### From local `.tfvars` (via `setup-github-secrets.sh`)
+### From local `.tfvars` (via `setup-github-secrets.go`)
 
 | Secret                         | Source File                       | Variable                | Priority |
 | ------------------------------ | --------------------------------- | ----------------------- | -------- |
@@ -184,10 +190,10 @@ module "secrets" {
 #    Via CLI: op item edit "cloudflare" "secrets.account_id=NEW" --vault homelab
 
 # 2. Push to GitHub
-scripts/sync-vault-secrets.sh --force
+go run scripts/sync-vault-secrets.go --force
 
 # 3. Verify
-scripts/setup-github-secrets.sh --audit
+go run scripts/setup-github-secrets.go --audit
 ```
 
 ## Weekly Audit

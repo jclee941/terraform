@@ -99,7 +99,7 @@ curl http://192.168.50.112:8075/health
 # 1. Generate new token: GitHub → Settings → Personal Access Tokens → Fine-grained
 # 2. Update 1Password: op://homelab/github/personal_access_token
 # 3. Sync to GitHub Actions:
-scripts/sync-vault-secrets.sh --force
+go run scripts/sync-vault-secrets.go --force
 # 4. Verify: gh auth status
 ```
 
@@ -205,10 +205,10 @@ curl -H "Authorization: Bearer $(op item get youtube --fields secrets.access_tok
 
 ```bash
 # Audit 1Password → GitHub sync status
-scripts/sync-vault-secrets.sh --audit
+go run scripts/sync-vault-secrets.go --audit
 
 # Full secret inventory audit
-scripts/setup-github-secrets.sh --audit
+go run scripts/setup-github-secrets.go --audit
 ```
 
 ## Prevention

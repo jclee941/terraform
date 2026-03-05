@@ -172,7 +172,7 @@ Services → node_exporter → Prometheus:9090 → Grafana:3000
 - **Connect Server**: LXC 112, port 8090
 - **Auth**: `OP_CONNECT_TOKEN` + `OP_CONNECT_HOST` environment variables
 - **Access pattern**: `module.secrets.secrets["grafana_service_account_token"]`
-- **GitHub sync**: `scripts/sync-vault-secrets.sh` → GitHub Actions Secrets
+go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
 
 ## CI/CD
 

@@ -133,10 +133,10 @@ test-workspace: ## Run workspace validation tests only
 ## Verification & Backup
 
 verify: ## Run production verification
-	./scripts/production_verification_v2.sh
+	go run ./scripts/production-verification.go
 
 backup: ## Create encrypted Terraform state backup
-	./scripts/backup-tfstate.sh
+	go run ./scripts/backup-tfstate.go
 
 drift-check: ## Check for Terraform drift — DISABLED (use CI/CD)
 	@echo '\033[31mERROR: Local drift-check is disabled. Use GitHub Actions:\033[0m'
