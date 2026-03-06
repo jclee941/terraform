@@ -1,24 +1,8 @@
-resource "grafana_contact_point" "n8n_webhook" {
-  name = "n8n-webhook"
-
-  webhook {
-    url = local.effective_n8n_webhook_url
-  }
-}
-
 resource "grafana_contact_point" "alert_log_fallback" {
   name = "alert-log-fallback"
 
   webhook {
     url = "${var.grafana_url}/api/alertmanager/grafana/api/v2/alerts"
-  }
-}
-
-resource "grafana_contact_point" "n8n_glitchtip_webhook" {
-  name = "n8n-glitchtip-webhook"
-
-  webhook {
-    url = local.effective_n8n_glitchtip_webhook_url
   }
 }
 

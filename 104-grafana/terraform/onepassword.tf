@@ -9,15 +9,11 @@ module "onepassword_secrets" {
 
 locals {
   # 1Password lookups (fallback to empty string if not available)
-  _grafana_auth_from_1password              = trimspace(try(module.onepassword_secrets.secrets["grafana_service_account_token"], ""))
-  _n8n_webhook_url_from_1password           = trimspace(try(module.onepassword_secrets.metadata["n8n_webhook_url"], ""))
-  _n8n_glitchtip_webhook_url_from_1password = trimspace(try(module.onepassword_secrets.metadata["n8n_glitchtip_webhook_url"], ""))
-  _slack_webhook_url_from_1password         = trimspace(try(module.onepassword_secrets.secrets["slack_webhook_url"], ""))
+  _grafana_auth_from_1password      = trimspace(try(module.onepassword_secrets.secrets["grafana_service_account_token"], ""))
+  _slack_webhook_url_from_1password = trimspace(try(module.onepassword_secrets.secrets["slack_webhook_url"], ""))
 
   # Effective values: variable takes priority (1P token may be stale/rotated)
-  effective_grafana_auth              = trimspace(var.grafana_auth) != "" ? trimspace(var.grafana_auth) : local._grafana_auth_from_1password
-  effective_n8n_webhook_url           = local._n8n_webhook_url_from_1password != "" ? local._n8n_webhook_url_from_1password : var.n8n_webhook_url
-  effective_n8n_glitchtip_webhook_url = local._n8n_glitchtip_webhook_url_from_1password != "" ? local._n8n_glitchtip_webhook_url_from_1password : var.n8n_glitchtip_webhook_url
-  effective_slack_webhook_url         = local._slack_webhook_url_from_1password != "" ? local._slack_webhook_url_from_1password : var.slack_webhook_url
-  _slack_enabled                      = local.effective_slack_webhook_url != ""
+  effective_grafana_auth      = trimspace(var.grafana_auth) != "" ? trimspace(var.grafana_auth) : local._grafana_auth_from_1password
+  effective_slack_webhook_url = local._slack_webhook_url_from_1password != "" ? local._slack_webhook_url_from_1password : var.slack_webhook_url
+  _slack_enabled              = local.effective_slack_webhook_url != ""
 }

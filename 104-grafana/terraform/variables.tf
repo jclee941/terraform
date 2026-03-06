@@ -16,28 +16,6 @@ variable "grafana_auth" {
   default     = ""
 }
 
-variable "n8n_webhook_url" {
-  description = "n8n webhook URL for alert notifications"
-  type        = string
-  default     = "http://192.168.50.112:5678/webhook/grafana-alert"
-
-  validation {
-    condition     = can(regex("^https?://", var.n8n_webhook_url))
-    error_message = "n8n_webhook_url must be a valid HTTP(S) URL."
-  }
-}
-
-variable "n8n_glitchtip_webhook_url" {
-  description = "n8n webhook URL for forwarding alerts to GlitchTip"
-  type        = string
-  default     = "http://192.168.50.112:5678/webhook/grafana-to-glitchtip"
-
-  validation {
-    condition     = can(regex("^https?://", var.n8n_glitchtip_webhook_url))
-    error_message = "n8n_glitchtip_webhook_url must be a valid HTTP(S) URL."
-  }
-}
-
 variable "slack_webhook_url" {
   description = "Slack incoming webhook URL for alert notifications (fallback if not in 1Password)"
   type        = string

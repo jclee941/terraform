@@ -11,7 +11,7 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_grafana"></a> [grafana](#provider\_grafana) | 4.26.0 |
+| <a name="provider_grafana"></a> [grafana](#provider\_grafana) | 4.27.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
@@ -25,8 +25,6 @@
 | Name | Type |
 |------|------|
 | [grafana_contact_point.alert_log_fallback](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
-| [grafana_contact_point.n8n_glitchtip_webhook](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
-| [grafana_contact_point.n8n_webhook](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
 | [grafana_contact_point.slack_alerts](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
 | [grafana_dashboard.managed](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/dashboard) | resource |
 | [grafana_folder.alerts](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/folder) | resource |
@@ -50,8 +48,6 @@
 |------|-------------|------|---------|:--------:|
 | <a name="input_grafana_auth"></a> [grafana\_auth](#input\_grafana\_auth) | Grafana API key or service account token | `string` | `""` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | Grafana instance URL | `string` | `"http://192.168.50.104:3000"` | no |
-| <a name="input_n8n_glitchtip_webhook_url"></a> [n8n\_glitchtip\_webhook\_url](#input\_n8n\_glitchtip\_webhook\_url) | n8n webhook URL for forwarding alerts to GlitchTip | `string` | `"http://192.168.50.112:5678/webhook/grafana-to-glitchtip"` | no |
-| <a name="input_n8n_webhook_url"></a> [n8n\_webhook\_url](#input\_n8n\_webhook\_url) | n8n webhook URL for alert notifications | `string` | `"http://192.168.50.112:5678/webhook/grafana-alert"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret lookups | `string` | `"homelab"` | no |
 | <a name="input_slack_webhook_url"></a> [slack\_webhook\_url](#input\_slack\_webhook\_url) | Slack incoming webhook URL for alert notifications (fallback if not in 1Password) | `string` | `""` | no |
 
@@ -60,7 +56,6 @@
 | Name | Description |
 |------|-------------|
 | <a name="output_contact_point_fallback"></a> [contact\_point\_fallback](#output\_contact\_point\_fallback) | Name of the alert-log fallback contact point |
-| <a name="output_contact_point_n8n"></a> [contact\_point\_n8n](#output\_contact\_point\_n8n) | Name of the n8n webhook contact point |
 | <a name="output_dashboard_count"></a> [dashboard\_count](#output\_dashboard\_count) | Number of Terraform-managed dashboards |
 | <a name="output_dashboard_names"></a> [dashboard\_names](#output\_dashboard\_names) | Set of managed dashboard file names |
 | <a name="output_folder_uid_alerts"></a> [folder\_uid\_alerts](#output\_folder\_uid\_alerts) | UID of the Alerts Grafana folder |

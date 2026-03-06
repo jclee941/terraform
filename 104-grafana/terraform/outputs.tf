@@ -23,10 +23,6 @@ output "dashboard_names" {
   value       = keys(grafana_dashboard.managed)
 }
 
-output "contact_point_n8n" {
-  description = "Name of the n8n webhook contact point"
-  value       = grafana_contact_point.n8n_webhook.name
-}
 
 output "contact_point_fallback" {
   description = "Name of the alert-log fallback contact point"
