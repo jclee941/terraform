@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { randomBytes, randomInt } from "node:crypto";
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -13,8 +11,36 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 
-const execFileAsync = promisify(execFile);
-const OP_BIN = "/usr/bin/op";
+const OP_CONNECT_HOST = process.env.OP_CONNECT_HOST;
+const OP_CONNECT_TOKEN = process.env.OP_CONNECT_TOKEN;
+
+if (!OP_CONNECT_HOST || !OP_CONNECT_TOKEN) {
+  process.stderr.write(
+    "Missing OP_CONNECT_HOST or OP_CONNECT_TOKEN environment variables\n",
+  );
+  process.exit(1);
+}
+
+async function opFetch(path, options = {}) {
+  const url = `${OP_CONNECT_HOST}/v1${path}`;
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${OP_CONNECT_TOKEN}`,
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`1Password Connect API error ${res.status}: ${body}`);
+  }
+  if (res.status === 204) {
+    return null;
+  }
+  return res.json();
+}
 const SYMBOLS = "!@#$%^&*-_+=";
 const LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
 const UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -126,36 +152,78 @@ function toJsonResponse(data) {
 }
 
 function normalizeOpError(error) {
-  const stderr =
-    (error && typeof error.stderr === "string" && error.stderr.trim()) || "";
-  const stdout =
-    (error && typeof error.stdout === "string" && error.stdout.trim()) || "";
-  const message =
-    (error && typeof error.message === "string" && error.message.trim()) ||
-    "Unknown op CLI error";
-  return stderr || stdout || message;
+  const msg = error instanceof Error ? error.message : String(error);
+  if (msg.includes("401")) {
+    return {
+      code: "AUTH_ERROR",
+      message: "Authentication failed - check OP_CONNECT_TOKEN",
+    };
+  }
+  if (msg.includes("403")) {
+    return {
+      code: "FORBIDDEN",
+      message: "Access denied to this vault or item",
+    };
+  }
+  if (msg.includes("404")) {
+    return {
+      code: "NOT_FOUND",
+      message: "Vault or item not found",
+    };
+  }
+  if (msg.includes("429")) {
+    return {
+      code: "RATE_LIMITED",
+      message: "Rate limited by Connect Server",
+    };
+  }
+  return { code: "OP_ERROR", message: msg };
 }
 
-async function runOpJson(args) {
-  try {
-    const { stdout } = await execFileAsync(OP_BIN, args, {
-      maxBuffer: 10 * 1024 * 1024,
-    });
-    return stdout.trim() ? JSON.parse(stdout) : null;
-  } catch (error) {
-    throw new McpError(ErrorCode.InternalError, normalizeOpError(error));
+async function resolveSecretReference(ref) {
+  const match = ref.match(/^op:\/\/([^/]+)\/([^/]+)\/(.+)$/);
+  if (!match) {
+    throw new Error(`Invalid secret reference: ${ref}`);
   }
-}
 
-async function runOpText(args) {
-  try {
-    const { stdout } = await execFileAsync(OP_BIN, args, {
-      maxBuffer: 10 * 1024 * 1024,
-    });
-    return stdout;
-  } catch (error) {
-    throw new McpError(ErrorCode.InternalError, normalizeOpError(error));
+  const vaultName = decodeURIComponent(match[1]);
+  const itemName = decodeURIComponent(match[2]);
+  const fieldPath = decodeURIComponent(match[3]);
+
+  const vaults = await opFetch("/vaults");
+  const vault = vaults.find(
+    (candidate) => candidate.name === vaultName || candidate.id === vaultName,
+  );
+  if (!vault) {
+    throw new Error(`Vault not found: ${vaultName}`);
   }
+
+  const filter = encodeURIComponent(`title eq "${itemName}"`);
+  const items = await opFetch(`/vaults/${vault.id}/items?filter=${filter}`);
+  if (!items.length) {
+    throw new Error(`Item not found: ${itemName}`);
+  }
+
+  const item = await opFetch(`/vaults/${vault.id}/items/${items[0].id}`);
+  const parts = fieldPath.split("/");
+  let field;
+  if (parts.length === 1) {
+    field = item.fields?.find(
+      (candidate) =>
+        candidate.label === parts[0] || candidate.id === parts[0],
+    );
+  } else {
+    field = item.fields?.find(
+      (candidate) =>
+        candidate.section?.label === parts[0] &&
+        (candidate.label === parts[1] || candidate.id === parts[1]),
+    );
+  }
+
+  if (!field) {
+    throw new Error(`Field not found: ${fieldPath}`);
+  }
+  return field.value;
 }
 
 function requireString(value, name) {
@@ -443,216 +511,255 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const toolName = request.params.name;
   const args = request.params.arguments ?? {};
-
-  switch (toolName) {
-    case "vault_list": {
-      const vaults = await runOpJson(["vault", "list", "--format=json"]);
-      return toJsonResponse({
-        vaults: Array.isArray(vaults)
-          ? vaults.map((vault) => ({
-              id: vault.id,
-              name: vault.name,
-              description: vault.description,
-              type: vault.type,
-            }))
-          : [],
-      });
-    }
-
-    case "item_lookup": {
-      const { vaultId, query, limit } = args;
-      requireString(vaultId, "vaultId");
-
-      let items = await runOpJson([
-        "item",
-        "list",
-        `--vault=${vaultId}`,
-        "--format=json",
-      ]);
-      if (!Array.isArray(items)) {
-        items = [];
+  try {
+    switch (toolName) {
+      case "vault_list": {
+        const vaults = await opFetch("/vaults");
+        return toJsonResponse({
+          vaults: Array.isArray(vaults)
+            ? vaults.map((vault) => ({
+                id: vault.id,
+                name: vault.name,
+                description: vault.description,
+                type: vault.type,
+              }))
+            : [],
+        });
       }
 
-      if (typeof query === "string" && query.length > 0) {
-        const lowered = query.toLowerCase();
-        items = items.filter(
-          (item) =>
-            typeof item.title === "string" &&
-            item.title.toLowerCase().includes(lowered),
+      case "item_lookup": {
+        const { vaultId, query, limit } = args;
+        requireString(vaultId, "vaultId");
+
+        const queryParams = new URLSearchParams();
+        if (typeof query === "string" && query.length > 0) {
+          queryParams.set("filter", `title co \"${query}\"`);
+        }
+
+        const querySuffix = queryParams.toString()
+          ? `?${queryParams.toString()}`
+          : "";
+        let items = await opFetch(
+          `/vaults/${encodeURIComponent(vaultId)}/items${querySuffix}`,
         );
+        if (!Array.isArray(items)) {
+          items = [];
+        }
+
+        if (typeof limit !== "undefined") {
+          if (!Number.isInteger(limit) || limit < 1) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "limit must be a positive integer",
+            );
+          }
+          items = items.slice(0, limit);
+        }
+
+        return toJsonResponse({
+          items: items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            vault_id: item.vault?.id ?? item.vault?.vaultId ?? vaultId,
+          })),
+        });
       }
 
-      if (typeof limit !== "undefined") {
-        if (!Number.isInteger(limit) || limit < 1) {
+      case "item_delete": {
+        const { vaultId, itemId } = args;
+        requireString(vaultId, "vaultId");
+        requireString(itemId, "itemId");
+
+        await opFetch(
+          `/vaults/${encodeURIComponent(vaultId)}/items/${encodeURIComponent(itemId)}`,
+          { method: "DELETE" },
+        );
+        return toJsonResponse({ success: true });
+      }
+
+      case "password_create": {
+        const {
+          vaultId,
+          title,
+          password,
+          username,
+          category = "Login",
+          tags,
+          notes,
+          url,
+          returnSecret = false,
+        } = args;
+
+        requireString(vaultId, "vaultId");
+        requireString(title, "title");
+        requireString(password, "password");
+
+        if (category !== "Login" && category !== "Password") {
           throw new McpError(
             ErrorCode.InvalidParams,
-            "limit must be a positive integer",
+            "category must be either Login or Password",
           );
         }
-        items = items.slice(0, limit);
-      }
 
-      return toJsonResponse({
-        items: items.map((item) => ({
-          id: item.id,
-          title: item.title,
-          category: item.category,
-          vault_id: item.vault?.id ?? item.vault?.vaultId ?? vaultId,
-        })),
-      });
-    }
+        const created = await opFetch(
+          `/vaults/${encodeURIComponent(vaultId)}/items`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              vault: { id: vaultId },
+              title,
+              category: category === "Password" ? "PASSWORD" : "LOGIN",
+              fields: [
+                ...(typeof username === "string" && username.length > 0
+                  ? [
+                      {
+                        id: "username",
+                        type: "STRING",
+                        label: "username",
+                        value: username,
+                      },
+                    ]
+                  : []),
+                {
+                  id: "password",
+                  type: "CONCEALED",
+                  label: "password",
+                  value: password,
+                },
+                ...(typeof notes === "string" && notes.length > 0
+                  ? [
+                      {
+                        id: "notesPlain",
+                        type: "STRING",
+                        label: "notesPlain",
+                        value: notes,
+                        purpose: "NOTES",
+                      },
+                    ]
+                  : []),
+              ],
+              urls:
+                typeof url === "string" && url.length > 0
+                  ? [{ primary: true, href: url }]
+                  : [],
+              tags: Array.isArray(tags) ? tags : [],
+            }),
+          },
+        );
 
-    case "item_delete": {
-      const { vaultId, itemId } = args;
-      requireString(vaultId, "vaultId");
-      requireString(itemId, "itemId");
-
-      await runOpText(["item", "delete", itemId, `--vault=${vaultId}`]);
-      return toJsonResponse({ success: true });
-    }
-
-    case "password_create": {
-      const {
-        vaultId,
-        title,
-        password,
-        username,
-        category = "Login",
-        tags,
-        notes,
-        url,
-        returnSecret = false,
-      } = args;
-
-      requireString(vaultId, "vaultId");
-      requireString(title, "title");
-      requireString(password, "password");
-
-      if (category !== "Login" && category !== "Password") {
-        throw new McpError(
-          ErrorCode.InvalidParams,
-          "category must be either Login or Password",
+        return toJsonResponse(
+          returnSecret ? created : redactItemSecrets(created, "password"),
         );
       }
 
-      const opArgs = [
-        "item",
-        "create",
-        `--category=${category}`,
-        `--title=${title}`,
-        `--vault=${vaultId}`,
-        "--format=json",
-      ];
-
-      if (typeof url === "string" && url.length > 0) {
-        opArgs.push(`--url=${url}`);
-      }
-
-      if (Array.isArray(tags) && tags.length > 0) {
-        opArgs.push(`--tags=${tags.join(",")}`);
-      }
-
-      if (typeof username === "string" && username.length > 0) {
-        opArgs.push(`username=${username}`);
-      }
-
-      opArgs.push(`password=${password}`);
-
-      if (typeof notes === "string" && notes.length > 0) {
-        opArgs.push(`notesPlain=${notes}`);
-      }
-
-      const created = await runOpJson(opArgs);
-      return toJsonResponse(
-        returnSecret ? created : redactItemSecrets(created, "password"),
-      );
-    }
-
-    case "password_read": {
-      const {
-        secretReference,
-        vaultId,
-        itemId,
-        field = "password",
-        reveal = true,
-      } = args;
-
-      if (typeof secretReference === "string" && secretReference.length > 0) { // pragma: allowlist secret
-        if (!reveal) {
-          return toJsonResponse({ secretReference });
-        }
-        const value = await runOpText(["read", secretReference]);
-        return toJsonResponse({ value: value.replace(/\r?\n$/, "") });
-      }
-
-      if (
-        typeof vaultId === "string" &&
-        vaultId.length > 0 &&
-        typeof itemId === "string" &&
-        itemId.length > 0
-      ) {
-        const item = await runOpJson([
-          "item",
-          "get",
+      case "password_read": {
+        const {
+          secretReference,
+          vaultId,
           itemId,
-          `--vault=${vaultId}`,
-          "--format=json",
-        ]);
-        if (!reveal) {
-          return toJsonResponse(metadataOnlyItem(item));
+          field = "password",
+          reveal = true,
+        } = args;
+
+        if (
+          typeof secretReference === "string" &&
+          secretReference.length > 0
+        ) {
+          if (!reveal) {
+            return toJsonResponse({ secretReference });
+          }
+          const value = await resolveSecretReference(secretReference);
+          return toJsonResponse({ value });
         }
-        if (typeof field === "string" && field.length > 0) {
+
+        if (
+          typeof vaultId === "string" &&
+          vaultId.length > 0 &&
+          typeof itemId === "string" &&
+          itemId.length > 0
+        ) {
+          const item = await opFetch(
+            `/vaults/${encodeURIComponent(vaultId)}/items/${encodeURIComponent(itemId)}`,
+          );
+          if (!reveal) {
+            return toJsonResponse(metadataOnlyItem(item));
+          }
+          if (typeof field === "string" && field.length > 0) {
+            return toJsonResponse(item);
+          }
           return toJsonResponse(item);
         }
-        return toJsonResponse(item);
+
+        throw new McpError(
+          ErrorCode.InvalidParams,
+          "Provide either secretReference or both vaultId and itemId",
+        );
       }
 
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        "Provide either secretReference or both vaultId and itemId",
-      );
+      case "password_update": {
+        const {
+          vaultId,
+          itemId,
+          newPassword,
+          field = "password",
+          returnSecret = false,
+        } = args;
+
+        requireString(vaultId, "vaultId");
+        requireString(itemId, "itemId");
+        requireString(newPassword, "newPassword");
+        requireString(field, "field");
+
+        const item = await opFetch(
+          `/vaults/${encodeURIComponent(vaultId)}/items/${encodeURIComponent(itemId)}`,
+        );
+        const targetField = item.fields?.find(
+          (candidate) => candidate.label === field || candidate.id === field,
+        );
+        if (!targetField) {
+          throw new Error(`Field \"${field}\" not found`);
+        }
+        targetField.value = newPassword;
+
+        const updated = await opFetch(
+          `/vaults/${encodeURIComponent(vaultId)}/items/${encodeURIComponent(itemId)}`,
+          {
+            method: "PUT",
+            body: JSON.stringify(item),
+          },
+        );
+
+        return toJsonResponse(
+          returnSecret ? updated : redactItemSecrets(updated, field),
+        );
+      }
+
+      case "password_generate": {
+        const generated = generatePassword(args);
+        return toJsonResponse({ password: generated });
+      }
+
+      case "password_generate_memorable": {
+        const generated = generateMemorablePassword(args);
+        return toJsonResponse({ password: generated });
+      }
+
+      default:
+        throw new McpError(
+          ErrorCode.MethodNotFound,
+          `Unknown tool: ${toolName}`,
+        );
     }
-
-    case "password_update": {
-      const {
-        vaultId,
-        itemId,
-        newPassword,
-        field = "password",
-        returnSecret = false,
-      } = args;
-
-      requireString(vaultId, "vaultId");
-      requireString(itemId, "itemId");
-      requireString(newPassword, "newPassword");
-      requireString(field, "field");
-
-      const updated = await runOpJson([
-        "item",
-        "edit",
-        itemId,
-        `--vault=${vaultId}`,
-        `${field}=${newPassword}`,
-        "--format=json",
-      ]);
-
-      return toJsonResponse(
-        returnSecret ? updated : redactItemSecrets(updated, field),
-      );
+  } catch (error) {
+    if (error instanceof McpError) {
+      throw error;
     }
-
-    case "password_generate": {
-      const generated = generatePassword(args);
-      return toJsonResponse({ password: generated });
-    }
-
-    case "password_generate_memorable": {
-      const generated = generateMemorablePassword(args);
-      return toJsonResponse({ password: generated });
-    }
-
-    default:
-      throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${toolName}`);
+    const normalized = normalizeOpError(error);
+    throw new McpError(
+      ErrorCode.InternalError,
+      `${normalized.code}: ${normalized.message}`,
+    );
   }
 });
 

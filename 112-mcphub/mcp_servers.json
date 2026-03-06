@@ -119,6 +119,18 @@
       "args": ["-y", "@google-cloud/gcloud-mcp"],
       "port": 8080,
       "description": "Google Cloud Platform CLI operations"
+    },
+    "n8n": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@leonardsellem/n8n-mcp-server"],
+      "port": 8081,
+      "env": {
+        "N8N_API_URL": "${N8N_MCP_API_URL}",
+        "N8N_API_KEY": "${N8N_MCP_API_KEY}"
+      },
+      "description": "n8n workflow automation"
     }
   }
 }
