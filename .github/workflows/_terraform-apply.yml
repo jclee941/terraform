@@ -66,6 +66,8 @@ on:
         required: false
       OP_CONNECT_TOKEN:
         required: false
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
       PROXMOX_VE_ENDPOINT:
         required: false
       PROXMOX_VE_API_TOKEN:

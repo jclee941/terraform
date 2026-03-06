@@ -40,7 +40,6 @@ runs:
             ('module.lxc["archon"].proxmox_virtual_environment_container.this', 'pve3/108'),
             ('module.vm["mcphub"].proxmox_virtual_environment_vm.this', 'pve3/112'),
             ('module.vm["youtube"].proxmox_virtual_environment_vm.this', 'pve3/220'),
-            ('module.vm["ollama"].proxmox_virtual_environment_vm.this', 'pve3/109'),
             ('proxmox_virtual_environment_firewall_rules.container["runner"]', 'container/pve3/101'),
             ('proxmox_virtual_environment_firewall_rules.container["traefik"]', 'container/pve3/102'),
             ('proxmox_virtual_environment_firewall_rules.container["coredns"]', 'container/pve3/103'),
@@ -50,7 +49,7 @@ runs:
             ('proxmox_virtual_environment_firewall_rules.container["supabase"]', 'container/pve3/107'),
             ('proxmox_virtual_environment_firewall_rules.container["archon"]', 'container/pve3/108'),
             ('proxmox_virtual_environment_firewall_rules.vm["mcphub"]', 'vm/pve3/112'),
-            ('proxmox_virtual_environment_firewall_rules.vm["jclee_dev"]', 'vm/pve3/200'),
+            ('proxmox_virtual_environment_firewall_rules.vm["jclee-dev"]', 'vm/pve3/200'),
         ]
 
         def run(cmd):
