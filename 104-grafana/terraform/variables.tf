@@ -16,6 +16,19 @@ variable "grafana_auth" {
   default     = ""
 }
 
+variable "grafana_admin_username" {
+  description = "Grafana admin username used for basic auth fallback"
+  type        = string
+  default     = "admin"
+}
+
+variable "grafana_admin_password" {
+  description = "Grafana admin password used for basic auth fallback (overrides 1Password if set)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "slack_webhook_url" {
   description = "Slack incoming webhook URL for alert notifications (fallback if not in 1Password)"
   type        = string

@@ -7,28 +7,15 @@ resource "grafana_notification_policy" "default" {
   repeat_interval = "4h"
 
   dynamic "policy" {
-    for_each = local._slack_enabled ? [1] : []
+    for_each = { for severity in (local._slack_enabled ? ["critical", "warning"] : []) : severity => { severity = severity } }
     content {
       matcher {
         label = "severity"
         match = "="
-        value = "critical"
+        value = each.value.severity
       }
       contact_point   = grafana_contact_point.slack_alerts[0].name
-      repeat_interval = "1h"
-    }
-  }
-
-  dynamic "policy" {
-    for_each = local._slack_enabled ? [1] : []
-    content {
-      matcher {
-        label = "severity"
-        match = "="
-        value = "warning"
-      }
-      contact_point   = grafana_contact_point.slack_alerts[0].name
-      repeat_interval = "4h"
+      repeat_interval = each.value.severity == "critical" ? "1h" : "4h"
     }
   }
 

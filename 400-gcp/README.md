@@ -9,6 +9,10 @@
 ## 2. Configuration Files
 
 <!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
 ## Requirements
 
 | Name | Version |
@@ -19,17 +23,17 @@
 
 ## Providers
 
+## Providers
+
 No providers.
 
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
+## Resources
 
 ## Resources
 
 No resources.
+
+## Inputs
 
 ## Inputs
 
@@ -42,10 +46,13 @@ No resources.
 
 ## Outputs
 
+## Outputs
+
 | Name | Description |
 |------|-------------|
 | <a name="output_gcp_project"></a> [gcp\_project](#output\_gcp\_project) | Active GCP project ID |
 | <a name="output_gcp_region"></a> [gcp\_region](#output\_gcp\_region) | Active GCP region |
+
 <!-- END_TF_DOCS -->
 
 ## 3. Secrets

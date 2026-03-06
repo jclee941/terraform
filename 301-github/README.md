@@ -1,4 +1,8 @@
 <!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
 ## Requirements
 
 | Name | Version |
@@ -9,16 +13,14 @@
 
 ## Providers
 
+## Providers
+
 | Name | Version |
 |------|---------|
 | <a name="provider_github"></a> [github](#provider\_github) | 6.11.1 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
+## Resources
 
 ## Resources
 
@@ -45,6 +47,8 @@
 | [github_team_repository.repository_access](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) | resource |
 | [terraform_data.validate_credentials](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_remote_state.infra](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/data-sources/remote_state) | data source |
+
+## Inputs
 
 ## Inputs
 
@@ -84,6 +88,8 @@
 
 ## Outputs
 
+## Outputs
+
 | Name | Description |
 |------|-------------|
 | <a name="output_infra_integration"></a> [infra\_integration](#output\_infra\_integration) | Infrastructure data consumed from 100-pve remote state. |
@@ -92,4 +98,5 @@
 | <a name="output_repository_html_urls"></a> [repository\_html\_urls](#output\_repository\_html\_urls) | Managed repository HTML URLs by repository name. |
 | <a name="output_repository_webhook_ids"></a> [repository\_webhook\_ids](#output\_repository\_webhook\_ids) | Repository webhook IDs keyed by repo:webhook\_name. |
 | <a name="output_team_ids"></a> [team\_ids](#output\_team\_ids) | Team IDs keyed by team key. |
+
 <!-- END_TF_DOCS -->
