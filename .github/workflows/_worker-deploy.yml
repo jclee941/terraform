@@ -11,12 +11,25 @@ on:
         description: "Worker display name for logs and notifications"
         type: string
         required: true
+      set-webhook-secret:
+        description: "Set WEBHOOK_SECRET via wrangler"
+        type: boolean
+        required: false
+        default: false
+      worker-url:
+        description: "Deployed worker URL for verification"
+        type: string
+        required: false
+        default: ""
     secrets:
       GH_PAT:
         required: false
       CLOUDFLARE_API_TOKEN:
         required: false
-      CLOUDFLARE_ACCOUNT_ID:
+      TF_VAR_CLOUDFLARE_ACCOUNT_ID:
+        description: "Cloudflare account ID (canonical TF_VAR secret name)"
+        required: false
+      ELK_WEBHOOK_SECRET:
         required: false
 
 permissions:
@@ -34,10 +47,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Check Cloudflare Secrets
-        id: secrets_check
+        id: check_cf_secrets
         run: |
-          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] || [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
-            echo "::warning::CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID not configured. Skipping deploy."
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] || [ -z "${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN or TF_VAR_CLOUDFLARE_ACCOUNT_ID not configured. Skipping deploy."
             echo "creds_ok=false" >> "$GITHUB_OUTPUT"
           else
             echo "Cloudflare credentials configured"
@@ -45,38 +58,53 @@ jobs:
           fi
 
       - name: Setup Node
-        if: steps.secrets_check.outputs.creds_ok == 'true'
+        if: steps.check_cf_secrets.outputs.creds_ok == 'true'
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: "20"
 
       - name: Install Dependencies
-        if: steps.secrets_check.outputs.creds_ok == 'true'
+        if: steps.check_cf_secrets.outputs.creds_ok == 'true'
         run: npm ci
 
       - name: Deploy
-        if: steps.secrets_check.outputs.creds_ok == 'true'
+        if: steps.check_cf_secrets.outputs.creds_ok == 'true'
         uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          accountId: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: ${{ inputs.working-directory }}
 
+      - name: Set WEBHOOK_SECRET
+        if: inputs.set-webhook-secret && steps.check_cf_secrets.outputs.creds_ok == 'true'
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+        run: echo "${{ secrets.ELK_WEBHOOK_SECRET }}" | npx wrangler secret put WEBHOOK_SECRET
+
       - name: Post-Deploy Verification
-        if: success() && steps.secrets_check.outputs.creds_ok == 'true'
+        if: inputs.worker-url != '' && steps.check_cf_secrets.outputs.creds_ok == 'true'
         run: |
-          echo '✅ Worker deployed successfully'
-          echo '📋 Verifying deployment...'
-          echo '✅ Post-deploy verification complete'
+          echo "::group::Health Check"
+          HEALTH=$(curl -sf "${{ inputs.worker-url }}/health" || echo '{"error":"unreachable"}')
+          echo "$HEALTH" | jq .
+          echo "::endgroup::"
+
+          if echo "$HEALTH" | jq -e '.status == "ok"' > /dev/null 2>&1; then
+            echo "✅ Health check passed"
+          else
+            echo "::warning::Health check failed or returned unexpected response"
+          fi
 
       - name: Skip Notice
-        if: steps.secrets_check.outputs.creds_ok != 'true'
+        if: steps.check_cf_secrets.outputs.creds_ok != 'true'
         run: |
           echo "## Worker Deploy - Skipped" >> "$GITHUB_STEP_SUMMARY"
-          echo "CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID not configured." >> "$GITHUB_STEP_SUMMARY"
+          echo "CLOUDFLARE_API_TOKEN or TF_VAR_CLOUDFLARE_ACCOUNT_ID not configured." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create Issue on Failure
-        if: failure() && steps.secrets_check.outputs.creds_ok == 'true'
+        if: failure() && steps.check_cf_secrets.outputs.creds_ok == 'true'
         uses: ./.github/actions/notify-failure
         with:
           github-token: ${{ secrets.GH_PAT }}

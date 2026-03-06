@@ -14,6 +14,7 @@ on:
       - "300-cloudflare/**"
       - "301-github/**"
       - "320-slack/**"
+      - "400-gcp/**"
       - "modules/**"
       - ".github/workflows/terraform-drift.yml"
   workflow_run:
@@ -27,6 +28,7 @@ on:
       - "Slack Apply"
       - "Ollama Apply"
       - "GitHub Apply"
+      - "GCP Apply"
     types: [completed]
     branches: [master]
   workflow_dispatch:
@@ -53,6 +55,7 @@ jobs:
           {"name":"ollama","dir":"109-ollama/terraform","init_args":"-input=false"},
           {"name":"cloudflare","dir":"300-cloudflare","init_args":"-input=false"},
           {"name":"github","dir":"301-github","init_args":"-input=false"},
-          {"name":"slack","dir":"320-slack","init_args":"-input=false"}
+          {"name":"slack","dir":"320-slack","init_args":"-input=false"},
+          {"name":"gcp","dir":"400-gcp","init_args":"-input=false"}
         ]
     secrets: inherit # pragma: allowlist secret

@@ -62,8 +62,6 @@ on:
         required: false
       TF_VAR_ACCESS_ALLOWED_EMAILS:
         required: false
-      TF_VAR_GITHUB_TOKEN:
-        required: false
       OP_CONNECT_HOST:
         required: false
       OP_CONNECT_TOKEN:
@@ -162,7 +160,7 @@ jobs:
       - name: Import existing GitHub resources
         if: inputs.enable-repository-imports
         env:
-          TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
+          TF_VAR_github_token: ${{ secrets.GH_PAT }}
           OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
         run: |
@@ -373,7 +371,7 @@ jobs:
           TF_VAR_cloudflare_zone_id: ${{ secrets.TF_VAR_CLOUDFLARE_ZONE_ID }}
           TF_VAR_synology_domain: ${{ secrets.TF_VAR_SYNOLOGY_DOMAIN }}
           TF_VAR_access_allowed_emails: ${{ secrets.TF_VAR_ACCESS_ALLOWED_EMAILS }}
-          TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
+          TF_VAR_github_token: ${{ secrets.GH_PAT }}
           OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
           # GitHub workspace only: set to 'true' when enable-repository-imports input is true
