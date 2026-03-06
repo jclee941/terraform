@@ -4,7 +4,7 @@
 
 - **Service Name**: Google Cloud Platform (GCP)
 - **Purpose**: Foundation workspace for GCP resource management via Terraform.
-- **Current Status**: **Scaffold** — provider and 1Password integration configured, no resources deployed yet.
+- **Current Status**: **Scaffold** — no resources deployed yet. 1Password lookup for GCP credentials is **disabled by default** until the `gcp` item exists; use variable overrides to enable when ready.
 
 ## 2. Configuration Files
 
@@ -39,6 +39,7 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_enable_gcp_lookup"></a> [enable\_gcp\_lookup](#input\_enable\_gcp\_lookup) | Whether to fetch GCP credentials from 1Password (requires a 'gcp' item) | `bool` | `false` | no |
 | <a name="input_gcp_credentials"></a> [gcp\_credentials](#input\_gcp\_credentials) | GCP service account key JSON override. Falls back to 1Password. | `string` | `""` | no |
 | <a name="input_gcp_project"></a> [gcp\_project](#input\_gcp\_project) | GCP project ID override. Falls back to 1Password. | `string` | `""` | no |
 | <a name="input_gcp_region"></a> [gcp\_region](#input\_gcp\_region) | GCP region for resources. | `string` | `"asia-northeast3"` | no |
@@ -57,7 +58,7 @@ No resources.
 
 ## 3. Secrets
 
-Managed via the shared `onepassword-secrets` module with `enable_gcp = true`.
+Managed via the shared `onepassword-secrets` module. Enable `enable_gcp_lookup = true` once a `gcp` item exists in 1Password; until then, provide overrides via variables or leave empty for scaffold-only runs.
 
 | Key              | Source                 | Usage                    |
 | ---------------- | ---------------------- | ------------------------ |

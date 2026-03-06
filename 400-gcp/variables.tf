@@ -13,6 +13,12 @@ variable "onepassword_vault_name" {
   }
 }
 
+variable "enable_gcp_lookup" {
+  description = "Whether to fetch GCP credentials from 1Password (requires a 'gcp' item)"
+  type        = bool
+  default     = false
+}
+
 variable "gcp_project" {
   description = "GCP project ID override. Falls back to 1Password."
   type        = string

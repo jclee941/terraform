@@ -34,6 +34,7 @@ Terraform-managed Google Cloud Platform (GCP) infrastructure via the `hashicorp/
 - Region default: `asia-northeast3` (Seoul).
 - Label all resources with `local.default_labels`.
 - Resource gating: use `local._gcp_enabled` to conditionally create resources when credentials are available.
+- Toggle `enable_gcp_lookup = true` only after the `gcp` 1Password item is created; keep default `false` to avoid CI failures during scaffold runs.
 
 ## ANTI-PATTERNS
 
