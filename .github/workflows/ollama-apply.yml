@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   apply:
+    if: ${{ hashFiles('109-ollama/terraform/**') != '' }}
     uses: ./.github/workflows/_terraform-apply.yml
     with:
       service-name: Ollama

@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   plan:
+    if: ${{ hashFiles('109-ollama/terraform/**') != '' }}
     uses: ./.github/workflows/_terraform-plan.yml
     with:
       service-name: Ollama
