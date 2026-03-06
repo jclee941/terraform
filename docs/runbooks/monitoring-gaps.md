@@ -8,10 +8,10 @@
 
 ## Current Alerting Setup
 
-| Component        | Location                    | Rules                   |
-| ---------------- | --------------------------- | ----------------------- |
-| Grafana Alerting | `104-grafana/alerting.yaml` | 10 rules, 3 groups      |
-| Contact Point    | n8n-webhook                 | Routes to GitHub Issues |
+| Component        | Location                                  | Rules                   |
+| ---------------- | ----------------------------------------- | ----------------------- |
+| Grafana Alerting | `104-grafana/terraform/alerting_rules.tf` | 14 rules, 3 groups      |
+| Contact Points   | slack-alerts + alert-log-fallback          | Routes to Slack / logs  |
 
 Alert groups: `homelab-logs`, `mcp-alerts`, `infrastructure-health`
 
@@ -19,7 +19,7 @@ Alert groups: `homelab-logs`, `mcp-alerts`, `infrastructure-health`
 
 ### 1. Define the Rule
 
-Edit `104-grafana/alerting.yaml` and add under the appropriate group:
+Edit `104-grafana/terraform/alerting_locals.tf` and add under the appropriate group:
 
 ```yaml
 - uid: new-rule-uid
@@ -75,10 +75,10 @@ pct exec 105 -- curl -s -X POST "localhost:9200/logs-test-$(date +%Y.%m.%d)/_doc
 
 # 2. Check: Verify alert fires in Grafana
 curl -s http://192.168.50.104:3000/api/v1/provisioning/alert-rules \
-  | jq '.[] | select(.title == "Your Rule") | .state'
+  # 3. Verify: Check Slack channel for alert notification
 
-# 3. Verify: Check n8n webhook received it
-# n8n UI: 192.168.50.112:5678 → Executions → Check recent
+# 4. Verify: GitHub Issue created (if GlitchTip pipeline active)
+gh issue list --repo qws941/terraform --label automated
 
 # 4. Verify: GitHub Issue created
 gh issue list --repo qws941/terraform --label automated

@@ -91,7 +91,7 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | Workspace             | Has onepassword.tf       | Key Secrets Consumed                               |
 | --------------------- | ------------------------ | -------------------------------------------------- |
 | 100-pve               | via versions.tf provider | `proxmox_api_token`, all template secrets          |
-| 104-grafana/terraform | ✅                       | `grafana_service_account_token`, `n8n_webhook_url` |
+| 104-grafana/terraform | ✅                       | `grafana_service_account_token`, `slack_webhook_url` |
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
 | 215-synology          | ✅                       | `synology_username`, `synology_password`           |
 | 300-cloudflare        | ✅                       | `cloudflare_account_id`, `zone_id`, `github_token` |
@@ -150,15 +150,8 @@ module "secrets" {
 | Secret                | 1Password Reference                                  | Field                   | Priority |
 | --------------------- | ---------------------------------------------------- | ----------------------- | -------- |
 | `TF_VAR_GRAFANA_AUTH` | `op://homelab/grafana/secrets/service_account_token` | `service_account_token` | P1       |
-| `TF_VAR_GITHUB_TOKEN` | `op://homelab/github/secrets/personal_access_token`  | `personal_access_token` | P1       |
 | `TF_VAR_SUPABASE_URL` | `op://homelab/supabase/secrets/url`                  | `url`                   | P1       |
 | `GH_PAT`              | `op://homelab/github/secrets/personal_access_token`  | `personal_access_token` | P2       |
-
-### Derived (known infrastructure)
-
-| Secret                   | Value                                | Priority |
-| ------------------------ | ------------------------------------ | -------- |
-| `TF_VAR_N8N_WEBHOOK_URL` | `http://192.168.50.112:5678/webhook` | P1       |
 
 ### From local `.tfvars` (via `setup-github-secrets.go`)
 
@@ -172,7 +165,8 @@ module "secrets" {
 | `TF_VAR_SYNOLOGY_DOMAIN`      | `300-cloudflare/terraform.tfvars` | `synology_domain`       | P1       |
 | `TF_VAR_ACCESS_ALLOWED_EMAILS` | `300-cloudflare/terraform.tfvars` | `access_allowed_emails` | P1       |
 | `CLOUDFLARE_API_TOKEN`        | env / CF dashboard                | —                       | P2       |
-| `CLOUDFLARE_ACCOUNT_ID`       | `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P2       |
+
+Note: `PROXMOX_ENDPOINT` was renamed to `TF_VAR_PROXMOX_ENDPOINT` and all workflow references now use the canonical `TF_VAR_*` secret name.
 
 ### Manual (3/17 — not in 1Password)
 

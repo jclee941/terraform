@@ -324,7 +324,7 @@ journalctl -u postfix -f
 
 ### Grafana Alerts
 
-Two backup-related alert rules (in 104-grafana/alerting.yaml):
+Two backup-related alert rules (in `104-grafana/terraform/alerting_rules.tf`):
 
 - **Host Silent**: Triggers if a host stops sending logs (possible backup failure)
 - **Disk Usage High**: Alerts if `/var/lib/vz/dump/` exceeds 80% capacity

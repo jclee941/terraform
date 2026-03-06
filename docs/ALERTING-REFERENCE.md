@@ -11,11 +11,8 @@ Hosts (100, 101, 102, 103, 104, 105, 106, 112)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
-                 └─ Grafana (104:3000, 10 rules, 3 groups)
-                      ├─ n8n-webhook → n8n:5678 /webhook/grafana-alert
-                      │    └─ alert-to-github-issue.json → GitHub Issues
-                      └─ n8n-glitchtip-webhook → n8n:5678 /webhook/grafana-to-glitchtip
-                           └─ grafana-to-glitchtip.json → GlitchTip (106:8000)
+                       ├─ slack-alerts → Slack (critical + warning)
+                       └─ alert-log-fallback (info + default)
 
 GlitchTip (106:8000) — receives from Sentry SDKs + Grafana bridge
   └─ GlitchTip webhook → n8n:5678 /webhook/glitchtip-error
@@ -89,20 +86,16 @@ Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
 
 | Contact Point            | Target                                                          |
 | ------------------------ | --------------------------------------------------------------- |
-| `n8n-webhook`            | `http://192.168.50.112:5678/webhook/grafana-alert`              |
-| `n8n-glitchtip-webhook`  | `http://192.168.50.112:5678/webhook/grafana-to-glitchtip`       |
+| `alert-log-fallback`     | Grafana log (default fallback)                                  |
+| `slack-alerts`           | Slack incoming webhook (conditional on webhook URL)              |
 
-**Routing policies (fan-out):**
-
-Critical and warning policies use `continue = true` to fan out to both contact points.
+**Routing policies:**
 
 | Severity | Contact Point           | Group Wait | Repeat Interval |
 | -------- | ----------------------- | ---------- | --------------- |
-| critical | n8n-webhook             | 10s        | 1h              |
-| critical | n8n-glitchtip-webhook   | 10s        | 1h              |
-| warning  | n8n-webhook             | 1m         | 4h              |
-| warning  | n8n-glitchtip-webhook   | 1m         | 4h              |
-| info     | n8n-webhook             | 2m         | 12h             |
+| critical | slack-alerts            | 10s        | 1h              |
+| warning  | slack-alerts            | 1m         | 4h              |
+| info     | alert-log-fallback      | 2m         | 12h             |
 
 **Alert rules (10 total, 3 groups):**
 
@@ -133,24 +126,13 @@ Critical and warning policies use `continue = true` to fan out to both contact p
 
 **Query improvements** (2026-02-12): All ES-based rules now use structured Logstash fields (`error_classification`, `error_severity`) instead of raw text matching, eliminating false positives from noise exclusion patterns.
 
-### 4. Incident Creation (n8n)
-
-n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
-
-| Webhook Path                    | Source    | Target     | Labels                             |
-| ------------------------------- | --------- | ---------- | ---------------------------------- |
-| `/webhook/grafana-alert`        | Grafana   | GitHub     | `automated, infrastructure, alert` |
-| `/webhook/grafana-to-glitchtip` | Grafana   | GlitchTip  | n/a (Sentry event ingestion)       |
-| `/webhook/glitchtip-error`      | GlitchTip | GitHub     | `bug, glitchtip, automated`        |
-
-### 5. Error Tracking (GlitchTip)
+### 4. Error Tracking (GlitchTip)
 
 - URL: `http://192.168.50.106:8000`
 - Org: `jclee-homelab`, Project: `homelab`
-- Receives from: Application Sentry SDKs (client-side error reporting) + Grafana bridge (infrastructure alerts)
+- Receives from: Application Sentry SDKs (client-side error reporting)
 - Alert rule `n8n-automation` forwards to n8n webhook
-- Grafana bridge: n8n converts Grafana alert payloads to Sentry events via `grafana-to-glitchtip.json`
-
+- n8n workflow `error-to-github-issue.json` creates GitHub Issues from GlitchTip events
 ## Datasource UIDs (Grafana)
 
 | Datasource    | UID                 |
@@ -165,12 +147,12 @@ n8n workflows on VM 112 (port 5678) create GitHub Issues from alerts.
 | Filebeat configs  | Terraform-deployed via lxc-config/vm-config modules |
 | Logstash template | `105-elk/templates/logstash.conf.tftpl`             |
 | Logstash config   | `105-elk/config/logstash.yml`                       |
-| Grafana alerts    | `104-grafana/terraform/main.tf`                     |
+| Grafana alerts    | `104-grafana/terraform/alerting_rules.tf`           |
 | n8n workflows     | `scripts/n8n-workflows/`                            |
-| GlitchTip bridge  | `scripts/n8n-workflows/grafana-to-glitchtip.json`   |
 
 ## Known Issues
-- **SPOF**: n8n is a single point of failure for both GitHub Issue creation and GlitchTip bridging. No fallback if n8n is down.
+
+- **SPOF**: n8n is a single point of failure for GlitchTip → GitHub Issue creation. No fallback if n8n is down.
 
 ## Deprecated
 
