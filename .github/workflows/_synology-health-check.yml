@@ -16,14 +16,90 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - name: Resolve Synology credentials
+        id: synology_creds
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SYNOLOGY_USER_SECRET: ${{ secrets.SYNOLOGY_USER }}
+          SYNOLOGY_PASSWORD_SECRET: ${{ secrets.SYNOLOGY_PASSWORD }}
+        run: |
+          USERNAME="${SYNOLOGY_USER_SECRET:-}"
+          PASSWORD="${SYNOLOGY_PASSWORD_SECRET:-}"
+
+          if [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
+            echo "source=github-secrets" >> "$GITHUB_OUTPUT"
+            echo "synology_user=$USERNAME" >> "$GITHUB_OUTPUT"
+            echo "synology_password=$PASSWORD" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
+            echo "source=missing" >> "$GITHUB_OUTPUT"
+            echo "reason=SYNOLOGY_USER/SYNOLOGY_PASSWORD not configured and OP_SERVICE_ACCOUNT_TOKEN missing" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! command -v op >/dev/null 2>&1; then
+            OP_VERSION="2.32.1"
+            curl -sSfo /tmp/op.zip "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_amd64_v${OP_VERSION}.zip"
+            unzip -o /tmp/op.zip -d /tmp/op-bin >/dev/null
+            sudo install -m 755 /tmp/op-bin/op /usr/local/bin/op
+            rm -rf /tmp/op.zip /tmp/op-bin
+          fi
+
+          if ! op --version >/dev/null 2>&1; then
+            echo "source=error" >> "$GITHUB_OUTPUT"
+            echo "reason=1Password CLI unavailable" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! op whoami --format json >/dev/null 2>&1; then
+            echo "source=error" >> "$GITHUB_OUTPUT"
+            echo "reason=1Password authentication failed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          USERNAME=$(op read "op://homelab/synology/username" 2>/dev/null || true)
+          PASSWORD=$(op read "op://homelab/synology/password" 2>/dev/null || true)
+
+          if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+            echo "source=error" >> "$GITHUB_OUTPUT"
+            echo "reason=Synology credentials missing in 1Password" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "::add-mask::$USERNAME"
+          echo "::add-mask::$PASSWORD"
+          {
+            echo "source=1password"
+            echo "synology_user=$USERNAME"
+            echo "synology_password=$PASSWORD"
+            echo "reason="
+          } >> "$GITHUB_OUTPUT"
+
       - name: Authenticate with DSM
         id: auth
         env:
           SYNOLOGY_HOST: "192.168.50.215"
           SYNOLOGY_PORT: "5000"
-          SYNOLOGY_USER: ${{ secrets.SYNOLOGY_USER }}
-          SYNOLOGY_PASSWORD: ${{ secrets.SYNOLOGY_PASSWORD }}
+          SYNOLOGY_USER: ${{ steps.synology_creds.outputs.synology_user }}
+          SYNOLOGY_PASSWORD: ${{ steps.synology_creds.outputs.synology_password }}
+          CREDS_SOURCE: ${{ steps.synology_creds.outputs.source }}
+          CREDS_REASON: ${{ steps.synology_creds.outputs.reason }}
         run: |
+          CREDS_SOURCE="${CREDS_SOURCE:-missing}"
+          CREDS_REASON="${CREDS_REASON:-Synology credentials unavailable}"
+
+          if [ "$CREDS_SOURCE" != "github-secrets" ] && [ "$CREDS_SOURCE" != "1password" ]; then
+            echo "::error::$CREDS_REASON"
+            exit 1
+          fi
+
+          if [ -z "$SYNOLOGY_USER" ] || [ -z "$SYNOLOGY_PASSWORD" ]; then
+            echo "::error::Synology credentials missing (${CREDS_SOURCE})"
+            exit 1
+          fi
+
           # Login to DSM API
           AUTH=$(curl -sk \
             "http://${SYNOLOGY_HOST}:${SYNOLOGY_PORT}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${SYNOLOGY_USER}&passwd=${SYNOLOGY_PASSWORD}&format=sid")
