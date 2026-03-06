@@ -85,9 +85,6 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 30
     environment: production
-    env:
-      TF_PLUGIN_CACHE_DIR: ${{ runner.temp }}/terraform-plugin-cache
-      TF_DATA_DIR: ${{ runner.temp }}/terraform-data
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -109,6 +106,8 @@ jobs:
           rm -rf "$HOME/.terraform.d/plugin-cache" "$HOME/.terraform.d/plugins" "$WORKING_DIR/.terraform" || true
           rm -rf "$RUNNER_TEMP/terraform-plugin-cache" "$RUNNER_TEMP/terraform-data" || true
           mkdir -p "$RUNNER_TEMP/terraform-plugin-cache" "$RUNNER_TEMP/terraform-data"
+          echo "TF_PLUGIN_CACHE_DIR=$RUNNER_TEMP/terraform-plugin-cache" >> "$GITHUB_ENV"
+          echo "TF_DATA_DIR=$RUNNER_TEMP/terraform-data" >> "$GITHUB_ENV"
           echo "After cleanup:"
           df -h .
 
