@@ -18,8 +18,16 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         python3 - <<'PY'
+        import os
         import subprocess
         import sys
+
+        has_connect = bool(os.getenv("OP_CONNECT_HOST") and os.getenv("OP_CONNECT_TOKEN"))
+        service_token = os.getenv("OP_SERVICE_ACCOUNT_TOKEN") or os.getenv("TF_VAR_op_service_account_token")
+
+        if not (has_connect or service_token):
+            print("1Password credentials missing: set OP_CONNECT_HOST/OP_CONNECT_TOKEN or OP_SERVICE_ACCOUNT_TOKEN/TF_VAR_op_service_account_token")
+            sys.exit(1)
 
         resources = [
             ('module.lxc["runner"].proxmox_virtual_environment_container.this', 'pve3/101'),
