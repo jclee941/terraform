@@ -8,6 +8,7 @@
 resource "cloudflare_ruleset" "waf_custom" {
   count = can(regex("^[0-9a-f]{32}$", var.cloudflare_zone_id)) ? 1 : 0
 
+  provider   = cloudflare.apikey
   zone_id     = local.effective_cloudflare_zone_id
   kind        = "zone"
   phase       = "http_request_firewall_custom"

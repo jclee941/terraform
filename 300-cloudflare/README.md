@@ -136,6 +136,7 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | Name | Version |
 |------|---------|
 | <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.18.0 |
+| <a name="provider_cloudflare.apikey"></a> [cloudflare.apikey](#provider\_cloudflare.apikey) | 5.18.0 |
 | <a name="provider_github"></a> [github](#provider\_github) | 6.11.1 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
@@ -188,6 +189,9 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="input_access_allowed_emails"></a> [access\_allowed\_emails](#input\_access\_allowed\_emails) | List of email addresses allowed through CF Access | `list(string)` | n/a | yes |
 | <a name="input_synology_domain"></a> [synology\_domain](#input\_synology\_domain) | Domain/subdomain for Synology proxy (e.g., nas.jclee.me) | `string` | n/a | yes |
 | <a name="input_cloudflare_account_id"></a> [cloudflare\_account\_id](#input\_cloudflare\_account\_id) | Cloudflare account ID (optional if provided via 1Password) | `string` | `""` | no |
+| <a name="input_cloudflare_api_key"></a> [cloudflare\_api\_key](#input\_cloudflare\_api\_key) | Cloudflare Global API key (fallback when API token is unavailable) | `string` | `""` | no |
+| <a name="input_cloudflare_api_token"></a> [cloudflare\_api\_token](#input\_cloudflare\_api\_token) | Cloudflare API token (preferred for scoped access; optional if provided via 1Password) | `string` | `""` | no |
+| <a name="input_cloudflare_email"></a> [cloudflare\_email](#input\_cloudflare\_email) | Cloudflare account email (used with API key fallback) | `string` | `""` | no |
 | <a name="input_cloudflare_secrets_store_id"></a> [cloudflare\_secrets\_store\_id](#input\_cloudflare\_secrets\_store\_id) | Existing Cloudflare Secrets Store ID | `string` | `"88dc5de305594f08aeb9bc04dad2f8cf"` | no |
 | <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | Cloudflare zone ID for DNS records and Workers routes (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_elk_ip"></a> [elk\_ip](#input\_elk\_ip) | ELK stack IP address (VMID 105) | `string` | `"192.168.50.105"` | no |
