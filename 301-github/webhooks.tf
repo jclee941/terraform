@@ -6,12 +6,6 @@ locals {
       content_type = "json"
       active       = true
     }
-    grafana-alert = {
-      url          = local.n8n_webhook_urls.grafana_alert
-      events       = ["workflow_run", "check_suite"]
-      content_type = "json"
-      active       = true
-    }
     github-issue = {
       url          = local.n8n_webhook_urls.github_issue
       events       = ["issues", "issue_comment"]

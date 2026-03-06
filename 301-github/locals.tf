@@ -6,7 +6,6 @@ locals {
 
   n8n_webhook_urls = {
     glitchtip_error = coalesce(var.n8n_webhook_glitchtip_error_url, "${local.n8n_webhook_base}/webhook/glitchtip-error")
-    grafana_alert   = coalesce(var.n8n_webhook_grafana_alert_url, "${local.n8n_webhook_base}/webhook/grafana-alert")
     github_issue    = coalesce(var.n8n_webhook_github_issue_url, "${local.n8n_webhook_base}/webhook/github-issue")
     github_pr       = coalesce(var.n8n_webhook_github_pr_url, "${local.n8n_webhook_base}/webhook/github-pr")
   }

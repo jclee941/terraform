@@ -1,15 +1,4 @@
 locals {
-  repository_actions_permissions = {
-    for repo_name, repo_cfg in local.repositories :
-    repo_name => {
-      enabled              = !try(repo_cfg.archived, false)
-      allowed_actions      = "selected"
-      github_owned_allowed = true
-      verified_allowed     = true
-      patterns_allowed     = var.actions_allowed_patterns
-    }
-    if !try(repo_cfg.archived, false)
-  }
 
   repository_actions_secrets_flat = {
     for item in flatten([
@@ -38,46 +27,6 @@ locals {
   }
 }
 
-resource "github_actions_organization_permissions" "organization" {
-  for_each = var.manage_as_organization ? { default = true } : {}
-
-  allowed_actions      = var.actions_allowed_actions
-  enabled_repositories = var.actions_enabled_repositories
-
-  dynamic "allowed_actions_config" {
-    for_each = var.actions_allowed_actions == "selected" ? [1] : []
-    content {
-      github_owned_allowed = true
-      verified_allowed     = true
-      patterns_allowed     = var.actions_allowed_patterns
-    }
-  }
-
-  dynamic "enabled_repositories_config" {
-    for_each = var.actions_enabled_repositories == "selected" ? [1] : []
-    content {
-      repository_ids = [
-        for repo_name in var.actions_enabled_repositories_selected :
-        github_repository.repos[repo_name].repo_id
-        if contains(keys(github_repository.repos), repo_name)
-      ]
-    }
-  }
-}
-
-resource "github_actions_repository_permissions" "repositories" {
-  for_each = local.repository_actions_permissions
-
-  repository      = github_repository.repos[each.key].name
-  enabled         = each.value.enabled
-  allowed_actions = each.value.allowed_actions
-
-  allowed_actions_config {
-    github_owned_allowed = each.value.github_owned_allowed
-    verified_allowed     = each.value.verified_allowed
-    patterns_allowed     = each.value.patterns_allowed
-  }
-}
 
 resource "github_actions_organization_secret" "organization" {
   for_each = var.manage_as_organization ? toset(keys(nonsensitive(var.organization_actions_secrets))) : toset([])
@@ -123,19 +72,4 @@ resource "github_actions_variable" "infra_endpoints" {
   repository    = "terraform"
   variable_name = each.key
   value         = each.value
-}
-
-resource "github_actions_runner_group" "groups" {
-  for_each = var.manage_as_organization ? var.runner_groups : {}
-
-  name                       = each.key
-  visibility                 = each.value.visibility
-  allows_public_repositories = each.value.allows_public_repositories
-  restricted_to_workflows    = each.value.restricted_to_workflows
-  selected_workflows         = each.value.selected_workflows
-  selected_repository_ids = each.value.visibility == "selected" ? [
-    for repo_name in each.value.selected_repositories :
-    github_repository.repos[repo_name].repo_id
-    if contains(keys(github_repository.repos), repo_name)
-  ] : null
 }

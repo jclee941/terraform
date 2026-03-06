@@ -22,7 +22,7 @@ variable "github_owner" {
 }
 
 variable "manage_as_organization" {
-  description = "Enable organization-only resources (teams, org actions, runner groups)."
+  description = "Enable organization-only resources (teams, org secrets/variables)."
   type        = bool
   default     = false
 }
@@ -44,53 +44,6 @@ variable "enable_infra_actions_variables" {
   default     = false
 }
 
-
-variable "actions_allowed_actions" {
-  description = "Organization-level allowed actions policy: all, local_only, selected."
-  type        = string
-  default     = "selected"
-
-  validation {
-    condition     = contains(["all", "local_only", "selected"], var.actions_allowed_actions)
-    error_message = "actions_allowed_actions must be one of: all, local_only, selected."
-  }
-}
-
-variable "actions_allowed_patterns" {
-  description = "Allowed actions patterns when actions_allowed_actions is selected."
-  type        = list(string)
-  default = [
-    "actions/checkout@*",
-    "actions/cache@*",
-    "actions/setup-*",
-    "anomalyco/opencode/*",
-    "cloudflare/wrangler-action@*",
-    "release-drafter/release-drafter@*",
-    "amannn/action-semantic-pull-request@*",
-    "dessant/lock-threads@*",
-    "CodelyTV/pr-size-labeler@*",
-    "terraform-docs/gh-actions@*",
-  ]
-}
-
-variable "actions_enabled_repositories" {
-  description = "Organization-level enabled repositories policy: all, none, selected."
-  type        = string
-  default     = "selected"
-
-  validation {
-    condition     = contains(["all", "none", "selected"], var.actions_enabled_repositories)
-    error_message = "actions_enabled_repositories must be one of: all, none, selected."
-  }
-}
-
-variable "actions_enabled_repositories_selected" {
-  description = "Selected repositories for org Actions enablement when policy is selected."
-  type        = set(string)
-  default = [
-    "terraform",
-  ]
-}
 
 variable "organization_actions_secrets" {
   description = "Organization Actions secrets as a map(secret_name => plaintext_value)."
@@ -136,22 +89,6 @@ variable "repository_actions_variables" {
   default     = {}
 }
 
-variable "runner_groups" {
-  description = "Organization runner groups keyed by name."
-  type = map(object({
-    visibility                 = optional(string, "selected")
-    allows_public_repositories = optional(bool, false)
-    restricted_to_workflows    = optional(bool, false)
-    selected_workflows         = optional(list(string), [])
-    selected_repositories      = optional(set(string), [])
-  }))
-  default = {
-    homelab = {
-      visibility                 = "all"
-      allows_public_repositories = true
-    }
-  }
-}
 
 variable "n8n_webhook_glitchtip_error_url" {
   description = "n8n webhook URL for GlitchTip error workflows."
@@ -161,17 +98,6 @@ variable "n8n_webhook_glitchtip_error_url" {
   validation {
     condition     = var.n8n_webhook_glitchtip_error_url == "" || can(regex("^https?://", var.n8n_webhook_glitchtip_error_url))
     error_message = "n8n_webhook_glitchtip_error_url must be empty or a valid HTTP(S) URL."
-  }
-}
-
-variable "n8n_webhook_grafana_alert_url" {
-  description = "n8n webhook URL for Grafana alerts."
-  type        = string
-  default     = ""
-
-  validation {
-    condition     = var.n8n_webhook_grafana_alert_url == "" || can(regex("^https?://", var.n8n_webhook_grafana_alert_url))
-    error_message = "n8n_webhook_grafana_alert_url must be empty or a valid HTTP(S) URL."
   }
 }
 

@@ -111,35 +111,6 @@ run "test_invalid_infra_domain_uppercase" {
   ]
 }
 
-# --- actions_allowed_actions validation (enum) ---
-
-run "test_invalid_actions_allowed_invalid_value" {
-  command = plan
-
-  variables {
-    github_token            = "ghp_test-token-placeholder"
-    actions_allowed_actions = "custom"
-  }
-
-  expect_failures = [
-    var.actions_allowed_actions,
-  ]
-}
-
-# --- actions_enabled_repositories validation (enum) ---
-
-run "test_invalid_actions_enabled_repos_invalid_value" {
-  command = plan
-
-  variables {
-    github_token                 = "ghp_test-token-placeholder"
-    actions_enabled_repositories = "custom"
-  }
-
-  expect_failures = [
-    var.actions_enabled_repositories,
-  ]
-}
 
 # --- organization_secret_visibility validation (enum) ---
 
@@ -171,18 +142,6 @@ run "test_invalid_n8n_webhook_glitchtip_no_protocol" {
   ]
 }
 
-run "test_invalid_n8n_webhook_grafana_ftp" {
-  command = plan
-
-  variables {
-    github_token                  = "ghp_test-token-placeholder"
-    n8n_webhook_grafana_alert_url = "ftp://n8n.jclee.me/webhook/grafana"
-  }
-
-  expect_failures = [
-    var.n8n_webhook_grafana_alert_url,
-  ]
-}
 
 run "test_invalid_n8n_webhook_issue_no_protocol" {
   command = plan
