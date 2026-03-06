@@ -168,12 +168,16 @@ jobs:
 
       - name: Install Trivy
         run: |
+          TRIVY_BIN_DIR="${HOME}/.local/bin"
+
           if ! command -v trivy &>/dev/null; then
-            mkdir -p "${HOME}/.local/bin"
+            mkdir -p "${TRIVY_BIN_DIR}"
             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-              | sh -s -- -b "${HOME}/.local/bin"
-            echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+              | sh -s -- -b "${TRIVY_BIN_DIR}"
           fi
+
+          export PATH="${TRIVY_BIN_DIR}:${PATH}"
+          echo "${TRIVY_BIN_DIR}" >> "$GITHUB_PATH"
           trivy --version
 
       - name: Trivy Config Scan
