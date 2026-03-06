@@ -3,6 +3,7 @@
 #   cp terraform.tfvars.example terraform.tfvars
 
 # Required - Cloudflare
+cloudflare_api_token = ""            # Preferred (token with DNS, Access, Rulesets scopes). Leave empty to fall back to API key.
 cloudflare_api_key    = ""
 cloudflare_email      = ""
 cloudflare_account_id = ""

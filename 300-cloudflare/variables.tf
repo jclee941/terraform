@@ -6,6 +6,26 @@ variable "cloudflare_account_id" {
   default     = ""
 }
 
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token (preferred for scoped access; optional if provided via 1Password)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "cloudflare_api_key" {
+  description = "Cloudflare Global API key (fallback when API token is unavailable)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "cloudflare_email" {
+  description = "Cloudflare account email (used with API key fallback)"
+  type        = string
+  default     = ""
+}
+
 variable "cloudflare_secrets_store_id" {
   description = "Existing Cloudflare Secrets Store ID"
   type        = string
