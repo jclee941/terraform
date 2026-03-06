@@ -7,7 +7,7 @@ resource "grafana_notification_policy" "default" {
   repeat_interval = "4h"
 
   dynamic "policy" {
-    for_each = { for severity in (local._slack_enabled ? ["critical", "warning"] : []) : severity => { severity = severity } }
+    for_each = { for severity in(local._slack_enabled ? ["critical", "warning"] : []) : severity => { severity = severity } }
     content {
       matcher {
         label = "severity"

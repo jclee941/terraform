@@ -17,7 +17,8 @@ locals {
   _grafana_basic_auth     = local._grafana_admin_password != "" ? "${trimspace(var.grafana_admin_username)}:${local._grafana_admin_password}" : ""
 
   # Prefer admin basic auth (allows recovery if service account token is revoked), fall back to service account token
-  _grafana_service_account_token = trimspace(var.grafana_auth) != "" ? trimspace(var.grafana_auth) : local._grafana_auth_from_1password
+  # Use 1Password token by default to avoid stale TF_VAR overrides; still allow explicit var override if 1Password is empty.
+  _grafana_service_account_token = local._grafana_auth_from_1password != "" ? local._grafana_auth_from_1password : trimspace(var.grafana_auth)
   effective_grafana_auth         = local._grafana_basic_auth != "" ? local._grafana_basic_auth : local._grafana_service_account_token
   effective_slack_webhook_url    = local._slack_webhook_url_from_1password != "" ? local._slack_webhook_url_from_1password : var.slack_webhook_url
   _slack_enabled                 = local.effective_slack_webhook_url != ""
