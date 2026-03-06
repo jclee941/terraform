@@ -21,6 +21,7 @@ jobs:
           PROXMOX_ENDPOINT: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
           PROXMOX_API_TOKEN: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
         run: |
+          PROXMOX_ENDPOINT="${PROXMOX_ENDPOINT%/}"
           # Query recent backup tasks from last 24 hours
           TASKS=$(curl -sk \
             -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
