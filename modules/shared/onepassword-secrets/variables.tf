@@ -21,3 +21,9 @@ variable "enable_youtube" {
   type        = bool
   default     = false
 }
+
+variable "enable_gcp" {
+  description = "Whether to look up GCP secrets from 1Password (requires 'gcp' item in vault)"
+  type        = bool
+  default     = false
+}

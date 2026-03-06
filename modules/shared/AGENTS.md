@@ -15,11 +15,11 @@ modules/shared/
 ## WHERE TO LOOK
 | Task | Module | Notes |
 |------|--------|-------|
-| **Retrieve Secrets** | `onepassword-secrets` | Uses `1Password/onepassword` provider with `section_map` access pattern. Outputs `secrets` (sensitive, 37 keys) + `metadata` (non-sensitive, 11 keys). |
+| **Retrieve Secrets** | `onepassword-secrets` | Uses `1Password/onepassword` provider with `section_map` access pattern. Outputs `secrets` (sensitive, 42 keys) + `metadata` (non-sensitive, 13 keys). |
 | **Module Interface** | `onepassword-secrets/variables.tf`, `onepassword-secrets/outputs.tf` | Input/output contract for all consuming workspaces. |
 | **Provider wiring** | `onepassword-secrets/main.tf` | Data lookups and secret mapping logic. |
 | **Parent module policy** | `../AGENTS.md` | Shared module governance and boundaries. |
-| **Primary consumers** | `../../100-pve/AGENTS.md`, `../../300-cloudflare/AGENTS.md` | Workspace-level usage patterns for secret retrieval. |
+| **Primary consumers** | `../../100-pve/AGENTS.md`, `../../104-grafana/AGENTS.md`, `../../105-elk/AGENTS.md`, `../../215-synology/AGENTS.md`, `../../300-cloudflare/AGENTS.md`, `../../301-github/AGENTS.md`, `../../320-slack/AGENTS.md` | Workspace-level usage patterns for secret retrieval. |
 
 ## CONVENTIONS
 - **Provider-Agnostic**: Logic here must NOT depend on specific infrastructure providers (Proxmox/AWS/Cloudflare) unless strictly necessary.

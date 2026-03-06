@@ -6,10 +6,10 @@
 # Each 1Password item must have a section named "secrets" with matching field labels.
 # All lookups use try() to default to "" — allows terraform test with mock_provider.
 #
-# Secrets (sensitive=true): API keys, passwords, tokens — 39 keys.
-# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 11 keys.
+# Secrets (sensitive=true): API keys, passwords, tokens — 43 keys.
+# Metadata (sensitive=false): Usernames, URLs, emails, account/zone IDs — 13 keys.
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (39 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (43 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -83,11 +83,14 @@ output "secrets" {
     youtube_google_client_id     = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_client_id"].value, "") : ""
     youtube_google_client_secret = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_client_secret"].value, "") : ""
     youtube_google_refresh_token = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_refresh_token"].value, "") : ""
+
+    # GCP (Google Cloud Platform)
+    gcp_credentials = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["secrets"].field_map["credentials"].value, "") : ""
   }
 }
 
 output "metadata" {
-  description = "Non-secret configuration metadata: usernames, URLs, IDs (11 keys)"
+  description = "Non-secret configuration metadata: usernames, URLs, IDs (15 keys)"
   sensitive   = false
   value = {
     # Supabase
@@ -112,5 +115,9 @@ output "metadata" {
     # YouTube
     youtube_google_project_id = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["google_project_id"].value, "") : ""
     youtube_channel_id        = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["secrets"].field_map["channel_id"].value, "") : ""
+
+    # GCP (Google Cloud Platform)
+    gcp_project_id = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["secrets"].field_map["project_id"].value, "") : ""
+    gcp_region     = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["secrets"].field_map["region"].value, "") : ""
   }
 }

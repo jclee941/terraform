@@ -1,0 +1,22 @@
+name: GCP Plan
+
+on:
+  pull_request:
+    paths:
+      - "400-gcp/**"
+
+concurrency:
+  group: gcp-plan-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan:
+    uses: ./.github/workflows/_terraform-plan.yml
+    with:
+      service-name: GCP
+      working-directory: 400-gcp
+    secrets: inherit # pragma: allowlist secret

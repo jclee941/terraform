@@ -1,0 +1,34 @@
+name: GCP Apply
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "400-gcp/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: gcp-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    uses: ./.github/workflows/_terraform-apply.yml
+    with:
+      service-name: GCP
+      working-directory: 400-gcp
+      failure-title-prefix: "[GCP] Apply failed on master"
+      failure-extra-body: |
+        **Workspace:** `400-gcp`
+
+        ### Checklist
+        - [ ] Verify GCP service account key is valid in 1Password
+        - [ ] Run `terraform plan` locally to diagnose
+        - [ ] Fix and re-apply, or revert the commit
+      failure-labels: "terraform-drift,automated,infrastructure"
+    secrets: inherit # pragma: allowlist secret
