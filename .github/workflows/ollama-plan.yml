@@ -1,24 +1,12 @@
 name: Ollama Plan
 
 on:
-  pull_request:
-    paths:
-      - "109-ollama/**"
-
-concurrency:
-  group: ollama-plan-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
-  pull-requests: write
+  workflow_dispatch:
 
 jobs:
-  plan:
-    if: ${{ hashFiles('109-ollama/terraform/**') != '' }}
-    uses: ./.github/workflows/_terraform-plan.yml
-    with:
-      service-name: Ollama
-      working-directory: 109-ollama/terraform
-      needs-infra-state: true
-    secrets: inherit # pragma: allowlist secret
+  skip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip deprecated workspace
+        run: |
+          echo "109-ollama workspace was removed (migrated to Synology 215); plan workflow disabled."

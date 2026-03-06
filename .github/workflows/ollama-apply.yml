@@ -2,35 +2,11 @@ name: Ollama Apply
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - "109-ollama/**"
-
-permissions:
-  contents: read
-  issues: write
-
-concurrency:
-  group: ollama-apply
-  cancel-in-progress: false
 
 jobs:
-  apply:
-    if: ${{ hashFiles('109-ollama/terraform/**') != '' }}
-    uses: ./.github/workflows/_terraform-apply.yml
-    with:
-      service-name: Ollama
-      working-directory: 109-ollama/terraform
-      needs-infra-state: true
-      failure-title-prefix: "[Ollama] Apply failed on master"
-      failure-extra-body: |
-        **Workspace:** `109-ollama/terraform`
-
-        ### Checklist
-        - [ ] Verify Ollama VM is accessible (192.168.50.109)
-        - [ ] Run `terraform plan` locally to diagnose
-        - [ ] Fix and re-apply, or revert the commit
-      failure-labels: "terraform-drift,automated,infrastructure"
-    secrets: inherit # pragma: allowlist secret
+  skip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip deprecated workspace
+        run: |
+          echo "109-ollama workspace was removed (migrated to Synology 215); apply workflow disabled."
