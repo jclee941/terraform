@@ -41,6 +41,7 @@ Terraform workspace managing GitHub resources for `qws941`. Provisions 17 reposi
 
 ## CONVENTIONS
 - **Org Toggle**: `manage_as_organization = false` disables teams, org secrets/variables for personal accounts.
+- **CI Guardrail**: Apply workflow auto-prunes org-only state (teams/org secrets/variables) when the GitHub owner is a user to avoid `github_team` refresh failures.
 - **Webhook URLs**: Derived from `local.n8n_webhook_urls`. Blank URL = webhook skipped.
 - **Flat Locals**: Complex nested vars flattened to `*_flat` locals for `for_each`.
 - **Risk Tier**: This workspace is `risk:critical` — manual merge required.
