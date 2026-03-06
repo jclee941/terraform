@@ -22,6 +22,7 @@ ALIAS_cloudflare := 300-cloudflare
 ALIAS_github     := 301-github
 
 ALIAS_slack      := 320-slack
+ALIAS_gcp        := 400-gcp
 
 # Resolve alias: if ALIAS_$(SVC) is defined, use it; otherwise use SVC as-is
 TF_DIR := $(or $(ALIAS_$(SVC)),$(SVC))
@@ -32,7 +33,7 @@ define check_svc_dir
 		echo "Error: workspace directory '$(TF_DIR)' does not exist."; \
 		echo "Available workspaces:"; \
 		echo "  Direct: $$(ls -d [0-9]*/ | tr -d '/' | tr '\n' ' ')"; \
-		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub synology youtube cloudflare github slack"; \
+		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub synology youtube cloudflare github slack gcp"; \
 		exit 1; \
 	fi
 endef

@@ -6,11 +6,8 @@ Exported n8n workflow definitions used by infra automation. These JSON files are
 ## STRUCTURE
 ```text
 scripts/n8n-workflows/
-├── alert-to-github-issue.json
-├── daily-digest.json
 ├── error-to-github-issue.json
 ├── glitchtip-sync.json
-├── grafana-to-glitchtip.json
 ├── pr-notification.json
 ├── request-tracker.json
 ├── BUILD.bazel
@@ -21,11 +18,9 @@ scripts/n8n-workflows/
 ## WHERE TO LOOK
 | Task                      | Location                                                   | Notes                                     |
 | ------------------------- | ---------------------------------------------------------- | ----------------------------------------- |
-| Incident issue automation | `alert-to-github-issue.json`, `error-to-github-issue.json` | GlitchTip/alert to GitHub issue flows.    |
-| Daily reporting flow      | `daily-digest.json`                                        | Webhook-triggered digest (POST `/webhook/daily-digest`). |
+| Incident issue automation | `error-to-github-issue.json`                               | GlitchTip error to GitHub issue flow.     |
 | Synchronization flows     | `glitchtip-sync.json`, `request-tracker.json`              | Webhook-triggered sync (POST `/webhook/glitchtip-sync`). |
 | PR notifications          | `pr-notification.json`                                     | Pull request event notification pipeline. |
-| Grafana alert bridge      | `grafana-to-glitchtip.json`                                | Receives Grafana alert webhook and forwards to GlitchTip path. |
 | Parent script policy      | `../AGENTS.md`                                             | Shared automation script conventions. |
 | Alerting source context   | `../../104-grafana/AGENTS.md`                              | Upstream alert routing and contact-point behavior. |
 | Runbook response context  | `../../docs/runbooks/AGENTS.md`                            | Incident procedures that consume workflow outputs. |

@@ -69,8 +69,6 @@ override_module {
       cloudflare_email            = "test@example.com"
       cloudflare_account_id       = "abcdef0123456789abcdef0123456789"
       cloudflare_zone_id          = "1234567890abcdef1234567890abcdef"
-      n8n_webhook_url             = "https://n8n.jclee.me/webhook"
-      n8n_glitchtip_webhook_url   = "https://n8n.jclee.me/webhook/glitchtip"
       pbs_server                  = "192.168.50.200"
       pbs_datastore               = "backup"
       pbs_username                = "backup@pbs"

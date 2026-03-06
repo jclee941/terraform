@@ -98,10 +98,8 @@ func main() {
 		{"TF_VAR_CLOUDFLARE_ZONE_ID", "P1", "tfvars:300-cloudflare:cloudflare_zone_id"},
 		{"TF_VAR_SYNOLOGY_DOMAIN", "P1", "tfvars:300-cloudflare:synology_domain"},
 		{"TF_VAR_ACCESS_ALLOWED_EMAILS", "P1", "tfvars:300-cloudflare:access_allowed_emails"},
-		{"TF_VAR_GITHUB_TOKEN", "P1", "op:op://homelab/github/secrets/personal_access_token"},
 
 		{"CLOUDFLARE_API_TOKEN", "P2", "env:CLOUDFLARE_API_TOKEN"},
-		{"CLOUDFLARE_ACCOUNT_ID", "P2", "tfvars:300-cloudflare:cloudflare_account_id"},
 		{"GH_PAT", "P2", "op:op://homelab/github/secrets/personal_access_token"},
 		{"CF_ACCESS_CLIENT_ID", "P2", "env:CF_ACCESS_CLIENT_ID"},
 		{"CF_ACCESS_CLIENT_SECRET", "P2", "env:CF_ACCESS_CLIENT_SECRET"},

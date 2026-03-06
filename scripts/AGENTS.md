@@ -19,8 +19,7 @@ scripts/
 ├── setup-local-env.sh            # Local dev environment setup
 ├── backup-tfstate.go              # Terraform state backup (Go)
 └── n8n-workflows/                # JSON workflow definitions (source of truth)
-    ├── grafana-to-glitchtip.json # Grafana alert → GlitchTip bridge (n8n webhook)
-    └── ...                       # Other exported workflows
+    └── ...                       # Exported workflows
 ```
 
 ## CONVENTIONS
@@ -41,7 +40,6 @@ scripts/
 | Deploy Filebeat    | `setup-filebeat.sh`                       | Idempotent, called by TF provisioners            |
 | Sync Vault         | `sync-vault-secrets.go`                   | `go run scripts/sync-vault-secrets.go --audit`   |
 | Manage n8n flows   | `n8n-workflows/AGENTS.md`                 | Workflow JSON SSoT and sync rules                |
-| GlitchTip bridge   | `n8n-workflows/grafana-to-glitchtip.json` | Grafana alert forwarding to GlitchTip            |
 | Scaffold Workspace | `scaffold-workspace.go`                   | `go run scripts/scaffold-workspace.go 113 redis` |
 
 ## ANTI-PATTERNS
