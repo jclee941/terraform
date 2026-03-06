@@ -123,11 +123,19 @@ mock_provider "onepassword" {
       section_map = {}
     }
   }
+
+  override_data {
+    target = data.onepassword_item.this["gcp"]
+    values = {
+      title       = "gcp"
+      section_map = {}
+    }
+  }
 }
 
 # --- Output structure tests ---
 
-# All 42 secret keys default to "" when section_map is empty (try() fallback)
+# All 43 secret keys default to "" when section_map is empty (try() fallback)
 run "test_secrets_default_to_empty_string" {
   command = plan
 
@@ -330,9 +338,15 @@ run "test_secrets_default_to_empty_string" {
     condition     = output.secrets.youtube_google_refresh_token == ""
     error_message = "youtube_google_refresh_token should default to empty string"
   }
+
+  # --- GCP (1 key) ---
+  assert {
+    condition     = output.secrets.gcp_credentials == ""
+    error_message = "gcp_credentials should default to empty string"
+  }
 }
 
-# All 13 metadata keys default to "" when section_map is empty (try() fallback)
+# All 15 metadata keys default to "" when section_map is empty (try() fallback)
 run "test_metadata_default_to_empty_string" {
   command = plan
 
@@ -387,9 +401,19 @@ run "test_metadata_default_to_empty_string" {
     condition     = output.metadata.youtube_channel_id == ""
     error_message = "youtube_channel_id should default to empty string"
   }
+
+  # --- GCP (2 keys) ---
+  assert {
+    condition     = output.metadata.gcp_project_id == ""
+    error_message = "gcp_project_id should default to empty string"
+  }
+  assert {
+    condition     = output.metadata.gcp_region == ""
+    error_message = "gcp_region should default to empty string"
+  }
 }
 
-# Verify secrets output contains exactly 42 keys
+# Verify secrets output contains exactly 43 keys
 run "test_secrets_key_count" {
   command = plan
 
@@ -402,12 +426,12 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 42
-    error_message = "Secrets output should contain exactly 42 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 43
+    error_message = "Secrets output should contain exactly 43 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
-# Verify metadata output contains exactly 13 keys
+# Verify metadata output contains exactly 15 keys
 run "test_metadata_key_count" {
   command = plan
 
@@ -420,8 +444,8 @@ run "test_metadata_key_count" {
   }
 
   assert {
-    condition     = length(output.metadata) == 13
-    error_message = "Metadata output should contain exactly 13 keys, got ${length(output.metadata)}"
+    condition     = length(output.metadata) == 15
+    error_message = "Metadata output should contain exactly 15 keys, got ${length(output.metadata)}"
   }
 }
 
@@ -634,6 +658,12 @@ run "test_all_secret_key_names_exist" {
     condition     = contains(nonsensitive(keys(output.secrets)), "youtube_google_refresh_token")
     error_message = "Missing secret key: youtube_google_refresh_token"
   }
+
+  # GCP
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "gcp_credentials")
+    error_message = "Missing secret key: gcp_credentials"
+  }
 }
 
 # Verify every expected metadata key name exists in the output map
@@ -709,6 +739,16 @@ run "test_all_metadata_key_names_exist" {
     condition     = contains(keys(output.metadata), "youtube_channel_id")
     error_message = "Missing metadata key: youtube_channel_id"
   }
+
+  # GCP
+  assert {
+    condition     = contains(keys(output.metadata), "gcp_project_id")
+    error_message = "Missing metadata key: gcp_project_id"
+  }
+  assert {
+    condition     = contains(keys(output.metadata), "gcp_region")
+    error_message = "Missing metadata key: gcp_region"
+  }
 }
 
 # Verify no overlap between secrets and metadata keys
@@ -740,7 +780,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 55
-    error_message = "Total keys (secrets + metadata) should equal 55"
+    condition     = length(output.secrets) + length(output.metadata) == 58
+    error_message = "Total keys (secrets + metadata) should equal 58"
   }
 }

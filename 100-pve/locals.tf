@@ -130,7 +130,6 @@ locals {
   cloud_init_files = {
     mcphub  = "local:snippets/mcphub-user-data.yaml"
     youtube = "local:snippets/youtube-user-data.yaml"
-    ollama  = "local:snippets/ollama-user-data.yaml"
   }
   vm_definitions = {
     mcphub = {
@@ -148,19 +147,6 @@ locals {
       disk_size   = 50
       bios        = "ovmf"
       machine     = "q35"
-    }
-    ollama = {
-      vmid        = 109
-      description = "Ollama - Local LLM Inference with GPU"
-      memory      = 12288
-      cores       = 4
-      disk_size   = 50
-      bios        = "ovmf"
-      machine     = "q35"
-
-
-
-
     }
   }
 }

@@ -48,7 +48,6 @@ scrape_configs:
           - 'http://${hosts.grafana.ip}:${hosts.grafana.ports.grafana}/api/health'
           - 'http://${hosts.supabase.ip}:${hosts.supabase.ports.api}/rest/v1/'
           - 'http://${hosts.archon.ip}:${hosts.archon.ports.ui}/'
-          - 'http://${hosts.ollama.ip}:${hosts.ollama.ports.api}/api/tags'
           - 'http://${hosts.coredns.ip}:${hosts.coredns.ports.health}/'
           - 'http://${hosts.mcphub.ip}:${hosts.mcphub.ports.op_connect}/heartbeat'
     relabel_configs:

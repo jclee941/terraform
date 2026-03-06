@@ -24,7 +24,6 @@ locals {
     glitchtip   = "container"
     supabase    = "container"
     archon      = "container"
-    ollama      = "vm"
     mcphub      = "vm"
     "jclee-dev" = "vm"
     youtube     = "vm"
@@ -237,5 +236,4 @@ resource "proxmox_virtual_environment_firewall_options" "vm" {
 }
 
 # Import commands (run manually, not as HCL import blocks which break terraform test):
-# terraform import 'proxmox_virtual_environment_firewall_rules.vm["ollama"]' vm/pve3/109
 # terraform import 'proxmox_virtual_environment_firewall_rules.vm["youtube"]' vm/pve3/220
