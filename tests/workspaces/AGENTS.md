@@ -1,7 +1,7 @@
 # AGENTS: tests/workspaces - Workspace Validation Tests
 
 ## OVERVIEW
-Workspace-level variable validation tests for standalone stacks (`100-pve`, `102-traefik`, `108-archon`, `109-ollama`, `300-cloudflare`, `320-slack`) using mock providers, remote state overrides, and negative assertions.
+Workspace-level variable validation tests for standalone stacks (`100-pve`, `102-traefik`, `108-archon`, `300-cloudflare`, `320-slack`) using mock providers, remote state overrides, and negative assertions.
 
 ## STRUCTURE
 ```text

@@ -33,7 +33,7 @@ Archon AI Knowledge Management system with MCP server integration. Provides AI-p
 - App-config workspace; LXC lifecycle owned by 100-pve/main.tf
 - Secrets via 1Password (`homelab/archon`) rendered into `.env`
 - LLM/embedding config via Archon UI → Supabase `archon_settings` table (not env vars)
-- Embedding: `nomic-embed-text:latest` (768-dim) on Ollama at 192.168.50.109:11434
+- Embedding: `nomic-embed-text:latest` (768-dim) on Ollama at 192.168.50.215:11434
 - Supported providers: openai, google, openrouter, ollama only
 - No native scheduler — `update_frequency` is metadata only; use `sync-sources.sh`
 - `GITHUB_PAT_TOKEN` optional — warning on restart if unset, non-critical
@@ -57,7 +57,7 @@ Archon AI Knowledge Management system with MCP server integration. Provides AI-p
 
 ## DEPENDENCIES
 
-- **Upstream**: 107-supabase (vector storage), 109-ollama (LLM + embedding)
+- **Upstream**: 107-supabase (vector storage), 215-synology/ollama (LLM + embedding)
 - **Downstream**: 112-mcphub (MCP integration via port 8051)
 
 ## TROUBLESHOOTING
@@ -65,6 +65,6 @@ Archon AI Knowledge Management system with MCP server integration. Provides AI-p
 | Symptom               | Fix                                                          |
 | --------------------- | ------------------------------------------------------------ |
 | Crawl pipeline stalls | `docker compose restart archon-server`                       |
-| Embedding failures    | Verify Ollama: `curl 192.168.50.109:11434/api/embeddings`    |
+| Embedding failures    | Verify Ollama: `curl 192.168.50.215:11434/api/embeddings`    |
 | Disk usage >80%       | `docker builder prune -f`                                    |
 | Crawl timeout         | Increase script timeout or reduce `max_depth`                |

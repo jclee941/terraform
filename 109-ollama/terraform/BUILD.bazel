@@ -1,5 +1,0 @@
-filegroup(
-    name = "tf_files",
-    srcs = glob(["*.tf"]),
-    visibility = ["//visibility:public"],
-)

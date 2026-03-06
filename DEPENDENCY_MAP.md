@@ -22,7 +22,6 @@
 | **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.13            |
 | **108-archon**     | `terraform/main.tf` | AI knowledge mgmt        | None                    | None (LXC-managed)             |
 | **300-cloudflare** | `main.tf`           | External DNS/tunnel      | None                    | cloudflare ~>5.0, github ~>6.6 |
-| **109-ollama**     | `terraform/main.tf` | LLM inference            | None (reserved)         | None                           |
 | **301-github**     | `main.tf`           | GitHub repo/ruleset mgmt | None                    | github ~>6.6, onepassword ~>3.2 |
 | **320-slack**      | `main.tf`           | Slack integration        | None                    | slack ~>1.0, onepassword ~>3.2  |
 
@@ -211,7 +210,6 @@ template_vars = {
 | **104-grafana**    | grafana/grafana       | ~>4.0   | API token (env)       | Dashboard/alert mgmt |
 | **105-elk**        | elastic/elasticstack  | ~>0.13  | API key (env)         | Index/ILM/space mgmt |
 | **108-archon**     | None                  | —       | —                     | LXC-managed          |
-| **109-ollama**     | None                  | —       | —                     | Reserved             |
 | **300-cloudflare** | cloudflare/cloudflare | ~>5.0   | API token (env)       | DNS/tunnel/access    |
 |                    | integrations/github   | ~>6.6   | Token (env)           | Repo/secret mgmt     |
 | **301-github**     | integrations/github   | ~>6.6   | Token (env)           | Repo/ruleset mgmt    |

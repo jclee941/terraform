@@ -48,7 +48,7 @@ terraform/
 ├── 103-coredns/                # Template-only: Split DNS
 ├── 106-glitchtip/              # Template-only: Error tracking
 ├── 107-supabase/               # Template-only: Backend-as-a-Service
-├── 109-ollama/                 # Tier 1: LLM inference (reserved)
+├── 109-ollama/                 # DEPRECATED: Migrated to 215-synology
 ├── 112-mcphub/                 # Template-only: MCP Hub + 1Password Connect
 ├── 200-oc/                     # Template-only
 ├── 215-synology/               # Template-only: NAS inventory
@@ -82,7 +82,7 @@ terraform/
 | Tier | Workspaces | Role | Apply Order |
 | ---- | ---------- | ---- | ----------- |
 | 0 (core) | `100-pve` | Central orchestrator. Provisions 8 LXC + 4 VM. | First |
-| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon`, `109-ollama` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
+| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
 | Independent | `300-cloudflare`, `301-github`, `320-slack` | No Proxmox dependency. | Third (parallel) |
 | Template-only | 10 workspaces | Config templates + docker-compose only, no `.tf` files. | N/A |
 
@@ -99,7 +99,7 @@ terraform/
 | 106 | glitchtip | .106 | LXC | Error tracking |
 | 107 | supabase | .107 | LXC | Backend-as-a-Service |
 | 108 | archon | .108 | LXC | AI knowledge management |
-| 109 | ollama | .109 | VM | LLM inference (Ollama) |
+| 109 | ollama | .109 | VM | ~~LLM inference~~ (migrated to Synology 215) |
 | 112 | mcphub | .112 | VM | MCP Hub + n8n + 1Password Connect |
 | 200 | oc | .200 | VM | OpenCode dev environment |
 | 215 | synology | .215 | Physical | NAS storage |

@@ -1,7 +1,7 @@
 {
   "uid": "ollama-service",
-  "title": "Ollama (109)",
-  "description": "Dedicated monitoring dashboard for Ollama (109) (192.168.50.109)",
+  "title": "Ollama (Synology)",
+  "description": "Dedicated monitoring dashboard for Ollama (Synology) (192.168.50.215)",
   "tags": [
     "ollama",
     "service",
@@ -95,7 +95,7 @@
       },
       "targets": [
         {
-          "expr": "probe_success{instance=~\".*192.168.50.109.*11434.*\"}",
+          "expr": "probe_success{instance=~\".*192.168.50.215.*11434.*\"}",
           "legendFormat": "Ollama API",
           "refId": "A"
         }
@@ -152,7 +152,7 @@
       },
       "targets": [
         {
-          "expr": "probe_duration_seconds{instance=~\".*192.168.50.109.*11434.*\"}",
+          "expr": "probe_duration_seconds{instance=~\".*192.168.50.215.*11434.*\"}",
           "legendFormat": "Duration",
           "refId": "A"
         }
@@ -219,7 +219,7 @@
       },
       "targets": [
         {
-          "expr": "up{instance=~\".*192.168.50.109:9100.*\"}",
+          "expr": "up{instance=~\".*192.168.50.215:9100.*\"}",
           "legendFormat": "Node Exporter",
           "refId": "A"
         }
@@ -281,7 +281,7 @@
       },
       "targets": [
         {
-          "expr": "100 - (avg(rate(node_cpu_seconds_total{instance=~\".*109:9100.*\",mode=\"idle\"}[5m])) * 100)",
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{instance=~\".*215:9100.*\",mode=\"idle\"}[5m])) * 100)",
           "legendFormat": "CPU",
           "refId": "A"
         }
@@ -331,7 +331,7 @@
       },
       "targets": [
         {
-          "expr": "(1 - node_memory_MemAvailable_bytes{instance=~\".*109:9100.*\"} / node_memory_MemTotal_bytes{instance=~\".*109:9100.*\"}) * 100",
+          "expr": "(1 - node_memory_MemAvailable_bytes{instance=~\".*215:9100.*\"} / node_memory_MemTotal_bytes{instance=~\".*215:9100.*\"}) * 100",
           "legendFormat": "Memory",
           "refId": "A"
         }
@@ -381,7 +381,7 @@
       },
       "targets": [
         {
-          "expr": "(1 - node_filesystem_avail_bytes{instance=~\".*109:9100.*\",mountpoint=\"/\"} / node_filesystem_size_bytes{instance=~\".*109:9100.*\",mountpoint=\"/\"}) * 100",
+          "expr": "(1 - node_filesystem_avail_bytes{instance=~\".*215:9100.*\",mountpoint=\"/\"} / node_filesystem_size_bytes{instance=~\".*215:9100.*\",mountpoint=\"/\"}) * 100",
           "legendFormat": "Disk",
           "refId": "A"
         }
@@ -430,12 +430,12 @@
       },
       "targets": [
         {
-          "expr": "rate(node_network_receive_bytes_total{instance=~\".*109:9100.*\",device!=\"lo\"}[5m])",
+          "expr": "rate(node_network_receive_bytes_total{instance=~\".*215:9100.*\",device!=\"lo\"}[5m])",
           "legendFormat": "RX {{{{device}}}}",
           "refId": "A"
         },
         {
-          "expr": "-rate(node_network_transmit_bytes_total{instance=~\".*109:9100.*\",device!=\"lo\"}[5m])",
+          "expr": "-rate(node_network_transmit_bytes_total{instance=~\".*215:9100.*\",device!=\"lo\"}[5m])",
           "legendFormat": "TX {{{{device}}}}",
           "refId": "B"
         }
@@ -497,7 +497,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{instance=~\".*192.168.50.109.*\",name=~\".*ollama.*\"}[5m])) * 100",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{instance=~\".*192.168.50.215.*\",name=~\".*ollama.*\"}[5m])) * 100",
           "legendFormat": "Container CPU",
           "refId": "A"
         }
@@ -547,7 +547,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(container_memory_working_set_bytes{instance=~\".*192.168.50.109.*\",name=~\".*ollama.*\"}) / max(machine_memory_bytes{instance=~\".*192.168.50.109.*\"})) * 100",
+          "expr": "(sum(container_memory_working_set_bytes{instance=~\".*192.168.50.215.*\",name=~\".*ollama.*\"}) / max(machine_memory_bytes{instance=~\".*192.168.50.215.*\"})) * 100",
           "legendFormat": "Container Memory",
           "refId": "A"
         }
@@ -603,7 +603,7 @@
       },
       "targets": [
         {
-          "expr": "sum(changes(container_start_time_seconds{instance=~\".*192.168.50.109.*\",name=~\".*ollama.*\"}[24h]))",
+          "expr": "sum(changes(container_start_time_seconds{instance=~\".*192.168.50.215.*\",name=~\".*ollama.*\"}[24h]))",
           "legendFormat": "Restarts (24h)",
           "refId": "A"
         }

@@ -15,7 +15,6 @@ app workspaces.
   ├── 104-grafana/terraform    (reads host_inventory)
   ├── 105-elk/terraform        (reads host_inventory)
   ├── 108-archon/terraform     (reads host_inventory)
-  └── 109-ollama/terraform     (reads host_inventory)
 
 300-cloudflare                 (independent — no remote_state dependency)
 301-github                     (independent — no remote_state dependency)

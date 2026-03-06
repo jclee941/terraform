@@ -1,5 +1,0 @@
-filegroup(
-    name = "ollama",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)
