@@ -18,6 +18,11 @@ variable "cloudflare_api_key" {
   type        = string
   sensitive   = true
   default     = ""
+
+  validation {
+    condition     = var.cloudflare_api_key == "" || can(regex("^[0-9a-f]{37}$", var.cloudflare_api_key))
+    error_message = "cloudflare_api_key must be empty or a 37-character lowercase hex string."
+  }
 }
 
 variable "cloudflare_email" {
