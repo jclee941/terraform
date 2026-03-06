@@ -12,10 +12,10 @@ resource "grafana_notification_policy" "default" {
       matcher {
         label = "severity"
         match = "="
-        value = each.value.severity
+        value = policy.value.severity
       }
       contact_point   = grafana_contact_point.slack_alerts[0].name
-      repeat_interval = each.value.severity == "critical" ? "1h" : "4h"
+      repeat_interval = policy.value.severity == "critical" ? "1h" : "4h"
     }
   }
 
