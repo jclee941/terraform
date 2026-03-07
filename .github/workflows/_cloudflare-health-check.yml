@@ -7,7 +7,13 @@ on:
         required: false
       CLOUDFLARE_API_TOKEN:
         required: false
+      CLOUDFLARE_API_KEY:
+        required: false
+      CLOUDFLARE_EMAIL:
+        required: false
       TF_VAR_CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      OP_SERVICE_ACCOUNT_TOKEN:
         required: false
 
 permissions:
@@ -23,14 +29,86 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Check Tunnel Status
+      - name: Load Cloudflare credentials
+        id: cf-creds
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
+          set -euo pipefail
+
+          ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-}"
+          API_TOKEN="${CLOUDFLARE_API_TOKEN:-}"
+          API_KEY="${CLOUDFLARE_API_KEY:-}"
+          API_EMAIL="${CLOUDFLARE_EMAIL:-}"
+
+          # Optional fallback to 1Password (only if key/email are missing).
+          if { [ -z "$API_KEY" ] || [ -z "$API_EMAIL" ] || [ -z "$ACCOUNT_ID" ]; } && [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
+            if ! command -v op >/dev/null 2>&1; then
+              OP_VERSION="2.32.1"
+              curl -sSfo /tmp/op.zip "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_amd64_v${OP_VERSION}.zip"
+              unzip -o /tmp/op.zip -d /tmp/op-bin
+              sudo install -m 755 /tmp/op-bin/op /usr/local/bin/op
+              rm -rf /tmp/op.zip /tmp/op-bin
+            fi
+
+            API_KEY="${API_KEY:-$(op read op://homelab/cloudflare/secrets/api_key 2>/dev/null || true)}"
+            API_EMAIL="${API_EMAIL:-$(op read op://homelab/cloudflare/secrets/email 2>/dev/null || true)}"
+            ACCOUNT_ID="${ACCOUNT_ID:-$(op read op://homelab/cloudflare/secrets/account_id 2>/dev/null || true)}"
+          fi
+
+          if [ -z "$ACCOUNT_ID" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID is not configured"
+            exit 1
+          fi
+
+          # Mask secrets before writing outputs
+          [ -n "$API_TOKEN" ] && echo "::add-mask::$API_TOKEN"
+          [ -n "$API_KEY" ] && echo "::add-mask::$API_KEY"
+          [ -n "$API_EMAIL" ] && echo "::add-mask::$API_EMAIL"
+
+          if [ -n "$API_TOKEN" ]; then
+            echo "mode=token" >> "$GITHUB_OUTPUT"
+            echo "token=$API_TOKEN" >> "$GITHUB_OUTPUT"
+          elif [ -n "$API_KEY" ] && [ -n "$API_EMAIL" ]; then
+            echo "mode=apikey" >> "$GITHUB_OUTPUT"
+            echo "api_key=$API_KEY" >> "$GITHUB_OUTPUT"
+            echo "email=$API_EMAIL" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::No Cloudflare API credentials available (token or api key/email)"
+            exit 1
+          fi
+
+          echo "account_id=$ACCOUNT_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Check Tunnel Status
+        env:
+          CLOUDFLARE_AUTH_MODE: ${{ steps.cf-creds.outputs.mode }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.cf-creds.outputs.token }}
+          CLOUDFLARE_API_KEY: ${{ steps.cf-creds.outputs.api_key }}
+          CLOUDFLARE_EMAIL: ${{ steps.cf-creds.outputs.email }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.cf-creds.outputs.account_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$CLOUDFLARE_AUTH_MODE" ]; then
+            echo "::error::Cloudflare auth mode not resolved"
+            exit 1
+          fi
+
+          declare -a AUTH_ARGS
+          if [ "$CLOUDFLARE_AUTH_MODE" = "token" ]; then
+            AUTH_ARGS=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
+          else
+            AUTH_ARGS=(-H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
+          fi
+
           # Query all tunnels from Cloudflare API v4
           TUNNELS=$(curl -sk \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "${AUTH_ARGS[@]}" \
             -H "Content-Type: application/json" \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/cfd_tunnel")
 
@@ -76,12 +154,24 @@ jobs:
 
       - name: Check Worker Errors
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.TF_VAR_CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_AUTH_MODE: ${{ steps.cf-creds.outputs.mode }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.cf-creds.outputs.token }}
+          CLOUDFLARE_API_KEY: ${{ steps.cf-creds.outputs.api_key }}
+          CLOUDFLARE_EMAIL: ${{ steps.cf-creds.outputs.email }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.cf-creds.outputs.account_id }}
         run: |
+          set -euo pipefail
+
+          declare -a AUTH_ARGS
+          if [ "$CLOUDFLARE_AUTH_MODE" = "token" ]; then
+            AUTH_ARGS=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
+          else
+            AUTH_ARGS=(-H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
+          fi
+
           # Query worker invocations from GraphQL Analytics API for last 24 hours
           RESPONSE=$(curl -sk \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "${AUTH_ARGS[@]}" \
             -H "Content-Type: application/json" \
             -X POST \
             "https://api.cloudflare.com/client/v4/graphql" \
