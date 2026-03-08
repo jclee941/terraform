@@ -25,25 +25,50 @@ jobs:
           PROXMOX_ENDPOINT: ${{ secrets.TF_VAR_PROXMOX_ENDPOINT }}
           PROXMOX_API_TOKEN: ${{ secrets.TF_VAR_PROXMOX_API_TOKEN }}
         run: |
+          set -eo pipefail
+          if [ -z "$PROXMOX_ENDPOINT" ] || [ -z "$PROXMOX_API_TOKEN" ]; then
+            echo "::error::Missing Proxmox endpoint or API token"
+            exit 1
+          fi
           PROXMOX_ENDPOINT="${PROXMOX_ENDPOINT%/}"
-          # List backup storage contents
-          BACKUPS=$(curl -sk \
+          # Discover storages that can hold backups
+          STORAGES=$(curl -sk \
             -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
-            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/storage/local/content" \
-            --data-urlencode "content=backup" \
-            -G)
+            "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/storage" | \
+            jq -r '.data[] | select((.content // "") | contains("backup")) | select((.status // "") != "inactive") | .storage')
 
-          # Find most recent vzdump backup
-          LATEST=$(echo "$BACKUPS" | jq -r '[.data[] | select(.volid | startswith("local:backup/"))] | sort_by(.ctime) | last')
+          if [ -z "$STORAGES" ]; then
+            echo "::error::No backup-capable storages found on node ${NODE}"
+            exit 1
+          fi
 
-          if [ "$LATEST" = "null" ] || [ -z "$LATEST" ]; then
-            echo "::error::No backups found in storage"
+          # Collect backups across all backup-capable storages
+          BACKUPS_JSON="[]"
+          for STORAGE in $STORAGES; do
+            CONTENT=$(curl -sk \
+              -H "Authorization: PVEAPIToken=${PROXMOX_API_TOKEN}" \
+              "${PROXMOX_ENDPOINT}/api2/json/nodes/${NODE}/storage/${STORAGE}/content" \
+              --data-urlencode "content=backup" \
+              -G)
+
+            BACKUPS_JSON=$(jq -n \
+              --argjson acc "$BACKUPS_JSON" \
+              --argjson data "$(echo "$CONTENT" | jq '.data // []')" \
+              --arg storage "$STORAGE" \
+              '$acc + ($data | map(.storage = $storage))')
+          done
+
+          LATEST=$(echo "$BACKUPS_JSON" | jq -r 'sort_by(.ctime // 0) | last // empty')
+
+          if [ -z "$LATEST" ]; then
+            echo "::error::No backups found across storages: $STORAGES"
             exit 1
           fi
 
           VOLID=$(echo "$LATEST" | jq -r '.volid')
           SIZE=$(echo "$LATEST" | jq -r '.size')
           CTIME=$(echo "$LATEST" | jq -r '.ctime | todate')
+          STORAGE=$(echo "$LATEST" | jq -r '.storage')
 
           echo "volid=$VOLID" >> "$GITHUB_OUTPUT"
 
@@ -54,6 +79,7 @@ jobs:
             echo "- **Volume**: $VOLID"
             echo "- **Size**: $((SIZE / 1048576)) MB"
             echo "- **Created**: $CTIME"
+            echo "- **Storage**: $STORAGE"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify Temp VMID Available
