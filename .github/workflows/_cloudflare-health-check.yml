@@ -70,18 +70,24 @@ jobs:
           [ -n "$API_KEY" ] && echo "::add-mask::$API_KEY"
           [ -n "$API_EMAIL" ] && echo "::add-mask::$API_EMAIL"
 
+          RESOLVED_MODE=""
           if [ -n "$API_TOKEN" ]; then
-            echo "mode=token" >> "$GITHUB_OUTPUT"
+            RESOLVED_MODE="token"
             echo "token=$API_TOKEN" >> "$GITHUB_OUTPUT"
-          elif [ -n "$API_KEY" ] && [ -n "$API_EMAIL" ]; then
-            echo "mode=apikey" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -n "$API_KEY" ] && [ -n "$API_EMAIL" ]; then
+            [ -z "$RESOLVED_MODE" ] && RESOLVED_MODE="apikey"
             echo "api_key=$API_KEY" >> "$GITHUB_OUTPUT"
             echo "email=$API_EMAIL" >> "$GITHUB_OUTPUT"
-          else
+          fi
+
+          if [ -z "$RESOLVED_MODE" ]; then
             echo "::error::No Cloudflare API credentials available (token or api key/email)"
             exit 1
           fi
 
+          echo "mode=$RESOLVED_MODE" >> "$GITHUB_OUTPUT"
           echo "account_id=$ACCOUNT_ID" >> "$GITHUB_OUTPUT"
 
       - name: Check Tunnel Status
@@ -99,22 +105,39 @@ jobs:
             exit 1
           fi
 
-          declare -a AUTH_ARGS
-          if [ "$CLOUDFLARE_AUTH_MODE" = "token" ]; then
-            AUTH_ARGS=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
-          else
-            AUTH_ARGS=(-H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
+          declare -a TOKEN_ARGS APIKEY_ARGS
+          [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && TOKEN_ARGS=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
+          if [ -n "${CLOUDFLARE_API_KEY:-}" ] && [ -n "${CLOUDFLARE_EMAIL:-}" ]; then
+            APIKEY_ARGS=(-H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
           fi
 
-          # Query all tunnels from Cloudflare API v4
-          TUNNELS=$(curl -sk \
-            "${AUTH_ARGS[@]}" \
-            -H "Content-Type: application/json" \
-            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/cfd_tunnel")
+          fetch_tunnels() {
+            curl -sk \
+              "$@" \
+              -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/cfd_tunnel"
+          }
+
+          ACTIVE_MODE="$CLOUDFLARE_AUTH_MODE"
+          AUTH_ARGS=("${TOKEN_ARGS[@]}")
+          if [ "$ACTIVE_MODE" = "apikey" ]; then
+            AUTH_ARGS=("${APIKEY_ARGS[@]}")
+          fi
+
+          TUNNELS="$(fetch_tunnels "${AUTH_ARGS[@]}")"
+
+          # Retry with API key if token auth is rejected
+          if ! echo "$TUNNELS" | jq -e '.result' > /dev/null 2>&1; then
+            if [ "$ACTIVE_MODE" = "token" ] && [ "${#APIKEY_ARGS[@]}" -gt 0 ]; then
+              ACTIVE_MODE="apikey"
+              TUNNELS="$(fetch_tunnels "${APIKEY_ARGS[@]}")"
+              echo "Token auth failed; retried with API key" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
 
           # Parse tunnel statuses (null-safe: API may return null result)
           if ! echo "$TUNNELS" | jq -e '.result' > /dev/null 2>&1; then
-            echo "::error::Cloudflare API returned no tunnel data (check token permissions)"
+            echo "::error::Cloudflare API returned no tunnel data (check credentials)"
             echo "Response: $(echo "$TUNNELS" | jq -c '.errors // .messages // empty')"
             exit 1
           fi
@@ -162,24 +185,48 @@ jobs:
         run: |
           set -euo pipefail
 
-          declare -a AUTH_ARGS
-          if [ "$CLOUDFLARE_AUTH_MODE" = "token" ]; then
-            AUTH_ARGS=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
-          else
-            AUTH_ARGS=(-H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
+          declare -a TOKEN_ARGS APIKEY_ARGS
+          [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && TOKEN_ARGS=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
+          if [ -n "${CLOUDFLARE_API_KEY:-}" ] && [ -n "${CLOUDFLARE_EMAIL:-}" ]; then
+            APIKEY_ARGS=(-H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
+          fi
+
+          fetch_workers() {
+            curl -sk \
+              "$@" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              "https://api.cloudflare.com/client/v4/graphql" \
+              -d '{
+                "query": "query { viewer { accounts(filter: { accountTag: \"'"${CLOUDFLARE_ACCOUNT_ID}"'\" }) { workersInvocationsAdaptive(filter: { datetime_geq: \"24h\" }) { sum { errors success } } } } }"
+              }'
+          }
+
+          ACTIVE_MODE="$CLOUDFLARE_AUTH_MODE"
+          AUTH_ARGS=("${TOKEN_ARGS[@]}")
+          if [ "$ACTIVE_MODE" = "apikey" ]; then
+            AUTH_ARGS=("${APIKEY_ARGS[@]}")
           fi
 
           # Query worker invocations from GraphQL Analytics API for last 24 hours
-          RESPONSE=$(curl -sk \
-            "${AUTH_ARGS[@]}" \
-            -H "Content-Type: application/json" \
-            -X POST \
-            "https://api.cloudflare.com/client/v4/graphql" \
-            -d '{
-              "query": "query { viewer { accounts(filter: { accountTag: \"'"${CLOUDFLARE_ACCOUNT_ID}"'\" }) { workersInvocationsAdaptive(filter: { datetime_geq: \"24h\" }) { sum { errors success } } } } }"
-            }')
+          RESPONSE="$(fetch_workers "${AUTH_ARGS[@]}")"
+
+          # Retry with API key if token auth is rejected
+          if ! echo "$RESPONSE" | jq -e '.data.viewer.accounts[0].workersInvocationsAdaptive.sum' > /dev/null 2>&1; then
+            if [ "$ACTIVE_MODE" = "token" ] && [ "${#APIKEY_ARGS[@]}" -gt 0 ]; then
+              ACTIVE_MODE="apikey"
+              RESPONSE="$(fetch_workers "${APIKEY_ARGS[@]}")"
+              echo "Token auth failed; retried worker query with API key" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
 
           # Parse error count (fallback to 0 if query returns no data)
+          if ! echo "$RESPONSE" | jq -e '.data.viewer.accounts[0].workersInvocationsAdaptive.sum' > /dev/null 2>&1; then
+            echo "::error::Cloudflare GraphQL response missing worker data (check credentials)"
+            echo "Response: $(echo "$RESPONSE" | jq -c '.errors // .messages // empty')"
+            exit 1
+          fi
+
           ERRORS=$(echo "$RESPONSE" | jq -r '.data.viewer.accounts[0].workersInvocationsAdaptive.sum.errors // 0')
           SUCCESS=$(echo "$RESPONSE" | jq -r '.data.viewer.accounts[0].workersInvocationsAdaptive.sum.success // 0')
 
