@@ -60,11 +60,15 @@ jobs:
           fi
 
           USERNAME=$(op read "op://homelab/synology/username" 2>/dev/null || true)
+          # Fallback for items using "user" instead of "username"
+          if [ -z "$USERNAME" ]; then
+            USERNAME=$(op read "op://homelab/synology/user" 2>/dev/null || true)
+          fi
           PASSWORD=$(op read "op://homelab/synology/password" 2>/dev/null || true)
 
           if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
             echo "source=error" >> "$GITHUB_OUTPUT"
-            echo "reason=Synology credentials missing in 1Password" >> "$GITHUB_OUTPUT"
+            echo "reason=Synology credentials missing in 1Password (username/user or password empty)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
