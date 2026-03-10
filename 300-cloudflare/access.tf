@@ -37,15 +37,28 @@ resource "cloudflare_zero_trust_access_application" "homelab" {
   session_duration = "24h"
   allowed_idps     = local.allowed_identity_providers
 
-  policies = [{
-    decision = "allow"
-    name     = "${each.value.name} Email Access"
-    include = [for email in var.access_allowed_emails : {
-      email = {
-        email = email
-      }
-    }]
-  }]
+  policies = concat(
+    # Email-based access policy (always included)
+    [{
+      decision = "allow"
+      name     = "${each.value.name} Email Access"
+      include = [for email in var.access_allowed_emails : {
+        email = {
+          email = email
+        }
+      }]
+    }],
+    # Internal network bypass (only for services in internal_bypass_services)
+    contains(local.internal_bypass_services, each.value.subdomain) && var.homelab_public_ip != null ? [{
+      decision = "bypass"
+      name     = "${each.value.name} Internal Network Bypass"
+      include = [{
+        ip = {
+          ip = var.homelab_public_ip
+        }
+      }]
+    }] : []
+  )
 }
 
 

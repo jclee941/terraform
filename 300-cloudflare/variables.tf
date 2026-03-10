@@ -224,3 +224,15 @@ variable "youtube_ip" {
     error_message = "youtube_ip must be a valid IPv4 address."
   }
 }
+
+
+variable "homelab_public_ip" {
+  description = "Public IP address of homelab network for CF Access internal bypass"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.homelab_public_ip == null || can(regex("^(\\d{1,3}\\.){3}\\d{1,3}$", var.homelab_public_ip))
+    error_message = "homelab_public_ip must be a valid IPv4 address or null."
+  }
+}

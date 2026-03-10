@@ -92,8 +92,9 @@ locals {
     mcphub    = { subdomain = "mcphub", name = "MCP Hub" }
     archon    = { subdomain = "archon", name = "Archon" }
     supabase  = { subdomain = "supabase", name = "Supabase" }
-    nas       = { subdomain = "nas", name = "NAS" }
-    opencode  = { subdomain = "opencode", name = "OpenCode" }
   }
+
+  # Services that allow internal network bypass (no CF Access auth required from homelab IP)
+  internal_bypass_services = ["elk", "kibana", "es", "glitchtip", "grafana", "mcphub", "archon", "supabase", "n8n"]
 
 }
