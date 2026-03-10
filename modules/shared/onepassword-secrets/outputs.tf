@@ -23,8 +23,8 @@ output "secrets" {
     glitchtip_api_token         = try(data.onepassword_item.this["glitchtip"].section_map["secrets"].field_map["api_token"].value, "")
 
     # Proxmox
-    proxmox_api_token_value = try(data.onepassword_item.this["proxmox"].section_map["secrets"].field_map["api_token_value"].value, "")
-    proxmox_ssh_private_key = try(data.onepassword_item.this["proxmox"].section_map["secrets"].field_map["ssh_private_key"].value, "")
+    proxmox_api_token_value = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["api_token_value"].value, "")
+    proxmox_endpoint        = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["endpoint"].value, "")
 
     # GitHub
     github_personal_access_token = try(data.onepassword_item.this["github"].section_map["secrets"].field_map["personal_access_token"].value, "")
