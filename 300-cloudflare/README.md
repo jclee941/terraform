@@ -114,6 +114,10 @@ go run scripts/generate-bindings.go --out wrangler.toml
 - Terraform state에 민감 값 포함 → **remote backend 권장**
 
 <!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
 ## Requirements
 
 | Name | Version |
@@ -127,6 +131,8 @@ go run scripts/generate-bindings.go --out wrangler.toml
 
 ## Providers
 
+## Providers
+
 | Name | Version |
 |------|---------|
 | <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.18.0 |
@@ -136,11 +142,7 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 | <a name="provider_time"></a> [time](#provider\_time) | 0.13.1 |
 
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
+## Resources
 
 ## Resources
 
@@ -180,9 +182,12 @@ go run scripts/generate-bindings.go --out wrangler.toml
 
 ## Inputs
 
+## Inputs
+
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_access_allowed_emails"></a> [access\_allowed\_emails](#input\_access\_allowed\_emails) | List of email addresses allowed through CF Access | `list(string)` | n/a | yes |
+| <a name="input_synology_domain"></a> [synology\_domain](#input\_synology\_domain) | Domain/subdomain for Synology proxy (e.g., nas.jclee.me) | `string` | n/a | yes |
 | <a name="input_cloudflare_account_id"></a> [cloudflare\_account\_id](#input\_cloudflare\_account\_id) | Cloudflare account ID (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_cloudflare_api_key"></a> [cloudflare\_api\_key](#input\_cloudflare\_api\_key) | Cloudflare Global API key (fallback when API token is unavailable) | `string` | `""` | no |
 | <a name="input_cloudflare_api_token"></a> [cloudflare\_api\_token](#input\_cloudflare\_api\_token) | Cloudflare API token (preferred for scoped access; optional if provided via 1Password) | `string` | `""` | no |
@@ -197,14 +202,16 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="input_google_oauth_client_id"></a> [google\_oauth\_client\_id](#input\_google\_oauth\_client\_id) | Google OAuth 2.0 Client ID for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_google_oauth_client_secret"></a> [google\_oauth\_client\_secret](#input\_google\_oauth\_client\_secret) | Google OAuth 2.0 Client Secret for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_homelab_domain"></a> [homelab\_domain](#input\_homelab\_domain) | Base domain for homelab services | `string` | `"jclee.me"` | no |
+| <a name="input_homelab_public_ip"></a> [homelab\_public\_ip](#input\_homelab\_public\_ip) | Public IP address of homelab network for CF Access internal bypass | `string` | `null` | no |
 | <a name="input_jclee_dev_ip"></a> [jclee\_dev\_ip](#input\_jclee\_dev\_ip) | JCLee development workstation IP address (VMID 200) | `string` | `"192.168.50.200"` | no |
 | <a name="input_jclee_ip"></a> [jclee\_ip](#input\_jclee\_ip) | JCLee workstation IP address (physical PC, host ID 80) | `string` | `"192.168.50.80"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret lookups | `string` | `"homelab"` | no |
 | <a name="input_secret_values"></a> [secret\_values](#input\_secret\_values) | Runtime secret values map, keyed by secret name (never commit) | `map(string)` | `{}` | no |
-| <a name="input_synology_domain"></a> [synology\_domain](#input\_synology\_domain) | Domain/subdomain for Synology proxy (e.g., nas.jclee.me) | `string` | n/a | yes |
 | <a name="input_synology_nas_ip"></a> [synology\_nas\_ip](#input\_synology\_nas\_ip) | Synology NAS IP address on local network | `string` | `"192.168.50.215"` | no |
 | <a name="input_synology_nas_port"></a> [synology\_nas\_port](#input\_synology\_nas\_port) | Synology DSM HTTP port | `number` | `5000` | no |
 | <a name="input_youtube_ip"></a> [youtube\_ip](#input\_youtube\_ip) | YouTube media server IP address (VMID 220) | `string` | `"192.168.50.220"` | no |
+
+## Outputs
 
 ## Outputs
 
@@ -224,4 +231,5 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="output_total_secrets_count"></a> [total\_secrets\_count](#output\_total\_secrets\_count) | Total number of secrets in inventory |
 | <a name="output_tunnel_id"></a> [tunnel\_id](#output\_tunnel\_id) | Cloudflare Tunnel ID for Synology NAS |
 | <a name="output_tunnel_token"></a> [tunnel\_token](#output\_tunnel\_token) | Cloudflare Tunnel token for cloudflared runtime |
+
 <!-- END_TF_DOCS -->

@@ -2,26 +2,37 @@
 
 Retrieves secrets from 1Password at plan time via the
 [1Password Terraform provider](https://registry.terraform.io/providers/1Password/onepassword/latest).
-Drop-in replacement for `modules/shared/vault-secrets` with an identical
-`secrets` and `metadata` output maps.
+The module exposes three output maps:
+
+- `secrets` — sensitive API keys, passwords, and tokens
+- `metadata` — stable non-secret metadata kept for backward compatibility
+- `connection_info` — endpoints, URLs, usernames, IDs, and related connection fields
 
 ## 1Password Item Structure
 
-Each item in the vault must contain a section named **"secrets"** with fields
-matching the original Vault KV key names:
+Preferred item structure uses semantic section names with spaces:
+**Credentials**, **API Keys**, **Connection**, **Database**, **Dashboard**,
+**Account**, **MCP Tokens**, **OpenCode Tokens**, **Keys**, **Login**, **OAuth**, **Passwords**, and **Secrets**.
 
 ```
 Item: "grafana"  (category: password)
-  +-- Section: "secrets"
+  +-- Section: "Credentials"
       |-- Field: "admin_password"        (CONCEALED)
       +-- Field: "service_account_token" (CONCEALED)
 ```
 
+For API_CREDENTIAL items such as `github`, the module also supports top-level
+`.credential` fallback during migration.
+
 ## Authentication
 
-Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect Server on LXC 112 at `http://192.168.50.112:8090`) or pass them via the provider configuration in the consuming workspace. The provider falls back to these when `op_service_account_token` variable is empty.
+Set `OP_SERVICE_ACCOUNT_TOKEN` as an environment variable for Terraform and CLI verification flows. The repo's current Terraform provider usage is environment-driven, with empty `provider "onepassword" {}` blocks in consuming workspaces. `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` remain relevant for MCPHub-side Connect integrations, not the Terraform provider path.
 
 <!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
 ## Requirements
 
 | Name | Version |
@@ -31,13 +42,13 @@ Set `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` as environment variables (Connect S
 
 ## Providers
 
+## Providers
+
 | Name | Version |
 |------|---------|
 | <a name="provider_onepassword"></a> [onepassword](#provider\_onepassword) | 3.2.1 |
 
-## Modules
-
-No modules.
+## Resources
 
 ## Resources
 
@@ -45,6 +56,8 @@ No modules.
 |------|------|
 | [onepassword_item.this](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/item) | data source |
 | [onepassword_vault.this](https://registry.terraform.io/providers/1Password/onepassword/latest/docs/data-sources/vault) | data source |
+
+## Inputs
 
 ## Inputs
 
@@ -58,8 +71,12 @@ No modules.
 
 ## Outputs
 
+## Outputs
+
 | Name | Description |
 |------|-------------|
+| <a name="output_connection_info"></a> [connection\_info](#output\_connection\_info) | Non-secret connection details and routing metadata (17 keys) |
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (15 keys) |
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (43 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (44 keys) |
+
 <!-- END_TF_DOCS -->

@@ -17,10 +17,12 @@ override_module {
   target = module.onepassword_secrets
   outputs = {
     secrets = {
-      github_personal_access_token = "mock-github-token" # pragma: allowlist secret
+      cloudflare_api_token         = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" # pragma: allowlist secret
+      github_personal_access_token = "mock-github-token"                        # pragma: allowlist secret
     }
     metadata = {
-      vault_name = "homelab"
+      vault_name       = "homelab"
+      cloudflare_email = "admin@example.com"
     }
   }
 }

@@ -17,8 +17,9 @@ check "required_metadata" {
     condition = alltrue([
       length(trimspace(local.effective_cloudflare_account_id)) > 0,
       length(trimspace(local.effective_cloudflare_zone_id)) > 0,
-      length(trimspace(local.effective_cloudflare_email)) > 0
+      # Email is required only for API key auth; API token auth does not need it
+      length(trimspace(local.effective_cloudflare_api_token)) > 0 ? true : length(trimspace(local.effective_cloudflare_email)) > 0
     ])
-    error_message = "Effective Cloudflare metadata is missing. Require account_id, zone_id, and email from 1Password metadata or variables."
+    error_message = "Effective Cloudflare metadata is missing. Require account_id, zone_id, and email (email only required when using API key instead of API token) from 1Password metadata or variables."
   }
 }

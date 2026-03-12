@@ -32,6 +32,7 @@ mock_provider "onepassword" {
     target = data.onepassword_item.this["proxmox"]
     values = {
       title       = "proxmox"
+      credential  = ""
       section_map = {}
     }
   }
@@ -40,6 +41,7 @@ mock_provider "onepassword" {
     target = data.onepassword_item.this["github"]
     values = {
       title       = "github"
+      credential  = ""
       section_map = {}
     }
   }
@@ -48,6 +50,7 @@ mock_provider "onepassword" {
     target = data.onepassword_item.this["exa"]
     values = {
       title       = "exa"
+      credential  = ""
       section_map = {}
     }
   }
@@ -135,7 +138,6 @@ mock_provider "onepassword" {
 
 # --- Output structure tests ---
 
-# All 43 secret keys default to "" when section_map is empty (try() fallback)
 run "test_secrets_default_to_empty_string" {
   command = plan
 
@@ -237,6 +239,10 @@ run "test_secrets_default_to_empty_string" {
   assert {
     condition     = output.secrets.cloudflare_api_key == ""
     error_message = "cloudflare_api_key should default to empty string"
+  }
+  assert {
+    condition     = output.secrets.cloudflare_api_token == ""
+    error_message = "cloudflare_api_token should default to empty string"
   }
   assert {
     condition     = output.secrets.cloudflare_tunnel_token == ""
@@ -413,7 +419,43 @@ run "test_metadata_default_to_empty_string" {
   }
 }
 
-# Verify secrets output contains exactly 43 keys
+run "test_connection_info_default_to_empty_string" {
+  command = plan
+
+  module {
+    source = "../../../modules/shared/onepassword-secrets"
+  }
+
+  variables {
+    vault_name = "homelab"
+  }
+
+  assert {
+    condition     = output.connection_info.proxmox_endpoint == ""
+    error_message = "proxmox_endpoint should default to empty string"
+  }
+  assert {
+    condition     = output.connection_info.slack_webhook_url == ""
+    error_message = "slack_webhook_url should default to empty string"
+  }
+  assert {
+    condition     = output.connection_info.supabase_url == ""
+    error_message = "supabase_url should default to empty string"
+  }
+  assert {
+    condition     = output.connection_info.cloudflare_account_id == ""
+    error_message = "cloudflare_account_id should default to empty string"
+  }
+  assert {
+    condition     = output.connection_info.n8n_webhook_url == ""
+    error_message = "n8n_webhook_url should default to empty string"
+  }
+  assert {
+    condition     = output.connection_info.gcp_region == ""
+    error_message = "gcp_region should default to empty string"
+  }
+}
+
 run "test_secrets_key_count" {
   command = plan
 
@@ -426,8 +468,8 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 43
-    error_message = "Secrets output should contain exactly 43 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 44
+    error_message = "Secrets output should contain exactly 44 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
@@ -446,6 +488,23 @@ run "test_metadata_key_count" {
   assert {
     condition     = length(output.metadata) == 15
     error_message = "Metadata output should contain exactly 15 keys, got ${length(output.metadata)}"
+  }
+}
+
+run "test_connection_info_key_count" {
+  command = plan
+
+  module {
+    source = "../../../modules/shared/onepassword-secrets"
+  }
+
+  variables {
+    vault_name = "homelab"
+  }
+
+  assert {
+    condition     = length(output.connection_info) == 17
+    error_message = "connection_info output should contain exactly 17 keys, got ${length(output.connection_info)}"
   }
 }
 
@@ -551,6 +610,10 @@ run "test_all_secret_key_names_exist" {
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "cloudflare_api_key")
     error_message = "Missing secret key: cloudflare_api_key"
+  }
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "cloudflare_api_token")
+    error_message = "Missing secret key: cloudflare_api_token"
   }
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "cloudflare_tunnel_token")
@@ -663,6 +726,59 @@ run "test_all_secret_key_names_exist" {
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "gcp_credentials")
     error_message = "Missing secret key: gcp_credentials"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "gcp_project_id")
+    error_message = "Missing connection_info key: gcp_project_id"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "gcp_region")
+    error_message = "Missing connection_info key: gcp_region"
+  }
+}
+
+run "test_all_connection_info_key_names_exist" {
+  command = plan
+
+  module {
+    source = "../../../modules/shared/onepassword-secrets"
+  }
+
+  variables {
+    vault_name = "homelab"
+  }
+
+  assert {
+    condition     = contains(keys(output.connection_info), "proxmox_endpoint")
+    error_message = "Missing connection_info key: proxmox_endpoint"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "slack_webhook_url")
+    error_message = "Missing connection_info key: slack_webhook_url"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "supabase_url")
+    error_message = "Missing connection_info key: supabase_url"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "cloudflare_email")
+    error_message = "Missing connection_info key: cloudflare_email"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "cloudflare_account_id")
+    error_message = "Missing connection_info key: cloudflare_account_id"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "cloudflare_zone_id")
+    error_message = "Missing connection_info key: cloudflare_zone_id"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "n8n_webhook_url")
+    error_message = "Missing connection_info key: n8n_webhook_url"
+  }
+  assert {
+    condition     = contains(keys(output.connection_info), "n8n_glitchtip_webhook_url")
+    error_message = "Missing connection_info key: n8n_glitchtip_webhook_url"
   }
 }
 
@@ -780,7 +896,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) == 58
-    error_message = "Total keys (secrets + metadata) should equal 58"
+    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 76
+    error_message = "Total keys (secrets + metadata + connection_info) should equal 76"
   }
 }
