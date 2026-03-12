@@ -41,6 +41,8 @@ locals {
   n8n_glitchtip_api_token   = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["glitchtip_api_token"].value, "")
   n8n_webhook_url           = try(data.onepassword_item.this["n8n"].section_map["Connection"].field_map["webhook_url"].value, "")
   n8n_glitchtip_webhook_url = try(data.onepassword_item.this["n8n"].section_map["Connection"].field_map["glitchtip_webhook_url"].value, "")
+  n8n_postgres_password     = try(data.onepassword_item.this["n8n"].section_map["Database"].field_map["postgres_password"].value, "")
+  n8n_encryption_key        = try(data.onepassword_item.this["n8n"].section_map["Secrets"].field_map["encryption_key"].value, "")
 
   mcphub_proxmox_token_name       = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_name"].value, "")
   mcphub_proxmox_token_value      = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_value"].value, "")
@@ -79,7 +81,7 @@ locals {
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (44 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (46 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -125,6 +127,8 @@ output "secrets" {
     n8n_api_key             = local.n8n_api_key
     n8n_github_token        = local.n8n_github_token
     n8n_glitchtip_api_token = local.n8n_glitchtip_api_token
+    n8n_postgres_password   = local.n8n_postgres_password
+    n8n_encryption_key      = local.n8n_encryption_key
 
     # MCPHub (MCPHub-specific secrets only)
     mcphub_proxmox_token_name       = local.mcphub_proxmox_token_name

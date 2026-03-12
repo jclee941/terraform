@@ -129,13 +129,24 @@ locals {
       ports = {}
     }
 
+    n8n = {
+      vmid  = 110
+      ip    = "192.168.50.110"
+      roles = ["automation", "workflow"]
+      ports = {
+        n8n               = 5678
+        postgres          = 5432
+        cadvisor          = 8888
+        postgres_exporter = 9187
+      }
+    }
+
     mcphub = {
       vmid  = 112
       ip    = "192.168.50.112"
       roles = ["mcp-hub", "ai", "mcp", "gateway", "automation"]
       ports = {
         web        = 3000
-        n8n        = 5678
         proxmox    = 8055
         playwright = 8056
         op_connect = 8090

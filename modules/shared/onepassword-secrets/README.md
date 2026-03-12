@@ -77,6 +77,6 @@ Set `OP_SERVICE_ACCOUNT_TOKEN` as an environment variable for Terraform and CLI 
 |------|-------------|
 | <a name="output_connection_info"></a> [connection\_info](#output\_connection\_info) | Non-secret connection details and routing metadata (17 keys) |
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (15 keys) |
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (44 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (46 keys) |
 
 <!-- END_TF_DOCS -->

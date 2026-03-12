@@ -24,6 +24,8 @@ locals {
     glitchtip   = "container"
     supabase    = "container"
     archon      = "container"
+    gitops      = "container"
+    n8n         = "container"
     mcphub      = "vm"
     "jclee-dev" = "vm"
     youtube     = "vm"
@@ -74,6 +76,9 @@ locals {
     }
     supabase = {
       exclude = ["inbucket"]
+    }
+    n8n = {
+      exclude = ["postgres"]
     }
     mcphub = {
       exclude = ["proxmox", "playwright", "op_connect"]

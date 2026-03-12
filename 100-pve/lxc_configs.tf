@@ -186,6 +186,42 @@ module "lxc_config" {
       }
     }
 
+    n8n = {
+      vmid           = module.hosts.hosts.n8n.vmid
+      hostname       = "n8n"
+      ip_address     = module.hosts.hosts.n8n.ip
+      deploy         = var.deploy_lxc_configs
+      setup_filebeat = true
+
+      docker_compose = {
+        path    = "/opt/n8n/docker-compose.yml"
+        content = module.config_renderer.rendered_configs.n8n_docker_compose
+      }
+
+      config_files = {
+        "n8n.env" = {
+          path    = "/opt/n8n/n8n.env"
+          content = module.config_renderer.rendered_configs.n8n_env
+        }
+        "Dockerfile.n8n" = {
+          path    = "/opt/n8n/Dockerfile.n8n"
+          content = file("${path.module}/../110-n8n/Dockerfile.n8n")
+        }
+        "patches-license.js" = {
+          path    = "/opt/n8n/patches/license.js"
+          content = file("${path.module}/../110-n8n/patches/n8n/license.js")
+        }
+        "patches-license-state.js" = {
+          path    = "/opt/n8n/patches/license-state.js"
+          content = file("${path.module}/../110-n8n/patches/n8n/license-state.js")
+        }
+        "filebeat.yml" = {
+          path    = "/etc/filebeat/filebeat.yml"
+          content = module.config_renderer.rendered_configs.n8n_filebeat
+        }
+      }
+    }
+
     supabase = {
       vmid           = module.hosts.hosts.supabase.vmid
       hostname       = "supabase"

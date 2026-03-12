@@ -40,7 +40,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - 'http://${hosts.mcphub.ip}:${hosts.mcphub.ports.n8n}/healthz'
+          - 'http://${hosts.n8n.ip}:${hosts.n8n.ports.n8n}/healthz'
           - 'http://${hosts.glitchtip.ip}:${hosts.glitchtip.ports.web}/_health/'
           - 'http://${hosts.mcphub.ip}:${hosts.mcphub.ports.web}/'
           - 'http://${hosts.traefik.ip}:${hosts.traefik.ports.traefik}/api/overview'
@@ -81,6 +81,7 @@ scrape_configs:
           - '${hosts.grafana.ip}:${hosts.grafana.ports.cadvisor}'
           - '${hosts.mcphub.ip}:${hosts.mcphub.ports.cadvisor}'
           - '${hosts.youtube.ip}:${hosts.youtube.ports.cadvisor}'
+          - '${hosts.n8n.ip}:${hosts.n8n.ports.cadvisor}'
     relabel_configs:
       - source_labels: [__address__]
         regex: '192\.168\.50\.(\d+):.*'
@@ -92,6 +93,7 @@ scrape_configs:
       - targets:
           - '${hosts.glitchtip.ip}:${hosts.glitchtip.ports.postgres_exporter}'
           - '${hosts.supabase.ip}:${hosts.supabase.ports.postgres_exporter}'
+          - '${hosts.n8n.ip}:${hosts.n8n.ports.postgres_exporter}'
     relabel_configs:
       - source_labels: [__address__]
         regex: '192\.168\.50\.(\d+):.*'

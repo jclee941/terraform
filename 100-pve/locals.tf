@@ -82,6 +82,7 @@ locals {
     archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
     gitops    = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "GitOps Controller + GitHub Dispatch Agent" }
     coredns   = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
+    n8n       = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -169,6 +170,8 @@ locals {
     "mcphub_n8n_mcp_api_key",
     "n8n_api_key",
     "n8n_github_token",
+    "n8n_encryption_key",
+    "n8n_postgres_password",
     "mcphub_op_service_account_token",
     "mcphub_proxmox_token_name",
     "mcphub_proxmox_token_value",
@@ -266,12 +269,16 @@ locals {
       dockerfile     = "Dockerfile.tftpl"
       env            = ".env.tftpl"
     } }
+    "110-n8n" = { prefix = "n8n", files = {
+      filebeat       = "filebeat.yml.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      env            = "n8n.env.tftpl"
+    } }
     "112-mcphub" = { prefix = "mcphub", files = {
       filebeat           = "filebeat.yml.tftpl"
       docker_compose     = "docker-compose.yml.tftpl"
       mcp_settings       = "mcp_settings.json.tftpl"
       env                = ".env.tftpl"
-      n8n_docker_compose = "docker-compose-n8n.yml.tftpl"
       op_connect_compose = "docker-compose-op-connect.yml.tftpl"
     } }
     "220-youtube" = { prefix = "youtube", files = {
