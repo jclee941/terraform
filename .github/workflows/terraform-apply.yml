@@ -18,11 +18,14 @@ on:
       - "106-glitchtip/templates/**"
       - "107-supabase/templates/**"
       - "108-archon/templates/**"
+      - "109-gitops/templates/**"
+      - "220-youtube/templates/**"
       - "112-mcphub/templates/**"
       # Direct file refs from 100-pve/main.tf
       - "112-mcphub/mcp_servers.json"
       - "112-mcphub/Dockerfile.proxmox"
       - "112-mcphub/Dockerfile.playwright"
+      - "112-mcphub/Dockerfile.n8n"
 
 permissions:
   contents: read

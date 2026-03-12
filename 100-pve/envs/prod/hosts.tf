@@ -121,6 +121,14 @@ locals {
         mcp    = 8051
       }
     }
+
+    gitops = {
+      vmid  = 109
+      ip    = "192.168.50.109"
+      roles = ["gitops", "automation", "controller"]
+      ports = {}
+    }
+
     mcphub = {
       vmid  = 112
       ip    = "192.168.50.112"
