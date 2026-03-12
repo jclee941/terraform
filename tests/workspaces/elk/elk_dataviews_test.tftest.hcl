@@ -33,8 +33,8 @@ run "service_registry_creates_expected_data_views" {
   }
 
   assert {
-    condition     = length(elasticstack_kibana_data_view.service_logs) == 15
-    error_message = "Expected 15 per-service data views from log_services registry"
+    condition     = length(elasticstack_kibana_data_view.service_logs) == 14
+    error_message = "Expected 14 per-service data views from log_services registry"
   }
 }
 
