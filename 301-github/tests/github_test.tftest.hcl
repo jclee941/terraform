@@ -129,20 +129,6 @@ run "test_invalid_secret_visibility_invalid_value" {
 
 # --- n8n_webhook URLs validation (empty or HTTP(S)) ---
 
-run "test_invalid_n8n_webhook_glitchtip_no_protocol" {
-  command = plan
-
-  variables {
-    github_token                    = "ghp_test-token-placeholder"
-    n8n_webhook_glitchtip_error_url = "n8n.jclee.me/webhook/glitchtip"
-  }
-
-  expect_failures = [
-    var.n8n_webhook_glitchtip_error_url,
-  ]
-}
-
-
 run "test_invalid_n8n_webhook_issue_no_protocol" {
   command = plan
 

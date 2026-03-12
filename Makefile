@@ -12,7 +12,6 @@ ALIAS_runner     := 101-runner
 ALIAS_traefik    := 102-traefik/terraform
 ALIAS_grafana    := 104-grafana/terraform
 ALIAS_elk        := 105-elk/terraform
-ALIAS_glitchtip  := 106-glitchtip
 ALIAS_supabase   := 107-supabase
 ALIAS_archon     := 108-archon/terraform
 ALIAS_mcphub     := 112-mcphub
@@ -33,7 +32,7 @@ define check_svc_dir
 		echo "Error: workspace directory '$(TF_DIR)' does not exist."; \
 		echo "Available workspaces:"; \
 		echo "  Direct: $$(ls -d [0-9]*/ | tr -d '/' | tr '\n' ' ')"; \
-		echo "  Aliases: pve runner traefik grafana elk glitchtip supabase archon mcphub synology youtube cloudflare github slack gcp"; \
+		echo "  Aliases: pve runner traefik grafana elk supabase archon mcphub synology youtube cloudflare github slack gcp"; \
 		exit 1; \
 	fi
 endef

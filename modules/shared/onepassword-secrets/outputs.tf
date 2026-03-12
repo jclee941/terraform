@@ -74,7 +74,7 @@ locals {
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (46 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (42 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -154,7 +154,7 @@ output "secrets" {
 }
 
 output "metadata" {
-  description = "Non-secret configuration metadata: usernames, URLs, IDs (15 keys)"
+  description = "Non-secret configuration metadata: usernames, URLs, IDs (14 keys)"
   sensitive   = false
   value = {
     # Supabase
@@ -186,7 +186,7 @@ output "metadata" {
 }
 
 output "connection_info" {
-  description = "Non-secret connection details and routing metadata (17 keys)"
+  description = "Non-secret connection details and routing metadata (16 keys)"
   sensitive   = false
   value = {
     proxmox_endpoint            = local.proxmox_endpoint

@@ -13,7 +13,6 @@ manage_as_organization = false
 infra_domain = "jclee.me"
 
 # Optional overrides — leave empty to use auto-derived URLs from infra_domain.
-# n8n_webhook_glitchtip_error_url = ""
 # n8n_webhook_grafana_alert_url   = ""
 # n8n_webhook_github_issue_url    = ""
 # n8n_webhook_github_pr_url       = ""

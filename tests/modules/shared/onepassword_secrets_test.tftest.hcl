@@ -21,14 +21,6 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.this["glitchtip"]
-    values = {
-      title       = "glitchtip"
-      section_map = {}
-    }
-  }
-
-  override_data {
     target = data.onepassword_item.this["proxmox"]
     values = {
       title       = "proxmox"
@@ -159,24 +151,6 @@ run "test_secrets_default_to_empty_string" {
     error_message = "grafana_service_account_token should default to empty string"
   }
 
-  # --- GlitchTip (4 keys) ---
-  assert {
-    condition     = output.secrets.glitchtip_django_secret_key == ""
-    error_message = "glitchtip_django_secret_key should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.glitchtip_postgres_password == ""
-    error_message = "glitchtip_postgres_password should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.glitchtip_redis_password == ""
-    error_message = "glitchtip_redis_password should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.glitchtip_api_token == ""
-    error_message = "glitchtip_api_token should default to empty string"
-  }
-
   # --- Proxmox (2 keys) ---
   assert {
     condition     = output.secrets.proxmox_api_token_value == ""
@@ -257,7 +231,7 @@ run "test_secrets_default_to_empty_string" {
     error_message = "google_oauth_client_secret should default to empty string"
   }
 
-  # --- n8n (3 keys) ---
+  # --- n8n (2 keys) ---
   assert {
     condition     = output.secrets.n8n_api_key == ""
     error_message = "n8n_api_key should default to empty string"
@@ -265,10 +239,6 @@ run "test_secrets_default_to_empty_string" {
   assert {
     condition     = output.secrets.n8n_github_token == ""
     error_message = "n8n_github_token should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.n8n_glitchtip_api_token == ""
-    error_message = "n8n_glitchtip_api_token should default to empty string"
   }
 
   # --- MCPHub (5 keys) ---
@@ -352,7 +322,7 @@ run "test_secrets_default_to_empty_string" {
   }
 }
 
-# All 15 metadata keys default to "" when section_map is empty (try() fallback)
+# All 14 metadata keys default to "" when section_map is empty (try() fallback)
 run "test_metadata_default_to_empty_string" {
   command = plan
 
@@ -388,14 +358,10 @@ run "test_metadata_default_to_empty_string" {
     error_message = "cloudflare_zone_id should default to empty string"
   }
 
-  # --- n8n (2 keys) ---
+  # --- n8n (1 key) ---
   assert {
     condition     = output.metadata.n8n_webhook_url == ""
     error_message = "n8n_webhook_url should default to empty string"
-  }
-  assert {
-    condition     = output.metadata.n8n_glitchtip_webhook_url == ""
-    error_message = "n8n_glitchtip_webhook_url should default to empty string"
   }
 
   # --- YouTube (2 keys) ---
@@ -468,12 +434,12 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 45
-    error_message = "Secrets output should contain exactly 45 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 42
+    error_message = "Secrets output should contain exactly 42 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
-# Verify metadata output contains exactly 15 keys
+# Verify metadata output contains exactly 14 keys
 run "test_metadata_key_count" {
   command = plan
 
@@ -486,8 +452,8 @@ run "test_metadata_key_count" {
   }
 
   assert {
-    condition     = length(output.metadata) == 15
-    error_message = "Metadata output should contain exactly 15 keys, got ${length(output.metadata)}"
+    condition     = length(output.metadata) == 14
+    error_message = "Metadata output should contain exactly 14 keys, got ${length(output.metadata)}"
   }
 }
 
@@ -503,8 +469,8 @@ run "test_connection_info_key_count" {
   }
 
   assert {
-    condition     = length(output.connection_info) == 17
-    error_message = "connection_info output should contain exactly 17 keys, got ${length(output.connection_info)}"
+    condition     = length(output.connection_info) == 16
+    error_message = "connection_info output should contain exactly 16 keys, got ${length(output.connection_info)}"
   }
 }
 
@@ -528,24 +494,6 @@ run "test_all_secret_key_names_exist" {
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "grafana_service_account_token")
     error_message = "Missing secret key: grafana_service_account_token"
-  }
-
-  # GlitchTip
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "glitchtip_django_secret_key")
-    error_message = "Missing secret key: glitchtip_django_secret_key"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "glitchtip_postgres_password")
-    error_message = "Missing secret key: glitchtip_postgres_password"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "glitchtip_redis_password")
-    error_message = "Missing secret key: glitchtip_redis_password"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "glitchtip_api_token")
-    error_message = "Missing secret key: glitchtip_api_token"
   }
 
   # Proxmox
@@ -636,10 +584,6 @@ run "test_all_secret_key_names_exist" {
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "n8n_github_token")
     error_message = "Missing secret key: n8n_github_token"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "n8n_glitchtip_api_token")
-    error_message = "Missing secret key: n8n_glitchtip_api_token"
   }
 
   # MCPHub
@@ -776,10 +720,6 @@ run "test_all_connection_info_key_names_exist" {
     condition     = contains(keys(output.connection_info), "n8n_webhook_url")
     error_message = "Missing connection_info key: n8n_webhook_url"
   }
-  assert {
-    condition     = contains(keys(output.connection_info), "n8n_glitchtip_webhook_url")
-    error_message = "Missing connection_info key: n8n_glitchtip_webhook_url"
-  }
 }
 
 # Verify every expected metadata key name exists in the output map
@@ -822,10 +762,6 @@ run "test_all_metadata_key_names_exist" {
   assert {
     condition     = contains(keys(output.metadata), "n8n_webhook_url")
     error_message = "Missing metadata key: n8n_webhook_url"
-  }
-  assert {
-    condition     = contains(keys(output.metadata), "n8n_glitchtip_webhook_url")
-    error_message = "Missing metadata key: n8n_glitchtip_webhook_url"
   }
 
   # PBS
@@ -896,7 +832,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 77
-    error_message = "Total keys (secrets + metadata + connection_info) should equal 77"
+    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 72
+    error_message = "Total keys (secrets + metadata + connection_info) should equal 72"
   }
 }
