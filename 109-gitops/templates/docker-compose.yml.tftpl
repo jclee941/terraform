@@ -1,0 +1,19 @@
+# GitOps controller Compose stack
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
+services:
+  gitops-agent:
+    build:
+      context: /opt/gitops
+      dockerfile: Dockerfile
+    container_name: gitops-agent
+    restart: unless-stopped
+    env_file:
+      - /opt/gitops/.env
+    volumes:
+      - /var/lib/gitops-agent:/var/lib/gitops-agent
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

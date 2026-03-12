@@ -1,0 +1,12 @@
+FROM golang:1.24-bookworm
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY main.go ./main.go
+RUN CGO_ENABLED=0 GO111MODULE=off go build -o /usr/local/bin/gitops-agent ./main.go
+
+WORKDIR /var/lib/gitops-agent
+ENTRYPOINT ["/usr/local/bin/gitops-agent"]
