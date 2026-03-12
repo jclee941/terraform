@@ -22,7 +22,7 @@ go run scripts/setup-github-secrets.go --audit
 ## Architecture
 
 ```
-1Password (homelab vault, 15 items)
+1Password (homelab vault, 14 items)
   │
   ├── onepassword-secrets module (42 secret keys)
   │     │
@@ -51,12 +51,11 @@ go run scripts/setup-github-secrets.go --audit
 
 ## 1Password Item Inventory
 
-The shared module (`modules/shared/onepassword-secrets/`) manages 15 items:
+The shared module (`modules/shared/onepassword-secrets/`) manages 14 items:
 
 | Item         | Description          | Key Secrets                                                                                                                  |
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `grafana`    | Observability stack  | `service_account_token`, `admin_password`                                                                                    |
-| `glitchtip`  | Error tracking       | `django_secret_key`, `database_url`, `redis_url`                                                                             |
 | `proxmox`    | Hypervisor API       | `api_token_id`, `api_token_secret`                                                                                           |
 | `github`     | GitHub PAT           | `personal_access_token`                                                                                                      |
 | `exa`        | Exa search API       | `api_key`                                                                                                                    |
@@ -64,7 +63,7 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 15 items:
 | `archon`     | Archon MCP           | `openai_api_key`                                                                                                             |
 | `cloudflare` | CF account           | `account_id`, `zone_id`, `api_token`                                                                                         |
 | `n8n`        | n8n automation       | `encryption_key`, `webhook_url`                                                                                              |
-| `mcphub`     | MCPHub service       | `admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `glitchtip_token`, `es_password`, `proxmox_token`, `slack_tokens` |
+| `mcphub`     | MCPHub service       | `admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `es_password`, `proxmox_token`, `slack_tokens` |
 | `elk`        | ELK stack            | `elastic_password`, `kibana_password`                                                                                        |
 | `synology`   | Synology NAS         | `username`, `password`                                                                                                       |
 | `slack`      | Slack workspace      | `bot_token`, `app_token`                                                                                                     |
@@ -109,11 +108,10 @@ Per-host `.env` secrets deployed via config-renderer templates:
 | 102-traefik   | `homelab_tunnel_token` (via cloudflared compose)                                                                                           |
 | 104-grafana   | `GRAFANA_ADMIN_PASSWORD`                                                                                                                   |
 | 105-elk       | `elastic_password`, `kibana_password` (in docker-compose env vars)                                                                         |
-| 106-glitchtip | `DJANGO_SECRET_KEY`, `DATABASE_URL` (with password), `REDIS_URL`                                                                           |
 | 107-supabase  | `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `DASHBOARD_PASSWORD`                                                    |
 | 108-archon    | `OPENAI_API_KEY`                                                                                                                           |
-| 112-mcphub    | 10+ secrets (`admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `glitchtip_token`, `es_password`, `proxmox_token`, `slack_tokens`) |
-| 112-n8n       | `api_key`, `github_token`, `glitchtip_api_token`                                                                                           |
+| 112-mcphub    | 10+ secrets (`admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `es_password`, `proxmox_token`, `slack_tokens`) |
+| 112-n8n       | `api_key`, `github_token`                                                                                           |
 
 ## Provider Authentication
 

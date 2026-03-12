@@ -27,7 +27,7 @@ locals {
     }
     "alerts" = {
       name    = "alerts"
-      topic   = "Infrastructure alerts — Grafana, GlitchTip, uptime"
+      topic   = "Infrastructure alerts — Grafana, uptime"
       purpose = "Unified infrastructure and monitoring alerts."
     }
 

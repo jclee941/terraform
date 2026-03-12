@@ -23,7 +23,7 @@ docs/runbooks/
 | Service outage response    | `docs/runbooks/service-down.md`, `docs/runbooks/troubleshooting.md` | Ordered triage and recovery flow. |
 | Deployment/maintenance ops | `docs/runbooks/service-deployment.md`, `docs/runbooks/state-locking.md` | Deployment failure and lock recovery steps. |
 | ELK index migration        | `docs/runbooks/elk-index-migration.md`      | Logstash index pattern fix + stale cleanup. |
-| MCP health triage          | `docs/runbooks/mcp-health-check.md`         | Fix procedures for 1P, Supabase, GlitchTip. |
+| MCP health triage          | `docs/runbooks/mcp-health-check.md`         | Fix procedures for 1P and Supabase. |
 | Service recovery baseline  | `docs/runbooks/service-down.md`             | Generic service triage/escalation flow. |
 | Deploy troubleshooting     | `docs/runbooks/service-deployment.md`       | Deployment failure checks and rollback checkpoints. |
 | Data/backup recovery       | `docs/runbooks/backup-restore.md`, `docs/runbooks/disaster-recovery.md` | Restore sequence and DR escalation path. |

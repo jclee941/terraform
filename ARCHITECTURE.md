@@ -46,7 +46,6 @@ terraform/
 ├── 320-slack/                  # Independent: Slack integration
 ├── 101-runner/                 # Template-only: GitHub Actions runner
 ├── 103-coredns/                # Template-only: Split DNS
-├── 106-glitchtip/              # Template-only: Error tracking
 ├── 107-supabase/               # Template-only: Backend-as-a-Service
 ├── 109-ollama/                 # DEPRECATED: Migrated to 215-synology
 ├── 112-mcphub/                 # Template-only: MCP Hub + 1Password Connect
@@ -81,10 +80,10 @@ terraform/
 
 | Tier | Workspaces | Role | Apply Order |
 | ---- | ---------- | ---- | ----------- |
-| 0 (core) | `100-pve` | Central orchestrator. Provisions 8 LXC + 4 VM. | First |
+| 0 (core) | `100-pve` | Central orchestrator. Provisions 7 LXC + 4 VM. | First |
 | 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
 | Independent | `300-cloudflare`, `301-github`, `320-slack` | No Proxmox dependency. | Third (parallel) |
-| Template-only | 10 workspaces | Config templates + docker-compose only, no `.tf` files. | N/A |
+| Template-only | 9 workspaces | Config templates + docker-compose only, no `.tf` files. | N/A |
 
 ## Service Inventory
 
@@ -96,7 +95,6 @@ terraform/
 | 103 | coredns | .103 | LXC | Split DNS |
 | 104 | grafana | .104 | LXC | Prometheus + Grafana |
 | 105 | elk | .105 | LXC | ELK Stack |
-| 106 | glitchtip | .106 | LXC | Error tracking |
 | 107 | supabase | .107 | LXC | Backend-as-a-Service |
 | 108 | archon | .108 | LXC | AI knowledge management |
 | 109 | ollama | .109 | VM | ~~LLM inference~~ (migrated to Synology 215) |

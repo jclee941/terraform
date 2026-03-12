@@ -35,7 +35,6 @@ locals {
     "elk",
     "exa",
     "github",
-    "glitchtip",
     "grafana",
     "mcphub",
     "n8n",

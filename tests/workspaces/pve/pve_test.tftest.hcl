@@ -28,10 +28,6 @@ override_module {
       elk_elastic_password            = "mock-secret"              # pragma: allowlist secret
       elk_kibana_password             = "mock-secret"              # pragma: allowlist secret
       github_personal_access_token    = "mock-secret"              # pragma: allowlist secret
-      glitchtip_api_token             = "mock-secret"              # pragma: allowlist secret
-      glitchtip_django_secret_key     = "mock-secret"              # pragma: allowlist secret
-      glitchtip_postgres_password     = "mock-secret"              # pragma: allowlist secret
-      glitchtip_redis_password        = "mock-secret"              # pragma: allowlist secret
       openai_api_key                  = "mock-secret"              # pragma: allowlist secret
       proxmox_ssh_private_key         = "mock-secret"              # pragma: allowlist secret
       slack_mcp_xoxb_token            = "mock-secret"              # pragma: allowlist secret
@@ -50,7 +46,10 @@ override_module {
       cloudflare_api_key              = "mock-secret"              # pragma: allowlist secret
       n8n_api_key                     = "mock-secret"              # pragma: allowlist secret
       n8n_github_token                = "mock-secret"              # pragma: allowlist secret
-      n8n_glitchtip_api_token         = "mock-secret"              # pragma: allowlist secret
+      cloudflare_api_token            = "mock-secret"              # pragma: allowlist secret
+      n8n_postgres_password            = "mock-secret"              # pragma: allowlist secret
+      n8n_encryption_key               = "mock-secret"              # pragma: allowlist secret
+      traefik_htpasswd_hash           = "mock-secret"              # pragma: allowlist secret
       slack_webhook_url               = "mock-secret"              # pragma: allowlist secret
       cloudflare_tunnel_token         = "mock-secret"              # pragma: allowlist secret
       google_oauth_client_id          = "mock-secret"              # pragma: allowlist secret
@@ -70,7 +69,6 @@ override_module {
       cloudflare_account_id       = "abcdef0123456789abcdef0123456789"
       cloudflare_zone_id          = "1234567890abcdef1234567890abcdef"
       n8n_webhook_url             = "https://hooks.n8n.test/example"
-      n8n_glitchtip_webhook_url   = "https://hooks.n8n.test/glitchtip"
       pbs_server                  = "192.168.50.200"
       pbs_datastore               = "backup"
       pbs_username                = "backup@pbs"

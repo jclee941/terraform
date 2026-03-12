@@ -2,7 +2,7 @@ locals {
   hosts = try(data.terraform_remote_state.infra.outputs.host_inventory, {})
 }
 
-# Config deployment (elk.yml, glitchtip.yml, filebeat) is handled by
+# Config deployment (elk.yml, filebeat) is handled by
 # 100-pve/main.tf via config-renderer templates (dynamic IPs from hosts.tf).
 # Static config/ files with hardcoded IPs are kept as reference only.
 #

@@ -73,16 +73,15 @@ locals {
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
   # Total dedicated: 18944 MB (18.5 GB) + swap: 10752 MB (10.5 GB) = 29696 MB effective
   container_sizing = {
-    runner    = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
-    traefik   = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    grafana   = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
-    elk       = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
-    glitchtip = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
-    supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
-    archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
-    gitops    = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "GitOps Controller + GitHub Dispatch Agent" }
-    coredns   = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
-    n8n       = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
+    runner   = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
+    traefik  = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
+    grafana  = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
+    elk      = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
+    supabase = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
+    archon   = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
+    gitops   = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "GitOps Controller + GitHub Dispatch Agent" }
+    coredns  = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
+    n8n      = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -162,10 +161,6 @@ locals {
     "elk_elastic_password",
     "elk_kibana_password",
     "github_personal_access_token",
-    "glitchtip_api_token",
-    "glitchtip_django_secret_key",
-    "glitchtip_postgres_password",
-    "glitchtip_redis_password",
     "mcphub_admin_password",
     "mcphub_n8n_mcp_api_key",
     "n8n_api_key",
@@ -219,7 +214,6 @@ locals {
       filebeat = "filebeat.yml.tftpl"
     } }
     "102-traefik" = { prefix = "traefik", files = {
-      glitchtip   = "glitchtip.yml.tftpl"
       mcphub      = "mcphub.yml.tftpl"
       n8n         = "n8n.yml.tftpl"
       archon      = "archon.yml.tftpl"
@@ -247,11 +241,6 @@ locals {
       ilm_policy          = "ilm-policy.json.tftpl"
       setup_ilm           = "setup-ilm.sh.tftpl"
       dockerfile_logstash = "Dockerfile.logstash.tftpl"
-    } }
-    "106-glitchtip" = { prefix = "glitchtip", files = {
-      filebeat       = "filebeat.yml.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      env            = "glitchtip.env.tftpl"
     } }
     "107-supabase" = { prefix = "supabase", files = {
       filebeat       = "filebeat.yml.tftpl"

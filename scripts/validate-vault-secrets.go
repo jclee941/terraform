@@ -235,18 +235,6 @@ func validateELK(vals map[string]string) (bool, string) {
 	return false, fmt.Sprintf("HTTP %d", status)
 }
 
-func validateGlitchtip(vals map[string]string) (bool, string) {
-	status, _, err := httpGet("https://glitchtip.jclee.me/api/0/organizations/", map[string]string{
-		"Authorization": "Bearer " + vals["api_token"],
-	})
-	if err != nil {
-		return false, fmt.Sprintf("connection: %v", err)
-	}
-	if status == 200 {
-		return true, "authenticated"
-	}
-	return false, fmt.Sprintf("HTTP %d", status)
-}
 
 func validateGoogleGemini(vals map[string]string) (bool, string) {
 	status, _, err := httpGet(
@@ -407,15 +395,6 @@ var services = []serviceCheck{
 			{"cf_access_client_secret", "op://homelab/elk/cf_access_client_secret"},
 		},
 		validate: validateELK,
-	},
-	{
-		name: "glitchtip",
-		fields: []fieldSpec{
-			{"api_token", "op://homelab/glitchtip/secrets/api_token"},
-			{"postgres_password", "op://homelab/glitchtip/secrets/postgres_password"},
-			{"redis_password", "op://homelab/glitchtip/secrets/redis_password"},
-		},
-		validate: validateGlitchtip,
 	},
 	{
 		name: "google-gemini",

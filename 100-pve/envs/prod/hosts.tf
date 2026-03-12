@@ -84,19 +84,6 @@ locals {
       }
     }
 
-    glitchtip = {
-      vmid  = 106
-      ip    = "192.168.50.106"
-      roles = ["error-tracking", "monitoring"]
-      ports = {
-        web               = 8000
-        postgres          = 5432
-        redis             = 6379
-        postgres_exporter = 9187
-        redis_exporter    = 9121
-      }
-    }
-
     supabase = {
       vmid  = 107
       ip    = "192.168.50.107"

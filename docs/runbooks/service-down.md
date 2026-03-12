@@ -13,7 +13,6 @@
 | 102  | Traefik   | LXC  | `curl -s http://192.168.50.102:8080/ping`            |
 | 104  | Grafana   | LXC  | `curl -s http://192.168.50.104:3000/api/health`      |
 | 105  | ELK       | LXC  | `curl -s http://192.168.50.105:9200/_cluster/health` |
-| 106  | GlitchTip | LXC  | `curl -s http://192.168.50.106:8000/healthz`         |
 | 112  | MCPHub    | VM   | `curl -s http://192.168.50.112:3000/`                |
 
 ## Diagnosis
@@ -85,13 +84,6 @@ pct exec 104 -- docker compose -f /opt/grafana/docker-compose.yml ps
 pct exec 105 -- docker compose -f /opt/elk/docker-compose.yml restart
 # Verify Elasticsearch cluster health
 pct exec 105 -- curl -s localhost:9200/_cluster/health | jq .status
-```
-
-**GlitchTip (106)** — Error tracking:
-
-```bash
-pct exec 106 -- docker compose -f /opt/glitchtip/docker-compose.yml restart
-pct exec 106 -- docker compose -f /opt/glitchtip/docker-compose.yml ps
 ```
 
 **MCPHub (112)** — MCP Hub + n8n:

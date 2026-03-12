@@ -7,16 +7,12 @@ Complete reference for the homelab error handling and alerting pipeline.
 ## Architecture
 
 ```
-Hosts (100, 101, 102, 103, 104, 105, 106, 112)
+Hosts (100, 101, 102, 103, 104, 105, 112)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
                        ├─ slack-alerts → Slack (critical + warning)
                        └─ alert-log-fallback (info + default)
-
-GlitchTip (106:8000) — receives from Sentry SDKs + Grafana bridge
-  └─ GlitchTip webhook → n8n:5678 /webhook/glitchtip-error
-       └─ error-to-github-issue.json → GitHub Issues
 ```
 
 ## Data Flow
@@ -33,7 +29,6 @@ Each host runs a Filebeat config deployed via Terraform (`lxc-config`/`vm-config
 | coredns   | 103  | Docker autodiscover, system          | true              |
 | grafana   | 104  | system, grafana                      | true              |
 | elk       | 105  | system, elk-docker, mcp              | true              |
-| glitchtip | 106  | system, glitchtip (Docker container) | true              |
 | mcphub    | 112  | mcphub (Docker JSON), system         | true              |
 
 > **Requirement**: All inputs **must** use `fields_under_root: true` — Logstash filters reference `[service]` at root level.
@@ -126,13 +121,6 @@ Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
 
 **Query improvements** (2026-02-12): All ES-based rules now use structured Logstash fields (`error_classification`, `error_severity`) instead of raw text matching, eliminating false positives from noise exclusion patterns.
 
-### 4. Error Tracking (GlitchTip)
-
-- URL: `http://192.168.50.106:8000`
-- Org: `jclee-homelab`, Project: `homelab`
-- Receives from: Application Sentry SDKs (client-side error reporting)
-- Alert rule `n8n-automation` forwards to n8n webhook
-- n8n workflow `error-to-github-issue.json` creates GitHub Issues from GlitchTip events
 ## Datasource UIDs (Grafana)
 
 | Datasource    | UID                 |
@@ -152,7 +140,6 @@ Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
 
 ## Known Issues
 
-- **SPOF**: n8n is a single point of failure for GlitchTip → GitHub Issue creation. No fallback if n8n is down.
 
 ## Deprecated
 

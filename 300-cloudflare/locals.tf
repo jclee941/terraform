@@ -36,7 +36,6 @@ locals {
     elk          = { subdomain = "elk" }
     kibana       = { subdomain = "kibana" }
     es           = { subdomain = "es" }
-    glitchtip    = { subdomain = "glitchtip" }
     grafana      = { subdomain = "grafana" }
     mcphub       = { subdomain = "mcphub" }
     archon       = { subdomain = "archon" }
@@ -84,17 +83,16 @@ locals {
   # Services requiring Cloudflare Access protection
   # All homelab HTTP services are protected by CF Access email auth
   restricted_services = {
-    elk       = { subdomain = "elk", name = "ELK" }
-    kibana    = { subdomain = "kibana", name = "Kibana" }
-    es        = { subdomain = "es", name = "Elasticsearch" }
-    glitchtip = { subdomain = "glitchtip", name = "GlitchTip" }
-    grafana   = { subdomain = "grafana", name = "Grafana" }
-    mcphub    = { subdomain = "mcphub", name = "MCP Hub" }
-    archon    = { subdomain = "archon", name = "Archon" }
-    supabase  = { subdomain = "supabase", name = "Supabase" }
+    elk      = { subdomain = "elk", name = "ELK" }
+    kibana   = { subdomain = "kibana", name = "Kibana" }
+    es       = { subdomain = "es", name = "Elasticsearch" }
+    grafana  = { subdomain = "grafana", name = "Grafana" }
+    mcphub   = { subdomain = "mcphub", name = "MCP Hub" }
+    archon   = { subdomain = "archon", name = "Archon" }
+    supabase = { subdomain = "supabase", name = "Supabase" }
   }
 
   # Services that allow internal network bypass (no CF Access auth required from homelab IP)
-  internal_bypass_services = ["elk", "kibana", "es", "glitchtip", "grafana", "mcphub", "archon", "supabase", "n8n"]
+  internal_bypass_services = ["elk", "kibana", "es", "grafana", "mcphub", "archon", "supabase", "n8n"]
 
 }

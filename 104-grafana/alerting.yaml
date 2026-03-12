@@ -334,7 +334,7 @@ groups:
               to: 0
             datasourceUid: P31C819B24CF3C3C7
             model:
-              query: "host:(traefik OR grafana OR elk OR glitchtip OR mcphub OR runner OR oc OR supabase OR archon)"
+              query: "host:(traefik OR grafana OR elk OR mcphub OR runner OR oc OR supabase OR archon)"
               alias: ""
               bucketAggs:
                 - field: "host.keyword"
@@ -827,7 +827,7 @@ groups:
               to: 0
             datasourceUid: P31C819B24CF3C3C7
             model:
-              query: 'message:("container restart" OR "Restarting" OR "unhealthy" OR "OOMKilled") AND host:(supabase OR archon OR mcphub OR elk OR glitchtip OR grafana)'
+              query: 'message:("container restart" OR "Restarting" OR "unhealthy" OR "OOMKilled") AND host:(supabase OR archon OR mcphub OR elk OR grafana)'
               alias: ""
               bucketAggs:
                 - field: "@timestamp"

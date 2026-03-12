@@ -21,7 +21,6 @@ locals {
     coredns     = "container"
     grafana     = "container"
     elk         = "container"
-    glitchtip   = "container"
     supabase    = "container"
     archon      = "container"
     gitops      = "container"
@@ -70,9 +69,6 @@ locals {
     }
     elk = {
       exclude = ["es_transport", "logstash_api", "logstash_http"]
-    }
-    glitchtip = {
-      exclude = ["postgres", "redis"]
     }
     supabase = {
       exclude = ["inbucket"]

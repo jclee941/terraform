@@ -26,8 +26,8 @@
                    │
     ┌──────┬──────┬┴─────┬───────┬───────┬──────┐
     ▼      ▼      ▼      ▼       ▼       ▼      ▼
-   Grafana  ELK  GlitchTip Supa  Archon  MCPHub
-    :104   :105    :106   :107   :108    :112
+    Grafana  ELK   Supa  Archon  MCPHub
+     :104   :105   :107   :108    :112
 ```
 
 ## Network Topology
@@ -48,7 +48,6 @@
 | 102  | traefik   | .102 | LXC      | Reverse proxy (entry point)          | 100-pve (lifecycle) + 102-traefik (app config)        |
 | 104  | grafana   | .104 | LXC      | Observability (Prometheus + Grafana) | 100-pve (lifecycle) + 104-grafana (dashboards/alerts) |
 | 105  | elk       | .105 | LXC      | ELK Stack (ES + Logstash + Kibana)   | 100-pve (lifecycle) + 105-elk (ILM/templates)         |
-| 106  | glitchtip | .106 | LXC      | Error tracking                       | 100-pve                                               |
 | 107  | supabase  | .107 | LXC      | Backend-as-a-Service                 | 100-pve                                               |
 | 108  | archon    | .108 | LXC      | AI knowledge management              | 100-pve (lifecycle) + 108-archon (app config)         |
 | 112  | mcphub    | .112 | VM       | MCP Hub + n8n + 1Password Connect    | 100-pve                                               |
@@ -133,7 +132,7 @@ modules/
 
 | Workspace                | State Key                          | Provider(s)                               | Manages                                                       |
 | ------------------------ | ---------------------------------- | ----------------------------------------- | ------------------------------------------------------------- |
-| `100-pve/`               | `100-pve/terraform.tfstate`        | bpg/proxmox, 1Password/onepassword        | All LXC lifecycle (101-108), VMs (112, 220), config rendering |
+| `100-pve/`               | `100-pve/terraform.tfstate`        | bpg/proxmox, 1Password/onepassword        | All LXC lifecycle (101-105, 107-108), VMs (112, 220), config rendering |
 | `102-traefik/terraform/` | `102-traefik/terraform.tfstate`    | (none)                                    | App-level config deployment via lxc-config                    |
 | `104-grafana/terraform/` | `104-grafana/terraform.tfstate`    | grafana/grafana                           | Dashboards, datasources, alerts, contact points               |
 | `105-elk/terraform/`     | `105-elk/terraform.tfstate`        | elastic/elasticstack                      | ILM policies, index templates                                 |

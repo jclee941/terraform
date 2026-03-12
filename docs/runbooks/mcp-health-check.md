@@ -25,7 +25,6 @@ All MCP servers are **STDIO child processes** inside the MCPHub container — th
 | github      | stdio     | ✅ Connected             | —                                       |
 | git         | stdio     | ✅ Connected             | —                                       |
 | onepassword | stdio     | ✅ Connected             | [1Password](#1password-empty-vault)     |
-| glitchtip   | stdio     | ✅ Connected             | [GlitchTip](#glitchtip-api-unreachable) |
 | **archon**  | **streamable-http** | ✅ Connected (native HTTP) | [Archon](#archon-streamable-http) |
 | slack       | stdio     | ✅ Connected             | —                                       |
 | proxmox     | stdio     | ✅ Connected             | —                                       |
@@ -194,54 +193,6 @@ gh secret set OP_CONNECT_TOKEN
 gh secret set OP_CONNECT_HOST
 ```
 
-
-### GlitchTip: API Unreachable
-
-**Symptom:** `Resource not found` from MCP server.
-
-**Root cause:** One of: (a) `GLITCHTIP_BASE_URL` misconfigured, (b) `GLITCHTIP_TOKEN` invalid, (c) `GLITCHTIP_ORG` slug mismatch.
-
-**Fix:**
-
-```bash
-# 1. Verify GlitchTip is running
-ssh root@192.168.50.106
-# Or: pct exec 106 -- bash
-docker ps | grep glitchtip
-curl -sf http://localhost:8000/api/0/organizations/ && echo "API OK" || echo "API DOWN"
-
-# 2. If API is up, check token
-ssh root@192.168.50.112
-cat /opt/mcphub/.env | grep GLITCHTIP
-
-# Expected env vars:
-# GLITCHTIP_BASE_URL=http://192.168.50.106:8000
-# GLITCHTIP_TOKEN=<api-token>
-# GLITCHTIP_ORG=<org-slug>
-
-# 3. Test token directly
-curl -H "Authorization: Bearer <token>" \
-  http://192.168.50.106:8000/api/0/organizations/
-
-# If 401: token expired — regenerate in GlitchTip UI
-# If 404: org slug wrong — list orgs to find correct slug
-
-# 4. Regenerate token if needed:
-#    Open http://192.168.50.106:8000 → Settings → API Keys → Create
-
-# 5. Update env and restart
-ssh root@192.168.50.112
-nano /opt/mcphub/.env
-docker restart mcphub
-
-# 6. Verify
-sleep 15
-curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "glitchtip") | {name, status}'
-```
-
-**Cross-reference:** See `docs/runbooks/credential-rotation.md` for GlitchTip token rotation procedure.
-
----
 
 ### Archon: Streamable HTTP
 

@@ -64,11 +64,6 @@ run "all_item_titles" {
   }
 
   assert {
-    condition     = data.onepassword_item.glitchtip.title == "glitchtip"
-    error_message = "GlitchTip item title should be 'glitchtip'."
-  }
-
-  assert {
     condition     = data.onepassword_item.proxmox.title == "proxmox"
     error_message = "Proxmox item title should be 'proxmox'."
   }

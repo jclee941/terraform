@@ -23,19 +23,6 @@
       },
       "description": "GitHub API operations"
     },
-    "glitchtip": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "mcp-glitchtip"],
-      "port": 8075,
-      "env": {
-        "GLITCHTIP_TOKEN": "${GLITCHTIP_TOKEN}",
-        "GLITCHTIP_ORGANIZATION": "${GLITCHTIP_ORGANIZATION}",
-        "GLITCHTIP_BASE_URL": "${GLITCHTIP_BASE_URL}"
-      },
-      "description": "GlitchTip error tracking"
-    },
     "kratos": {
       "location": "hub",
       "transport": "stdio",

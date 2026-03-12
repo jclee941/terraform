@@ -416,7 +416,6 @@ jobs:
                 continue
               hook_name = hook_url.rsplit("/webhook/", 1)[1].strip()
               if hook_name not in {
-                "glitchtip-error",
                 "grafana-alert",
                 "github-issue",
                 "github-pr",

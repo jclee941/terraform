@@ -12,7 +12,6 @@
 | 102 | Traefik | LXC | High — routing configs |
 | 104 | Grafana | LXC | High — dashboards + Prometheus data |
 | 105 | ELK | LXC | High — log pipeline configs |
-| 106 | GlitchTip | LXC | Medium — error tracking data |
 | 112 | MCPHub | VM | High — MCP configs + n8n workflows |
 
 ## Diagnosis

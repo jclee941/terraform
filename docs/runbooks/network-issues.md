@@ -16,7 +16,6 @@
 | 102  | 192.168.50.102 | traefik   | 192.168.50.1 |
 | 104  | 192.168.50.104 | grafana   | 192.168.50.1 |
 | 105  | 192.168.50.105 | elk       | 192.168.50.1 |
-| 106  | 192.168.50.106 | glitchtip | 192.168.50.1 |
 | 112  | 192.168.50.112 | mcphub    | 192.168.50.1 |
 
 Subnet: `192.168.50.0/24`, Gateway: `192.168.50.1`
@@ -46,7 +45,7 @@ pct exec 102 -- docker logs traefik --tail 50 2>&1 | grep -i error
 
 # Verify dynamic routing configs
 pct exec 102 -- ls /etc/traefik/config/
-# Files: elk.yml, glitchtip.yml, mcp.yml, mcphub.yml
+# Files: elk.yml, mcp.yml, mcphub.yml
 ```
 
 ### 3. DNS Resolution
@@ -66,7 +65,6 @@ pct exec {VMID} -- nslookup grafana.jclee.me
 # Test each service endpoint through Traefik
 curl -v https://grafana.jclee.me/api/health
 curl -v https://elk.jclee.me
-curl -v https://glitchtip.jclee.me/healthz
 curl -v https://mcphub.jclee.me
 
 # Test direct (bypass Traefik)
@@ -111,6 +109,6 @@ pct exec 102 -- docker restart traefik
 ## Prevention
 
 - Traefik routing configs managed by Terraform — do NOT edit manually on LXC 102
-- All routing files in `102-traefik/config/` (elk.yml, glitchtip.yml, mcp.yml, mcphub.yml)
+- All routing files in `102-traefik/config/` (elk.yml, mcp.yml, mcphub.yml)
 - DNS records managed in Cloudflare
 - Monitor with blackbox exporter in Grafana (SLA dashboard)

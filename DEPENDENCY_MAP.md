@@ -30,7 +30,6 @@
 | Workspace         | Purpose               | Templates          | Rendered By                    |
 | ----------------- | --------------------- | ------------------ | ------------------------------ |
 | **101-runner**    | GitHub Actions runner | filebeat.yml.tftpl | 100-pve/module.config_renderer |
-| **106-glitchtip** | Error tracking        | 3x .tftpl          | 100-pve/module.config_renderer |
 | **107-supabase**  | Backend-as-a-Service  | 3x .tftpl          | 100-pve/module.config_renderer |
 | **112-mcphub**    | MCP server hub        | 4x .tftpl          | 100-pve/module.config_renderer |
 | **215-synology**  | NAS inventory         | None (data only)   | Manual                         |
@@ -82,7 +81,7 @@ modules/shared/
 └── onepassword-secrets/    # 1Password secret fetching
     ├── main.tf             # data "onepassword_item" × 12 services
     ├── variables.tf        # vault_name (default: "homelab")
-    └── outputs.tf          # secrets map (grafana, glitchtip, proxmox, etc.)
+    └── outputs.tf          # secrets map (grafana, proxmox, etc.)
 ```
 
 ---
@@ -97,7 +96,7 @@ modules/shared/
 │
 ├── module "lxc"
 │   └── source: ../modules/proxmox/lxc
-│       └── Provisions 8 containers (101-108)
+│       └── Provisions 7 containers (101-105, 107-108)
 │
 ├── module "vm"
 │   └── source: ../modules/proxmox/vm
@@ -122,7 +121,6 @@ modules/shared/
             ├── 102-traefik/templates/*.yml.tftpl (13 routes)
             ├── 104-grafana/templates/*.yml.tftpl
             ├── 105-elk/templates/*.tftpl
-            ├── 106-glitchtip/templates/*.tftpl
             ├── 107-supabase/templates/*.tftpl
             ├── 108-archon/templates/*.tftpl
             └── 112-mcphub/templates/*.tftpl
@@ -138,7 +136,6 @@ modules/shared/
 | ------------------------------ | ----------------------------- | ------------------- | ----------------- | ----------------------------------------------- |
 | **101-runner**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-101-runner/filebeat.yml             |
 | **102-traefik**                | archon.yml.tftpl              | Traefik route       | config-renderer   | configs/rendered/traefik/archon.yml             |
-|                                | glitchtip.yml.tftpl           | Traefik route       | config-renderer   | configs/rendered/traefik/glitchtip.yml          |
 |                                | supabase.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/supabase.yml           |
 |                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-102-traefik/filebeat.yml            |
 |                                | synology.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/synology.yml           |
@@ -156,9 +153,6 @@ modules/shared/
 |                                | docker-compose.yml.tftpl      | ELK stack           | config-renderer   | configs/lxc-105-elk/docker-compose.yml          |
 |                                | logstash.conf.tftpl           | Logstash pipeline   | config-renderer   | configs/lxc-105-elk/logstash.conf               |
 |                                | logstash.yml.tftpl            | Logstash config     | config-renderer   | configs/lxc-105-elk/logstash.yml                |
-| **106-glitchtip**              | glitchtip.env.tftpl           | Env vars            | config-renderer   | configs/lxc-106-glitchtip/glitchtip.env         |
-|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-106-glitchtip/filebeat.yml          |
-|                                | docker-compose.yml.tftpl      | GlitchTip stack     | config-renderer   | configs/lxc-106-glitchtip/docker-compose.yml    |
 | **107-supabase**               | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-107-supabase/filebeat.yml           |
 |                                | docker-compose.yml.tftpl      | Supabase stack      | config-renderer   | configs/lxc-107-supabase/docker-compose.yml     |
 |                                | .env.tftpl                    | Env vars            | config-renderer   | configs/lxc-107-supabase/.env                   |
@@ -182,7 +176,6 @@ template_vars = {
 
   # Service secrets (from 1Password)
   grafana_admin_password = module.onepassword_secrets.secrets.grafana.admin_password
-  glitchtip_secret_key = module.onepassword_secrets.secrets.glitchtip.secret_key
   # ... 10 more services
 
   # MCP catalog

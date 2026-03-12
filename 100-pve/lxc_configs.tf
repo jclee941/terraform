@@ -42,10 +42,6 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/elk.yml"
           content = module.config_renderer.rendered_configs.traefik_elk
         }
-        "traefik-glitchtip.yml" = {
-          path    = "/etc/traefik/dynamic/glitchtip.yml"
-          content = module.config_renderer.rendered_configs.traefik_glitchtip
-        }
         "traefik-mcphub.yml" = {
           path    = "/etc/traefik/dynamic/mcphub.yml"
           content = module.config_renderer.rendered_configs.traefik_mcphub
@@ -162,29 +158,6 @@ module "lxc_config" {
       }
     }
 
-    glitchtip = {
-      vmid           = module.hosts.hosts.glitchtip.vmid
-      hostname       = "glitchtip"
-      ip_address     = module.hosts.hosts.glitchtip.ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      docker_compose = {
-        path    = "/opt/glitchtip/docker-compose.yml"
-        content = module.config_renderer.rendered_configs.glitchtip_docker_compose
-      }
-
-      config_files = {
-        "glitchtip.env" = {
-          path    = "/opt/glitchtip/glitchtip.env"
-          content = module.config_renderer.rendered_configs.glitchtip_env
-        }
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.glitchtip_filebeat
-        }
-      }
-    }
 
     n8n = {
       vmid           = module.hosts.hosts.n8n.vmid

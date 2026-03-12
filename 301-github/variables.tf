@@ -89,18 +89,6 @@ variable "repository_actions_variables" {
   default     = {}
 }
 
-
-variable "n8n_webhook_glitchtip_error_url" {
-  description = "n8n webhook URL for GlitchTip error workflows."
-  type        = string
-  default     = ""
-
-  validation {
-    condition     = var.n8n_webhook_glitchtip_error_url == "" || can(regex("^https?://", var.n8n_webhook_glitchtip_error_url))
-    error_message = "n8n_webhook_glitchtip_error_url must be empty or a valid HTTP(S) URL."
-  }
-}
-
 variable "n8n_webhook_github_issue_url" {
   description = "n8n webhook URL for GitHub issue automation."
   type        = string

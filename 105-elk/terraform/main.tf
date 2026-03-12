@@ -12,7 +12,6 @@ locals {
     docker             = { name = "Docker", tier = "standard" }
     elk                = { name = "ELK", tier = "critical" }
     github-runner      = { name = "GitHub Runner", tier = "ephemeral" }
-    glitchtip          = { name = "GlitchTip", tier = "standard" }
     grafana            = { name = "Grafana", tier = "critical" }
     mcphub             = { name = "MCPHub", tier = "standard" }
     opencode           = { name = "OpenCode", tier = "standard" }

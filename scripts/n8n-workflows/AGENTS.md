@@ -7,7 +7,6 @@ Exported n8n workflow definitions used by infra automation. These JSON files are
 ```text
 scripts/n8n-workflows/
 ├── error-to-github-issue.json
-├── glitchtip-sync.json
 ├── pr-notification.json
 ├── request-tracker.json
 ├── BUILD.bazel
@@ -18,8 +17,8 @@ scripts/n8n-workflows/
 ## WHERE TO LOOK
 | Task                      | Location                                                   | Notes                                     |
 | ------------------------- | ---------------------------------------------------------- | ----------------------------------------- |
-| Incident issue automation | `error-to-github-issue.json`                               | GlitchTip error to GitHub issue flow.     |
-| Synchronization flows     | `glitchtip-sync.json`, `request-tracker.json`              | Webhook-triggered sync (POST `/webhook/glitchtip-sync`). |
+| Incident issue automation | `error-to-github-issue.json`                               | Error to GitHub issue flow.                |
+| Synchronization flows     | `request-tracker.json`                                     | Webhook-triggered synchronization flow.    |
 | PR notifications          | `pr-notification.json`                                     | Pull request event notification pipeline. |
 | Parent script policy      | `../AGENTS.md`                                             | Shared automation script conventions. |
 | Alerting source context   | `../../104-grafana/AGENTS.md`                              | Upstream alert routing and contact-point behavior. |

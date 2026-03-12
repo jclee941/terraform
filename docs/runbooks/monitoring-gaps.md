@@ -77,9 +77,6 @@ pct exec 105 -- curl -s -X POST "localhost:9200/logs-test-$(date +%Y.%m.%d)/_doc
 curl -s http://192.168.50.104:3000/api/v1/provisioning/alert-rules \
   # 3. Verify: Check Slack channel for alert notification
 
-# 4. Verify: GitHub Issue created (if GlitchTip pipeline active)
-gh issue list --repo qws941/terraform --label automated
-
 # 4. Verify: GitHub Issue created
 gh issue list --repo qws941/terraform --label automated
 ```

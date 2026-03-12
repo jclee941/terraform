@@ -16,7 +16,6 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 | 102  | traefik   | LXC  | 02:00 UTC daily | Reverse proxy / edge router               |
 | 104  | grafana   | LXC  | 02:00 UTC daily | Observability stack                       |
 | 105  | elk       | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch               |
-| 106  | glitchtip | LXC  | 02:00 UTC daily | Error tracking                            |
 | 107  | supabase  | LXC  | 02:00 UTC daily | Supabase BaaS (PostgreSQL, Auth, Storage) |
 | 108  | archon    | LXC  | 02:00 UTC daily | AI Knowledge Management (Archon)          |
 | 112  | mcphub    | VM   | 03:00 UTC daily | MCP Hub + n8n automation                  |
@@ -60,14 +59,14 @@ Oldest backup automatically deleted: ~2025-11-11 (90 days old)
 
 ## Backup Execution Details
 
-### LXC Containers (102, 104, 105, 106, 107, 108)
+### LXC Containers (102, 104, 105, 107, 108)
 
 **Schedule**: Daily at **02:00 UTC** (9:00 PM UTC-5)
 **Command**:
 
 ```bash
 pvesh create /cluster/backup \
-  --vmid 102,104,105,106,107,108 \
+  --vmid 102,104,105,107,108 \
   --schedule "0 2 * * *" \
   --storage local \
   --mode snapshot \
@@ -355,16 +354,15 @@ Estimated daily backup sizes (with zstd compression):
 | 102       | traefik   | ~500 MB      | ~150 MB           | 150 MB       |
 | 104       | grafana   | ~1.5 GB      | ~400 MB           | 400 MB       |
 | 105       | elk       | ~4.0 GB      | ~1.2 GB           | 1.2 GB       |
-| 106       | glitchtip | ~800 MB      | ~250 MB           | 250 MB       |
 | 112       | mcphub    | ~2.0 GB      | ~600 MB           | 600 MB       |
-| **Total** |           | **8.8 GB**   | **~2.6 GB**       | **~2.6 GB**  |
+| **Total** |           | **8.0 GB**   | **~2.35 GB**      | **~2.35 GB** |
 
 ### Retention Storage
 
 With 90-day retention (21 daily + 4 weekly + 3 monthly snapshots):
 
 ```
-~2.6 GB/day × ~28 backups (average) = ~73 GB total retention
+~2.35 GB/day × ~28 backups (average) = ~66 GB total retention
 ```
 
 **Current available**: `/var/lib/vz/dump/` on PVE (check with `df -h`)

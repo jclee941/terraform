@@ -44,7 +44,7 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 | **GitHub secrets**        | `github-secrets.tf`                                                 | Cross-repo GitHub Actions secrets                                                                                       |
 | **Worker**                | `workers/synology-proxy/`                                           | Hono TS app with FileStation proxy                                                                                      |
 | **1Password secrets**     | `onepassword.tf` + `validation.tf`                                  | Structured secret lookup via `modules/shared/onepassword-secrets`.                                                      |
-| **Homelab service map**   | `locals.tf` → `homelab_services`                                    | 13 HTTP services via Traefik (elk, kibana, es, glitchtip, grafana, mcphub, vault, archon, supabase, nas, n8n, opencode, opencode-api) |
+| **Homelab service map**   | `locals.tf` → `homelab_services`                                    | 12 HTTP services via Traefik (elk, kibana, es, grafana, mcphub, vault, archon, supabase, nas, n8n, opencode, opencode-api) |
 | **CI**                    | Migrated from `.github/workflows/ci.yml`                            | 2 jobs: worker + terraform                                                                                              |
 
 ## CONVENTIONS

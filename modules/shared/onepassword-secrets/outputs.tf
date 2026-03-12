@@ -2,11 +2,6 @@ locals {
   grafana_admin_password        = try(data.onepassword_item.this["grafana"].section_map["Credentials"].field_map["admin_password"].value, "")
   grafana_service_account_token = try(data.onepassword_item.this["grafana"].section_map["Credentials"].field_map["service_account_token"].value, "")
 
-  glitchtip_django_secret_key = try(data.onepassword_item.this["glitchtip"].section_map["Secrets"].field_map["django_secret_key"].value, "")
-  glitchtip_postgres_password = try(data.onepassword_item.this["glitchtip"].section_map["Database"].field_map["postgres_password"].value, "")
-  glitchtip_redis_password    = try(data.onepassword_item.this["glitchtip"].section_map["Database"].field_map["redis_password"].value, "")
-  glitchtip_api_token         = try(data.onepassword_item.this["glitchtip"].section_map["Secrets"].field_map["api_token"].value, "")
-
   proxmox_api_token_value = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["api_token_value"].value, try(data.onepassword_item.this["proxmox"].credential, ""))
   proxmox_endpoint        = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["endpoint"].value, "")
   proxmox_ssh_private_key = try(data.onepassword_item.this["proxmox"].section_map["Keys"].field_map["private_key"].value, "")
@@ -36,13 +31,11 @@ locals {
   cloudflare_account_id      = try(data.onepassword_item.this["cloudflare"].section_map["Account"].field_map["account_id"].value, "")
   cloudflare_zone_id         = try(data.onepassword_item.this["cloudflare"].section_map["Account"].field_map["zone_id"].value, "")
 
-  n8n_api_key               = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["api_key"].value, "")
-  n8n_github_token          = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["github_token"].value, "")
-  n8n_glitchtip_api_token   = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["glitchtip_api_token"].value, "")
-  n8n_webhook_url           = try(data.onepassword_item.this["n8n"].section_map["Connection"].field_map["webhook_url"].value, "")
-  n8n_glitchtip_webhook_url = try(data.onepassword_item.this["n8n"].section_map["Connection"].field_map["glitchtip_webhook_url"].value, "")
-  n8n_postgres_password     = try(data.onepassword_item.this["n8n"].section_map["Database"].field_map["postgres_password"].value, "")
-  n8n_encryption_key        = try(data.onepassword_item.this["n8n"].section_map["Secrets"].field_map["encryption_key"].value, "")
+  n8n_api_key           = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["api_key"].value, "")
+  n8n_github_token      = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["github_token"].value, "")
+  n8n_webhook_url       = try(data.onepassword_item.this["n8n"].section_map["Connection"].field_map["webhook_url"].value, "")
+  n8n_postgres_password = try(data.onepassword_item.this["n8n"].section_map["Database"].field_map["postgres_password"].value, "")
+  n8n_encryption_key    = try(data.onepassword_item.this["n8n"].section_map["Secrets"].field_map["encryption_key"].value, "")
 
   mcphub_proxmox_token_name       = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_name"].value, "")
   mcphub_proxmox_token_value      = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_value"].value, "")
@@ -88,12 +81,6 @@ output "secrets" {
     grafana_admin_password        = local.grafana_admin_password
     grafana_service_account_token = local.grafana_service_account_token
 
-    # GlitchTip
-    glitchtip_django_secret_key = local.glitchtip_django_secret_key
-    glitchtip_postgres_password = local.glitchtip_postgres_password
-    glitchtip_redis_password    = local.glitchtip_redis_password
-    glitchtip_api_token         = local.glitchtip_api_token
-
     # Proxmox
     proxmox_api_token_value = local.proxmox_api_token_value
     proxmox_ssh_private_key = local.proxmox_ssh_private_key
@@ -124,11 +111,10 @@ output "secrets" {
     google_oauth_client_secret = local.google_oauth_client_secret
 
     # n8n
-    n8n_api_key             = local.n8n_api_key
-    n8n_github_token        = local.n8n_github_token
-    n8n_glitchtip_api_token = local.n8n_glitchtip_api_token
-    n8n_postgres_password   = local.n8n_postgres_password
-    n8n_encryption_key      = local.n8n_encryption_key
+    n8n_api_key           = local.n8n_api_key
+    n8n_github_token      = local.n8n_github_token
+    n8n_postgres_password = local.n8n_postgres_password
+    n8n_encryption_key    = local.n8n_encryption_key
 
     # MCPHub (MCPHub-specific secrets only)
     mcphub_proxmox_token_name       = local.mcphub_proxmox_token_name
@@ -181,8 +167,7 @@ output "metadata" {
     cloudflare_zone_id    = local.cloudflare_zone_id
 
     # n8n
-    n8n_webhook_url           = local.n8n_webhook_url
-    n8n_glitchtip_webhook_url = local.n8n_glitchtip_webhook_url
+    n8n_webhook_url = local.n8n_webhook_url
 
     # PBS (Proxmox Backup Server)
     pbs_server      = local.pbs_server
@@ -212,7 +197,6 @@ output "connection_info" {
     cloudflare_account_id       = local.cloudflare_account_id
     cloudflare_zone_id          = local.cloudflare_zone_id
     n8n_webhook_url             = local.n8n_webhook_url
-    n8n_glitchtip_webhook_url   = local.n8n_glitchtip_webhook_url
     pbs_server                  = local.pbs_server
     pbs_datastore               = local.pbs_datastore
     pbs_username                = local.pbs_username

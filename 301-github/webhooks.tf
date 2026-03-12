@@ -1,11 +1,5 @@
 locals {
   n8n_webhooks = {
-    glitchtip-error = {
-      url          = local.n8n_webhook_urls.glitchtip_error
-      events       = ["push", "workflow_run", "check_run"]
-      content_type = "json"
-      active       = true
-    }
     github-issue = {
       url          = local.n8n_webhook_urls.github_issue
       events       = ["issues", "issue_comment"]

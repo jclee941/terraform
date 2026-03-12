@@ -64,7 +64,6 @@
 | <a name="input_manage_as_organization"></a> [manage\_as\_organization](#input\_manage\_as\_organization) | Enable organization-only resources (teams, org secrets/variables). | `bool` | `false` | no |
 | <a name="input_n8n_webhook_github_issue_url"></a> [n8n\_webhook\_github\_issue\_url](#input\_n8n\_webhook\_github\_issue\_url) | n8n webhook URL for GitHub issue automation. | `string` | `""` | no |
 | <a name="input_n8n_webhook_github_pr_url"></a> [n8n\_webhook\_github\_pr\_url](#input\_n8n\_webhook\_github\_pr\_url) | n8n webhook URL for GitHub PR automation. | `string` | `""` | no |
-| <a name="input_n8n_webhook_glitchtip_error_url"></a> [n8n\_webhook\_glitchtip\_error\_url](#input\_n8n\_webhook\_glitchtip\_error\_url) | n8n webhook URL for GlitchTip error workflows. | `string` | `""` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret lookups | `string` | `"homelab"` | no |
 | <a name="input_organization_actions_secrets"></a> [organization\_actions\_secrets](#input\_organization\_actions\_secrets) | Organization Actions secrets as a map(secret\_name => plaintext\_value). | `map(string)` | `{}` | no |
 | <a name="input_organization_actions_variables"></a> [organization\_actions\_variables](#input\_organization\_actions\_variables) | Organization Actions variables as a map(variable\_name => value). | `map(string)` | `{}` | no |

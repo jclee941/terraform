@@ -5,9 +5,8 @@ locals {
   n8n_webhook_base = "https://mcphub.${local.infra_domain}"
 
   n8n_webhook_urls = {
-    glitchtip_error = coalesce(var.n8n_webhook_glitchtip_error_url, "${local.n8n_webhook_base}/webhook/glitchtip-error")
-    github_issue    = coalesce(var.n8n_webhook_github_issue_url, "${local.n8n_webhook_base}/webhook/github-issue")
-    github_pr       = coalesce(var.n8n_webhook_github_pr_url, "${local.n8n_webhook_base}/webhook/github-pr")
+    github_issue = coalesce(var.n8n_webhook_github_issue_url, "${local.n8n_webhook_base}/webhook/github-issue")
+    github_pr    = coalesce(var.n8n_webhook_github_pr_url, "${local.n8n_webhook_base}/webhook/github-pr")
   }
 
   infra_actions_variables = {

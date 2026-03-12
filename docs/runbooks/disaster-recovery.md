@@ -16,9 +16,8 @@
 3. **Traefik** (102) — Routing for all services
 4. **ELK** (105) — Logging pipeline
 5. **Grafana** (104) — Monitoring/alerting
-6. **GlitchTip** (106) — Error tracking
-7. **Runner** (101) — CI/CD
-8. **Remaining services** — Supabase, Archon, MCPHub
+6. **Runner** (101) — CI/CD
+7. **Remaining services** — Supabase, Archon, MCPHub
 
 ## Backup Strategy
 

@@ -6,7 +6,6 @@ Scheduled and reactive rotation procedures for homelab service credentials.
 - Authentication failures in service logs
 - n8n workflows failing with 401/403
 - MCP connections dropping
-- GlitchTip not receiving events
 - `onepassword-test.yml` or `mcp-health-check.yml` reporting auth failures
 
 ## Credential Inventory
@@ -17,7 +16,6 @@ Scheduled and reactive rotation procedures for homelab service credentials.
 | Cloudflare API Token | GitHub secret | 90 days / on failure | Cloudflare CI |
 | GitHub PAT | GitHub secret + 1Password | 90 days / on failure | CI cross-repo |
 | n8n MCP API Key | `/opt/mcphub/.env` on VM 112 | 2026-05-11 | MCPHub |
-| GlitchTip API Token | `/opt/glitchtip/.env` on LXC 106 | On failure | GlitchTip |
 | GitHub Runner Token | `/opt/runner/.env` on LXC 101 | 30 days | GitHub Actions |
 | Synology credentials | 1Password synology item | On failure | Synology NAS |
 | Slack bot/app tokens | 1Password slack item | On failure | Slack |
@@ -66,27 +64,6 @@ See `docs/cloudflare-token-rotation.md` for full procedure.
 # After generating new token at CF dashboard:
 gh secret set CLOUDFLARE_API_TOKEN
 # Re-run failed cloudflare-apply or worker-deploy workflow
-```
-
----
-
-## GlitchTip API Token
-
-**Scope:** MCPHub GlitchTip MCP server (192.168.50.112:8075) + n8n webhook
-
-```bash
-# 1. Get new token from GlitchTip UI (glitchtip.jclee.me)
-#    Org: jclee-homelab → Settings → API Tokens → Create
-# 2. Update 1Password: op://homelab/glitchtip/api_token
-# 3. Update MCPHub .env
-pct exec 112 -- sed -i 's|GLITCHTIP_AUTH_TOKEN=.*|GLITCHTIP_AUTH_TOKEN=<new-token>|' /opt/mcphub/.env
-# 4. Update n8n workflow webhook credential
-#    n8n UI (192.168.50.112:5678) → Credentials → GlitchTip API → Update token
-# 5. Restart
-pct exec 112 -- docker compose -f /opt/mcphub/docker-compose.yml restart
-# 6. Verify
-curl -s -H "Authorization: Bearer <token>" http://192.168.50.106:8000/api/0/organizations/
-curl http://192.168.50.112:8075/health
 ```
 
 ---
