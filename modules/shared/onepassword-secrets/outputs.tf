@@ -56,6 +56,8 @@ locals {
   elk_elastic_password = try(data.onepassword_item.this["elk"].section_map["Passwords"].field_map["elastic_password"].value, "")
   elk_kibana_password  = try(data.onepassword_item.this["elk"].section_map["Passwords"].field_map["kibana_password"].value, "")
 
+  traefik_htpasswd_hash = try(data.onepassword_item.this["traefik"].section_map["Credentials"].field_map["htpasswd_hash"].value, "")
+
   pbs_password    = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["Login"].field_map["password"].value, try(data.onepassword_item.this["pbs"].password, "")) : ""
   pbs_server      = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["Connection"].field_map["server"].value, "") : ""
   pbs_datastore   = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["Connection"].field_map["datastore"].value, "") : ""
@@ -143,6 +145,9 @@ output "secrets" {
 
     # PBS (Proxmox Backup Server)
     pbs_password = local.pbs_password
+
+    # Traefik
+    traefik_htpasswd_hash = local.traefik_htpasswd_hash
 
     # Synology
     synology_user     = local.synology_user

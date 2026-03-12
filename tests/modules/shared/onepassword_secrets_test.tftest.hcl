@@ -468,8 +468,8 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 44
-    error_message = "Secrets output should contain exactly 44 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 45
+    error_message = "Secrets output should contain exactly 45 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
@@ -896,7 +896,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 76
-    error_message = "Total keys (secrets + metadata + connection_info) should equal 76"
+    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 77
+    error_message = "Total keys (secrets + metadata + connection_info) should equal 77"
   }
 }

@@ -106,6 +106,7 @@ module "vm_config" {
           "systemctl start fail2ban",
           "mkdir -p /opt/mcphub",
           "mkdir -p /opt/n8n",
+          "mkdir -p /opt/n8n/patches",
           "mkdir -p /mnt/oc-dev /mnt/oc-kratos",
           "grep -q oc-dev /etc/fstab || echo 'jclee@${module.hosts.hosts["jclee-dev"].ip}:/home/jclee/dev /mnt/oc-dev fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab",
           "grep -q oc-kratos /etc/fstab || echo 'jclee@${module.hosts.hosts["jclee-dev"].ip}:/home/jclee/.kratos /mnt/oc-kratos fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab",
@@ -118,7 +119,7 @@ module "vm_config" {
           "mkdir -p /opt/mcphub/gcloud-config",
           "mkdir -p /opt/mcphub/patches",
           "cd /opt/mcphub && docker compose build && docker compose up -d",
-          "cd /opt/n8n && docker compose up -d"
+          "cd /opt/n8n && docker compose build && docker compose up -d"
         ]
         write_files = [
           {
@@ -179,6 +180,24 @@ module "vm_config" {
             path        = "/opt/mcphub/patches/entrypoint-patch.sh"
             content     = file("${path.module}/../112-mcphub/config/entrypoint-patch.sh")
             permissions = "0755"
+            owner       = "root:root"
+          },
+          {
+            path        = "/opt/n8n/Dockerfile.n8n"
+            content     = file("${path.module}/../112-mcphub/Dockerfile.n8n")
+            permissions = "0644"
+            owner       = "root:root"
+          },
+          {
+            path        = "/opt/n8n/patches/license.js"
+            content     = file("${path.module}/../112-mcphub/patches/n8n/license.js")
+            permissions = "0644"
+            owner       = "root:root"
+          },
+          {
+            path        = "/opt/n8n/patches/license-state.js"
+            content     = file("${path.module}/../112-mcphub/patches/n8n/license-state.js")
+            permissions = "0644"
             owner       = "root:root"
           },
         ]

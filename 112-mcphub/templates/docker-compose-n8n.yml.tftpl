@@ -1,7 +1,9 @@
 services:
   n8n:
     container_name: n8n
-    image: n8nio/n8n:2.8.1
+    build:
+      context: /opt/n8n
+      dockerfile: Dockerfile.n8n
     restart: unless-stopped
     ports:
       - "5678:5678"
@@ -47,7 +49,6 @@ services:
       N8N_LOG_OUTPUT: console
       # ── External integrations ──
       GITHUB_TOKEN: ${n8n_github_token}
-      SLACK_WEBHOOK_URL: ${slack_webhook_url}
       N8N_SENTRY_DSN: ${n8n_glitchtip_webhook_url}
       # ── Payload ──
       N8N_PAYLOAD_SIZE_MAX: 16

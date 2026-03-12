@@ -42,6 +42,7 @@ locals {
     "proxmox",
     "slack",
     "supabase",
+    "traefik",
   ])
 
   # Items conditionally looked up.

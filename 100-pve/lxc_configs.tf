@@ -54,10 +54,6 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/n8n.yml"
           content = module.config_renderer.rendered_configs.traefik_n8n
         }
-        "traefik-synology.yml" = {
-          path    = "/etc/traefik/dynamic/synology.yml"
-          content = module.config_renderer.rendered_configs.traefik_synology
-        }
         "traefik-archon.yml" = {
           path    = "/etc/traefik/dynamic/archon.yml"
           content = module.config_renderer.rendered_configs.traefik_archon
@@ -85,6 +81,10 @@ module "lxc_config" {
         "cloudflared-docker-compose.yml" = {
           path    = "/opt/cloudflared/docker-compose.yml"
           content = module.config_renderer.rendered_configs.traefik_cloudflared
+        }
+        "traefik-middlewares.yml" = {
+          path    = "/etc/traefik/dynamic/middlewares.yml"
+          content = module.config_renderer.rendered_configs.traefik_middlewares
         }
       }
     }

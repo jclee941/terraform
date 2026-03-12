@@ -80,6 +80,7 @@ locals {
     glitchtip = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GlitchTip Error Tracking" }
     supabase  = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
     archon    = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
+    gitops    = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "GitOps Controller + GitHub Dispatch Agent" }
     coredns   = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
   }
 
@@ -174,12 +175,12 @@ locals {
     "openai_api_key",
     "proxmox_ssh_private_key",
     "slack_mcp_xoxp_token",
-    "slack_webhook_url",
     "supabase_anon_key",
     "supabase_dashboard_password",
     "supabase_db_password",
     "supabase_jwt_secret",
     "supabase_service_role_key",
+    "traefik_htpasswd_hash",
   ]
 
   missing_required_template_secret_keys = [
@@ -218,7 +219,6 @@ locals {
       glitchtip   = "glitchtip.yml.tftpl"
       mcphub      = "mcphub.yml.tftpl"
       n8n         = "n8n.yml.tftpl"
-      synology    = "synology.yml.tftpl"
       archon      = "archon.yml.tftpl"
       supabase    = "supabase.yml.tftpl"
       grafana     = "grafana.yml.tftpl"
@@ -226,6 +226,7 @@ locals {
       opencode    = "opencode.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"
       cloudflared = "cloudflared-docker-compose.yml.tftpl"
+      middlewares = "middlewares.yml.tftpl"
     } }
     "103-coredns" = { prefix = "coredns", files = {
       corefile       = "Corefile.tftpl"
@@ -257,6 +258,12 @@ locals {
     "108-archon" = { prefix = "archon", files = {
       filebeat       = "filebeat.yml.tftpl"
       docker_compose = "docker-compose.yml.tftpl"
+      env            = ".env.tftpl"
+    } }
+    "109-gitops" = { prefix = "gitops", files = {
+      filebeat       = "filebeat.yml.tftpl"
+      docker_compose = "docker-compose.yml.tftpl"
+      dockerfile     = "Dockerfile.tftpl"
       env            = ".env.tftpl"
     } }
     "112-mcphub" = { prefix = "mcphub", files = {

@@ -7,6 +7,7 @@ http:
       service: archon
       middlewares:
         - rate-limit-api@file
+        - chain-basic-auth@file
       tls:
         certResolver: cf
       priority: 10

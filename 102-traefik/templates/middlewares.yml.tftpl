@@ -1,0 +1,79 @@
+# Traefik Dynamic Configuration - Middleware Definitions
+# Includes resilient chain, rate limiting, security headers, and basic auth.
+#
+# Usage: Reference middlewares via @file suffix in route configs:
+#   middlewares:
+#     - chain-basic-auth@file
+#     - rate-limit-api@file
+
+http:
+  middlewares:
+    # Retry failed requests up to 5 times with exponential backoff
+    mcp-retry:
+      retry:
+        attempts: 5
+        initialInterval: 100ms
+
+    # Trip circuit breaker on high error rates
+    mcp-circuit-breaker:
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+
+    # Combined resilient chain: retry first, then circuit breaker
+    mcp-resilient:
+      chain:
+        middlewares:
+          - mcp-retry
+          - mcp-circuit-breaker
+
+    # Rate limiting for external-facing endpoints
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+
+    # Per-service rate limiting tiers
+    rate-limit-api:
+      rateLimit:
+        average: 30
+        burst: 15
+        period: 1s
+
+    rate-limit-standard:
+      rateLimit:
+        average: 60
+        burst: 30
+        period: 1s
+
+    rate-limit-relaxed:
+      rateLimit:
+        average: 120
+        burst: 60
+        period: 1s
+
+    # Security headers for all external-facing routes
+    security-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: strict-origin-when-cross-origin
+        permissionsPolicy: camera=(), microphone=(), geolocation=(), payment=()
+        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss: https:; frame-ancestors 'self'"
+
+    # BasicAuth for internal browser-accessible services
+    basic-auth:
+      basicAuth:
+        users:
+          - "${traefik_htpasswd_hash}"
+
+    # Chain: security headers + basic auth (required per AGENTS.md convention)
+    chain-basic-auth:
+      chain:
+        middlewares:
+          - security-headers
+          - basic-auth
