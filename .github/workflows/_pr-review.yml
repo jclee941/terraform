@@ -189,13 +189,13 @@ jobs:
 
           AFFECTED=""
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/lxc/'; then
-            AFFECTED="$AFFECTED 101-runner 102-traefik 104-grafana 105-elk 106-glitchtip 107-supabase 108-archon"
+            AFFECTED="$AFFECTED 101-runner 102-traefik 104-grafana 105-elk 107-supabase 108-archon"
           fi
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/vm/'; then
             AFFECTED="$AFFECTED 112-mcphub 220-youtube"
           fi
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/lxc-config/'; then
-            AFFECTED="$AFFECTED 101-runner 102-traefik 104-grafana 105-elk 106-glitchtip 107-supabase 108-archon"
+            AFFECTED="$AFFECTED 101-runner 102-traefik 104-grafana 105-elk 107-supabase 108-archon"
           fi
           if echo "$MODULE_CHANGES" | grep -q 'modules/proxmox/vm-config/'; then
             AFFECTED="$AFFECTED 112-mcphub 220-youtube"

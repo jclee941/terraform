@@ -21,7 +21,6 @@ body:
         - 103-coredns (DNS resolver)
         - 104-grafana (observability)
         - 105-elk (logging)
-        - 106-glitchtip (error tracking)
         - 107-supabase (database)
         - 108-archon (AI knowledge)
         - 112-mcphub (MCP gateway)
