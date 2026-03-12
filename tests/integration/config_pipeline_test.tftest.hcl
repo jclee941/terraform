@@ -112,14 +112,14 @@ run "full_pipeline_traefik_route" {
           }
         }
 
-        glitchtip = {
-          vmid  = 106
-          ip    = "192.168.50.106"
-          roles = ["error-tracking", "monitoring"]
+        supabase = {
+          vmid  = 107
+          ip    = "192.168.50.107"
+          roles = ["database", "backend"]
           ports = {
-            web      = 8000
+            api      = 8000
+            studio   = 3000
             postgres = 5432
-            redis    = 6379
           }
         }
 

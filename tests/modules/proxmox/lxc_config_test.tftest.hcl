@@ -174,18 +174,18 @@ run "test_config_files_output" {
 
   variables {
     lxc_containers = {
-      glitchtip = {
-        vmid       = 106
-        hostname   = "glitchtip"
-        ip_address = "192.168.50.106"
+      sampleapp = {
+        vmid       = 110
+        hostname   = "sampleapp"
+        ip_address = "192.168.50.110"
         config_files = {
           app-env = {
-            path        = "/opt/glitchtip/.env"
+            path        = "/opt/sampleapp/.env"
             content     = "DEBUG=false"
             permissions = "0600"
           }
           smtp-config = {
-            path    = "/opt/glitchtip/smtp.conf"
+            path    = "/opt/sampleapp/smtp.conf"
             content = "smtp_enabled=true"
           }
         }
@@ -199,11 +199,11 @@ run "test_config_files_output" {
 
   assert {
     condition = (
-      length(try(output.lxc_configs.glitchtip.config_files, [])) == 2 &&
-      try(output.lxc_configs.glitchtip.config_files[0].name, "") == "app-env" &&
-      endswith(try(output.lxc_configs.glitchtip.config_files[0].path, ""), "/configs/lxc-106-glitchtip/app-env") &&
-      try(output.lxc_configs.glitchtip.config_files[1].name, "") == "smtp-config" &&
-      endswith(try(output.lxc_configs.glitchtip.config_files[1].path, ""), "/configs/lxc-106-glitchtip/smtp-config")
+      length(try(output.lxc_configs.sampleapp.config_files, [])) == 2 &&
+      try(output.lxc_configs.sampleapp.config_files[0].name, "") == "app-env" &&
+      endswith(try(output.lxc_configs.sampleapp.config_files[0].path, ""), "/configs/lxc-110-sampleapp/app-env") &&
+      try(output.lxc_configs.sampleapp.config_files[1].name, "") == "smtp-config" &&
+      endswith(try(output.lxc_configs.sampleapp.config_files[1].path, ""), "/configs/lxc-110-sampleapp/smtp-config")
     )
     error_message = "config_files output should include expected file names and generated paths"
   }

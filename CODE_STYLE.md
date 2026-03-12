@@ -329,7 +329,7 @@ Test directories mirror the module/workspace structure under `tests/`.
 - All actions SHA-pinned with `# vN` version comment suffix:
 
   ```yaml
-  uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555f616ced269f3f1f # v3
+  uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4
   ```
 
 - Never use mutable tags (`@v4`).
