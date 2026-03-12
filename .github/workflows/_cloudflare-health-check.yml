@@ -191,6 +191,9 @@ jobs:
             APIKEY_ARGS=(-H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
           fi
 
+          # Compute ISO 8601 datetime for "last 24 hours" filter
+          SINCE=$(date -u -d '24 hours ago' '+%Y-%m-%dT%H:%M:%SZ')
+
           fetch_workers() {
             curl -sk \
               "$@" \
@@ -198,7 +201,7 @@ jobs:
               -X POST \
               "https://api.cloudflare.com/client/v4/graphql" \
               -d '{
-                "query": "query { viewer { accounts(filter: { accountTag: \"'"${CLOUDFLARE_ACCOUNT_ID}"'\" }) { workersInvocationsAdaptive(filter: { datetime_geq: \"24h\" }) { sum { errors success } } } } }"
+                "query": "query { viewer { accounts(filter: { accountTag: \"'"${CLOUDFLARE_ACCOUNT_ID}"'\" }) { workersInvocationsAdaptive(filter: { datetime_geq: \"'"${SINCE}"'\" }) { sum { errors success } } } } }"
               }'
           }
 
