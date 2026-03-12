@@ -12,7 +12,6 @@ on:
       - "103-coredns/templates/**"
       - "104-grafana/templates/**"
       - "105-elk/templates/**"
-      - "106-glitchtip/templates/**"
       - "107-supabase/templates/**"
       - "108-archon/templates/**"
       - "112-mcphub/templates/**"
