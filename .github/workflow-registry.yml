@@ -167,13 +167,6 @@ templates:
     callers:
       - opencode.yml
 
-  - file: _auto-fix-ci.yml
-    name: Auto-Fix CI (Reusable)
-    purpose: AI-assisted automatic fix for failed CI runs
-    runner: ubuntu-latest
-    callers:
-      - auto-fix-ci.yml
-
   - file: _codex-pr-review.yml
     name: Codex PR Review (Reusable)
     purpose: AI-assisted PR code review via Codex
