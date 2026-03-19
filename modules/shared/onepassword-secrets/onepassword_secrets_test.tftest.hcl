@@ -74,8 +74,13 @@ run "all_item_titles" {
   }
 
   assert {
-    condition     = data.onepassword_item.exa.title == "exa"
-    error_message = "Exa item title should be 'exa'."
+    condition     = data.onepassword_item.telegram.title == "telegram"
+    error_message = "Telegram item title should be 'telegram'."
+  }
+
+  assert {
+    condition     = data.onepassword_item.openrouter.title == "openrouter"
+    error_message = "OpenRouter item title should be 'openrouter'."
   }
 
   assert {

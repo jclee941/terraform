@@ -58,7 +58,7 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 14 items:
 | `grafana`    | Observability stack  | `service_account_token`, `admin_password`                                                                                    |
 | `proxmox`    | Hypervisor API       | `api_token_id`, `api_token_secret`                                                                                           |
 | `github`     | GitHub PAT           | `personal_access_token`                                                                                                      |
-| `exa`        | Exa search API       | `api_key`                                                                                                                    |
+
 | `supabase`   | Self-hosted Supabase | `postgres_password`, `jwt_secret`, `anon_key`, `service_role_key`, `dashboard_password`                                      |
 | `archon`     | Archon MCP           | `openai_api_key`                                                                                                             |
 | `cloudflare` | CF account           | `account_id`, `zone_id`, `api_token`                                                                                         |
