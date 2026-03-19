@@ -48,7 +48,7 @@ override_module {
       grafana_admin_password          = "mock-secret"              # pragma: allowlist secret
       grafana_service_account_token   = "mock-secret"              # pragma: allowlist secret
       proxmox_api_token_value         = "mock-secret"              # pragma: allowlist secret
-      exa_api_key                     = "mock-secret"              # pragma: allowlist secret
+
       supabase_service_key            = "mock-secret"              # pragma: allowlist secret
       archon_anthropic_key            = "mock-secret"              # pragma: allowlist secret
       cloudflare_api_key              = "mock-secret"              # pragma: allowlist secret

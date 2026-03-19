@@ -193,18 +193,7 @@ func validateCloudflare(vals map[string]string) (bool, string) {
 	return false, fmt.Sprintf("HTTP %d — %s", status, truncate(string(body), 80))
 }
 
-func validateElevenlabs(vals map[string]string) (bool, string) {
-	status, _, err := httpGet("https://api.elevenlabs.io/v1/user", map[string]string{
-		"xi-api-key": vals["password"],
-	})
-	if err != nil {
-		return false, fmt.Sprintf("connection: %v", err)
-	}
-	if status == 200 {
-		return true, "authenticated"
-	}
-	return false, fmt.Sprintf("HTTP %d", status)
-}
+
 
 func validateELK(vals map[string]string) (bool, string) {
 	clientID := vals["cf_access_client_id"]
@@ -377,13 +366,7 @@ var services = []serviceCheck{
 		},
 		validate: validateCloudflare,
 	},
-	{
-		name: "elevenlabs",
-		fields: []fieldSpec{
-			{"password", "op://homelab/elevenlabs/password"},
-		},
-		validate: validateElevenlabs,
-	},
+
 	{
 		name: "elk",
 		fields: []fieldSpec{
@@ -468,12 +451,7 @@ var services = []serviceCheck{
 			{"openai_api_key", "op://homelab/archon/secrets/openai_api_key"},
 		},
 	},
-	{
-		name: "exa",
-		fields: []fieldSpec{
-			{"api_key", "op://homelab/exa/secrets/api_key"},
-		},
-	},
+
 	{
 		name: "splunk",
 		fields: []fieldSpec{
