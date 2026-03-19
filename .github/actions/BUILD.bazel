@@ -1,6 +1,0 @@
-package(default_visibility = ["//visibility:public"])
-
-filegroup(
-    name = "actions",
-    srcs = glob(["**/*.yml"], allow_empty = True),
-)

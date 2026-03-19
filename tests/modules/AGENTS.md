@@ -8,8 +8,6 @@ Parent scope for Terraform-native module tests. Owns the boundary between reusab
 tests/modules/
 ├── proxmox/   # Proxmox module unit and rendering tests
 ├── shared/    # Shared-module contract tests
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK

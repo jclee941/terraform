@@ -32,7 +32,7 @@ High-performance edge router and reverse proxy (LXC 102) for the `jclee.me` ecos
 
 - **NO Plaintext**: Direct HTTP access is forbidden; redirect to 443 is mandatory.
 - **NO Manual Mutation**: Editing files in `/etc/traefik/dynamic/` on the LXC is prohibited; use TF.
-- **Token Exposure**: Never place sensitive auth headers or tokens in public `BUILD.bazel` or YAML configs.
+- **Token Exposure**: Never place sensitive auth headers or tokens in public YAML configs.
 - **Insecure Middlewares**: Routing new backends without security headers (`chain-basic-auth`) is a violation.
 
 ## COMMANDS

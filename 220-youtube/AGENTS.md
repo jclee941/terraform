@@ -16,8 +16,6 @@ The `220-youtube` VM is a dedicated environment for YouTube media workloads. It 
 ├── cloud-init/
 │   └── youtube-user-data.yaml  # Cloud-init definition (WARP, tools)
 ├── AGENTS.md                   # This file (Operational SoT)
-├── BUILD.bazel                # Bazel monorepo target
-├── OWNERS                      # Directory ownership
 └── README.md                   # User guide
 ```
 

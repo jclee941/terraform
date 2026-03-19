@@ -25,7 +25,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 | **Index Management**       | `templates/ilm-policy.json.tftpl` (source)                         |
 | **Logstash Settings**      | `templates/logstash.yml.tftpl` (source)                            |
 | **Logstash Exporter**      | `templates/Dockerfile.logstash.tftpl` (custom image with exporter) |
-| **ILM Bootstrap**          | `scripts/setup-ilm.sh`, `templates/setup-ilm.sh.tftpl`             |
+| **ILM Bootstrap**          | `scripts/setup-ilm.go`, `templates/setup-ilm.sh.tftpl`              |
 | **Filebeat Setup**         | `scripts/install-filebeat.sh`                                      |
 | **Deployment**             | `100-pve/main.tf` (cloud-init wiring + filebeat provisioner)       |
 | **ELK Provider Resources** | `terraform/main.tf` (ILM, index templates, Kibana spaces)          |

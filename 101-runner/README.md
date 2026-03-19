@@ -46,15 +46,15 @@ SSH into the container and run the setup script:
 ssh root@192.168.50.100 'pct exec 101 -- bash'
 
 # Install dependencies (run once)
-bash /opt/runner/scripts/setup-runner.sh
+go run /opt/runner/scripts/setup-runner.go
 
 # Register all repos with 2 instances each (default)
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
-  bash /opt/runner/scripts/register-all-repos.sh
+  go run /opt/runner/scripts/register-all-repos.go
 
 # Register all repos with 3 instances each
 RUNNER_COUNT=3 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
-  bash /opt/runner/scripts/register-all-repos.sh
+  go run /opt/runner/scripts/register-all-repos.go
 ```
 
 ### 3. Using in Workflows
@@ -89,15 +89,15 @@ journalctl -u github-runner-2-terraform -f
 
 # Register a single repo (all instances)
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
-  bash /opt/runner/scripts/register-repo.sh <repo-name>
+  go run /opt/runner/scripts/register-repo.go <repo-name>
 
 # Register a single repo (specific instance only)
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
-  bash /opt/runner/scripts/register-repo.sh <repo-name> 1
+  go run /opt/runner/scripts/register-repo.go <repo-name> 1
 
 # Unregister all
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
-  bash /opt/runner/scripts/unregister-all.sh
+  go run /opt/runner/scripts/unregister-all.go
 ```
 
 ## Architecture

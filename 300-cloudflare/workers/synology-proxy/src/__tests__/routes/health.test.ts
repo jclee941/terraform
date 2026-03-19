@@ -39,7 +39,7 @@ describe('health routes', () => {
 
     expect(response.status).toBe(200);
     expect(body.status).toBe('ok');
-    expect(body.service).toBe('synology-proxy');
+    expect(body.service).toBe('synology');
     expect(body.version).toBe('1.0.0');
     expect(typeof body.timestamp).toBe('string');
   });

@@ -15,8 +15,6 @@ via `scripts/gitops-targets`, and dispatches the existing
 ```text
 109-gitops/
 ├── AGENTS.md
-├── BUILD.bazel
-├── OWNERS
 ├── README.md
 └── templates/
     ├── .env.tftpl

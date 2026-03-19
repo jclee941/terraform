@@ -1,3 +1,6 @@
+//go:build setup_watcher
+// +build setup_watcher
+
 package main
 
 import (

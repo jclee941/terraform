@@ -98,6 +98,19 @@ export const errorHandler = (error: unknown, c: Context<HonoEnv>): Response => {
     ? error
     : new AppError(getErrorMessage(error), 500, 'INTERNAL_SERVER_ERROR');
 
+  const requestId = c.req.header('cf-ray');
+  console.warn(
+    JSON.stringify({
+      event: 'worker_error',
+      requestId,
+      method: c.req.method,
+      path: new URL(c.req.url).pathname,
+      statusCode: appError.statusCode,
+      code: appError.code,
+      message: appError.message,
+    })
+  );
+
   const response = buildErrorResponse(appError, c);
   return c.newResponse(JSON.stringify(response), appError.statusCode as StatusCode, {
     'content-type': 'application/json',

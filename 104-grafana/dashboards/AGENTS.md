@@ -14,8 +14,6 @@ Dashboard JSON files in this directory are the source of truth for Grafana dashb
 ├── logstash-metrics.json
 ├── ...                    # Remaining dashboard JSON definitions
 ├── README.md              # Inventory and usage notes
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK

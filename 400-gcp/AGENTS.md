@@ -9,8 +9,6 @@ Terraform-managed Google Cloud Platform (GCP) infrastructure via the `hashicorp/
 ```text
 400-gcp/
 ├── AGENTS.md
-├── BUILD.bazel
-├── OWNERS
 ├── main.tf          # Provider config (google + onepassword)
 ├── versions.tf      # Provider requirements + backend
 ├── variables.tf     # GCP auth variables (with validation)

@@ -1,8 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -13,14 +9,16 @@
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_grafana"></a> [grafana](#provider\_grafana) | 4.27.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
-## Resources
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../../modules/shared/onepassword-secrets | n/a |
 
 ## Resources
 
@@ -46,8 +44,6 @@
 
 ## Inputs
 
-## Inputs
-
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_grafana_admin_password"></a> [grafana\_admin\_password](#input\_grafana\_admin\_password) | Grafana admin password used for basic auth fallback (overrides 1Password if set) | `string` | `""` | no |
@@ -56,8 +52,6 @@
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | Grafana instance URL | `string` | `"http://192.168.50.104:3000"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret lookups | `string` | `"homelab"` | no |
 | <a name="input_slack_webhook_url"></a> [slack\_webhook\_url](#input\_slack\_webhook\_url) | Slack incoming webhook URL for alert notifications (fallback if not in 1Password) | `string` | `""` | no |
-
-## Outputs
 
 ## Outputs
 
@@ -73,5 +67,4 @@
 | <a name="output_grafana_sa_token_terraform"></a> [grafana\_sa\_token\_terraform](#output\_grafana\_sa\_token\_terraform) | Grafana service account token for Terraform operations |
 | <a name="output_notification_policy_id"></a> [notification\_policy\_id](#output\_notification\_policy\_id) | ID of the default notification policy |
 | <a name="output_rule_group_names"></a> [rule\_group\_names](#output\_rule\_group\_names) | Names of all managed alert rule groups |
-
 <!-- END_TF_DOCS -->

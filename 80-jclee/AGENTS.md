@@ -11,8 +11,6 @@ Personal workstation (physical PC). Not provisioned by Terraform — inventory h
 ```
 80-jclee/
 ├── AGENTS.md    # This file
-├── BUILD.bazel  # Monorepo integration
-├── OWNERS       # Access control
 └── README.md    # Service documentation
 ```
 

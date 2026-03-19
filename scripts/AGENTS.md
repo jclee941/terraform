@@ -26,7 +26,7 @@ scripts/
 
 - `production-verification.go`: Checks HTTP reachability, PostgreSQL, Prometheus targets, Grafana dashboards, ELK stack health. Run after any deploy via `go run scripts/production-verification.go`.
 - `setup-filebeat.go`: Local tooling for filebeat setup. The remote execution payload `install-filebeat.sh` is SCP'd to hosts by TF provisioners (`lxc-config`/`vm-config`).
-- `scaffold-workspace.go`: Creates new numbered workspace directories with BUILD.bazel, OWNERS, README.md, AGENTS.md, main.tf, variables.tf, outputs.tf, versions.tf. Supports `--dry-run`.
+- `scaffold-workspace.go`: Creates new numbered workspace directories with README.md, AGENTS.md, main.tf, variables.tf, outputs.tf, versions.tf. Supports `--dry-run`.
 
 ## WHERE TO LOOK
 

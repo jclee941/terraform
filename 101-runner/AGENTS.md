@@ -12,18 +12,16 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 ## STRUCTURE
 ```
 101-runner/
-├── BUILD.bazel          # Monorepo integration (all_configs)
-├── OWNERS               # Access control (Infrastructure)
 ├── README.md            # Hardware/Setup documentation
 ├── config/
 │   └── filebeat.yml     # Log forwarding to ELK (105)
 ├── templates/
 │   └── filebeat.yml.tftpl  # Templated filebeat config
-└── scripts/             # Runner lifecycle management
-    ├── setup-runner.sh       # Dependency bootstrap, Docker, Terraform, Bazel
-    ├── register-all-repos.sh # Multi-instance bulk registration (N instances × M repos)
-    ├── register-repo.sh      # Single repo registration (all or specific instance)
-    └── unregister-all.sh     # Safe cleanup with backward compat
+└── scripts/             # Runner lifecycle management (Go)
+    ├── setup-runner.go       # Dependency bootstrap, Docker, Terraform, Bazel
+    ├── register-all-repos.go # Multi-instance bulk registration (N instances × M repos)
+    ├── register-repo.go      # Single repo registration (all or specific instance)
+    └── unregister-all.go     # Safe cleanup with backward compat
 ```
 
 ## MULTI-INSTANCE MODEL
@@ -39,12 +37,12 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|
-| **Add new repo** | `scripts/register-all-repos.sh` | Auto-discovers all repos via API |
-| **Add single repo** | `scripts/register-repo.sh` | `./register-repo.sh <name> [instance]` |
+| **Add new repo** | `scripts/register-all-repos.go` | Auto-discovers all repos via API |
+| **Add single repo** | `scripts/register-repo.go` | `go run scripts/register-repo.go <name> [instance]` |
 | **Troubleshoot logs**| `config/filebeat.yml` | Verified against Logstash:5044 |
-| **Base dependencies**| `scripts/setup-runner.sh` | Python, Docker, Terraform, Bazel |
+| **Base dependencies**| `scripts/setup-runner.go` | Python, Docker, Terraform, Bazel |
 | **Service Control** | `README.md` | `systemctl status github-runner-{N}-{repo}` |
-| **Safe cleanup** | `scripts/unregister-all.sh` | Token revocation + multi-instance + legacy cleanup |
+| **Safe cleanup** | `scripts/unregister-all.go` | Token revocation + multi-instance + legacy cleanup |
 
 ## CONVENTIONS
 - **Governance**: Managed by Terraform (`module.lxc["runner"]`). VMID 101 is fixed.
@@ -60,5 +58,5 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 - **NO shared state** between repos. Each runner instance is independent.
 - **NO plaintext tokens**. Use environment variables or 1Password integration.
 - **NO direct SSH**. Use `ssh root@pve 'pct exec 101 -- bash'` from PVE host.
-- **NO persistent storage** in work dirs. Cleaned by `unregister-all.sh`.
+- **NO persistent storage** in work dirs. Cleaned by `unregister-all.go`.
 - **NO remote registration**. Do not run registration scripts from non-runner hosts.

@@ -240,7 +240,7 @@ export GITHUB_TOKEN="ghp_..."
 | `data "onepassword_item"`                               | 100-pve (via module) | Fetch 12 service secrets                       |
 | `data "grafana_data_source"`                            | 104-grafana          | Reference Prometheus/Elasticsearch datasources |
 | `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare       | Fetch tunnel token                             |
-| `data "terraform_remote_state"`                         | 102, 104, 105, 108, 109, 301 | Cross-workspace state reference (from 100-pve) |
+| `data "terraform_remote_state"`                         | 102, 108, 301        | Cross-workspace state reference (from 100-pve) |
 
 ---
 

@@ -1,5 +1,0 @@
-filegroup(
-    name = "fixtures",
-    srcs = glob(["**/*.tftpl"]),
-    visibility = ["//visibility:public"],
-)

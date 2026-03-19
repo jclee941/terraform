@@ -5,6 +5,10 @@ export interface Env {
   SYNOLOGY_PASSWORD: string;
   ENVIRONMENT: string;
   API_KEY: string;
+  ELK_ES_ENDPOINT?: string;
+  ELK_ES_USERNAME?: string;
+  ELK_ES_PASSWORD?: string;
+  ELK_ES_INDEX_PREFIX?: string;
 }
 
 export type HonoEnv = { Bindings: Env };

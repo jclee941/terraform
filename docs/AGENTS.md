@@ -10,7 +10,6 @@ Project documentation, runbooks, architecture decisions, and operational guides.
 docs/
 ├── adr/                          # Architecture Decision Records
 ├── runbooks/                     # Operational procedures (incident response)
-├── architecture.md               # System architecture overview
 ├── cloudflare-token-rotation.md  # Security rotation procedures
 ├── backup-strategy.md            # Restic/Borg backup policies
 ├── secret-management.md          # Secret management strategy and patterns
@@ -23,7 +22,7 @@ docs/
 | Topic                      | File                           | Notes                                                    |
 | -------------------------- | ------------------------------ | -------------------------------------------------------- |
 | **Architecture Decisions** | `adr/`                         | Immutable decision records with context and consequences |
-| **System Architecture**    | `architecture.md`              | High-level system topology and service relationships     |
+| **System Architecture**    | `../ARCHITECTURE.md`           | High-level system topology and service relationships     |
 | **Incident Response**      | `runbooks/`                    | Step-by-step recovery guides                             |
 | **Token Rotation**         | `cloudflare-token-rotation.md` | Quarterly rotation steps                                 |
 | **Backups**                | `backup-strategy.md`           | 3-2-1 strategy details                                   |

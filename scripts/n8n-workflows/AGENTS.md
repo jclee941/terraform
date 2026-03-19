@@ -9,8 +9,6 @@ scripts/n8n-workflows/
 ├── error-to-github-issue.json
 ├── pr-notification.json
 ├── request-tracker.json
-├── BUILD.bazel
-├── OWNERS
 └── AGENTS.md
 ```
 
@@ -28,7 +26,6 @@ scripts/n8n-workflows/
 - Keep workflow IDs, node names, and credential references stable for deterministic diffs.
 - Export from n8n UI after edits and commit the exact JSON output.
 - Treat this directory as canonical workflow definition; runtime must mirror committed files.
-- Keep `BUILD.bazel` and `OWNERS` intact for governance.
 
 ## ANTI-PATTERNS
 - Do not edit runtime workflows in n8n without exporting and committing updated JSON.

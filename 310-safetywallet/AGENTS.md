@@ -14,8 +14,6 @@ SafetyWallet external service. Connected to homelab infrastructure via dedicated
 ```
 310-safetywallet/
 ├── AGENTS.md    # This file
-├── BUILD.bazel  # Monorepo integration
-├── OWNERS       # Access control
 └── README.md    # Service documentation
 ```
 

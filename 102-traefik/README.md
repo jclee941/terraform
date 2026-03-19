@@ -68,5 +68,4 @@ It depends on:
 
 ## 7. Governance
 - **Style**: Google3 Monorepo
-- **Build System**: Bazel (`BUILD.bazel` for linting)
 - **Ownership**: Infrastructure Team

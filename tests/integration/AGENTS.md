@@ -9,8 +9,6 @@ tests/integration/
 ├── config_pipeline_test.tftest.hcl  # End-to-end config pipeline assertions
 ├── fixtures/                         # Template inputs and expected render fragments
 ├── main.tf                           # Test provider requirements
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK

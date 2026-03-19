@@ -1,5 +1,0 @@
-filegroup(
-    name = "pve",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

@@ -16,8 +16,6 @@ OpenCode development VM. Provisioned via `100-pve/main.tf` as `jclee-dev`. Runs 
 ```
 200-oc/
 ├── AGENTS.md    # This file
-├── BUILD.bazel  # Monorepo integration
-├── OWNERS       # Access control
 └── README.md    # Service documentation
 ```
 

@@ -15,8 +15,6 @@ Synology NAS providing network-attached storage for the homelab. Managed via the
 
 ```
 215-synology/
-├── BUILD.bazel       # Monorepo integration
-├── OWNERS            # Access control (Infrastructure)
 ├── AGENTS.md         # This file
 ├── README.md         # Device documentation
 ├── syslog-config.md  # Syslog forwarding setup to ELK (105)

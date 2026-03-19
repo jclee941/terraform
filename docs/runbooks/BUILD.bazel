@@ -1,7 +1,0 @@
-filegroup(
-    name = "runbooks",
-    srcs = glob(["*.md"]),
-    visibility = ["//visibility:public"],
-)
-
-exports_files(glob(["*.md"]))

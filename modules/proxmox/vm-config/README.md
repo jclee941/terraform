@@ -5,10 +5,6 @@ Supports cloud-init templates and post-provisioning config deployment
 using the hosts map pattern from `envs/prod/hosts.tf`.
 
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -19,14 +15,14 @@ using the hosts map pattern from `envs/prod/hosts.tf`.
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_local"></a> [local](#provider\_local) | 2.6.2 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 
-## Resources
+## Modules
+
+No modules.
 
 ## Resources
 
@@ -41,8 +37,6 @@ using the hosts map pattern from `envs/prod/hosts.tf`.
 
 ## Inputs
 
-## Inputs
-
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_deploy_vm_configs"></a> [deploy\_vm\_configs](#input\_deploy\_vm\_configs) | Whether to deploy VM configurations via SSH | `bool` | `false` | no |
@@ -54,11 +48,8 @@ using the hosts map pattern from `envs/prod/hosts.tf`.
 
 ## Outputs
 
-## Outputs
-
 | Name | Description |
 |------|-------------|
 | <a name="output_cloud_init_paths"></a> [cloud\_init\_paths](#output\_cloud\_init\_paths) | Map of VM name to cloud-init file path |
 | <a name="output_vm_configs"></a> [vm\_configs](#output\_vm\_configs) | Generated VM configuration paths |
-
 <!-- END_TF_DOCS -->

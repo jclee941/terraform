@@ -47,6 +47,21 @@ const isUploadFile = (value: unknown): value is UploadFile => {
   return typeof candidate.name === 'string' && typeof candidate.stream === 'function';
 };
 
+const parseOptionalIntegerQuery = (value: string | undefined, name: string): number | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!/^\d+$/.test(value)) {
+    throw new ValidationError(
+      `Query parameter "${name}" must be a non-negative integer`,
+      `INVALID_${name.toUpperCase()}`
+    );
+  }
+
+  return Number(value);
+};
+
 export const createFilesRoutes = (overrides?: Partial<FilesRouteDependencies>): Hono<HonoEnv> => {
   const deps = { ...defaultDependencies, ...(overrides ?? {}) };
   const routes = new Hono<HonoEnv>();
@@ -71,8 +86,8 @@ export const createFilesRoutes = (overrides?: Partial<FilesRouteDependencies>): 
 
     const listOptions: ListFilesOptions = {
       folderPath: path,
-      offset: c.req.query('offset') ? Number(c.req.query('offset')) : undefined,
-      limit: c.req.query('limit') ? Number(c.req.query('limit')) : undefined,
+      offset: parseOptionalIntegerQuery(c.req.query('offset'), 'offset'),
+      limit: parseOptionalIntegerQuery(c.req.query('limit'), 'limit'),
       sortBy: c.req.query('sort_by') ?? undefined,
       sortDirection: rawSortDirection,
       additional: c.req

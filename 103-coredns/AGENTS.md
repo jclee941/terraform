@@ -20,12 +20,8 @@ Split DNS resolver on LXC 103 (192.168.50.103, 256MB RAM, 1 core, 4GB disk). Cor
 ```text
 103-coredns/
 ├── AGENTS.md
-├── BUILD.bazel
-├── OWNERS
 ├── README.md
 └── templates/
-    ├── BUILD.bazel
-    ├── OWNERS
     ├── Corefile.tftpl
     ├── docker-compose.yml.tftpl
     └── filebeat.yml.tftpl

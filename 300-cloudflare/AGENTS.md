@@ -8,8 +8,6 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 
 ```
 300-cloudflare/
-├── BUILD.bazel              # Monorepo integration
-├── OWNERS                   # Access control
 ├── AGENTS.md                # This file
 ├── *.tf                     # Terraform workspace (18 TF files, incl. logpush.tf, waf.tf, onepassword.tf, validation.tf)
 ├── terraform.tfvars.example # Variable template (NO secrets)

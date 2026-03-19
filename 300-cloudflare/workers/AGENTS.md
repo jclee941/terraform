@@ -8,8 +8,6 @@ Boundary guidance for Cloudflare Worker implementations under `300-cloudflare/wo
 300-cloudflare/workers/
 ├── synology-proxy/   # Hono Worker implementation
 ├── issue-form/       # Hono Worker implementation
-├── BUILD.bazel
-├── OWNERS
 └── AGENTS.md
 ```
 

@@ -65,8 +65,6 @@ func main() {
 	// Use string concatenation to avoid nesting backticks
 	titleName := titleCase(name)
 	agentsStruct := dirName + "/\n" +
-		"├── BUILD.bazel\n" +
-		"├── OWNERS\n" +
 		"├── README.md\n" +
 		"├── AGENTS.md\n" +
 		"├── main.tf\n" +
@@ -75,8 +73,6 @@ func main() {
 		"└── versions.tf"
 
 	files := map[string]string{
-		"BUILD.bazel":  "package(default_visibility = [\"//visibility:public\"])\n",
-		"OWNERS":       "qws941\n",
 		"README.md":    "# " + dirName + "\n\n## Overview\n\n" + name + " service workspace.\n\n## Usage\n\n```bash\nmake plan SVC=" + name + "\n```\n",
 		"AGENTS.md":    "# " + dirName + "/ Knowledge Base\n\n## OVERVIEW\n\n" + titleName + " service Terraform workspace.\n\n## STRUCTURE\n\n```text\n" + agentsStruct + "\n```\n\n## CONVENTIONS\n\nSee root `AGENTS.md` for global conventions.\n",
 		"main.tf":      "# " + titleName + " Service Configuration\n",

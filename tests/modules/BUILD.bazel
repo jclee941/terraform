@@ -1,5 +1,0 @@
-filegroup(
-    name = "modules",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

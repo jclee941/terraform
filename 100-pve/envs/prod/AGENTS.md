@@ -8,8 +8,6 @@ Production host inventory source of truth. `hosts.tf` defines VMID, IP, role, an
 100-pve/envs/prod/
 ├── hosts.tf        # Canonical host/network map consumed by module.hosts
 ├── README.md       # Environment notes
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK

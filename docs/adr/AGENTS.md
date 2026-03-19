@@ -19,7 +19,7 @@ docs/adr/
 
 | Topic | File | Notes |
 |------|------|-------|
-| Monorepo structure | `001-monorepo-structure.md` | Directory model, Bazel, workspace numbering. |
+| Monorepo structure | `001-monorepo-structure.md` | Directory model, workspace numbering. Bazel governance superseded. |
 | MCP access pattern | `002-mcphub-single-entrypoint.md` | Gateway and entrypoint decisions. |
 | External access model | `003-cloudflare-tunnel-architecture.md` | Cloudflare tunnel and access rationale. |
 | Secret schema migration | `004-onepassword-vault-standardization.md` | Vault item structure and consumer fallout. |

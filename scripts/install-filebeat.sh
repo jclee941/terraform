@@ -9,6 +9,7 @@
 #   sudo bash /tmp/install-filebeat.sh
 #
 set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
 
 FILEBEAT_VERSION="8.12.0"
 KEYRING_PATH="/usr/share/keyrings/elasticsearch-keyring.gpg"
@@ -75,7 +76,7 @@ fi
 # Install Filebeat
 log_info "Installing Filebeat ${FILEBEAT_VERSION}..."
 apt-get update -qq
-apt-get install -y -qq --allow-downgrades "filebeat=${FILEBEAT_VERSION}"
+apt-get install -y -qq --allow-downgrades -o Dpkg::Options::="--force-confold" "filebeat=${FILEBEAT_VERSION}"
 log_ok "Filebeat ${FILEBEAT_VERSION} installed successfully"
 
 # Docker group permissions

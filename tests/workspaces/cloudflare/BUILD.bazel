@@ -1,5 +1,0 @@
-filegroup(
-    name = "cloudflare",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

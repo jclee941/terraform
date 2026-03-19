@@ -14,8 +14,6 @@ tests/workspaces/
 ├── pve/                        # Proxmox workspace validation tests
 ├── slack/                      # Slack workspace validation tests
 ├── traefik/                    # Traefik workspace remote-state tests
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK

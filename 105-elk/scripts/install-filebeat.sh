@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
 
 FILEBEAT_VERSION="8.12.0"
 ELK_HOST="192.168.50.105"
@@ -26,7 +27,7 @@ echo "Downloading Filebeat ${FILEBEAT_VERSION}..."
 curl -L -O "${DOWNLOAD_URL}"
 
 echo "Installing Filebeat..."
-dpkg -i "${DEB_FILE}"
+dpkg --force-confold -i "${DEB_FILE}"
 rm -f "${DEB_FILE}"
 
 SERVICE_NAME=$(hostname -s)

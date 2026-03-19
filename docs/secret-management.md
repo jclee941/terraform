@@ -111,7 +111,18 @@ Per-host `.env` secrets deployed via config-renderer templates:
 | 107-supabase  | `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `DASHBOARD_PASSWORD`                                                    |
 | 108-archon    | `OPENAI_API_KEY`                                                                                                                           |
 | 112-mcphub    | 10+ secrets (`admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `es_password`, `proxmox_token`, `slack_tokens`) |
-| 112-n8n       | `api_key`, `github_token`                                                                                           |
+| 110-n8n       | `api_key`, `github_token`, `slack_bot_token`, `supabase_service_role_key`, `youtube_google_*` |
+
+### n8n native credential provider mapping
+
+`110-n8n/templates/n8n.env.tftpl` renders 1Password-backed values so workflows can use n8n's native env expression path (`{{ $env.VAR_NAME }}`) without embedding secrets in workflow JSON.
+
+| Provider (n8n credential/use case) | Env var in n8n | 1Password source key |
+| --- | --- | --- |
+| GitHub API | `GITHUB_TOKEN` | `n8n_github_token` |
+| Slack API | `SLACK_BOT_TOKEN` | `slack_bot_token` |
+| Supabase API | `SUPABASE_SERVICE_ROLE_KEY` | `supabase_service_role_key` |
+| YouTube OAuth/API | `YOUTUBE_GOOGLE_CLIENT_ID`, `YOUTUBE_GOOGLE_CLIENT_SECRET`, `YOUTUBE_GOOGLE_REFRESH_TOKEN` | `youtube_google_*` |
 
 ## Provider Authentication
 
@@ -196,5 +207,5 @@ Trigger manually: Actions → Secret Audit → Run workflow.
 
 ## Cross-References
 
-- [Cloudflare Token Rotation](../cloudflare-token-rotation.md)
-- [Credential Rotation Runbook](../runbooks/credential-rotation.md)
+- [Cloudflare Token Rotation](cloudflare-token-rotation.md)
+- [Credential Rotation Runbook](runbooks/credential-rotation.md)

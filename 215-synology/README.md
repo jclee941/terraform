@@ -42,10 +42,6 @@ make plan SVC=synology    # Plan changes
 - IP and port information flows through `module.hosts` → dependent workspaces
 
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -56,13 +52,15 @@ make plan SVC=synology    # Plan changes
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_synology"></a> [synology](#provider\_synology) | 0.6.9 |
 
-## Resources
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
 
 ## Resources
 
@@ -70,8 +68,6 @@ make plan SVC=synology    # Plan changes
 |------|------|
 | [synology_core_package.container_manager](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/core_package) | resource |
 | [synology_core_network.this](https://registry.terraform.io/providers/synology-community/synology/latest/docs/data-sources/core_network) | data source |
-
-## Inputs
 
 ## Inputs
 
@@ -85,11 +81,8 @@ make plan SVC=synology    # Plan changes
 
 ## Outputs
 
-## Outputs
-
 | Name | Description |
 |------|-------------|
 | <a name="output_container_manager_installed"></a> [container\_manager\_installed](#output\_container\_manager\_installed) | Whether ContainerManager package is installed |
 | <a name="output_network_info"></a> [network\_info](#output\_network\_info) | Synology NAS network configuration |
-
 <!-- END_TF_DOCS -->

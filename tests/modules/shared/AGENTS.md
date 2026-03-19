@@ -9,8 +9,6 @@ tests/modules/shared/
 ├── main.tf                              # Test provider requirements
 ├── onepassword_secrets_test.tftest.hcl  # Shared module contract tests
 ├── README.md                            # Shared-module test notes
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK
@@ -18,7 +16,6 @@ tests/modules/shared/
 |------|------|-------|
 | Provider mock setup | `onepassword_secrets_test.tftest.hcl` | `mock_provider "onepassword"` + overrides. |
 | Test provider versions | `main.tf` | Keep onepassword provider constraints aligned with module. |
-| Bazel ownership/governance | `BUILD.bazel`, `OWNERS` | Keep Google3-style governance intact. |
 
 ## CONVENTIONS
 - Use `terraform test` with fully mocked provider responses; no live 1Password dependency.

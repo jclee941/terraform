@@ -1,6 +1,0 @@
-# Namespace package for Proxmox provider modules.
-filegroup(
-    name = "proxmox",
-    srcs = glob(["**/*"], allow_empty = True),
-    visibility = ["//visibility:public"],
-)

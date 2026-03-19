@@ -1,5 +1,0 @@
-filegroup(
-    name = "ISSUE_TEMPLATE",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

@@ -12,6 +12,7 @@ services:
       - /usr/bin/op:/usr/bin/op:ro
       - ./op-mcp-server:/app/op-mcp-server:ro
       - /mnt/oc-dev:/home/jclee/dev:ro
+      - /mnt/oc-dev/gmail:/home/jclee/dev/gmail
       - ./.gitconfig:/root/.gitconfig:ro
       - /mnt/oc-kratos:/root/.kratos
       - ./slack-users-cache.json:/tmp/slack-users-cache.json

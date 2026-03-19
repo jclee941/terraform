@@ -13,8 +13,6 @@ Self-hosted Supabase instance providing PostgreSQL database, Auth, REST API, Rea
 ## STRUCTURE
 ```
 107-supabase/
-├── BUILD.bazel          # Bazel governance
-├── OWNERS               # Ownership
 ├── AGENTS.md            # This file
 ├── README.md            # Service documentation
 ├── templates/           # Config templates (rendered by Terraform)

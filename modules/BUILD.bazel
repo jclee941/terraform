@@ -1,6 +1,0 @@
-# Namespace package for all Terraform modules.
-filegroup(
-    name = "modules",
-    srcs = glob(["**/*"], allow_empty = True),
-    visibility = ["//visibility:public"],
-)

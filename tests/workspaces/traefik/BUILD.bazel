@@ -1,5 +1,0 @@
-filegroup(
-    name = "traefik",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

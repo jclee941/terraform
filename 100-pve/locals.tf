@@ -171,13 +171,18 @@ locals {
     "mcphub_proxmox_token_name",
     "mcphub_proxmox_token_value",
     "openai_api_key",
+    "openrouter_api_key",
     "proxmox_ssh_private_key",
+    "proxmox_ssh_private_key",
+    "slack_bot_token",
     "slack_mcp_xoxp_token",
     "supabase_anon_key",
     "supabase_dashboard_password",
     "supabase_db_password",
     "supabase_jwt_secret",
     "supabase_service_role_key",
+    "telegram_bot_token",
+    "traefik_htpasswd_hash",
     "traefik_htpasswd_hash",
   ]
 

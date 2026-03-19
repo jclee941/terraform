@@ -8,20 +8,20 @@ Host-side runner lifecycle scripts for LXC 101. These scripts install dependenci
 
 ```text
 101-runner/scripts/
-├── setup-runner.sh        # Debian bootstrap: Docker, Terraform, Bazel, runner binary
-├── register-all-repos.sh  # Bulk registration for all owned repos and all instances
-├── register-repo.sh       # Single-repo registration for one or all instances
-└── unregister-all.sh      # Removes runner configs, services, and work dirs
+├── setup-runner.go        # Debian bootstrap: Docker, Terraform, Bazel, runner binary
+├── register-all-repos.go  # Bulk registration for all owned repos and all instances
+├── register-repo.go       # Single-repo registration for one or all instances
+└── unregister-all.go      # Removes runner configs, services, and work dirs
 ```
 
 ## WHERE TO LOOK
 
 | Task | File | Notes |
 |------|------|-------|
-| Install base dependencies | `setup-runner.sh` | Creates `runner` user, installs Docker/Terraform/Bazel, sets template unit. |
-| Register every repo | `register-all-repos.sh` | Discovers repos from GitHub API and creates `github-runner-{N}-{repo}.service`. |
-| Register one repo | `register-repo.sh` | Supports all instances or a single target instance number. |
-| Remove all runners safely | `unregister-all.sh` | Handles both current multi-instance and legacy layouts. |
+| Install base dependencies | `setup-runner.go` | Creates `runner` user, installs Docker/Terraform/Bazel, sets template unit. |
+| Register every repo | `register-all-repos.go` | Discovers repos from GitHub API and creates `github-runner-{N}-{repo}.service`. |
+| Register one repo | `register-repo.go` | Supports all instances or a single target instance number. |
+| Remove all runners safely | `unregister-all.go` | Handles both current multi-instance and legacy layouts. |
 
 ## CONVENTIONS
 

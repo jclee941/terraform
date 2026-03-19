@@ -7,8 +7,6 @@ Reusable utility modules shared across multiple infrastructure stacks (Proxmox, 
 ```
 modules/shared/
 ├── onepassword-secrets/   # 1Password secret retrieval via service account
-├── BUILD.bazel
-├── OWNERS
 └── AGENTS.md
 ```
 

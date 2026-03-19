@@ -1,8 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -13,14 +9,16 @@
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_elasticstack"></a> [elasticstack](#provider\_elasticstack) | 0.14.3 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
-## Resources
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../../modules/shared/onepassword-secrets | n/a |
 
 ## Resources
 
@@ -41,8 +39,6 @@
 
 ## Inputs
 
-## Inputs
-
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_elasticsearch_password"></a> [elasticsearch\_password](#input\_elasticsearch\_password) | Elasticsearch password (empty if xpack security disabled) | `string` | `""` | no |
@@ -53,13 +49,10 @@
 
 ## Outputs
 
-## Outputs
-
 | Name | Description |
 |------|-------------|
 | <a name="output_data_view_logs_id"></a> [data\_view\_logs\_id](#output\_data\_view\_logs\_id) | ID of the Logs data view |
 | <a name="output_ilm_policy_homelab_logs"></a> [ilm\_policy\_homelab\_logs](#output\_ilm\_policy\_homelab\_logs) | Name of the homelab-logs-30d ILM policy |
 | <a name="output_index_template_logs"></a> [index\_template\_logs](#output\_index\_template\_logs) | Name of the logs index template |
 | <a name="output_kibana_space_id"></a> [kibana\_space\_id](#output\_kibana\_space\_id) | ID of the homelab Kibana space |
-
 <!-- END_TF_DOCS -->

@@ -225,8 +225,9 @@ let License = class License {
         await this.manager.shutdown();
         this.logger.debug('License shut down');
     }
-    // ── PATCHED: Always return true for all feature checks ──
+    // ── PATCHED: Return true for all features EXCEPT API_DISABLED ──
     isLicensed(feature) {
+        if (feature === 'feat:apiDisabled') return false;
         return true;
     }
     isDynamicCredentialsEnabled() {

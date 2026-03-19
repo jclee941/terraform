@@ -8,17 +8,14 @@ Shared test workspace for Terraform-native test execution (`.tftest.hcl`) across
 tests/
 ├── modules/proxmox/      # Module unit tests + fixtures
 ├── integration/          # Cross-module pipeline tests
-├── workspaces/           # Workspace-level variable validation tests
-│   ├── archon/          # Archon workspace remote-state tests
-│   ├── cloudflare/      # Cloudflare workspace validation
-│   ├── elk/             # ELK workspace validation
-│   ├── grafana/         # Grafana workspace validation
-│   ├── ollama/          # Ollama workspace remote-state + output tests
-│   ├── pve/             # PVE workspace validation
-│   ├── slack/           # Slack workspace validation
-│   └── traefik/         # Traefik workspace remote-state tests
-├── BUILD.bazel
-└── OWNERS
+└── workspaces/           # Workspace-level variable validation tests
+    ├── archon/          # Archon workspace remote-state tests
+    ├── cloudflare/      # Cloudflare workspace validation
+    ├── elk/             # ELK workspace validation
+    ├── grafana/         # Grafana workspace validation
+    ├── pve/             # PVE workspace validation
+    ├── slack/           # Slack workspace validation
+    └── traefik/         # Traefik workspace remote-state tests
 ```
 
 ## WHERE TO LOOK
@@ -29,7 +26,7 @@ tests/
 | Shared module tests | `tests/modules/shared/AGENTS.md` | onepassword-secrets mock-provider contracts. |
 | Pipeline integration checks | `tests/integration/AGENTS.md` | Config renderer and hosts-map end-to-end strategy. |
 | Workspace validation checks | `tests/workspaces/AGENTS.md` | Standalone workspace variable-validation strategy. |
-| Specific workspace tests | `tests/workspaces/{archon,cloudflare,elk,grafana,ollama,pve,slack,traefik}/` | Per-workspace `*_test.tftest.hcl` + mock `main.tf`. |
+| Specific workspace tests | `tests/workspaces/{archon,cloudflare,elk,grafana,pve,slack,traefik}/` | Per-workspace `*_test.tftest.hcl` + mock `main.tf`. |
 
 ## CONVENTIONS
 - Use native `terraform test`; avoid custom runners.

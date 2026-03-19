@@ -33,14 +33,15 @@ locals {
     "archon",
     "cloudflare",
     "elk",
-    "exa",
     "github",
     "grafana",
     "mcphub",
     "n8n",
+    "openrouter",
     "proxmox",
     "slack",
     "supabase",
+    "telegram",
     "traefik",
   ])
 

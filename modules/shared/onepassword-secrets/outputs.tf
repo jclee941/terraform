@@ -8,8 +8,6 @@ locals {
 
   github_personal_access_token = try(data.onepassword_item.this["github"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["github"].credential, ""))
 
-  exa_api_key = try(data.onepassword_item.this["exa"].section_map["API Keys"].field_map["api_key"].value, try(data.onepassword_item.this["exa"].credential, ""))
-
   supabase_service_key        = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, "")
   supabase_anon_key           = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["anon_key"].value, "")
   supabase_service_role_key   = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_role_key"].value, try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, ""))
@@ -71,10 +69,14 @@ locals {
   gcp_credentials = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["Credentials"].field_map["credentials"].value, "") : ""
   gcp_project_id  = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["Connection"].field_map["project_id"].value, "") : ""
   gcp_region      = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["Connection"].field_map["region"].value, "") : ""
+
+  # AI & Media Integrations for n8n
+  telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
+  openrouter_api_key = try(data.onepassword_item.this["openrouter"].credential, "")
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (42 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (38 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -87,9 +89,6 @@ output "secrets" {
 
     # GitHub
     github_personal_access_token = local.github_personal_access_token
-
-    # Exa (web search)
-    exa_api_key = local.exa_api_key
 
     # Supabase
     supabase_service_key        = local.supabase_service_key
@@ -150,6 +149,10 @@ output "secrets" {
 
     # GCP (Google Cloud Platform)
     gcp_credentials = local.gcp_credentials
+
+    # AI & Media Integrations for n8n
+    telegram_bot_token = local.telegram_bot_token
+    openrouter_api_key = local.openrouter_api_key
   }
 }
 

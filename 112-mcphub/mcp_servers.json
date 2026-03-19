@@ -118,6 +118,23 @@
         "N8N_API_KEY": "${N8N_MCP_API_KEY}"
       },
       "description": "n8n workflow automation"
+}
+,
+    "gmail-creator": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "node",
+      "args": ["/home/jclee/dev/gmail/gmail-creator-mcp.mjs"],
+      "port": 8082,
+      "env": {
+        "FIVESIM_API_KEY": "${FIVESIM_API_KEY}",
+        "SMS_PROVIDER": "${SMS_PROVIDER}",
+        "FIVESIM_REGION": "${FIVESIM_REGION}",
+        "PROXY_SERVER": "${PROXY_SERVER}",
+        "PROXY_USER": "${PROXY_USER}",
+        "PROXY_PASS": "${PROXY_PASS}"
+      },
+      "description": "Google account creation automation"
     }
   }
 }

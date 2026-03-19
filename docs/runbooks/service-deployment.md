@@ -89,7 +89,6 @@ Never run `terraform apply` locally against production.
 
 ## Adding a New Service
 1. Create directory: `mkdir NNN-service`
-2. Add governance: `BUILD.bazel`, `OWNERS`
 3. Add to `100-pve/main.tf` as a module call
 4. Add host entry to `100-pve/envs/prod/hosts.tf`
 5. Create templates in `NNN-service/templates/`
@@ -97,7 +96,7 @@ Never run `terraform apply` locally against production.
 7. If service has its own Terraform workspace:
    - Create `{svc}-plan.yml` and `{svc}-apply.yml` using reusable `_terraform-plan.yml` / `_terraform-apply.yml`
    - Add to drift check matrix in `terraform-drift.yml`
-8. Verify: `bazel build //...`
+8. Verify: `make plan ws=NNN-service`
 
 ## CI Workflow Coverage
 

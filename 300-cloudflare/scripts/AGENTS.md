@@ -11,8 +11,6 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 ├── audit.go              # Compare inventory metadata vs target stores
 ├── generate-bindings.go  # Build Wrangler secret binding declarations
 ├── deploy-worker.go      # Disabled local deploy guard (CI-only policy)
-├── BUILD.bazel
-├── OWNERS
 └── AGENTS.md
 ```
 

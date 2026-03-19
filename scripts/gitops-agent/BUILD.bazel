@@ -1,8 +1,0 @@
-filegroup(
-    name = "all_srcs",
-    srcs = [
-        "main.go",
-        "main_test.go",
-    ],
-    visibility = ["//visibility:public"],
-)

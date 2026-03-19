@@ -1,6 +1,0 @@
-# Namespace package for shared cross-provider modules.
-filegroup(
-    name = "shared",
-    srcs = glob(["**/*"], allow_empty = True),
-    visibility = ["//visibility:public"],
-)

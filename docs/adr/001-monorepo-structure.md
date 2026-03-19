@@ -1,4 +1,6 @@
-# ADR-001: Monorepo Structure with Bazel
+# ADR-001: Monorepo Structure ~~with Bazel~~ [SUPERSEDED]
+
+> **Status: Superseded** — Bazel governance (BUILD.bazel, OWNERS) removed. Directory structure and workspace numbering conventions remain active.
 
 **Status:** Accepted  
 **Date:** 2026-02-13  
@@ -13,7 +15,6 @@ Adopt a flat monorepo structure with Bazel build system:
 - Root-level `{NNN}-{svc}/` directories for Terraform workspaces
 - `modules/{provider}/{module}/` for reusable modules
 - `modules/shared/` for cross-provider modules
-- Every directory has `BUILD.bazel` and `OWNERS` (Google3 style)
 - Numbering: 100-199 internal infra, 200-299 VMs, 300+ external providers
 
 ## Alternatives Considered

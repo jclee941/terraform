@@ -4,7 +4,7 @@ import type { HonoEnv } from '../env';
 type WorkerLog = {
   timestamp: string;
   level: 'info';
-  service: 'synology-proxy-worker';
+  service: 'synology-worker';
   message: string;
   event: 'request_completed';
   method: string;
@@ -28,7 +28,7 @@ export const elkRequestLogger: MiddlewareHandler<HonoEnv> = async (c, next) => {
   const payload: WorkerLog = {
     timestamp: new Date().toISOString(),
     level: 'info',
-    service: 'synology-proxy-worker',
+    service: 'synology-worker',
     message: 'Cloudflare Worker request processed',
     event: 'request_completed',
     method: c.req.method,
@@ -49,7 +49,7 @@ export const elkRequestLogger: MiddlewareHandler<HonoEnv> = async (c, next) => {
   }
 
   const username = c.env.ELK_ES_USERNAME?.trim() || 'elastic';
-  const indexPrefix = c.env.ELK_ES_INDEX_PREFIX?.trim() || 'logs-synology-proxy-worker';
+  const indexPrefix = c.env.ELK_ES_INDEX_PREFIX?.trim() || 'logs-synology-worker';
   const now = new Date();
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
   const day = String(now.getUTCDate()).padStart(2, '0');

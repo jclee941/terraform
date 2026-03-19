@@ -7,7 +7,7 @@ healthRoutes.get('/health', (c) => {
   return c.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'synology-proxy',
+    service: 'synology',
     version: '1.0.0',
   });
 });

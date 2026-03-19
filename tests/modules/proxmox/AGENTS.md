@@ -13,8 +13,6 @@ tests/modules/proxmox/
 ├── config_renderer_test.tftest.hcl  # Multi-template config renderer behavior
 ├── fixtures/                        # Template fixtures and expected outputs
 ├── main.tf                          # Test provider requirements
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK

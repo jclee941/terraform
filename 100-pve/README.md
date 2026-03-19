@@ -72,9 +72,8 @@ As the host node, 100-pve is the foundation for:
 
 ## 6. Governance
 
-- **Style**: Google3 Monorepo
-- **Build System**: Bazel (`BUILD.bazel` included for config validation)
-- **Ownership**: Infrastructure Team (see `OWNERS`)
+- **Style**: Monorepo
+- **Ownership**: @qws941
 
 <!-- BEGIN_TF_DOCS -->
 

@@ -1,5 +1,0 @@
-filegroup(
-    name = "integration",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

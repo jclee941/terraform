@@ -12,8 +12,6 @@ docs/runbooks/
 ├── elk-index-migration.md
 ├── disaster-recovery.md
 ├── ...                     # Additional incident/ops runbooks
-├── BUILD.bazel
-├── OWNERS
 └── AGENTS.md
 ```
 

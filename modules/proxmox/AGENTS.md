@@ -15,8 +15,6 @@ modules/proxmox/
 ├── lxc-config/       # LXC config deployment/render wiring
 ├── vm-config/        # VM config deployment/render wiring
 ├── config-renderer/  # Shared .tftpl render pipeline
-├── BUILD.bazel
-└── OWNERS
 ```
 
 ## WHERE TO LOOK (Config Flow)

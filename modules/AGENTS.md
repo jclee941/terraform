@@ -21,7 +21,6 @@ modules/
 - Keep module sources relative (`../modules/...`) from workspaces.
 - Keep module interfaces explicit in `variables.tf` and `outputs.tf` with descriptions.
 - Keep module contracts stable; evolve by additive variables before breaking changes.
-- Keep `BUILD.bazel` and `OWNERS` in each module subtree.
 
 ## ANTI-PATTERNS
 - Do not hardcode environment-specific IPs or secrets in modules.

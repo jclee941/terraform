@@ -68,7 +68,7 @@ jobs:
             done < <(git diff --name-only "$EVENT_BEFORE" "$EVENT_SHA")
           fi
 
-          json="$(${args[@]})"
+          json="$("${args[@]}")"
           echo "result=$json" >> "$GITHUB_OUTPUT"
 
           export GITOPS_RESULT="$json"

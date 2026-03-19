@@ -1,5 +1,0 @@
-filegroup(
-    name = "configs",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

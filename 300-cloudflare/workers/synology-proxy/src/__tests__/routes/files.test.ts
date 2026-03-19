@@ -88,6 +88,59 @@ describe('files routes', () => {
     expect(body.error.code).toBe('MISSING_PATH');
   });
 
+  it('returns validation error for non-numeric offset and limit in list endpoint', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const client: MockClient = {
+      listFiles: vi.fn(),
+      downloadFile: vi.fn(),
+      uploadFile: vi.fn(),
+      createFolder: vi.fn(),
+      deleteFiles: vi.fn(),
+      getInfo: vi.fn(),
+      createShareLink: vi.fn(),
+    };
+    const cache: MockCache = {
+      get: vi.fn(),
+      put: vi.fn(),
+      delete: vi.fn(),
+      invalidateByPrefix: vi.fn(),
+      generateCacheKey: vi.fn().mockReturnValue('downloads/key'),
+    };
+
+    const app = createAppWithMocks(client, cache);
+    const response = await app.request(
+      '/api/files/list?path=%2F&offset=abc&limit=10',
+      { method: 'GET' },
+      createEnv()
+    );
+    const body = (await response.json()) as {
+      success: boolean;
+      error: { code?: string };
+    };
+
+    expect(response.status).toBe(400);
+    expect(body.success).toBe(false);
+    expect(body.error.code).toBe('INVALID_OFFSET');
+    expect(client.listFiles).not.toHaveBeenCalled();
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const warnPayload = JSON.parse(String(warnSpy.mock.calls[0][0])) as {
+      event: string;
+      code?: string;
+      statusCode: number;
+      path: string;
+      method: string;
+    };
+    expect(warnPayload.event).toBe('worker_error');
+    expect(warnPayload.code).toBe('INVALID_OFFSET');
+    expect(warnPayload.statusCode).toBe(400);
+    expect(warnPayload.path).toBe('/api/files/list');
+    expect(warnPayload.method).toBe('GET');
+
+    warnSpy.mockRestore();
+  });
+
   it('handles list files request successfully', async () => {
     const client: MockClient = {
       listFiles: vi.fn().mockResolvedValue({ files: [], total: 0, offset: 0 }),
