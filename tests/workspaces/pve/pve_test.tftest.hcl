@@ -37,6 +37,14 @@ override_module {
       supabase_db_password            = "mock-secret"              # pragma: allowlist secret
       supabase_jwt_secret             = "mock-secret"              # pragma: allowlist secret
       supabase_service_role_key       = "mock-secret"              # pragma: allowlist secret
+      openrouter_api_key              = "mock-secret"              # pragma: allowlist secret
+      telegram_bot_token              = "mock-secret"              # pragma: allowlist secret
+      grafana_admin_password          = "mock-secret"              # pragma: allowlist secret
+      supabase_anon_key               = "mock-secret"              # pragma: allowlist secret
+      supabase_dashboard_password     = "mock-secret"              # pragma: allowlist secret
+      supabase_db_password            = "mock-secret"              # pragma: allowlist secret
+      supabase_jwt_secret             = "mock-secret"              # pragma: allowlist secret
+      supabase_service_role_key       = "mock-secret"              # pragma: allowlist secret
       grafana_admin_password          = "mock-secret"              # pragma: allowlist secret
       grafana_service_account_token   = "mock-secret"              # pragma: allowlist secret
       proxmox_api_token_value         = "mock-secret"              # pragma: allowlist secret
