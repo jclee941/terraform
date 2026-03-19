@@ -51,7 +51,7 @@ go run scripts/setup-github-secrets.go --audit
 
 ## 1Password Item Inventory
 
-The shared module (`modules/shared/onepassword-secrets/`) manages 14 items:
+The shared module (`modules/shared/onepassword-secrets/`) manages 15 items:
 
 | Item         | Description          | Key Secrets                                                                                                                  |
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -68,6 +68,7 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 14 items:
 | `synology`   | Synology NAS         | `username`, `password`                                                                                                       |
 | `slack`      | Slack workspace      | `bot_token`, `app_token`                                                                                                     |
 | `youtube`    | YouTube API          | `client_id`, `client_secret`, `access_token`, `refresh_token`                                                               |
+| `telegram`   | Telegram Bot API     | `bot_token`                                                                                                                 |
 | `pbs`        | Proxmox Backup       | `username`, `password` (optional, gated by `enable_pbs`)                                                                     |
 
 **Module outputs:**
@@ -111,7 +112,7 @@ Per-host `.env` secrets deployed via config-renderer templates:
 | 107-supabase  | `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `DASHBOARD_PASSWORD`                                                    |
 | 108-archon    | `OPENAI_API_KEY`                                                                                                                           |
 | 112-mcphub    | 10+ secrets (`admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `es_password`, `proxmox_token`, `slack_tokens`) |
-| 110-n8n       | `api_key`, `github_token`, `slack_bot_token`, `supabase_service_role_key`, `youtube_google_*` |
+| 110-n8n       | `api_key`, `github_token`, `slack_bot_token`, `supabase_service_role_key`, `telegram_bot_token`, `youtube_google_*` |
 
 ### n8n native credential provider mapping
 
@@ -123,6 +124,7 @@ Per-host `.env` secrets deployed via config-renderer templates:
 | Slack API | `SLACK_BOT_TOKEN` | `slack_bot_token` |
 | Supabase API | `SUPABASE_SERVICE_ROLE_KEY` | `supabase_service_role_key` |
 | YouTube OAuth/API | `YOUTUBE_GOOGLE_CLIENT_ID`, `YOUTUBE_GOOGLE_CLIENT_SECRET`, `YOUTUBE_GOOGLE_REFRESH_TOKEN` | `youtube_google_*` |
+| Telegram Bot | `TELEGRAM_BOT_TOKEN` | `telegram_bot_token` |
 
 ## Provider Authentication
 
