@@ -72,11 +72,11 @@ locals {
 
   # AI & Media Integrations for n8n
   telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
-  openrouter_api_key = try(data.onepassword_item.this["openrouter"].credential, "")
+
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (38 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (37 keys)"
   sensitive   = true
   value = {
     # Grafana
@@ -152,7 +152,7 @@ output "secrets" {
 
     # AI & Media Integrations for n8n
     telegram_bot_token = local.telegram_bot_token
-    openrouter_api_key = local.openrouter_api_key
+
   }
 }
 

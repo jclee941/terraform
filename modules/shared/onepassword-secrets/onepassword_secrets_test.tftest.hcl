@@ -78,10 +78,7 @@ run "all_item_titles" {
     error_message = "Telegram item title should be 'telegram'."
   }
 
-  assert {
-    condition     = data.onepassword_item.openrouter.title == "openrouter"
-    error_message = "OpenRouter item title should be 'openrouter'."
-  }
+
 
   assert {
     condition     = data.onepassword_item.archon.title == "archon"

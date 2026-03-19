@@ -171,7 +171,7 @@ locals {
     "mcphub_proxmox_token_name",
     "mcphub_proxmox_token_value",
     "openai_api_key",
-    "openrouter_api_key",
+
     "proxmox_ssh_private_key",
     "proxmox_ssh_private_key",
     "slack_bot_token",

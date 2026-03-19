@@ -37,7 +37,7 @@ locals {
     "grafana",
     "mcphub",
     "n8n",
-    "openrouter",
+
     "proxmox",
     "slack",
     "supabase",

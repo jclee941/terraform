@@ -129,14 +129,7 @@ mock_provider "onepassword" {
     }
   }
 
-  override_data {
-    target = data.onepassword_item.this["openrouter"]
-    values = {
-      title       = "openrouter"
-      credential  = ""
-      section_map = {}
-    }
-  }
+
 }
 
 # --- Output structure tests ---
@@ -178,11 +171,7 @@ run "test_secrets_default_to_empty_string" {
     error_message = "github_personal_access_token should default to empty string"
   }
 
-  # --- OpenRouter (1 key) ---
-  assert {
-    condition     = output.secrets.openrouter_api_key == ""
-    error_message = "openrouter_api_key should default to empty string"
-  }
+
 
   # --- Telegram (1 key) ---
   assert {
@@ -452,7 +441,7 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 43
+    condition     = length(output.secrets) == 42
     error_message = "Secrets output should contain exactly 43 keys, got ${nonsensitive(length(output.secrets))}"
 
 
@@ -532,11 +521,7 @@ run "test_all_secret_key_names_exist" {
     error_message = "Missing secret key: github_personal_access_token"
   }
 
-  # OpenRouter
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "openrouter_api_key")
-    error_message = "Missing secret key: openrouter_api_key"
-  }
+
 
   # Telegram
   assert {
@@ -858,8 +843,9 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 73
-    error_message = "Total keys (secrets + metadata + connection_info) should equal 71"
+    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 72
+    error_message = "Total keys (secrets + metadata + connection_info) should equal 72"
+
 
 
 
