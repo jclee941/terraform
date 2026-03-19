@@ -116,7 +116,7 @@ pvesh create /cluster/backup \
 2. **Run backup setup script**:
 
    ```bash
-   bash scripts/setup-backups.sh
+   go run scripts/setup-backups.go
    ```
 
 3. **Verify jobs created**:

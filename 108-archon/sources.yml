@@ -1,5 +1,6 @@
 # Archon Knowledge Base — Documentation Sources
-# Used by scripts/sync-sources.sh to automate crawl/embedding pipeline.
+# Used by scripts/sync-sources.go to automate crawl/embedding pipeline.
+# For SPA sites (ingest_method: inject), use scripts/inject-docs.go instead.
 #
 # Fields:
 #   url:                  Root URL to crawl
@@ -9,6 +10,7 @@
 #   update_frequency:     Re-crawl interval in days (default: 7)
 #   extract_code_examples: Extract code blocks (default: true)
 #   enabled:              Set false to skip without removing (default: true)
+#   ingest_method:        crawl (default) | inject (for SPA sites needing direct injection)
 
 sources:
   # --- Infrastructure ---
@@ -68,6 +70,17 @@ sources:
 
   - url: https://github.com/coleam00/archon
     tags: [ai, archon]
+    knowledge_type: documentation
+    max_depth: 1
+
+  - url: https://opencode.ai/docs/
+    tags: [ai, opencode]
+    knowledge_type: documentation
+    max_depth: 2
+    ingest_method: inject  # SPA site — use inject-docs.go with --sitemap-url https://opencode.ai/sitemap.xml
+
+  - url: https://github.com/sst/opencode
+    tags: [ai, opencode]
     knowledge_type: documentation
     max_depth: 1
 

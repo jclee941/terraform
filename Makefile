@@ -1,4 +1,4 @@
-.PHONY: plan apply verify lint backup fmt validate init drift-check test test-unit test-integration test-workspace docs pre-commit-install pre-commit-run setup help
+.PHONY: plan apply verify lint lint-go backup fmt validate init drift-check test test-unit test-integration test-workspace docs pre-commit-install pre-commit-run setup help
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
@@ -64,16 +64,11 @@ validate: ## Validate Terraform configuration (SVC=100-pve)
 ## Setup
 
 setup: ## Load local credentials from 1Password
-	@printf "Load 1Password credentials into current shell:\n"
-	@printf "  source scripts/setup-local-env.sh\n\n"
-	@printf "To persist credentials to .env.local:\n"
-	@printf "  source scripts/setup-local-env.sh --save\n\n"
-	@printf "To validate only:\n"
-	@printf "  source scripts/setup-local-env.sh --check\n"
+	go run ./scripts/setup-local-env.go
 
 ## Linting targets
 
-lint: lint-yaml lint-tf lint-shell lint-tflint ## Run all linters
+lint: lint-yaml lint-tf lint-go lint-tflint ## Run all linters
 
 lint-yaml: ## Lint YAML files
 	yamllint -c .yamllint.yml .
@@ -82,8 +77,8 @@ lint-tf: ## Check Terraform formatting
 	find . -maxdepth 1 -type d -name '[0-9]*' -exec terraform fmt -check -recursive {} +
 	terraform fmt -check -recursive modules/
 
-lint-shell: ## Lint shell scripts
-	find scripts/ -name '*.sh' -exec shellcheck --severity=warning {} +
+lint-go: ## Vet Go scripts
+	@find scripts/ -name '*.go' ! -name '*_test.go' -print0 | xargs -0 -n1 go vet
 
 lint-tflint: ## Run tflint on all workspaces
 	@command -v tflint >/dev/null 2>&1 || { echo "tflint not installed. Install: brew install tflint"; exit 1; }

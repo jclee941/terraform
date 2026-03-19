@@ -25,8 +25,8 @@
 
 ```bash
 # From your workstation (or runner)
-scp scripts/setup-filebeat.sh root@192.168.50.100:/tmp/setup-filebeat.sh
-ssh root@192.168.50.100 'bash /tmp/setup-filebeat.sh'
+scp scripts/install-filebeat.sh root@192.168.50.100:/tmp/install-filebeat.sh
+ssh root@192.168.50.100 'bash /tmp/install-filebeat.sh'
 ```
 
 **Expected output**: Filebeat 8.12.0 installed, systemd service enabled.

@@ -6,7 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
         args: ["--allow-multiple-documents"]
-        exclude: 'tf-configs/|\.archive/|_archived/'
+        exclude: 'tf-configs/|_archived/'
       - id: check-json
       - id: check-merge-conflict
       - id: detect-private-key
@@ -32,20 +32,14 @@ repos:
     hooks:
       - id: yamllint
         args: ["-c", ".yamllint.yml"]
-        exclude: 'tf-configs/|\.archive/|node_modules/|_archived/'
-
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
-    hooks:
-      - id: shellcheck
-        args: ["--severity=warning"]
+        exclude: 'tf-configs/|node_modules/|_archived/'
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
-        exclude: '\.archive/|_archived/'
+        exclude: '_archived/'
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.7

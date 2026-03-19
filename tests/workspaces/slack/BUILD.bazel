@@ -1,5 +1,0 @@
-filegroup(
-    name = "slack",
-    srcs = glob(["**/*"]),
-    visibility = ["//visibility:public"],
-)

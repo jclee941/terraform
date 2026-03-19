@@ -209,12 +209,12 @@ resource "null_resource" "install_filebeat" {
   } : {}
 
   triggers = {
-    script_hash = sha256(file("${path.module}/../../../scripts/setup-filebeat.sh"))
+    script_hash = sha256(file("${path.module}/../../../scripts/install-filebeat.sh"))
   }
 
   provisioner "file" {
-    source      = "${path.module}/../../../scripts/setup-filebeat.sh"
-    destination = "/tmp/setup-filebeat.sh"
+    source      = "${path.module}/../../../scripts/install-filebeat.sh"
+    destination = "/tmp/install-filebeat.sh"
 
     connection {
       type        = "ssh"
@@ -227,9 +227,9 @@ resource "null_resource" "install_filebeat" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/setup-filebeat.sh",
-      "sudo bash /tmp/setup-filebeat.sh",
-      "rm /tmp/setup-filebeat.sh"
+      "chmod +x /tmp/install-filebeat.sh",
+      "sudo bash /tmp/install-filebeat.sh",
+      "rm /tmp/install-filebeat.sh"
     ]
 
     connection {

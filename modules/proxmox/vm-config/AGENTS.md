@@ -33,7 +33,7 @@ vm-config/
 | Cloud-init render path     | `main.tf`      | `cloud_init_configs` local + `local_file.cloud_init`.                              |
 | Systemd/write-files deploy | `main.tf`      | `deploy_systemd_services`, `deploy_vm_write_files` resources.                      |
 | Health checks              | `main.tf`      | `health_check_systemd` with journal fallback.                                      |
-| Filebeat setup             | `main.tf`      | `setup_filebeat` provisioner — idempotent install via `scripts/setup-filebeat.sh`. |
+| Filebeat setup             | `main.tf`      | `install_filebeat` provisioner — idempotent install via `scripts/install-filebeat.sh`. |
 | VM input schema            | `variables.tf` | `vms` map, deploy toggles, SSH options.                                            |
 
 ## CONVENTIONS

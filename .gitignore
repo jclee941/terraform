@@ -81,3 +81,8 @@ in-memoria*.db
 
 # Agent thoughts (session-specific scratch)
 thoughts/
+
+# Compiled Go binaries (build artifacts)
+setup-filebeat
+setup-local-env
+scripts/bin/

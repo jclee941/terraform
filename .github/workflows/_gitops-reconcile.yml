@@ -1,0 +1,217 @@
+name: GitOps Reconcile (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: "Execution mode: dry-run or reconcile"
+        type: string
+        default: dry-run
+      workspaces:
+        description: "Optional comma-separated workspace selectors"
+        type: string
+        default: ""
+      source_commit:
+        description: "Optional controller-tracked source commit"
+        type: string
+        default: ""
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: gitops-reconcile-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    name: Resolve GitOps targets
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.resolve.outputs.result }}
+      auto_apply_matrix: ${{ steps.resolve.outputs.auto_apply_matrix }}
+      auto_apply_count: ${{ steps.resolve.outputs.auto_apply_count }}
+      report_only_count: ${{ steps.resolve.outputs.report_only_count }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 2
+
+      - name: Resolve target matrix
+        id: resolve
+        shell: bash
+        env:
+          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_WORKSPACES: ${{ inputs.workspaces }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_BEFORE: ${{ github.event.before }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          args=(env GO111MODULE=off go run ./scripts/gitops-targets --mode "$INPUT_MODE")
+
+          if [[ -n "$INPUT_WORKSPACES" ]]; then
+            IFS=',' read -r -a selectors <<< "$INPUT_WORKSPACES"
+            for selector in "${selectors[@]}"; do
+              selector="$(printf '%s' "$selector" | xargs)"
+              if [[ -n "$selector" ]]; then
+                args+=(--workspace "$selector")
+              fi
+            done
+          elif [[ "$EVENT_NAME" == "push" ]] && [[ -n "$EVENT_BEFORE" ]] && [[ "$EVENT_BEFORE" != "0000000000000000000000000000000000000000" ]]; then
+            while IFS= read -r path; do
+              [[ -z "$path" ]] && continue
+              args+=(--changed-path "$path")
+            done < <(git diff --name-only "$EVENT_BEFORE" "$EVENT_SHA")
+          fi
+
+          json="$(${args[@]})"
+          echo "result=$json" >> "$GITHUB_OUTPUT"
+
+          export GITOPS_RESULT="$json"
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+
+          data = json.loads(os.environ["GITOPS_RESULT"])
+          print(f"auto_apply_matrix={json.dumps({'target': data['auto_apply']}, separators=(',', ':'))}")
+          print(f"auto_apply_count={len(data['auto_apply'])}")
+          print(f"report_only_count={len(data['report_only'])}")
+          PY
+
+      - name: Summarize targets
+        env:
+          GITOPS_RESULT: ${{ steps.resolve.outputs.result }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          import os
+
+          data = json.loads(os.environ["GITOPS_RESULT"])
+
+          print("## GitOps Target Resolution")
+          print(f"- Mode: `{data['mode']}`")
+          if os.environ.get("SOURCE_COMMIT"):
+              print(f"- Source commit: `{os.environ['SOURCE_COMMIT']}`")
+
+          selectors = data.get("selectors") or []
+          if selectors:
+              print(f"- Workspace overrides: `{', '.join(selectors)}`")
+
+          changed_paths = data.get("changed_paths") or []
+          if changed_paths:
+              print("- Changed paths:")
+              for changed_path in changed_paths:
+                  print(f"  - `{changed_path}`")
+
+          auto_apply = data.get("auto_apply") or []
+          report_only = data.get("report_only") or []
+
+          print("\n### Auto-apply targets")
+          if auto_apply:
+              for target in auto_apply:
+                  print(f"- `{target['dir']}` via `{target['apply_workflow']}` — {target['reason']}")
+          else:
+              print("- None")
+
+          print("\n### Report-only targets")
+          if report_only:
+              for target in report_only:
+                  print(f"- `{target['dir']}` — {target['reason']}")
+          else:
+              print("- None")
+          PY
+
+  dispatch:
+    name: Dispatch apply workflows
+    needs: resolve
+    if: inputs.mode == 'reconcile' && needs.resolve.outputs.auto_apply_count != '0'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve.outputs.auto_apply_matrix) }}
+    steps:
+      - name: Dispatch apply workflow and wait
+        id: dispatch
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          TARGET_JSON: ${{ toJSON(matrix.target) }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+            const target = JSON.parse(process.env.TARGET_JSON)
+            const dispatchedAt = new Date(Date.now() - 5000)
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: target.apply_workflow,
+              ref: 'master',
+            })
+            let run = null
+            for (let attempt = 0; attempt < 24; attempt += 1) {
+              await sleep(5000)
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: target.apply_workflow,
+                branch: 'master',
+                event: 'workflow_dispatch',
+                per_page: 20,
+              })
+              run = data.workflow_runs.find((candidate) => {
+                return candidate.head_sha === context.sha && new Date(candidate.created_at) >= dispatchedAt
+              })
+              if (run) {
+                break
+              }
+            }
+            if (!run) {
+              core.setFailed(`Timed out locating apply run for ${target.apply_workflow}`)
+              return
+            }
+            core.notice(`Tracking ${target.apply_workflow} run ${run.id} for ${target.dir}`)
+            for (let attempt = 0; attempt < 120; attempt += 1) {
+              const { data } = await github.rest.actions.getWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id,
+              })
+              if (data.status === 'completed') {
+                core.setOutput('run_id', String(data.id))
+                core.setOutput('run_url', data.html_url)
+                core.setOutput('conclusion', data.conclusion || '')
+                if (data.conclusion !== 'success') {
+                  core.setFailed(`${target.apply_workflow} failed with conclusion ${data.conclusion}: ${data.html_url}`)
+                }
+                return
+              }
+              await sleep(10000)
+            }
+            core.setFailed(`Timed out waiting for ${target.apply_workflow} to complete`)
+
+      - name: Summarize dispatch
+        if: always()
+        env:
+          TARGET_JSON: ${{ toJSON(matrix.target) }}
+          RUN_ID: ${{ steps.dispatch.outputs.run_id }}
+          RUN_URL: ${{ steps.dispatch.outputs.run_url }}
+          CONCLUSION: ${{ steps.dispatch.outputs.conclusion }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          import os
+
+          target = json.loads(os.environ["TARGET_JSON"])
+          run_id = os.environ.get("RUN_ID")
+          run_url = os.environ.get("RUN_URL")
+          conclusion = os.environ.get("CONCLUSION")
+          if run_id and run_url:
+              print(f"- `{target['apply_workflow']}` for `{target['dir']}` finished with `{conclusion}` — [run {run_id}]({run_url})")
+          else:
+              print(f"- `{target['apply_workflow']}` for `{target['dir']}` did not produce a tracked child run")
+          PY

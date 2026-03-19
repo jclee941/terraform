@@ -10,7 +10,7 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 ├── sync.go               # Push secret values to configured targets
 ├── audit.go              # Compare inventory metadata vs target stores
 ├── generate-bindings.go  # Build Wrangler secret binding declarations
-├── deploy-worker.sh      # Disabled local deploy wrapper (CI-only policy)
+├── deploy-worker.go      # Disabled local deploy guard (CI-only policy)
 ├── BUILD.bazel
 ├── OWNERS
 └── AGENTS.md
@@ -23,7 +23,7 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 | Sync to targets | `sync.go` | Pushes secret values to CF/GitHub/Vault targets. |
 || Inventory drift checks | `audit.go` | Compares registry to target stores. |
 || Worker secret bindings | `generate-bindings.go` | Generates Wrangler binding declarations from inventory metadata. |
-| Worker deployment wrapper | `deploy-worker.sh` | **DISABLED** — prints error and exits 1. Deploy via `worker-deploy.yml` CI workflow only. |
+| Worker deployment guard | `deploy-worker.go` | **DISABLED** — prints error and exits 1. Deploy via `worker-deploy.yml` CI workflow only. |
 | Secret metadata source | `../inventory/secrets.yaml` | Registry SSoT for secret names/targets (no values). |
 | Parent workspace policy | `../AGENTS.md` | Cloudflare workspace constraints and Terraform wiring. |
 | Worker runtime counterpart | `../workers/AGENTS.md` | Worker boundary and runtime-specific rules. |
@@ -34,7 +34,7 @@ go run 300-cloudflare/scripts/collect.go
 go run scripts/audit.go
 go run 300-cloudflare/scripts/sync.go --dry-run
 go run scripts/generate-bindings.go
-./300-cloudflare/scripts/deploy-worker.sh  # expected failure (CI-only deploy)
+go run 300-cloudflare/scripts/deploy-worker.go  # expected failure (CI-only deploy)
 ```
 
 ## CONVENTIONS
