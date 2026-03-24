@@ -6,9 +6,10 @@ Reads the SSoT catalog (mcp_servers.json) and validates:
 2. Port uniqueness for hub servers
 3. No duplicate server names
 4. No secrets or tokens committed (env var placeholders only)
+5. Env-var cross-validation against .env.tftpl template
 
 Usage:
-    python3 validate_mcps.py [--catalog PATH]
+    python3 validate_mcps.py [--catalog PATH] [--env-template PATH]
 """
 
 import json
@@ -17,6 +18,7 @@ import sys
 from pathlib import Path
 
 CATALOG_DEFAULT = Path(__file__).parent / "mcp_servers.json"
+ENV_TEMPLATE_DEFAULT = Path(__file__).parent / "templates" / ".env.tftpl"
 
 VALID_LOCATIONS = {"hub", "local", "external"}
 VALID_TRANSPORTS = {"stdio", "sse", "http", "streamable-http"}
@@ -26,7 +28,9 @@ SECRET_PATTERNS = [
     re.compile(r"eyJ[A-Za-z0-9_-]{10,}"),  # JWT tokens
     re.compile(r"sk-[A-Za-z0-9]{20,}"),  # API keys
     re.compile(r"ghp_[A-Za-z0-9]{20,}"),  # GitHub PATs
-    re.compile(r"xoxb-[A-Za-z0-9-]{20,}"),  # Slack tokens
+    re.compile(r"xoxb-[A-Za-z0-9-]{20,}"),  # Slack bot tokens
+    re.compile(r"xoxp-[A-Za-z0-9-]{20,}"),  # Slack user tokens
+    re.compile(r"xoxe\.xoxp-[A-Za-z0-9-]{20,}"),  # Slack rotatable tokens
 ]
 
 
@@ -86,8 +90,7 @@ def validate_catalog(catalog_path: Path) -> list[str]:
             elif port is not None:
                 if port in ports:
                     errors.append(
-                        f"{prefix}: port {port} conflicts with "
-                        f"'{ports[port]}'"
+                        f"{prefix}: port {port} conflicts with '{ports[port]}'"
                     )
                 else:
                     ports[port] = name
@@ -95,31 +98,22 @@ def validate_catalog(catalog_path: Path) -> list[str]:
             # Stdio servers need command
             if transport == "stdio":
                 if "command" not in server:
-                    errors.append(
-                        f"{prefix}: stdio server missing 'command'"
-                    )
+                    errors.append(f"{prefix}: stdio server missing 'command'")
 
             # SSE sidecar servers need docker_service
             if transport == "sse" and server.get("sidecar"):
                 if "docker_service" not in server:
-                    errors.append(
-                        f"{prefix}: sidecar server missing "
-                        f"'docker_service'"
-                    )
+                    errors.append(f"{prefix}: sidecar server missing 'docker_service'")
 
             # HTTP servers need port and path
             if transport == "http":
                 if "port" not in server:
-                    errors.append(
-                        f"{prefix}: http server missing 'port'"
-                    )
+                    errors.append(f"{prefix}: http server missing 'port'")
 
             # Streamable HTTP servers need url
             if transport == "streamable-http":
                 if "url" not in server:
-                    errors.append(
-                        f"{prefix}: streamable-http server missing 'url'"
-                    )
+                    errors.append(f"{prefix}: streamable-http server missing 'url'")
         elif location == "local":
             if "command" not in server:
                 errors.append(f"{prefix}: local server missing 'command'")
@@ -143,8 +137,7 @@ def _check_secrets(obj: object, prefix: str, errors: list[str]) -> None:
         for pattern in SECRET_PATTERNS:
             if pattern.search(obj):
                 errors.append(
-                    f"{prefix}: possible secret detected "
-                    f"(matches {pattern.pattern})"
+                    f"{prefix}: possible secret detected (matches {pattern.pattern})"
                 )
                 break
     elif isinstance(obj, dict):
@@ -155,13 +148,69 @@ def _check_secrets(obj: object, prefix: str, errors: list[str]) -> None:
             _check_secrets(v, f"{prefix}[{i}]", errors)
 
 
+def _parse_env_template(template_path: Path) -> set[str]:
+    """Extract env var names (LHS of '=') from a .env.tftpl file."""
+    names: set[str] = set()
+    if not template_path.exists():
+        return names
+    for line in template_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" in line:
+            names.add(line.split("=", 1)[0])
+    return names
+
+
+def _check_env_vars(
+    catalog_path: Path,
+    env_template_path: Path,
+) -> list[str]:
+    """Check that every ${VAR} in catalog env blocks exists in .env.tftpl."""
+    errors: list[str] = []
+    if not env_template_path.exists():
+        return errors
+
+    template_vars = _parse_env_template(env_template_path)
+
+    with open(catalog_path) as f:
+        catalog = json.load(f)
+
+    placeholder_re = re.compile(r"\$\{([^}]+)\}")
+
+    for name, server in catalog.get("servers", {}).items():
+        env = server.get("env", {})
+        for key, val in env.items():
+            match = placeholder_re.fullmatch(val)
+            if match:
+                ref = match.group(1)
+                if ref not in template_vars:
+                    errors.append(
+                        f"servers.{name}.env.{key}: placeholder "
+                        f"${{{ref}}} not found in {env_template_path.name}"
+                    )
+    return errors
+
+
 def main() -> int:
-    """Run catalog validation."""
     catalog_path = CATALOG_DEFAULT
-    if len(sys.argv) > 1 and sys.argv[1] == "--catalog":
-        catalog_path = Path(sys.argv[2])
+    env_template_path = ENV_TEMPLATE_DEFAULT
+
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--catalog" and i + 1 < len(args):
+            catalog_path = Path(args[i + 1])
+            i += 2
+        elif args[i] == "--env-template" and i + 1 < len(args):
+            env_template_path = Path(args[i + 1])
+            i += 2
+        else:
+            i += 1
 
     errors = validate_catalog(catalog_path)
+    env_errors = _check_env_vars(catalog_path, env_template_path)
+    errors.extend(env_errors)
 
     if errors:
         print(f"❌ Catalog validation FAILED ({len(errors)} errors):")
@@ -169,7 +218,6 @@ def main() -> int:
             print(f"  • {err}")
         return 1
 
-    # Load and print summary
     with open(catalog_path) as f:
         catalog = json.load(f)
 
@@ -178,8 +226,21 @@ def main() -> int:
     local = sum(1 for s in servers.values() if s["location"] == "local")
     external = sum(1 for s in servers.values() if s["location"] == "external")
 
-    print(f"✅ Catalog valid: {len(servers)} servers "
-          f"(hub={hub}, local={local}, external={external})")
+    transports: dict[str, int] = {}
+    for s in servers.values():
+        t = s.get("transport", "stdio")
+        transports[t] = transports.get(t, 0) + 1
+    transport_summary = ", ".join(f"{t}={c}" for t, c in sorted(transports.items()))
+
+    env_var_count = sum(len(s.get("env", {})) for s in servers.values())
+    template_var_count = len(_parse_env_template(env_template_path))
+
+    print(
+        f"✅ Catalog valid: {len(servers)} servers "
+        f"(hub={hub}, local={local}, external={external})"
+    )
+    print(f"   Transports: {transport_summary}")
+    print(f"   Env refs: {env_var_count} catalog → {template_var_count} template vars")
     return 0
 
 

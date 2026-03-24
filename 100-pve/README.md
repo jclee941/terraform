@@ -76,10 +76,6 @@ As the host node, 100-pve is the foundation for:
 - **Ownership**: @qws941
 
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -90,13 +86,21 @@ As the host node, 100-pve is the foundation for:
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.98.1 |
 
-## Resources
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_config_renderer"></a> [config\_renderer](#module\_config\_renderer) | ../modules/proxmox/config-renderer | n/a |
+| <a name="module_hosts"></a> [hosts](#module\_hosts) | ./envs/prod | n/a |
+| <a name="module_lxc"></a> [lxc](#module\_lxc) | ../modules/proxmox/lxc | n/a |
+| <a name="module_lxc_config"></a> [lxc\_config](#module\_lxc\_config) | ../modules/proxmox/lxc-config | n/a |
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
+| <a name="module_vm"></a> [vm](#module\_vm) | ../modules/proxmox/vm | n/a |
+| <a name="module_vm_config"></a> [vm\_config](#module\_vm\_config) | ../modules/proxmox/vm-config | n/a |
 
 ## Resources
 
@@ -108,8 +112,6 @@ As the host node, 100-pve is the foundation for:
 | [proxmox_virtual_environment_firewall_rules.vm](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_firewall_rules) | resource |
 | [proxmox_virtual_environment_storage_pbs.pbs](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/virtual_environment_storage_pbs) | resource |
 | [proxmox_virtual_environment_nodes.nodes](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/data-sources/virtual_environment_nodes) | data source |
-
-## Inputs
 
 ## Inputs
 
@@ -136,8 +138,6 @@ As the host node, 100-pve is the foundation for:
 
 ## Outputs
 
-## Outputs
-
 | Name | Description |
 |------|-------------|
 | <a name="output_container_ids"></a> [container\_ids](#output\_container\_ids) | Container VMIDs |
@@ -151,5 +151,4 @@ As the host node, 100-pve is the foundation for:
 | <a name="output_service_urls"></a> [service\_urls](#output\_service\_urls) | Derived service URLs for consumption by app workspaces via remote\_state |
 | <a name="output_validation_summary"></a> [validation\_summary](#output\_validation\_summary) | Configuration validation summary |
 | <a name="output_vm_configs"></a> [vm\_configs](#output\_vm\_configs) | VM configuration paths |
-
 <!-- END_TF_DOCS -->

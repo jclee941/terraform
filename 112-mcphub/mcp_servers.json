@@ -36,7 +36,66 @@
       "transport": "sse",
       "docker_service": "mcp-proxmox",
       "port": 8055,
-      "description": "Proxmox VE hypervisor management"
+      "description": "Proxmox VE hypervisor management",
+      "disabled_tools": [
+        "proxmox_acme_cert",
+        "proxmox_acme_account",
+        "proxmox_acme_info",
+        "proxmox_ceph",
+        "proxmox_ceph_osd",
+        "proxmox_ceph_mon",
+        "proxmox_ceph_mds",
+        "proxmox_ceph_pool",
+        "proxmox_ceph_fs",
+        "proxmox_sdn_vnet",
+        "proxmox_sdn_zone",
+        "proxmox_sdn_controller",
+        "proxmox_sdn_subnet",
+        "proxmox_ha_resource",
+        "proxmox_ha_group",
+        "proxmox_cluster_firewall",
+        "proxmox_cluster_firewall_rule",
+        "proxmox_cluster_firewall_group",
+        "proxmox_cluster_firewall_alias",
+        "proxmox_cluster_firewall_ipset",
+        "proxmox_cluster_firewall_ipset_entry",
+        "proxmox_guest_firewall_rule",
+        "proxmox_cluster_replication_job",
+        "proxmox_cluster_config",
+        "proxmox_cluster_backup_job",
+        "proxmox_console_vnc",
+        "proxmox_console_term",
+        "proxmox_console_spice",
+        "proxmox_user",
+        "proxmox_user_token",
+        "proxmox_group",
+        "proxmox_role",
+        "proxmox_acl",
+        "proxmox_domain",
+        "proxmox_pool",
+        "proxmox_guest_delete",
+        "proxmox_guest_clone",
+        "proxmox_guest_template",
+        "proxmox_guest_pause",
+        "proxmox_guest_resume",
+        "proxmox_guest_disk_move",
+        "proxmox_node_disk_admin",
+        "proxmox_node_bulk",
+        "proxmox_node_power",
+        "proxmox_node_replication",
+        "proxmox_node_subscription",
+        "proxmox_apt",
+        "proxmox_notification",
+        "proxmox_certificate",
+        "proxmox_cloudinit",
+        "proxmox_file_restore",
+        "proxmox_vm_disk",
+        "proxmox_lxc_mountpoint",
+        "proxmox_agent_freeze",
+        "proxmox_agent_power",
+        "proxmox_agent_user",
+        "proxmox_agent_hw"
+      ]
     },
     "playwright": {
       "location": "hub",
@@ -73,21 +132,6 @@
       },
       "description": "Elasticsearch query and management"
     },
-    "slack": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "slack-mcp-server@latest", "--transport", "stdio"],
-      "port": 8079,
-      "env": {
-        "SLACK_MCP_XOXP_TOKEN": "${SLACK_MCP_XOXP_TOKEN}",
-        "SLACK_MCP_XOXB_TOKEN": "${SLACK_MCP_XOXB_TOKEN}",
-        "SLACK_MCP_ADD_MESSAGE_TOOL": "true",
-        "SLACK_MCP_USERS_CACHE": "/tmp/slack-users-cache.json",
-        "SLACK_MCP_CHANNELS_CACHE": "/tmp/slack-channels-cache.json"
-      },
-      "description": "Slack workspace operations"
-    },
     "onepassword": {
       "location": "hub",
       "transport": "stdio",
@@ -99,42 +143,15 @@
       },
       "description": "1Password vault and secret management"
     },
-    "gcloud": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@google-cloud/gcloud-mcp"],
-      "port": 8080,
-      "description": "Google Cloud Platform CLI operations"
-    },
     "n8n": {
       "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@leonardsellem/n8n-mcp-server"],
+      "transport": "streamable-http",
+      "url": "https://n8n.jclee.me/mcp-server/http",
       "port": 8081,
-      "env": {
-        "N8N_API_URL": "${N8N_MCP_API_URL}",
-        "N8N_API_KEY": "${N8N_MCP_API_KEY}"
+      "auth": {
+        "env_var": "N8N_MCP_API_KEY"
       },
       "description": "n8n workflow automation"
-}
-,
-    "gmail-creator": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "node",
-      "args": ["/home/jclee/dev/gmail/gmail-creator-mcp.mjs"],
-      "port": 8082,
-      "env": {
-        "FIVESIM_API_KEY": "${FIVESIM_API_KEY}",
-        "SMS_PROVIDER": "${SMS_PROVIDER}",
-        "FIVESIM_REGION": "${FIVESIM_REGION}",
-        "PROXY_SERVER": "${PROXY_SERVER}",
-        "PROXY_USER": "${PROXY_USER}",
-        "PROXY_PASS": "${PROXY_PASS}"
-      },
-      "description": "Google account creation automation"
     }
   }
 }

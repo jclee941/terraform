@@ -48,12 +48,13 @@ check "mcphub_required_secrets" {
       for k in [
         "mcphub_admin_password",
         "mcphub_n8n_mcp_api_key",
+        "mcphub_op_connect_token",
         "mcphub_op_service_account_token",
         "mcphub_proxmox_token_name",
         "mcphub_proxmox_token_value",
       ] : length(trimspace(lookup(module.onepassword_secrets.secrets, k, ""))) > 0
     ])
-    error_message = "MCPHub required 1Password fields are missing. Required keys: mcphub_admin_password, mcphub_n8n_mcp_api_key, mcphub_op_service_account_token, mcphub_proxmox_token_name, mcphub_proxmox_token_value"
+    error_message = "MCPHub required 1Password fields are missing. Required keys: mcphub_admin_password, mcphub_n8n_mcp_api_key, mcphub_op_connect_token, mcphub_op_service_account_token, mcphub_proxmox_token_name, mcphub_proxmox_token_value"
   }
 }
 

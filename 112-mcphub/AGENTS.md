@@ -10,7 +10,7 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 
 - **SSoT Catalog:** `mcp_servers.json` is the canonical MCP server registry.
 - **Consumers:** `100-pve/main.tf` parses the catalog for Terraform rendering. `mcp-health-check.yml` validates port reachability.
-- **Runtime Split:** Catalog defines 11 active servers (8 `stdio`, 2 `sse`, 1 `streamable-http`). Docker sidecars (`Dockerfile.proxmox`, `Dockerfile.playwright`) are infra assets, not catalog entries.
+- **Runtime Split:** Catalog defines 13 active servers (10 `stdio`, 2 `sse`, 1 `streamable-http`). Docker sidecars (`Dockerfile.proxmox`, `Dockerfile.playwright`) are infra assets, not catalog entries.
 
 ## GENERATED VS SOURCE
 
@@ -37,7 +37,7 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 - Keep secrets as `${ENV_VAR}` placeholders in catalog/templates.
 - Keep port assignments unique for hub transports; validate with `python3 validate_mcps.py`.
 - Treat the Archon MCP endpoint as catalog data, not inline Terraform literals.
-- Secrets from 1Password (`homelab/mcphub`) via `onepassword-secrets` module. 7 keys including proxmox tokens, admin password, and API keys.
+- Secrets from 1Password (`homelab/mcphub`) via `onepassword-secrets` module. 10 keys including proxmox tokens, admin password, API keys, 1Password Connect token, and proxy credentials.
 
 ## ANTI-PATTERNS
 

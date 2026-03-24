@@ -10,10 +10,19 @@ ${jsonencode({
       )
     },
     {
-      for name, server in jsondecode(mcp_hub_sse_json) : name => {
-        type = "sse"
-        url  = "http://${lookup(server, "docker_service", name)}:${lookup(server, "port", 0)}/sse"
-      }
+      for name, server in jsondecode(mcp_hub_sse_json) : name => merge(
+        {
+          type = "sse"
+          url  = "http://${lookup(server, "docker_service", name)}:${lookup(server, "port", 0)}/sse"
+        },
+        length(lookup(server, "disabled_tools", [])) > 0 ? {
+          tools = {
+            for tool in lookup(server, "disabled_tools", []) : tool => {
+              enabled = false
+            }
+          }
+        } : {}
+      )
     },
     {
       for name, server in jsondecode(mcp_hub_external_sse_json) : name => {
@@ -22,10 +31,17 @@ ${jsonencode({
       }
     },
     {
-      for name, server in jsondecode(mcp_hub_external_http_json) : name => {
-        type = "streamable-http"
-        url  = lookup(server, "url", "")
-      }
+      for name, server in jsondecode(mcp_hub_external_http_json) : name => merge(
+        {
+          type = "streamable-http"
+          url  = lookup(server, "url", "")
+        },
+        lookup(server, "auth", null) != null ? {
+          headers = {
+            Authorization = "Bearer $${${lookup(lookup(server, "auth", {}), "env_var", "")}}"
+          }
+        } : {}
+      )
     },
     {
       for name, server in jsondecode(mcp_hub_http_json) : name => merge(

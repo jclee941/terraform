@@ -4,14 +4,14 @@ MCPhub MCP Server Hub for the jclee.me homelab. Aggregates and proxies Model Con
 
 ## Services
 
-- **MCPhub** (3000) — MCP server gateway and catalog UI
-- **1Password MCP** (8090) — 1Password Connect sidecar
-- **n8n** (5678) — Workflow automation
+- **MCPhub** (3000) — MCP server gateway, catalog UI, and stdio/SSE proxy for 13 MCP servers
+- **1Password Connect** (8090) — Vault access API consumed by op-mcp-server sidecar
+- **Proxmox MCP** (8055) — SSE sidecar for Proxmox VE management
+- **Playwright MCP** (8056) — SSE sidecar for browser automation
 
 ## Access
 
 - MCPhub UI: https://mcphub.jclee.me
-- n8n UI: https://n8n.jclee.me
 
 ## Management
 
