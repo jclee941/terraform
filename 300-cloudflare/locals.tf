@@ -83,16 +83,20 @@ locals {
   # Services requiring Cloudflare Access protection
   # All homelab HTTP services are protected by CF Access email auth
   restricted_services = {
-    elk      = { subdomain = "elk", name = "ELK" }
-    kibana   = { subdomain = "kibana", name = "Kibana" }
-    es       = { subdomain = "es", name = "Elasticsearch" }
-    grafana  = { subdomain = "grafana", name = "Grafana" }
-    mcphub   = { subdomain = "mcphub", name = "MCP Hub" }
-    archon   = { subdomain = "archon", name = "Archon" }
-    supabase = { subdomain = "supabase", name = "Supabase" }
+    elk          = { subdomain = "elk", name = "ELK" }
+    kibana       = { subdomain = "kibana", name = "Kibana" }
+    es           = { subdomain = "es", name = "Elasticsearch" }
+    grafana      = { subdomain = "grafana", name = "Grafana" }
+    mcphub       = { subdomain = "mcphub", name = "MCP Hub" }
+    archon       = { subdomain = "archon", name = "Archon" }
+    supabase     = { subdomain = "supabase", name = "Supabase" }
+    n8n          = { subdomain = "n8n", name = "n8n" }
+    nas          = { subdomain = "nas", name = "NAS" }
+    opencode     = { subdomain = "opencode", name = "OpenCode" }
+    opencode-api = { subdomain = "opencode-api", name = "OpenCode API" }
   }
 
   # Services that allow internal network bypass (no CF Access auth required from homelab IP)
-  internal_bypass_services = ["elk", "kibana", "es", "grafana", "mcphub", "archon", "supabase", "n8n"]
+  internal_bypass_services = ["elk", "kibana", "es", "grafana", "mcphub", "archon", "supabase", "n8n", "nas", "opencode", "opencode-api"]
 
 }
