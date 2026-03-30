@@ -1,0 +1,33 @@
+# =============================================================================
+# GitLab CI: Verify Stage
+# =============================================================================
+
+# Post-apply verification
+verify:deployment:
+  stage: verify
+  script:
+    - go run scripts/production-verification.go
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_success
+  allow_failure: true
+
+# Verify specific services
+verify:services:
+  stage: verify
+  parallel:
+    matrix:
+      - SERVICE: "traefik"
+        URL: "http://192.168.50.102:8080"
+      - SERVICE: "grafana"
+        URL: "http://192.168.50.104:3000"
+      - SERVICE: "elk"
+        URL: "http://192.168.50.105:9200"
+  script:
+    - |
+      echo "Verifying ${SERVICE} at ${URL}..."
+      curl -sf "${URL}" > /dev/null && echo "✅ ${SERVICE} is healthy" || echo "⚠️ ${SERVICE} check failed"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_success
+  allow_failure: true

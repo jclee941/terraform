@@ -1,0 +1,59 @@
+# =============================================================================
+# GitLab CI: Prepare Stage
+# =============================================================================
+
+# Workspace detection for dynamic pipeline generation
+detect:workspaces:
+  stage: prepare
+  image: alpine/git
+  script:
+    - apk add --no-cache jq python3 py3-pip
+    - |
+      # Detect changed files and map to workspaces
+      if [ "$CI_PIPELINE_SOURCE" == "merge_request_event" ]; then
+        BASE_SHA="origin/${CI_DEFAULT_BRANCH}"
+        HEAD_SHA="HEAD"
+      else
+        BASE_SHA="HEAD~1"
+        HEAD_SHA="HEAD"
+      fi
+
+      echo "Detecting changes between ${BASE_SHA}...${HEAD_SHA}"
+      git diff --name-only "${BASE_SHA}...${HEAD_SHA}" > /tmp/changed_files.txt
+
+      # Run workspace detection
+      python3 scripts/detect-workspaces.py /tmp/changed_files.txt > /tmp/affected_workspaces.json
+
+      echo "Affected workspaces:"
+      cat /tmp/affected_workspaces.json | jq '.'
+
+      # Export as CI variable for downstream jobs
+      echo "AFFECTED_WORKSPACES=$(cat /tmp/affected_workspaces.json | jq -c '.')" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+    paths:
+      - /tmp/affected_workspaces.json
+    expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# Setup shared infrastructure state stub for dependent workspaces
+setup:infra:stub:
+  stage: prepare
+  script:
+    - |
+      if [ ! -f "100-pve/terraform.tfstate" ]; then
+        mkdir -p 100-pve
+        echo '{"version":4,"terraform_version":"1.10.5","serial":0,"lineage":"","outputs":{"hosts":{"value":{},"type":"object"}},"resources":[]}' > 100-pve/terraform.tfstate
+        echo "Created infrastructure state stub"
+      fi
+  artifacts:
+    paths:
+      - 100-pve/terraform.tfstate
+    expire_in: 1 day
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

@@ -1,0 +1,57 @@
+# =============================================================================
+# GitLab CI: Apply Stage (Protected)
+# =============================================================================
+
+.terraform_apply_base:
+  extends: .terraform_base
+  stage: deploy
+  environment:
+    name: production
+    url: https://gitlab.com/${CI_PROJECT_PATH}
+  script:
+    - cd "${TF_WORKING_DIR}"
+    - terraform init -input=false
+    # Re-plan to ensure we're applying current state
+    - terraform plan -input=false -out=tfplan
+    - terraform apply -input=false -auto-approve tfplan
+    # Post-apply verification
+    - terraform output -json > /dev/null 2>&1 && echo "✅ Outputs valid" || echo "⚠️ No outputs"
+  retry:
+    max: 2
+    when:
+      - script_failure
+      - api_failure
+
+# Apply jobs - manual approval required
+apply:all:
+  extends: .terraform_apply_base
+  parallel:
+    matrix:
+      - TF_WORKING_DIR: "100-pve"
+        TF_WORKSPACE_NAME: "pve"
+      - TF_WORKING_DIR: "102-traefik/terraform"
+        TF_WORKSPACE_NAME: "traefik"
+      - TF_WORKING_DIR: "104-grafana/terraform"
+        TF_WORKSPACE_NAME: "grafana"
+      - TF_WORKING_DIR: "105-elk/terraform"
+        TF_WORKSPACE_NAME: "elk"
+      - TF_WORKING_DIR: "108-archon/terraform"
+        TF_WORKSPACE_NAME: "archon"
+      - TF_WORKING_DIR: "215-synology"
+        TF_WORKSPACE_NAME: "synology"
+      - TF_WORKING_DIR: "300-cloudflare"
+        TF_WORKSPACE_NAME: "cloudflare"
+      - TF_WORKING_DIR: "310-safetywallet"
+        TF_WORKSPACE_NAME: "safetywallet"
+      - TF_WORKING_DIR: "320-slack"
+        TF_WORKSPACE_NAME: "slack"
+      - TF_WORKING_DIR: "400-gcp"
+        TF_WORKSPACE_NAME: "gcp"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: false
+  resource_group: terraform-apply-${TF_WORKSPACE_NAME}
+  concurrency:
+    group: terraform-apply-${TF_WORKSPACE_NAME}
+    cancel-in-progress: false
