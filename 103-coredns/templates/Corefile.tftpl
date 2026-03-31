@@ -3,9 +3,34 @@
 # Resolves *.homelab.local to individual host IPs
 # Rendered by Terraform - DO NOT EDIT MANUALLY
 
+# GitLab - direct to Synology (not behind Traefik)
+gitlab.${domain}:53 {
+    template IN A {
+        answer "gitlab.${domain} 60 IN A ${hosts.synology.ip}"
+    }
+    template IN AAAA {
+        rcode NOERROR
+    }
+    log
+}
+
+# GitLab Container Registry - direct to Synology (not behind Traefik)
+registry.${domain}:53 {
+    template IN A {
+        answer "registry.${domain} 60 IN A ${hosts.synology.ip}"
+    }
+    template IN AAAA {
+        rcode NOERROR
+    }
+    log
+}
+
+# All other *.${domain} to Traefik
 ${domain}:53 {
     template IN A {
+        match "^([a-z0-9-]+)\.${domain}\.$"
         answer "{{ .Name }} 60 IN A ${hosts.traefik.ip}"
+        fallthrough
     }
     template IN AAAA {
         rcode NOERROR
