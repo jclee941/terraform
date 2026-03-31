@@ -79,8 +79,8 @@ resource "grafana_rule_group" "homelab_logs" {
         description = rule.value.description
       }
 
-      no_data_state  = "OK"
-      exec_err_state = "OK"
+      no_data_state  = "Alerting"
+      exec_err_state = "Alerting"
     }
   }
 }
@@ -136,8 +136,8 @@ resource "grafana_rule_group" "infrastructure_health" {
         description = rule.value.description
       }
 
-      no_data_state  = "OK"
-      exec_err_state = "OK"
+      no_data_state  = "Alerting"
+      exec_err_state = "Alerting"
     }
   }
 
@@ -213,8 +213,8 @@ resource "grafana_rule_group" "infrastructure_health" {
         description = rule.value.description
       }
 
-      no_data_state  = "OK"
-      exec_err_state = "OK"
+      no_data_state  = "Alerting"
+      exec_err_state = "Alerting"
     }
   }
 }
@@ -296,8 +296,8 @@ resource "grafana_rule_group" "mcp_alerts" {
         description = rule.value.description
       }
 
-      no_data_state  = "OK"
-      exec_err_state = "OK"
+      no_data_state  = "Alerting"
+      exec_err_state = "Alerting"
     }
   }
 }

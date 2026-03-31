@@ -7,7 +7,7 @@ filebeat.autodiscover:
       hints.enabled: true
 
 filebeat.inputs:
-  # Docker container logs (mcphub, mcp-proxmox, mcp-playwright, n8n, vault)
+  # Docker container logs (mcphub, mcp-proxmox, mcp-playwright, mcp-dev-browser, n8n, vault)
   - type: filestream
     id: docker-containers
     paths:

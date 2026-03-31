@@ -52,6 +52,4 @@ apply:all:
       when: manual
       allow_failure: false
   resource_group: terraform-apply-${TF_WORKSPACE_NAME}
-  concurrency:
-    group: terraform-apply-${TF_WORKSPACE_NAME}
-    cancel-in-progress: false
+  # Note: GitLab uses resource_group for concurrency, not 'concurrency:' keyword

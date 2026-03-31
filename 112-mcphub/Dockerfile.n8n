@@ -1,9 +1,0 @@
-FROM n8nio/n8n:2.8.1
-
-# Enterprise license patches — enable all features for self-hosted deployment
-# Patched methods: isLicensed() → true, getValue() → UNLIMITED_LICENSE_QUOTA,
-# getPlanName() → 'Enterprise', getMainPlan() → mock entitlement, getInfo() → 'Enterprise (patched)'
-COPY patches/license.js /usr/local/lib/node_modules/n8n/dist/license.js
-
-# Patched methods: isLicensed() → true, getValue() → UNLIMITED with special time-based quota handling
-COPY patches/license-state.js /usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+backend-common@file+packages+@n8n+backend-common/node_modules/@n8n/backend-common/dist/license-state.js

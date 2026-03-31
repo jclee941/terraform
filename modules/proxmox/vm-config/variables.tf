@@ -15,6 +15,7 @@ variable "vms" {
         content     = string
         permissions = optional(string, "0644")
         owner       = optional(string, "root:root")
+        encoding    = optional(string, "")
       })), [])
     }), {})
 

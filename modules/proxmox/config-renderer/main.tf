@@ -21,4 +21,11 @@ resource "local_file" "rendered_configs" {
 
   content  = each.value
   filename = "${var.output_dir}/${var.template_files[each.key].output}"
+
+  lifecycle {
+    precondition {
+      condition     = each.value != ""
+      error_message = "Template '${each.key}' rendered to empty content. Check template source '${var.template_files[each.key].source}' and template_vars for missing values."
+    }
+  }
 }

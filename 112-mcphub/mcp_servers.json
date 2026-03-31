@@ -145,13 +145,33 @@
     },
     "n8n": {
       "location": "hub",
-      "transport": "streamable-http",
-      "url": "https://n8n.jclee.me/mcp-server/http",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@nextoolsolutions/mcp-n8n"],
       "port": 8081,
-      "auth": {
-        "env_var": "N8N_MCP_API_KEY"
+      "env": {
+        "N8N_BASE_URL": "http://192.168.50.110:5678",
+        "N8N_API_KEY": "${N8N_API_KEY}"
       },
-      "description": "n8n workflow automation"
+      "description": "n8n workflow automation (43 tools via @nextoolsolutions/mcp-n8n)"
+    },
+    "supabase": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase"],
+      "port": 8066,
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      },
+      "description": "Supabase database and edge function management"
+    },
+    "dev-browser": {
+      "location": "hub",
+      "transport": "sse",
+      "docker_service": "mcp-dev-browser",
+      "port": 8057,
+      "description": "Browser automation with persistent page state via Chrome DevTools Protocol"
     }
   }
 }

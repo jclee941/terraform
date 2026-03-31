@@ -7,6 +7,7 @@ locals {
   proxmox_ssh_private_key = try(data.onepassword_item.this["proxmox"].section_map["Keys"].field_map["private_key"].value, "")
 
   github_personal_access_token = try(data.onepassword_item.this["github"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["github"].credential, ""))
+  gitlab_personal_access_token = try(data.onepassword_item.this["gitlab"].credential, try(data.onepassword_item.this["gitlab"].password, ""))
 
   supabase_service_key        = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, "")
   supabase_anon_key           = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["anon_key"].value, "")
@@ -40,7 +41,10 @@ locals {
   mcphub_admin_password           = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["admin_password"].value, "")
   mcphub_n8n_mcp_api_key          = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["n8n_mcp_api_key"].value, "")
   mcphub_op_service_account_token = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_service_account_token"].value, "")
-  mcphub_op_connect_token         = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_connect_token"].value, "")
+  mcphub_op_connect_token = try(
+    data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_connect_token"].value,
+    try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_service_account_token"].value, "")
+  )
 
   slack_mcp_xoxp_token = try(data.onepassword_item.this["slack"].section_map["MCP Tokens"].field_map["xoxp_token"].value, "")
   slack_mcp_xoxb_token = try(data.onepassword_item.this["slack"].section_map["MCP Tokens"].field_map["xoxb_token"].value, try(data.onepassword_item.this["slack"].section_map["OpenCode Tokens"].field_map["bot_token"].value, ""))
@@ -90,6 +94,7 @@ output "secrets" {
 
     # GitHub
     github_personal_access_token = local.github_personal_access_token
+    gitlab_personal_access_token = local.gitlab_personal_access_token
 
     # Supabase
     supabase_service_key        = local.supabase_service_key

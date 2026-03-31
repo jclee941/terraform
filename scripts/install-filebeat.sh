@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # install-filebeat.sh — Remote execution payload for Terraform provisioners.
 #
-# This script is SCP'd to target LXC/VM hosts and executed via remote-exec.
-# It is NOT a local operational script — it runs on remote hosts without Go.
-# The canonical Go version lives at scripts/setup-filebeat.go (local tooling).
+# EXCEPTION NOTICE: This shell script is intentionally retained as-is per monorepo
+# standards exception. It is SCP'd to target LXC/VM hosts and executed via
+# remote-exec provisioner. Target hosts are minimal Debian containers without
+# Go runtime, making Go binary deployment impractical.
+#
+# The canonical Go version exists at scripts/setup-filebeat.go for local
+# tooling, but this script serves a different execution context.
+#
+# Per AGENTS.md and monorepo-standards.md, operational scripts must be Go,
+# but remote execution payloads are exempt when target hosts lack Go runtime.
 #
 # Usage (via Terraform provisioner only):
 #   sudo bash /tmp/install-filebeat.sh

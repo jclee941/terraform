@@ -19,10 +19,12 @@ scrape_configs:
       - targets:
           - "192.168.50.101:9100" # runner
           - "192.168.50.102:9100" # traefik
+          - "192.168.50.103:9100" # coredns
           - "192.168.50.104:9100" # grafana
           - "192.168.50.105:9100" # elk
           - "192.168.50.107:9100" # supabase
           - "192.168.50.108:9100" # archon
+          - "192.168.50.110:9100" # n8n
           - "192.168.50.112:9100" # mcphub
           - "192.168.50.200:9100" # oc
           - "192.168.50.220:9100" # sandbox
@@ -33,7 +35,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - "http://192.168.50.112:5678/healthz" # n8n
+          - "http://192.168.50.110:5678/healthz" # n8n
           - "http://192.168.50.112:3000" # mcphub
           - "http://192.168.50.102:8080/api/overview" # traefik
           - "http://elastic:placeholder@192.168.50.105:9200/_cluster/health" # elasticsearch

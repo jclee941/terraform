@@ -19,21 +19,19 @@ detect:workspaces:
       fi
 
       echo "Detecting changes between ${BASE_SHA}...${HEAD_SHA}"
-      git diff --name-only "${BASE_SHA}...${HEAD_SHA}" > /tmp/changed_files.txt
+      git diff --name-only "${BASE_SHA}...${HEAD_SHA}" > changed_files.txt
 
       # Run workspace detection
-      python3 scripts/detect-workspaces.py /tmp/changed_files.txt > /tmp/affected_workspaces.json
+      python3 scripts/detect-workspaces.py changed_files.json
 
       echo "Affected workspaces:"
-      cat /tmp/affected_workspaces.json | jq '.'
-
-      # Export as CI variable for downstream jobs
-      echo "AFFECTED_WORKSPACES=$(cat /tmp/affected_workspaces.json | jq -c '.')" >> build.env
+      cat changed_files.json | jq '.'
   artifacts:
     reports:
       dotenv: build.env
     paths:
-      - /tmp/affected_workspaces.json
+      - changed_files.json
+      - build.env
     expire_in: 1 hour
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"

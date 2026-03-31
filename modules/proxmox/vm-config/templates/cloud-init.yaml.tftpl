@@ -16,6 +16,9 @@ write_files:
   - path: ${file.path}
     permissions: '${file.permissions}'
     owner: ${file.owner}
+%{ if file.encoding != "" ~}
+    encoding: ${file.encoding}
+%{ endif ~}
     content: |
       ${indent(6, file.content)}
 %{ endfor ~}

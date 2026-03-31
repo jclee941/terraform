@@ -14,7 +14,6 @@ locals {
   _cloudflare_api_key_from_1password         = trimspace(try(module.onepassword_secrets.secrets["cloudflare_api_key"], ""))
   _cloudflare_api_token_from_1password       = trimspace(try(module.onepassword_secrets.secrets["cloudflare_api_token"], ""))
   _cloudflare_email_from_1password           = trimspace(try(module.onepassword_secrets.metadata["cloudflare_email"], ""))
-  _github_token_from_1password               = trimspace(try(module.onepassword_secrets.secrets["github_personal_access_token"], ""))
   _google_oauth_client_id_from_1password     = trimspace(try(module.onepassword_secrets.secrets["google_oauth_client_id"], ""))
   _google_oauth_client_secret_from_1password = trimspace(try(module.onepassword_secrets.secrets["google_oauth_client_secret"], ""))
   _cloudflare_api_key_from_var               = trimspace(var.cloudflare_api_key)
@@ -30,7 +29,6 @@ locals {
   effective_cloudflare_api_token       = local._cloudflare_api_token_from_1password != "" ? local._cloudflare_api_token_from_1password : trimspace(var.cloudflare_api_token)
   effective_cloudflare_api_key         = local.cloudflare_api_key_from_1password != "" ? local.cloudflare_api_key_from_1password : local.cloudflare_api_key_from_var
   effective_cloudflare_email           = local._cloudflare_email_from_1password != "" ? local._cloudflare_email_from_1password : trimspace(var.cloudflare_email)
-  effective_github_token               = local._github_token_from_1password != "" ? local._github_token_from_1password : trimspace(var.github_token)
   effective_google_oauth_client_id     = local._google_oauth_client_id_from_1password != "" ? local._google_oauth_client_id_from_1password : trimspace(var.google_oauth_client_id)
   effective_google_oauth_client_secret = local._google_oauth_client_secret_from_1password != "" ? local._google_oauth_client_secret_from_1password : trimspace(var.google_oauth_client_secret)
   google_idp_configured                = local.effective_google_oauth_client_id != "" && local.effective_google_oauth_client_secret != ""

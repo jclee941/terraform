@@ -124,13 +124,13 @@ variable "datastore_id" {
 # -----------------------------------------------------------------------------
 
 variable "managed_vmid_range" {
-  description = "VMID range for Terraform-managed containers and VMs (101-220)"
+  description = "VMID range for Terraform-managed containers and VMs (100-220)"
   type = object({
     min = number
     max = number
   })
   default = {
-    min = 101
+    min = 100
     max = 220
   }
 

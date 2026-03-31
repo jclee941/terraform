@@ -44,6 +44,9 @@ let LicenseState = class LicenseState {
     isDynamicCredentialsLicensed() {
         return this.isLicensed(constants_1.LICENSE_FEATURES.DYNAMIC_CREDENTIALS);
     }
+    isPersonalSpacePolicyLicensed() {
+        return this.isLicensed(constants_1.LICENSE_FEATURES.PERSONAL_SPACE_POLICY);
+    }
     isSharingLicensed() {
         return this.isLicensed('feat:sharing');
     }

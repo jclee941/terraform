@@ -3,23 +3,6 @@ locals {
 
   all_secrets = try(local.inventory.secrets, [])
 
-  github_repo_map   = try(local.inventory.github.repos, {})
-  github_repo_names = sort(values(local.github_repo_map))
-
-  github_secret_entries = flatten([
-    for secret in local.all_secrets : [
-      for repo_alias in try(secret.targets.github, []) : {
-        key         = "${repo_alias}:${secret.name}"
-        repository  = lookup(local.github_repo_map, repo_alias, repo_alias)
-        secret_name = secret.name
-      }
-    ]
-  ])
-
-  github_secrets = {
-    for entry in local.github_secret_entries : entry.key => entry
-  }
-
   cf_store_secrets = sort([
     for secret in local.all_secrets : secret.name
     if try(secret.targets.cf_store, false) == true
@@ -44,6 +27,7 @@ locals {
     n8n          = { subdomain = "n8n" }
     opencode     = { subdomain = "opencode" }
     opencode-api = { subdomain = "opencode-api" }
+    gitlab       = { subdomain = "gitlab" }
   }
 
   # TCP/non-HTTP services exposed directly via Cloudflare Tunnel (bypass Traefik)
@@ -94,9 +78,10 @@ locals {
     nas          = { subdomain = "nas", name = "NAS" }
     opencode     = { subdomain = "opencode", name = "OpenCode" }
     opencode-api = { subdomain = "opencode-api", name = "OpenCode API" }
+    gitlab       = { subdomain = "gitlab", name = "GitLab" }
   }
 
   # Services that allow internal network bypass (no CF Access auth required from homelab IP)
-  internal_bypass_services = ["elk", "kibana", "es", "grafana", "mcphub", "archon", "supabase", "n8n", "nas", "opencode", "opencode-api"]
+  internal_bypass_services = ["elk", "kibana", "es", "grafana", "mcphub", "archon", "supabase", "n8n", "nas", "opencode", "opencode-api", "gitlab"]
 
 }

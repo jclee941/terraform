@@ -1,5 +1,4 @@
 
-
 variable "cloudflare_account_id" {
   description = "Cloudflare account ID (optional if provided via 1Password)"
   type        = string
@@ -39,24 +38,6 @@ variable "cloudflare_secrets_store_id" {
   validation {
     condition     = can(regex("^[0-9a-f]{32}$", var.cloudflare_secrets_store_id))
     error_message = "cloudflare_secrets_store_id must be a 32-character lowercase hex string."
-  }
-}
-
-variable "github_owner" {
-  description = "GitHub organization/user owner"
-  type        = string
-  default     = "qws941"
-}
-
-variable "github_token" {
-  description = "GitHub token with actions secret write permissions (optional if provided via 1Password)"
-  type        = string
-  sensitive   = true
-  default     = ""
-
-  validation {
-    condition     = var.github_token == "" || can(regex("^(ghp_|github_pat_)", var.github_token))
-    error_message = "github_token must be empty or start with 'ghp_' (classic) or 'github_pat_' (fine-grained)."
   }
 }
 
@@ -159,7 +140,6 @@ variable "enable_worker_route" {
   type        = bool
   default     = false
 }
-
 
 # ============================================
 # homelab tunnel variables

@@ -1,4 +1,4 @@
-FROM n8nio/n8n:2.12.3
+FROM n8nio/n8n:2.13.4
 
 # Enterprise license patches — enable all features for self-hosted deployment
 # Patched methods: isLicensed() → true, getValue() → UNLIMITED_LICENSE_QUOTA,

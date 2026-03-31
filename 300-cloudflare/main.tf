@@ -11,9 +11,4 @@ provider "cloudflare" {
   email     = local.effective_cloudflare_email != "" ? local.effective_cloudflare_email : null
 }
 
-provider "github" {
-  owner = var.github_owner
-  token = local.effective_github_token
-}
-
 provider "onepassword" {}

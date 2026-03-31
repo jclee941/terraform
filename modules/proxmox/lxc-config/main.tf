@@ -254,3 +254,124 @@ resource "null_resource" "install_filebeat" {
 
   depends_on = [null_resource.deploy_config_files]
 }
+
+# Cloud-init deployment for LXC containers
+# Uses SSH to simulate cloud-init behavior since Proxmox LXC doesn't natively support cloud-init
+locals {
+  # Filter containers that have cloud_init configuration
+  containers_with_cloudinit = {
+    for name, lxc in var.lxc_containers : name => lxc
+    if length(lxc.cloud_init.packages) > 0 ||
+    length(lxc.cloud_init.write_files) > 0 ||
+    length(lxc.cloud_init.runcmd) > 0
+  }
+}
+
+# Render cloud-init configuration files locally
+resource "local_file" "cloud_init_configs" {
+  for_each = local.containers_with_cloudinit
+
+  content = templatefile("${path.module}/templates/cloud-init-lxc.yaml.tftpl", {
+    hostname    = each.value.hostname
+    packages    = each.value.cloud_init.packages
+    write_files = each.value.cloud_init.write_files
+    runcmd      = each.value.cloud_init.runcmd
+  })
+  filename        = "${path.root}/configs/lxc-${each.value.vmid}-${each.value.hostname}/cloud-init.yaml"
+  file_permission = "0644"
+}
+
+# Deploy cloud-init configuration via SSH and execute
+resource "null_resource" "deploy_cloud_init" {
+  for_each = var.deploy_lxc_configs ? local.containers_with_cloudinit : {}
+
+  triggers = {
+    config_hash = sha256(templatefile("${path.module}/templates/cloud-init-lxc.yaml.tftpl", {
+      hostname    = each.value.hostname
+      packages    = each.value.cloud_init.packages
+      write_files = each.value.cloud_init.write_files
+      runcmd      = each.value.cloud_init.runcmd
+    }))
+    host = each.value.ip_address
+  }
+
+  connection {
+    type        = "ssh"
+    host        = each.value.ip_address
+    user        = var.ssh_user
+    private_key = local.ssh_private_key
+    agent       = false
+    timeout     = "5m"
+  }
+
+  # Ensure cloud-init directories exist
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir -p /etc/cloud/cloud.cfg.d",
+      "mkdir -p /var/lib/cloud",
+    ]
+  }
+
+  # Upload cloud-init configuration
+  provisioner "file" {
+    content = templatefile("${path.module}/templates/cloud-init-lxc.yaml.tftpl", {
+      hostname    = each.value.hostname
+      packages    = each.value.cloud_init.packages
+      write_files = each.value.cloud_init.write_files
+      runcmd      = each.value.cloud_init.runcmd
+    })
+    destination = "/etc/cloud/cloud.cfg.d/99-terraform.cfg"
+  }
+
+  # Execute cloud-init (simulated)
+  provisioner "remote-exec" {
+    inline = flatten([
+      # Check if already executed with same config
+      "CURRENT_HASH=$(cat /var/lib/cloud/.terraform-init-hash 2>/dev/null || echo '')",
+      "NEW_HASH='${sha256(templatefile("${path.module}/templates/cloud-init-lxc.yaml.tftpl", {
+        hostname    = each.value.hostname
+        packages    = each.value.cloud_init.packages
+        write_files = each.value.cloud_init.write_files
+        runcmd      = each.value.cloud_init.runcmd
+      }))}'",
+      "[ \"$CURRENT_HASH\" = \"$NEW_HASH\" ] && { echo 'Cloud-init already applied with same config'; exit 0; }",
+      "",
+      "echo 'Applying cloud-init for ${each.value.hostname}...'",
+      "",
+      # Install packages if specified
+      length(each.value.cloud_init.packages) > 0 ? [
+        "apt-get update -qq",
+        "apt-get install -y -qq ${join(" ", each.value.cloud_init.packages)}",
+      ] : [],
+      "",
+      # Write files if specified
+      length(each.value.cloud_init.write_files) > 0 ? [
+        for file in each.value.cloud_init.write_files : [
+          "mkdir -p $(dirname ${file.path})",
+          "cat > ${file.path} << 'EOF'",
+          file.content,
+          "EOF",
+          "chmod ${file.permissions} ${file.path}",
+          "chown ${file.owner} ${file.path}",
+        ]
+      ] : [],
+      "",
+      # Run commands if specified
+      length(each.value.cloud_init.runcmd) > 0 ? [
+        for cmd in each.value.cloud_init.runcmd : cmd
+      ] : [],
+      "",
+      # Mark completion with hash for idempotency
+      "echo '${sha256(templatefile("${path.module}/templates/cloud-init-lxc.yaml.tftpl", {
+        hostname    = each.value.hostname
+        packages    = each.value.cloud_init.packages
+        write_files = each.value.cloud_init.write_files
+        runcmd      = each.value.cloud_init.runcmd
+      }))}' > /var/lib/cloud/.terraform-init-hash",
+      "touch /var/lib/cloud/.terraform-init-done",
+      "echo 'Cloud-init completed for ${each.value.hostname}'",
+    ])
+  }
+
+  depends_on = [local_file.cloud_init_configs]
+}

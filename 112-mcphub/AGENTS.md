@@ -10,11 +10,11 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 
 - **SSoT Catalog:** `mcp_servers.json` is the canonical MCP server registry.
 - **Consumers:** `100-pve/main.tf` parses the catalog for Terraform rendering. `mcp-health-check.yml` validates port reachability.
-- **Runtime Split:** Catalog defines 13 active servers (10 `stdio`, 2 `sse`, 1 `streamable-http`). Docker sidecars (`Dockerfile.proxmox`, `Dockerfile.playwright`) are infra assets, not catalog entries.
+- **Runtime Split:** Catalog defines 12 active servers (8 `stdio`, 2 `sse`, 2 `streamable-http`). Docker sidecars (`Dockerfile.proxmox`, `Dockerfile.playwright`) are infra assets, not catalog entries.
 
 ## GENERATED VS SOURCE
 
-- **Source-editable:** `mcp_servers.json`, `templates/*.tftpl`, `Dockerfile.*`, `validate_mcps.py`, `n8n-workflows/*.json`, `op-mcp-server/`.
+- **Source-editable:** `mcp_servers.json`, `templates/*.tftpl`, `Dockerfile.*`, `validate_mcps.py`, `op-mcp-server/`.
 - **Generated/reference-only:** rendered files under service `tf-configs/` and deployment outputs under `100-pve/configs/`; `config/filebeat.yml` is reference-only.
 - **Edit Rule:** change templates/catalog, then re-render through Terraform workflows.
 
@@ -26,7 +26,8 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 | Catalog validation    | `validate_mcps.py`                            | Schema + port uniqueness + secret-pattern checks |
 | OpenCode MCP settings | `templates/mcp_settings.json.tftpl`           | Render target for MCP client config              |
 | Runtime template      | `templates/docker-compose.yml.tftpl`          | mcphub + sidecar containers                      |
-| n8n template          | `templates/docker-compose-n8n.yml.tftpl`      | Automation service runtime                       |
+| 1Password MCP sidecar | `op-mcp-server/`                              | Node.js (`index.mjs` + `package.json`)           |
+| Sidecar Dockerfiles   | `Dockerfile.proxmox`, `Dockerfile.playwright` | Build definitions                                |
 | 1Password MCP sidecar | `op-mcp-server/`                              | Node.js (`index.mjs` + `package.json`)           |
 | Sidecar Dockerfiles   | `Dockerfile.proxmox`, `Dockerfile.playwright` | Build definitions                                |
 | n8n workflows         | `n8n-workflows/`                              | Exported workflows — must match runtime          |
@@ -42,6 +43,8 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 ## ANTI-PATTERNS
 
 - Never hand-edit rendered deployment outputs (`tf-configs/`, `100-pve/configs/...`).
+- Never inject plaintext tokens/keys in catalog or templates.
+- Never mutate running containers via ad-hoc `docker exec` config changes.
 - Never inject plaintext tokens/keys in catalog, templates, or workflow JSON.
 - Never mutate running containers via ad-hoc `docker exec` config changes.
 - Never add n8n runtime workflows without exporting committed JSON counterparts.

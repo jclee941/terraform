@@ -3,11 +3,6 @@ output "secrets_store_id" {
   value       = var.cloudflare_secrets_store_id
 }
 
-output "managed_github_repos" {
-  description = "GitHub repositories receiving managed Actions secrets"
-  value       = local.github_repo_names
-}
-
 output "total_secrets_count" {
   description = "Total number of secrets in inventory"
   value       = local.total_secrets_count

@@ -86,3 +86,7 @@ thoughts/
 setup-filebeat
 setup-local-env
 scripts/bin/
+
+# Compiled Go binaries in config directories
+**/config/entrypoint-patch
+**/config/*.exe

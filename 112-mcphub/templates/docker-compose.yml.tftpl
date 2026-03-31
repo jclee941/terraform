@@ -15,7 +15,6 @@ services:
       - /mnt/oc-dev/gmail:/home/jclee/dev/gmail
       - ./.gitconfig:/root/.gitconfig:ro
       - /mnt/oc-kratos:/root/.kratos
-      - ./slack-users-cache.json:/tmp/slack-users-cache.json
       - ./patches:/app/patches:ro
       - /usr/lib/google-cloud-sdk:/usr/lib/google-cloud-sdk:ro
       - /usr/bin/gcloud:/usr/bin/gcloud:ro
@@ -24,7 +23,7 @@ services:
       - .env
     environment:
       - MCPHUB_PORT=3000
-    entrypoint: ["/bin/sh", "/app/patches/entrypoint-patch.sh"]
+    entrypoint: ["/app/patches/entrypoint-patch"]
     command: ["pnpm", "start"]
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:3000/ || exit 1"]
@@ -35,6 +34,7 @@ services:
     depends_on:
       - mcp-proxmox
       - mcp-playwright
+      - mcp-dev-browser
 
   mcp-proxmox:
     build:
@@ -67,6 +67,27 @@ services:
       - PLAYWRIGHT_MCP_HEADLESS=true
     healthcheck:
       test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8056,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  mcp-dev-browser:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev-browser
+    container_name: mcp-dev-browser
+    restart: unless-stopped
+    ports:
+      - "8057:8057"
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8057
+      - RELAY_MODE=auto
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8057,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -31,6 +31,17 @@ variable "lxc_containers" {
       content = string
     }))
 
+    cloud_init = optional(object({
+      packages = optional(list(string), [])
+      write_files = optional(list(object({
+        path        = string
+        content     = string
+        permissions = optional(string, "0644")
+        owner       = optional(string, "root:root")
+      })), [])
+      runcmd = optional(list(string), [])
+    }), {})
+
     deploy         = optional(bool, false)
     setup_filebeat = optional(bool, false)
   }))

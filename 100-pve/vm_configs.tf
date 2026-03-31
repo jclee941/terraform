@@ -168,10 +168,11 @@ module "vm_config" {
             owner       = "root:root"
           },
           {
-            path        = "/opt/mcphub/patches/entrypoint-patch.sh"
-            content     = file("${path.module}/../112-mcphub/config/entrypoint-patch.sh")
+            path        = "/opt/mcphub/patches/entrypoint-patch"
+            content     = filebase64("${path.module}/../112-mcphub/config/entrypoint-patch")
             permissions = "0755"
             owner       = "root:root"
+            encoding    = "base64"
           },
         ]
       }

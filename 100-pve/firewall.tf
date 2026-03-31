@@ -16,18 +16,18 @@ locals {
   # Guest type determines firewall resource (container_id vs vm_id).
   # Add new hosts here when provisioning — port rules auto-derived from hosts.tf.
   firewall_guests = {
-    runner      = "container"
-    traefik     = "container"
-    coredns     = "container"
-    grafana     = "container"
-    elk         = "container"
-    supabase    = "container"
-    archon      = "container"
-    gitops      = "container"
-    n8n         = "container"
-    mcphub      = "vm"
-    "jclee-dev" = "vm"
-    youtube     = "vm"
+    proxy           = "container"
+    "gitlab-runner" = "container"
+    traefik         = "container"
+    coredns         = "container"
+    grafana         = "container"
+    elk             = "container"
+    supabase        = "container"
+    archon          = "container"
+    n8n             = "container"
+    mcphub          = "vm"
+    "jclee-dev"     = "vm"
+    youtube         = "vm"
   }
 
   # ── Port labels ────────────────────────────────────────────────────────────

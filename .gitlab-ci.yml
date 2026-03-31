@@ -1,0 +1,79 @@
+# GitLab CI/CD Pipeline for Terraform Infrastructure
+# Migration from GitHub Actions - Phase 3 Implementation
+#
+# Structure:
+# - Modular pipeline definitions in .gitlab/ci/
+# - Dynamic workspace detection
+# - Parallel plan/apply for independent workspaces
+# - GitLab-managed Terraform state backend
+
+default:
+  image: hashicorp/terraform:1.10.5
+  tags:
+    - terraform
+    - self-hosted
+  before_script:
+    - terraform version
+    - export TF_IN_AUTOMATION=true
+    - export TF_INPUT=false
+
+variables:
+  # Terraform configuration
+  TF_ROOT: ${CI_PROJECT_DIR}
+  TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state
+
+  # 1Password Connect configuration
+  OP_CONNECT_HOST: ${OP_CONNECT_HOST}
+  OP_CONNECT_TOKEN: ${OP_CONNECT_TOKEN}
+
+  # Provider authentication (from CI/CD variables)
+  PROXMOX_VE_ENDPOINT: ${PROXMOX_VE_ENDPOINT}
+  PROXMOX_VE_API_TOKEN: ${PROXMOX_VE_API_TOKEN}
+  CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+
+  # Feature flags
+  TF_PARALLELISM: "10"
+
+# Workflow rules control when pipelines are created
+workflow:
+  rules:
+    # Run on merge requests
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    # Run on default branch
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    # Run on scheduled pipelines (drift detection)
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    # Run on manual web triggers
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: always
+    # Don't create pipelines for other cases
+    - when: never
+
+# Pipeline stages
+stages:
+  - prepare
+  - validate
+  - test
+  - plan
+  - deploy
+  - verify
+
+# Include modular pipeline definitions
+include:
+  - local: '.gitlab/ci/00-prepare.yml'
+  - local: '.gitlab/ci/10-validate.yml'
+  - local: '.gitlab/ci/20-test.yml'
+  - local: '.gitlab/ci/30-plan.yml'
+  - local: '.gitlab/ci/40-apply.yml'
+  - local: '.gitlab/ci/50-verify.yml'
+  - local: '.gitlab/ci/60-drift-detection.yml'
+
+# Global cache for Terraform plugins
+cache:
+  key: ${CI_COMMIT_REF_SLUG}-terraform
+  paths:
+    - .terraform/plugin-cache/
+  policy: pull-push

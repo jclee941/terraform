@@ -1,0 +1,31 @@
+#cloud-config
+hostname: ${hostname}
+manage_etc_hosts: true
+
+package_update: true
+package_upgrade: false
+
+packages:
+%{ for pkg in packages ~}
+  - ${pkg}
+%{ endfor ~}
+
+%{ if length(write_files) > 0 ~}
+write_files:
+%{ for file in write_files ~}
+  - path: ${file.path}
+    permissions: '${file.permissions}'
+    owner: ${file.owner}
+    content: |
+      ${indent(6, file.content)}
+%{ endfor ~}
+%{ endif ~}
+
+%{ if length(runcmd) > 0 ~}
+runcmd:
+%{ for cmd in runcmd ~}
+  - ${cmd}
+%{ endfor ~}
+%{ endif ~}
+
+final_message: "Cloud-init completed for ${hostname}"

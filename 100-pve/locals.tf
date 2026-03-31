@@ -71,17 +71,17 @@ locals {
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
-  # Total dedicated: 18944 MB (18.5 GB) + swap: 10752 MB (10.5 GB) = 29696 MB effective
+  # Total dedicated: 18176 MB (17.75 GB) + swap: 8960 MB (8.75 GB) = 27136 MB effective
   container_sizing = {
-    runner   = { memory = 1024, swap = 512, cores = 2, disk_size = 32, description = "GitHub Actions Self-hosted Runner" }
-    traefik  = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    grafana  = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
-    elk      = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
-    supabase = { memory = 3072, swap = 2048, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
-    archon   = { memory = 2048, swap = 1536, cores = 4, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
-    gitops   = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "GitOps Controller + GitHub Dispatch Agent" }
-    coredns  = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
-    n8n      = { memory = 1024, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
+    gitlab-runner = { memory = 768, swap = 512, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines" }
+    traefik       = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
+    grafana       = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
+    elk           = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
+    supabase      = { memory = 2048, swap = 1024, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
+    archon        = { memory = 1024, swap = 512, cores = 2, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
+    coredns       = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
+    n8n           = { memory = 2048, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
+    proxy         = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Squid Forward Proxy" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -137,15 +137,17 @@ locals {
       vmid        = 112
       description = "MCPHub - Unified MCP Server Gateway"
       memory      = 8192
+      balloon_min = 2048
       cores       = 2
       disk_size   = 32
     }
     youtube = {
       vmid        = 220
       description = "YouTube Media Server"
-      memory      = 6144
-      cores       = 2
-      disk_size   = 50
+      memory      = 16384
+      balloon_min = 4096
+      cores       = 8
+      disk_size   = 100
       bios        = "ovmf"
       machine     = "q35"
     }
@@ -174,7 +176,6 @@ locals {
     "openai_api_key",
     "proxmox_ssh_private_key",
     "slack_bot_token",
-    "slack_mcp_xoxp_token",
     "supabase_anon_key",
     "supabase_dashboard_password",
     "supabase_db_password",
@@ -223,6 +224,7 @@ locals {
       supabase    = "supabase.yml.tftpl"
       grafana     = "grafana.yml.tftpl"
       nas         = "nas.yml.tftpl"
+      gitlab      = "gitlab.yml.tftpl"
       opencode    = "opencode.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"
       cloudflared = "cloudflared-docker-compose.yml.tftpl"
@@ -253,12 +255,6 @@ locals {
     "108-archon" = { prefix = "archon", files = {
       filebeat       = "filebeat.yml.tftpl"
       docker_compose = "docker-compose.yml.tftpl"
-      env            = ".env.tftpl"
-    } }
-    "109-gitops" = { prefix = "gitops", files = {
-      filebeat       = "filebeat.yml.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      dockerfile     = "Dockerfile.tftpl"
       env            = ".env.tftpl"
     } }
     "110-n8n" = { prefix = "n8n", files = {

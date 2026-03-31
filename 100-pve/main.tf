@@ -67,6 +67,7 @@ module "vm" {
   managed_vmid_min = var.managed_vmid_range.min
   managed_vmid_max = var.managed_vmid_range.max
   hostpci_devices  = try(each.value.hostpci_devices, [])
+  balloon_min      = try(each.value.balloon_min, 0)
 
   cloud_init_file_id = try(local.cloud_init_files[each.key], null)
 }
@@ -74,4 +75,14 @@ module "vm" {
 moved {
   from = proxmox_virtual_environment_vm.mcphub
   to   = module.vm["mcphub"].proxmox_virtual_environment_vm.this
+}
+
+moved {
+  from = module.lxc["runner"].proxmox_virtual_environment_container.this
+  to   = module.lxc["gitlab-runner"].proxmox_virtual_environment_container.this
+}
+
+moved {
+  from = proxmox_virtual_environment_firewall_rules.container["runner"]
+  to   = proxmox_virtual_environment_firewall_rules.container["gitlab-runner"]
 }

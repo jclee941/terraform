@@ -19,22 +19,31 @@ locals {
     }
 
     pve = {
-      vmid  = 100
       ip    = "192.168.50.100"
       roles = ["hypervisor"]
       ports = {}
     }
 
-    # Removed: vault (was 101→repurposed), terraform (103),
-    # minio_cache (109), n8n (110), swagger (was 112→repurposed), github_runner (113→repurposed to 101)
-    # Removed: mcpdog (111) - migrated to mcphub (112)
+    proxy = {
+      vmid  = 100
+      ip    = "192.168.50.114"
+      roles = ["proxy", "squid"]
+      ports = {
+        proxy = 3128
+      }
+    }
 
-    runner = {
+    gitlab-runner = {
       vmid  = 101
       ip    = "192.168.50.101"
-      roles = ["ci", "github-runner"]
+      roles = ["ci", "runner", "gitlab"]
       ports = {}
     }
+
+    # Note: gitlab-runner (101) is active - LXC container for GitLab CI (migrated from HDD to SSD 2026-03-28)
+    # Removed: vault (was 101->repurposed), terraform (103),
+    # minio_cache (109), n8n (110), swagger (was 112->repurposed), github_runner (113->repurposed to 101)
+    # Removed: mcpdog (111) - migrated to mcphub (112)
 
     traefik = {
       vmid  = 102
@@ -109,13 +118,6 @@ locals {
       }
     }
 
-    gitops = {
-      vmid  = 109
-      ip    = "192.168.50.109"
-      roles = ["gitops", "automation", "controller"]
-      ports = {}
-    }
-
     n8n = {
       vmid  = 110
       ip    = "192.168.50.110"
@@ -141,7 +143,7 @@ locals {
       }
     }
 
-    "jclee-dev" = {
+    jclee-dev = {
       vmid  = 200
       ip    = "192.168.50.200"
       roles = ["development", "workstation"]
@@ -154,10 +156,13 @@ locals {
     synology = {
       vmid  = 215
       ip    = "192.168.50.215"
-      roles = ["nas", "storage"]
+      roles = ["nas", "storage", "gitlab", "ci"]
       ports = {
-        dsm       = 5000
-        dsm_https = 5001
+        dsm             = 5000
+        dsm_https       = 5001
+        gitlab_http     = 8929
+        gitlab_ssh      = 2224
+        gitlab_registry = 5050
       }
     }
 

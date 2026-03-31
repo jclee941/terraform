@@ -74,7 +74,5 @@ envs/prod/hosts.tf (SSoT)
 
 ```bash
 make plan SVC=pve             # Plan changes
-make apply SVC=pve            # Apply
-terraform plan -out=tfplan    # Direct (from 100-pve/)
-terraform apply tfplan
+# make apply is DISABLED locally — all applies go through CI/CD
 ```

@@ -4,6 +4,19 @@ Workspace Detection Script for GitLab CI
 
 Detects which Terraform workspaces are affected by changed files.
 Outputs JSON list of affected workspaces for downstream pipeline jobs.
+
+Usage:
+    python3 scripts/detect-workspaces.py [changed_files.txt]
+
+    If no file argument provided, reads from stdin.
+
+Output:
+    JSON object to stdout containing:
+    - workspaces: list of affected workspace names
+    - count: number of affected workspaces
+    - changed_files: list of changed files
+
+    Also writes dotenv-compatible output to build.env file.
 """
 
 import json
@@ -30,7 +43,6 @@ TEMPLATE_WORKSPACES = [
     "101-runner",
     "103-coredns",
     "107-supabase",
-    "109-gitops",
     "110-n8n",
     "112-mcphub",
     "200-oc",
@@ -72,7 +84,7 @@ def main():
 
     workspaces = detect_workspaces(changed_files)
 
-    # Output JSON for GitLab CI
+    # Output JSON for GitLab CI (stdout only)
     output = {
         "workspaces": workspaces,
         "count": len(workspaces),
@@ -81,8 +93,9 @@ def main():
 
     print(json.dumps(output, indent=2))
 
-    # Also output for dotenv
-    print(f"export AFFECTED_WORKSPACES='{json.dumps(workspaces)}'")
+    # Write dotenv to file (not stdout)
+    with open("build.env", "w") as f:
+        f.write(f"AFFECTED_WORKSPACES={json.dumps(workspaces)}\n")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,25 @@
+{
+  "name": "cliproxy",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "serve": "bun run src/serve.ts",
+    "mcp": "bun run src/mcp/index.ts",
+    "dev": "bun --watch run src/index.ts",
+    "dev:serve": "bun --watch run src/serve.ts",
+    "dev:mcp": "bun --watch run src/mcp/index.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.37",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@opencode-ai/sdk": "latest",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.10",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  }
+}

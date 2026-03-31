@@ -465,7 +465,7 @@ glab variable list
 |------|-------|-------|--------------|
 | Update template rendering | Terraform | `modules/proxmox/config-renderer/*` | Configs generated correctly |
 | Migrate runner configs | DevOps | `101-runner/*` | Runner configs deploy |
-| Migrate remaining templates | Terraform | `107-supabase`, `109-gitops`, `110-n8n`, `112-mcphub` | Services operational |
+| Migrate remaining templates | Terraform | `107-supabase`, `110-n8n`, `112-mcphub` | Services operational |
 
 ### 3.2 GitHub Actions → GitLab CI Mapping
 

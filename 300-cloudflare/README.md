@@ -120,7 +120,6 @@ go run scripts/generate-bindings.go --out wrangler.toml
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7, < 2.0 |
 | <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | ~> 5.0 |
-| <a name="requirement_github"></a> [github](#requirement\_github) | ~> 6.6 |
 | <a name="requirement_onepassword"></a> [onepassword](#requirement\_onepassword) | ~> 3.2 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
 | <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.12 |
@@ -131,7 +130,6 @@ go run scripts/generate-bindings.go --out wrangler.toml
 |------|---------|
 | <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.18.0 |
 | <a name="provider_cloudflare.apikey"></a> [cloudflare.apikey](#provider\_cloudflare.apikey) | 5.18.0 |
-| <a name="provider_github"></a> [github](#provider\_github) | 6.11.1 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 | <a name="provider_time"></a> [time](#provider\_time) | 0.13.1 |
@@ -166,7 +164,6 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | [cloudflare_zero_trust_tunnel_cloudflared.synology](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared) | resource |
 | [cloudflare_zero_trust_tunnel_cloudflared_config.homelab](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared_config) | resource |
 | [cloudflare_zero_trust_tunnel_cloudflared_config.synology](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared_config) | resource |
-| [github_actions_secret.managed](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/actions_secret) | resource |
 | [random_password.homelab_tunnel_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.jclee_tunnel_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.tunnel_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
@@ -192,8 +189,6 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="input_elk_ip"></a> [elk\_ip](#input\_elk\_ip) | ELK stack IP address (VMID 105) | `string` | `"192.168.50.105"` | no |
 | <a name="input_enable_cf_store_sync"></a> [enable\_cf\_store\_sync](#input\_enable\_cf\_store\_sync) | Enable local-exec wrangler sync for CF Secrets Store beta workflow | `bool` | `false` | no |
 | <a name="input_enable_worker_route"></a> [enable\_worker\_route](#input\_enable\_worker\_route) | Enable Workers route (set to true after Worker is deployed via wrangler) | `bool` | `false` | no |
-| <a name="input_github_owner"></a> [github\_owner](#input\_github\_owner) | GitHub organization/user owner | `string` | `"qws941"` | no |
-| <a name="input_github_token"></a> [github\_token](#input\_github\_token) | GitHub token with actions secret write permissions (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_google_oauth_client_id"></a> [google\_oauth\_client\_id](#input\_google\_oauth\_client\_id) | Google OAuth 2.0 Client ID for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_google_oauth_client_secret"></a> [google\_oauth\_client\_secret](#input\_google\_oauth\_client\_secret) | Google OAuth 2.0 Client Secret for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_homelab_domain"></a> [homelab\_domain](#input\_homelab\_domain) | Base domain for homelab services | `string` | `"jclee.me"` | no |
@@ -218,7 +213,6 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="output_homelab_tunnel_token"></a> [homelab\_tunnel\_token](#output\_homelab\_tunnel\_token) | Cloudflare Tunnel token for homelab cloudflared connector |
 | <a name="output_jclee_tunnel_id"></a> [jclee\_tunnel\_id](#output\_jclee\_tunnel\_id) | Cloudflare Tunnel ID for JCLee workstation |
 | <a name="output_jclee_tunnel_token"></a> [jclee\_tunnel\_token](#output\_jclee\_tunnel\_token) | Cloudflare Tunnel token for JCLee cloudflared connector |
-| <a name="output_managed_github_repos"></a> [managed\_github\_repos](#output\_managed\_github\_repos) | GitHub repositories receiving managed Actions secrets |
 | <a name="output_r2_bucket_name"></a> [r2\_bucket\_name](#output\_r2\_bucket\_name) | R2 bucket name used for Synology cache |
 | <a name="output_secrets_store_id"></a> [secrets\_store\_id](#output\_secrets\_store\_id) | Cloudflare Secrets Store ID used by this configuration |
 | <a name="output_synology_domain"></a> [synology\_domain](#output\_synology\_domain) | Synology domain protected by Cloudflare Access |

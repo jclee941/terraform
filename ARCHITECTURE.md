@@ -44,7 +44,6 @@ terraform/
 ├── 105-elk/                      # Tier 1: Log aggregation (ES + Logstash + Kibana)
 ├── 107-supabase/                 # Template-only: Backend-as-a-Service
 ├── 108-archon/                   # Tier 1: AI knowledge management
-├── 109-gitops/                   # Template-only: GitOps configs
 ├── 110-n8n/                      # Template-only: n8n workflow automation
 ├── 112-mcphub/                   # Template-only: MCP Hub + 1Password Connect
 ├── 200-oc/                       # Template-only: OpenCode dev environment

@@ -47,3 +47,108 @@ variable "synology_skip_cert_check" {
   type        = bool
   default     = true
 }
+
+variable "enable_container_manager_package" {
+  description = "Manage ContainerManager package installation via Terraform"
+  type        = bool
+  default     = false
+}
+
+variable "enable_gitlab_project" {
+  description = "Enable GitLab CE container project deployment on Synology"
+  type        = bool
+  default     = false
+}
+
+variable "gitlab_version" {
+  description = "GitLab CE image tag"
+  type        = string
+  default     = "17.8.0-ce.0"
+}
+
+variable "gitlab_external_url" {
+  description = "External URL advertised by GitLab"
+  type        = string
+  default     = "http://192.168.50.215:8929"
+}
+
+variable "gitlab_http_port" {
+  description = "Published HTTP port for GitLab web UI"
+  type        = string
+  default     = "8929"
+}
+
+variable "gitlab_ssh_port" {
+  description = "Published SSH port for Git over SSH"
+  type        = string
+  default     = "2224"
+}
+
+variable "gitlab_timezone" {
+  description = "Timezone used by GitLab container"
+  type        = string
+  default     = "Asia/Seoul"
+}
+
+variable "gitlab_project_share_path" {
+  description = "Synology share path for GitLab compose project"
+  type        = string
+  default     = "/docker/gitlab"
+}
+
+# -----------------------------------------------------------------------------
+# GitLab Container Registry
+# -----------------------------------------------------------------------------
+
+variable "enable_gitlab_registry" {
+  description = "Enable GitLab Container Registry"
+  type        = bool
+  default     = false
+}
+
+variable "gitlab_registry_port" {
+  description = "Published port for GitLab Container Registry"
+  type        = string
+  default     = "5050"
+}
+
+variable "gitlab_registry_external_url" {
+  description = "External URL for GitLab Container Registry"
+  type        = string
+  default     = "http://192.168.50.215:5050"
+}
+
+# -----------------------------------------------------------------------------
+# GitLab Runner
+# -----------------------------------------------------------------------------
+
+variable "enable_gitlab_runner" {
+  description = "Enable GitLab Runner container on Synology"
+  type        = bool
+  default     = false
+}
+
+variable "gitlab_runner_image" {
+  description = "GitLab Runner Docker image tag"
+  type        = string
+  default     = "alpine"
+}
+
+variable "gitlab_runner_token" {
+  description = "GitLab Runner authentication token (glrt-* prefix, from GitLab UI)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "gitlab_runner_tags" {
+  description = "Comma-separated runner tags for job matching"
+  type        = string
+  default     = "synology,terraform,docker"
+}
+
+variable "gitlab_runner_share_path" {
+  description = "Synology share path for GitLab Runner compose project"
+  type        = string
+  default     = "/docker/gitlab-runner"
+}

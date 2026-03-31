@@ -48,6 +48,45 @@ variable "memory" {
   }
 }
 
+variable "balloon_min" {
+  description = "Balloon minimum memory in MB (0 = balloon disabled)"
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.balloon_min >= 0 && var.balloon_min <= var.memory
+    error_message = "balloon_min must be >= 0 and <= memory."
+  }
+}
+
+variable "ssd_emulation" {
+  description = "Enable SSD emulation (TRIM support via guest OS)"
+  type        = bool
+  default     = true
+}
+
+variable "disk_discard" {
+  description = "Disk discard mode (on or ignore)"
+  type        = string
+  default     = "on"
+
+  validation {
+    condition     = contains(["on", "ignore"], var.disk_discard)
+    error_message = "disk_discard must be 'on' or 'ignore'."
+  }
+}
+
+variable "disk_aio" {
+  description = "Disk async IO mode (io_uring, native, or threads)"
+  type        = string
+  default     = "io_uring"
+
+  validation {
+    condition     = contains(["io_uring", "native", "threads"], var.disk_aio)
+    error_message = "disk_aio must be 'io_uring', 'native', or 'threads'."
+  }
+}
+
 variable "cores" {
   description = "CPU cores"
   type        = number

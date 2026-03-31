@@ -17,18 +17,20 @@ All MCP servers are **STDIO child processes** inside the MCPHub container — th
 
 ## Quick Reference
 
-| Server      | Transport | Status (2026-02-26)      | Fix Section                             |
-| ----------- | --------- | ------------------------ | --------------------------------------- |
-| elk         | stdio     | ✅ Connected             | —                                       |
-| kratos      | stdio     | ✅ Connected             | —                                       |
-| terraform   | stdio     | ✅ Connected             | —                                       |
-| github      | stdio     | ✅ Connected             | —                                       |
-| git         | stdio     | ✅ Connected             | —                                       |
-| onepassword | stdio     | ✅ Connected             | [1Password](#1password-empty-vault)     |
-| **archon**  | **streamable-http** | ✅ Connected (native HTTP) | [Archon](#archon-streamable-http) |
-| slack       | stdio     | ✅ Connected             | —                                       |
-| proxmox     | stdio     | ✅ Connected             | —                                       |
-| playwright  | stdio     | ✅ Connected             | —                                       |
+| Server      | Transport           | Status (2026-03-28)        | Fix Section                             |
+| ----------- | ------------------- | -------------------------- | --------------------------------------- |
+| elk         | stdio               | ✅ Connected               | —                                       |
+| kratos      | stdio               | ✅ Connected               | —                                       |
+| terraform   | stdio               | ✅ Connected               | —                                       |
+| github      | stdio               | ✅ Connected               | —                                       |
+| git         | stdio               | ✅ Connected               | —                                       |
+| onepassword | stdio               | ✅ Connected               | [1Password](#1password-empty-vault)     |
+| **archon**  | **streamable-http** | ✅ Connected (native HTTP) | [Archon](#archon-streamable-http)       |
+| proxmox     | sse                 | ✅ Connected               | —                                       |
+| playwright  | sse                 | ✅ Connected               | —                                       |
+| **n8n**     | **streamable-http** | ✅ Connected               | —                                       |
+| gitlab      | stdio               | ✅ Connected               | —                                       |
+| supabase    | stdio               | ⏳ Pending (new)           | —                                       |
 
 ## Diagnosis
 
@@ -71,7 +73,7 @@ cd /path/to/terraform
 python3 112-mcphub/validate_mcps.py
 ```
 
-Expected: `✅ Catalog valid: 12 servers (hub=12, local=0, external=0)`
+Expected: `✅ Catalog valid: 13 servers (hub=13, local=0, external=0)`
 
 ---
 

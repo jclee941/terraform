@@ -11,6 +11,19 @@ provider "synology" {
 
 provider "onepassword" {}
 
+locals {
+  _registry_config = var.enable_gitlab_registry ? [
+    "registry_external_url '${var.gitlab_registry_external_url}'",
+    "registry['enable'] = true",
+    "registry_nginx['enable'] = true",
+    "registry_nginx['listen_port'] = ${var.gitlab_registry_port}",
+  ] : []
+
+  gitlab_omnibus_config = join("\n", concat([
+    "external_url '${var.gitlab_external_url}'",
+  ], local._registry_config))
+}
+
 # -----------------------------------------------------------------------------
 # Data Sources
 # -----------------------------------------------------------------------------
@@ -22,25 +35,101 @@ data "synology_core_network" "this" {}
 # -----------------------------------------------------------------------------
 
 resource "synology_core_package" "container_manager" {
+  for_each = var.enable_container_manager_package ? { container_manager = true } : {}
+
   name = "ContainerManager"
 }
 
+resource "synology_container_project" "gitlab" {
+  for_each = var.enable_gitlab_project ? { gitlab = true } : {}
+
+  name       = "gitlab"
+  share_path = var.gitlab_project_share_path
+  run        = true
+
+  services = {
+    gitlab = {
+      image          = "gitlab/gitlab-ce:${var.gitlab_version}"
+      container_name = "gitlab"
+      hostname       = "gitlab"
+      restart        = "unless-stopped"
+
+      environment = {
+        TZ                    = var.gitlab_timezone
+        GITLAB_OMNIBUS_CONFIG = local.gitlab_omnibus_config
+      }
+
+      ports = concat([
+        {
+          target    = tonumber(var.gitlab_http_port)
+          published = var.gitlab_http_port
+        },
+        {
+          target    = 22
+          published = var.gitlab_ssh_port
+        },
+        ], var.enable_gitlab_registry ? [
+        {
+          target    = tonumber(var.gitlab_registry_port)
+          published = var.gitlab_registry_port
+        },
+      ] : [])
+
+      volumes = [
+        {
+          type   = "bind"
+          source = "/volume1/docker/gitlab/config"
+          target = "/etc/gitlab"
+        },
+        {
+          type   = "bind"
+          source = "/volume1/docker/gitlab/logs"
+          target = "/var/log/gitlab"
+        },
+        {
+          type   = "bind"
+          source = "/volume1/docker/gitlab/data"
+          target = "/var/opt/gitlab"
+        },
+      ]
+    }
+  }
+}
+
 # -----------------------------------------------------------------------------
-# Container Projects — Docker Compose stacks managed via Terraform
+# GitLab Runner — Docker executor for CI/CD pipelines
 # -----------------------------------------------------------------------------
-# Add synology_container_project resources here as services are onboarded.
-# Example:
-#
-# resource "synology_container_project" "example" {
-#   name       = "example"
-#   share_path = "/docker/example"
-#   run        = true
-#
-#   services = {
-#     "app" = {
-#       image   = "nginx:latest"
-#       ports   = [{ target = 80, published = "8080" }]
-#       restart = "unless-stopped"
-#     }
-#   }
-# }
+
+resource "synology_container_project" "gitlab_runner" {
+  for_each = var.enable_gitlab_runner ? { gitlab_runner = true } : {}
+
+  name       = "gitlab-runner"
+  share_path = var.gitlab_runner_share_path
+  run        = true
+
+  services = {
+    "gitlab-runner" = {
+      image          = "gitlab/gitlab-runner:${var.gitlab_runner_image}"
+      container_name = "gitlab-runner"
+      hostname       = "gitlab-runner"
+      restart        = "unless-stopped"
+
+      environment = {
+        TZ = var.gitlab_timezone
+      }
+
+      volumes = [
+        {
+          type   = "bind"
+          source = "/volume1/docker/gitlab-runner/config"
+          target = "/etc/gitlab-runner"
+        },
+        {
+          type   = "bind"
+          source = "/var/run/docker.sock"
+          target = "/var/run/docker.sock"
+        },
+      ]
+    }
+  }
+}

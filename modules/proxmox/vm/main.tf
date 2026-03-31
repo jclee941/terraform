@@ -45,6 +45,7 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   memory {
     dedicated = var.memory
+    floating  = var.balloon_min
   }
 
   disk {
@@ -52,6 +53,9 @@ resource "proxmox_virtual_environment_vm" "this" {
     interface    = var.disk_interface
     size         = var.disk_size
     iothread     = true
+    ssd          = var.ssd_emulation
+    discard      = var.disk_discard
+    aio          = var.disk_aio
   }
 
   network_device {
