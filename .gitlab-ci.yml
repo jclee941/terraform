@@ -11,7 +11,6 @@ default:
   image: hashicorp/terraform:1.10.5
   tags:
     - terraform
-    - homelab
   before_script:
     - terraform version
     - export TF_IN_AUTOMATION=true
