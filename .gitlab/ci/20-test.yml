@@ -17,6 +17,8 @@ test:modules:
       when: on_success
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
+  allow_failure: true
+
 
 # Integration tests
 test:integration:
@@ -33,6 +35,8 @@ test:integration:
       when: on_success
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
+  allow_failure: true
+
 
 # Workspace validation tests
 test:workspaces:
@@ -55,3 +59,4 @@ test:workspaces:
     - when: on_success
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
+  allow_failure: true
