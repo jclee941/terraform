@@ -51,7 +51,7 @@ func run() error {
 		gitlabToken:   os.Getenv("GITLAB_RUNNER_TOKEN"),
 		skipDocker:    os.Getenv("SKIP_DOCKER") == "1",
 		tags:          getenvDefault("RUNNER_TAGS", "homelab,docker,linux,terraform"),
-		concurrent:    getenvDefault("RUNNER_CONCURRENT", "4"),
+		concurrent:    getenvDefault("RUNNER_CONCURRENT", "8"),
 	}
 	cfg.runnerDir = filepath.Join("/opt", "gitlab-runner")
 
