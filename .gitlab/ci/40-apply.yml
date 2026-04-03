@@ -41,12 +41,6 @@ apply:all:
         TF_WORKSPACE_NAME: "synology"
       - TF_WORKING_DIR: "300-cloudflare"
         TF_WORKSPACE_NAME: "cloudflare"
-      - TF_WORKING_DIR: "310-safetywallet"
-        TF_WORKSPACE_NAME: "safetywallet"
-      - TF_WORKING_DIR: "320-slack"
-        TF_WORKSPACE_NAME: "slack"
-      - TF_WORKING_DIR: "400-gcp"
-        TF_WORKSPACE_NAME: "gcp"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual

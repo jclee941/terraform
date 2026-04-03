@@ -10,7 +10,7 @@ detect:workspaces:
     - apk add --no-cache jq python3 py3-pip
     - |
       # Detect changed files and map to workspaces
-      if [ "$CI_PIPELINE_SOURCE" == "merge_request_event" ]; then
+      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ]; then
         BASE_SHA="origin/${CI_DEFAULT_BRANCH}"
         HEAD_SHA="HEAD"
       else
@@ -19,7 +19,7 @@ detect:workspaces:
       fi
 
       echo "Detecting changes between ${BASE_SHA}...${HEAD_SHA}"
-      git diff --name-only "${BASE_SHA}...${HEAD_SHA}" > changed_files.txt
+      git diff --name-only "${BASE_SHA}...${HEAD_SHA}" > changed_files.json
 
       # Run workspace detection
       python3 scripts/detect-workspaces.py changed_files.json

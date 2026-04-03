@@ -34,8 +34,6 @@ WORKSPACE_MAP = {
     "215-synology": ["215-synology/"],
     "300-cloudflare": ["300-cloudflare/"],
     "310-safetywallet": ["310-safetywallet/"],
-    "320-slack": ["320-slack/"],
-    "400-gcp": ["400-gcp/"],
 }
 
 # Template-only workspaces (no Terraform, but configs rendered)
