@@ -7,7 +7,7 @@ drift:detection:
   stage: verify
   extends: .terraform_base
   variables:
-    WORKSPACES: "100-pve 102-traefik/terraform 104-grafana/terraform 105-elk/terraform 108-archon/terraform 300-cloudflare 320-slack 400-gcp"
+    WORKSPACES: "100-pve 102-traefik/terraform 104-grafana/terraform 105-elk/terraform 108-archon/terraform 215-synology 300-cloudflare/terraform"
   script:
     - |
       echo "Running drift detection for workspaces..."
