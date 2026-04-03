@@ -3,7 +3,9 @@
 # =============================================================================
 
 .terraform_base:
-  image: hashicorp/terraform:1.10.5
+  image:
+    name: hashicorp/terraform:1.10.5
+    entrypoint: [""]
   before_script:
     - terraform version
     - export TF_IN_AUTOMATION=true
@@ -57,6 +59,19 @@ validate:all:
     - terraform validate -no-color
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: always
+      when: manual
+
+# Validate specific changed workspaces (via detect:workspaces output)
+validate:changed:
+  extends: .validate_template
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "100-pve/**/*"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - "100-pve/**/*"
+      when: manual
+  variables:
+    TF_WORKING_DIR: "100-pve"
