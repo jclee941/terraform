@@ -1,69 +1,60 @@
 # =============================================================================
-# GitLab CI: Drift Detection
+# GitLab CI: Drift Detection (Parallel)
 # =============================================================================
 
-# Scheduled drift detection for all workspaces
-drift:detection:
+# Scheduled drift detection for all workspaces - parallel execution
+.drift_base:
   stage: verify
   extends: .terraform_base
-  variables:
-    WORKSPACES: "100-pve 102-traefik/terraform 104-grafana/terraform 105-elk/terraform 108-archon/terraform 215-synology 300-cloudflare/terraform"
   script:
     - |
-      echo "Running drift detection for workspaces..."
-      DRIFT_DETECTED=false
+      echo "========================================"
+      echo "Drift Detection: ${TF_WORKING_DIR}"
+      echo "========================================"
 
-      for ws in ${WORKSPACES}; do
-        echo ""
-        echo "========================================"
-        echo "Checking: ${ws}"
-        echo "========================================"
+      cd "${CI_PROJECT_DIR}/${TF_WORKING_DIR}"
 
-        cd "${CI_PROJECT_DIR}/${ws}"
+      # Initialize without backend for drift check
+      terraform init -input=false -backend=false
 
-        # Initialize without backend for drift check
-        terraform init -input=false -backend=false || continue
+      # Run plan with detailed exit code
+      set +e
+      terraform plan -detailed-exitcode -input=false -no-color
+      EXIT_CODE=$?
+      set -e
 
-        # Run plan with detailed exit code
-        set +e
-        terraform plan -detailed-exitcode -input=false -no-color
-        EXIT_CODE=$?
-        set -e
-
-        case $EXIT_CODE in
-          0)
-            echo "✅ ${ws}: No drift detected"
-            ;;
-          1)
-            echo "❌ ${ws}: Plan failed (configuration error)"
-            ;;
-          2)
-            echo "⚠️ ${ws}: DRIFT DETECTED"
-            DRIFT_DETECTED=true
-            # Create GitLab issue (if glab available)
-            if command -v glab &> /dev/null; then
-              glab issue create \
-                --title "[Drift] Changes detected in ${ws}" \
-                --label "terraform-drift,automated" \
-                --description "Drift detected at $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-                || echo "Failed to create issue for ${ws}"
-            fi
-            ;;
-        esac
-
-        cd "${CI_PROJECT_DIR}"
-      done
-
-      if [ "$DRIFT_DETECTED" = true ]; then
-        echo ""
-        echo "========================================"
-        echo "⚠️  DRIFT DETECTED IN ONE OR MORE WORKSPACES"
-        echo "========================================"
-        exit 1
-      else
-        echo ""
-        echo "✅ All workspaces match expected state"
-      fi
+      case $EXIT_CODE in
+        0)
+          echo "✅ ${TF_WORKING_DIR}: No drift detected"
+          ;;
+        1)
+          echo "❌ ${TF_WORKING_DIR}: Plan failed (configuration error)"
+          exit 1
+          ;;
+        2)
+          echo "⚠️ ${TF_WORKING_DIR}: DRIFT DETECTED"
+          # Create GitLab issue (if glab available)
+          if command -v glab &> /dev/null; then
+            glab issue create \
+              --title "[Drift] Changes detected in ${TF_WORKING_DIR}" \
+              --label "terraform-drift,automated" \
+              --description "Drift detected at $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              || echo "Failed to create issue for ${TF_WORKING_DIR}"
+          fi
+          exit 1
+          ;;
+      esac
+drift:detection:
+  extends: .drift_base
+  parallel:
+    matrix:
+      - TF_WORKING_DIR: "100-pve"
+      - TF_WORKING_DIR: "102-traefik/terraform"
+      - TF_WORKING_DIR: "104-grafana/terraform"
+      - TF_WORKING_DIR: "105-elk/terraform"
+      - TF_WORKING_DIR: "108-archon/terraform"
+      - TF_WORKING_DIR: "215-synology"
+      - TF_WORKING_DIR: "300-cloudflare/terraform"
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"

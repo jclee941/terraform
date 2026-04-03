@@ -42,7 +42,7 @@ locals {
     if !contains(host.roles, "hypervisor") && !contains(host.roles, "workstation") && !contains(host.roles, "nas")
   ]
 
-  mcp_catalog = jsondecode(file("${path.module}/../112-mcphub/mcp_servers.json"))
+  mcp_catalog = jsondecode(file("${path.module}/../../112-mcphub/mcp_servers.json"))
   mcp_hub_servers = {
     for k, v in local.mcp_catalog.servers : k => v
     if v.location == "hub"
@@ -73,7 +73,7 @@ locals {
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
   # Total dedicated: 18176 MB (17.75 GB) + swap: 8960 MB (8.75 GB) = 27136 MB effective
   container_sizing = {
-    gitlab-runner = { memory = 768, swap = 512, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines" }
+    gitlab-runner = { memory = 1536, swap = 512, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines" }
     traefik       = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     grafana       = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
     elk           = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
@@ -168,6 +168,7 @@ locals {
     "mcphub_op_connect_token",
     "mcphub_op_service_account_token",
     "mcphub_proxmox_token_name",
+    "gitlab_personal_access_token",
     "mcphub_proxmox_token_value",
     "n8n_api_key",
     "n8n_encryption_key",
@@ -280,7 +281,7 @@ locals {
     for svc_dir, svc in local._svc_tpl : {
       for name, file in svc.files :
       "${svc.prefix}_${name}" => {
-        source = "${path.module}/../${svc_dir}/templates/${file}"
+        source = "${path.module}/../../${svc_dir}/templates/${file}"
         output = "${svc.prefix}/${trimsuffix(file, ".tftpl")}"
       }
     }
@@ -289,15 +290,15 @@ locals {
   # Root-level templates that output to the top-level (not in service subdirs).
   root_templates = {
     grafana_datasources = {
-      source = "${path.module}/../104-grafana/templates/grafana-datasources.yml.tftpl"
+      source = "${path.module}/../../104-grafana/templates/grafana-datasources.yml.tftpl"
       output = "grafana-datasources.yml"
     }
     prometheus = {
-      source = "${path.module}/../104-grafana/templates/prometheus.yml.tftpl"
+      source = "${path.module}/../../104-grafana/templates/prometheus.yml.tftpl"
       output = "prometheus.yml"
     }
     traefik_elk = {
-      source = "${path.module}/../102-traefik/templates/traefik-elk.yml.tftpl"
+      source = "${path.module}/../../102-traefik/templates/traefik-elk.yml.tftpl"
       output = "traefik-elk.yml"
     }
   }
