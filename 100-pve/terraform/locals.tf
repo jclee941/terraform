@@ -81,7 +81,7 @@ locals {
     archon        = { memory = 1024, swap = 512, cores = 2, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
     coredns       = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
     n8n           = { memory = 2048, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
-    proxy         = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Squid Forward Proxy" }
+    cliproxy      = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Squid Forward Proxy" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -147,7 +147,7 @@ locals {
       memory      = 16384
       balloon_min = 4096
       cores       = 8
-      disk_size   = 100
+      disk_size   = 300
       bios        = "ovmf"
       machine     = "q35"
     }

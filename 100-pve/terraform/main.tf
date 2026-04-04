@@ -11,7 +11,7 @@ provider "onepassword" {}
 # =============================================================================
 
 module "hosts" {
-  source = "./envs/prod"
+  source = "../envs/prod"
 }
 
 # env-config module removed — non-hosts template vars inlined below
@@ -22,7 +22,7 @@ module "hosts" {
 # =============================================================================
 
 module "lxc" {
-  source   = "../modules/proxmox/lxc"
+  source   = "../../modules/proxmox/lxc"
   for_each = local.containers
 
   node_name        = local.node_name
@@ -48,7 +48,7 @@ module "lxc" {
 # =============================================================================
 
 module "vm" {
-  source   = "../modules/proxmox/vm"
+  source   = "../../modules/proxmox/vm"
   for_each = local.vm_definitions
 
   node_name        = local.node_name
@@ -85,4 +85,8 @@ moved {
 moved {
   from = proxmox_virtual_environment_firewall_rules.container["runner"]
   to   = proxmox_virtual_environment_firewall_rules.container["gitlab-runner"]
+}
+moved {
+  from = module.lxc["proxy"].proxmox_virtual_environment_container.this
+  to   = module.lxc["cliproxy"].proxmox_virtual_environment_container.this
 }
