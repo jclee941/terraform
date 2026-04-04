@@ -281,7 +281,7 @@ func configureRunner(cfg config) error {
 		"--config", configPath,
 		"--docker-memory", "512m",
 		"--docker-cpus", "1.5",
-
+	}
 	cmd := exec.Command("gitlab-runner", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -299,6 +299,8 @@ func configureRunner(cfg config) error {
 	}
 
 	if err := installSystemdService(cfg); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -326,7 +328,42 @@ func updateConfigConcurrent(cfg config) error {
 	return nil
 }
 
-func getenvDefault(key, def string) string {
+func installSystemdService(cfg config) error {
+	log("Installing systemd service...")
+
+	serviceContent := fmt.Sprintf(`[Unit]
+Description=GitLab Runner
+After=syslog.target network.target
+[Service]
+Type=simple
+User=%s
+ExecStart=/usr/local/bin/gitlab-runner run --config %s/config.toml
+Restart=always
+RestartSec=10
+[Install]
+WantedBy=multi-user.target
+`, cfg.runnerUser, cfg.runnerDir)
+
+	servicePath := "/etc/systemd/system/gitlab-runner.service"
+	if err := os.WriteFile(servicePath, []byte(serviceContent), 0644); err != nil {
+		return fmt.Errorf("write service file: %w", err)
+	}
+
+	if err := runCmd("systemctl", "daemon-reload"); err != nil {
+		return err
+	}
+
+	if err := runCmd("systemctl", "enable", "gitlab-runner"); err != nil {
+		return err
+	}
+
+	if err := runCmd("systemctl", "start", "gitlab-runner"); err != nil {
+		return err
+	}
+
+	log("GitLab Runner service installed and started")
+	return nil
+}
 func getenvDefault(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v

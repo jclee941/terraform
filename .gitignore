@@ -85,6 +85,9 @@ thoughts/
 # Compiled Go binaries (build artifacts)
 setup-filebeat
 setup-local-env
++production-verification
++setup-backups
++setup-ilm
 scripts/bin/
 
 # Compiled Go binaries in config directories
