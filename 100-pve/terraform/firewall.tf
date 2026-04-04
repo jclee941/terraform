@@ -1,20 +1,11 @@
 # ──────────────────────────────────────────────────────────────────────────────
-# Proxmox Firewall Rules — data-driven per-guest port restrictions
+# Proxmox Firewall Rules — DISABLED (all traffic allowed)
 # ──────────────────────────────────────────────────────────────────────────────
-# Port definitions derived from hosts.tf SSoT with per-host overrides.
-# SSH (port 22/tcp) auto-injected for all managed guests.
-#
-# Inbound:  DROP all except explicitly allowed ports.
-# Outbound: DROP all except local subnet + essential internet (DNS/HTTP/HTTPS/NTP).
-#
-# To add a new host:   add entry to firewall_guests map below.
-# To add a new port:   add to hosts.tf ports map (auto-exposed in firewall).
-# To exclude a port:   add to firewall_overrides[host].exclude list.
+# WARNING: Firewall is currently disabled. All inbound/outbound traffic is allowed.
+# To re-enable: Set enabled = true and input_policy/output_policy = "DROP"
 
 locals {
   # ── Guest registry ─────────────────────────────────────────────────────────
-  # Guest type determines firewall resource (container_id vs vm_id).
-  # Add new hosts here when provisioning — port rules auto-derived from hosts.tf.
   firewall_guests = {
     proxy           = "container"
     "gitlab-runner" = "container"
@@ -31,8 +22,6 @@ locals {
   }
 
   # ── Port labels ────────────────────────────────────────────────────────────
-  # Human-readable labels for Proxmox firewall UI comments.
-  # Fallback: port key name with underscores replaced by spaces.
   port_labels = {
     api                 = "API"
     db                  = "PostgreSQL"
@@ -59,10 +48,6 @@ locals {
   }
 
   # ── Per-host overrides ─────────────────────────────────────────────────────
-  # Only hosts with non-default behavior need entries here.
-  #   exclude:    port names from hosts.tf to NOT expose (internal-only services)
-  #   dual_proto: port names needing both TCP and UDP rules
-  #   extra:      additional rules not derivable from hosts.tf (port ranges, etc.)
   firewall_overrides = {
     coredns = {
       dual_proto = ["dns"]
@@ -88,9 +73,6 @@ locals {
   }
 
   # ── Egress filtering ──────────────────────────────────────────────────────
-  # Default outbound policy: DROP. These rules whitelist essential egress.
-  # Local subnet is fully allowed for inter-service communication.
-  # Internet egress restricted to DNS, HTTP, HTTPS, NTP.
   _egress_common = [
     { dest = "192.168.50.0/24", proto = "tcp", dport = null, comment = "Local subnet (TCP)" },
     { dest = "192.168.50.0/24", proto = "udp", dport = null, comment = "Local subnet (UDP)" },
@@ -143,6 +125,9 @@ locals {
     if local.firewall_guests[name] == "vm"
   }
 }
+
+# NOTE: Firewall rules are defined but NOT applied since firewall_options disables the firewall
+# To re-enable firewall, change enabled = true and policies to "DROP"
 
 resource "proxmox_virtual_environment_firewall_rules" "container" {
   for_each = local.container_firewall
@@ -209,10 +194,11 @@ resource "proxmox_virtual_environment_firewall_rules" "vm" {
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Firewall Options — enable firewall + set default policies per guest
+# Firewall Options — FIREWALL DISABLED (all traffic allowed)
 # ──────────────────────────────────────────────────────────────────────────────
-# input_policy:  DROP (only explicitly allowed inbound ports accepted)
-# output_policy: DROP (only whitelisted egress allowed — see _egress_common)
+# enabled: false — Firewall is completely disabled
+# input_policy: ACCEPT — All inbound traffic allowed
+# output_policy: ACCEPT — All outbound traffic allowed
 
 resource "proxmox_virtual_environment_firewall_options" "container" {
   for_each = local.container_firewall
@@ -220,9 +206,9 @@ resource "proxmox_virtual_environment_firewall_options" "container" {
   node_name    = var.node_name
   container_id = each.value.vmid
 
-  enabled       = true
-  input_policy  = "DROP"
-  output_policy = "DROP"
+  enabled       = false
+  input_policy  = "ACCEPT"
+  output_policy = "ACCEPT"
 }
 
 resource "proxmox_virtual_environment_firewall_options" "vm" {
@@ -231,9 +217,9 @@ resource "proxmox_virtual_environment_firewall_options" "vm" {
   node_name = var.node_name
   vm_id     = each.value.vmid
 
-  enabled       = true
-  input_policy  = "DROP"
-  output_policy = "DROP"
+  enabled       = false
+  input_policy  = "ACCEPT"
+  output_policy = "ACCEPT"
 }
 
 # Import commands (run manually, not as HCL import blocks which break terraform test):

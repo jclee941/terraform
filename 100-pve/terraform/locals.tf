@@ -73,7 +73,7 @@ locals {
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
   # Total dedicated: 18176 MB (17.75 GB) + swap: 8960 MB (8.75 GB) = 27136 MB effective
   container_sizing = {
-    gitlab-runner = { memory = 1536, swap = 512, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines" }
+    gitlab-runner = { memory = 768, swap = 512, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines (optimized: 768MB RAM)" }
     traefik       = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     grafana       = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
     elk           = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
