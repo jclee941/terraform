@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "lxc_config" {
-  source = "../modules/proxmox/lxc-config"
+  source = "../../modules/proxmox/lxc-config"
 
   deploy_lxc_configs = var.deploy_lxc_configs
   mcp_host           = module.hosts.hosts.mcphub.ip
@@ -46,7 +46,7 @@ module "lxc_config" {
       config_files = {
         "traefik.yml" = {
           path    = "/etc/traefik/traefik.yml"
-          content = file("${path.module}/../102-traefik/config/traefik.yml")
+          content = file("${path.module}/../../102-traefik/config/traefik.yml")
         }
         "filebeat.yml" = {
           path    = "/etc/filebeat/filebeat.yml"
@@ -208,10 +208,10 @@ module "lxc_config" {
       }
     }
 
-    proxy = {
-      vmid           = module.hosts.hosts.proxy.vmid
+    cliproxy = {
+      vmid           = module.hosts.hosts["cliproxy"].vmid
       hostname       = "proxy"
-      ip_address     = module.hosts.hosts.proxy.ip
+      ip_address     = module.hosts.hosts["cliproxy"].ip
       deploy         = var.deploy_lxc_configs
       setup_filebeat = false
 

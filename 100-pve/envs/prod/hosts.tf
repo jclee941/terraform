@@ -24,7 +24,7 @@ locals {
       ports = {}
     }
 
-    proxy = {
+    cliproxy = {
       vmid  = 100
       ip    = "192.168.50.114"
       roles = ["proxy", "squid"]
