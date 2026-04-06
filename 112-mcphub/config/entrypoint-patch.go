@@ -1,6 +1,7 @@
 // Entrypoint wrapper that applies runtime patches before starting MCPHub.
-// Origin: https://github.com/samanhappy/mcphub/pull/654 (closed without merge 2026-03-04)
-// Permanent patch — upstream and MCP SDK do not handle _placeholder stripping.
+// Patches:
+//  1. _placeholder stripping (PR #654, closed without merge)
+//  2. MCP SDK inputSchema.type default (Zod v4 strict validation fix)
 package main
 
 import (
@@ -9,23 +10,29 @@ import (
 	"os/exec"
 )
 
-const patchScript = "/app/patches/patch-placeholder.cjs"
-const originalEntrypoint = "/usr/local/bin/entrypoint.sh"
+const (
+	patchPlaceholder = "/app/patches/patch-placeholder.cjs"
+	patchSDKSchema   = "/app/patches/patch-sdk-schema.cjs"
+	originalEntry    = "/usr/local/bin/entrypoint.sh"
+)
 
-func main() {
-	// Apply _placeholder sanitization patch
-	if _, err := os.Stat(patchScript); err == nil {
-		cmd := exec.Command("node", patchScript)
+func runPatch(script, name string) {
+	if _, err := os.Stat(script); err == nil {
+		cmd := exec.Command("node", script)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: patch application failed: %v\n", err)
-			// Continue anyway - patch is optional
+			fmt.Fprintf(os.Stderr, "Warning: %s patch failed: %v\n", name, err)
 		}
 	}
+}
+
+func main() {
+	runPatch(patchPlaceholder, "placeholder")
+	runPatch(patchSDKSchema, "sdk-schema")
 
 	// Delegate to original entrypoint
-	cmd := exec.Command(originalEntrypoint, os.Args[1:]...)
+	cmd := exec.Command(originalEntry, os.Args[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
