@@ -12,16 +12,17 @@
       "port": 8059,
       "description": "Git repository operations"
     },
-    "github": {
+    "gitlab": {
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "port": 8058,
+      "args": ["-y", "@modelcontextprotocol/server-gitlab@0.6.2"],
+      "port": 8079,
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        "GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_PERSONAL_ACCESS_TOKEN}",
+        "GITLAB_API_URL": "http://192.168.50.215:8929/api/v4"
       },
-      "description": "GitHub API operations"
+      "description": "GitLab API operations for self-hosted instance"
     },
     "kratos": {
       "location": "hub",
@@ -145,15 +146,11 @@
     },
     "n8n": {
       "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@nextoolsolutions/mcp-n8n"],
+      "transport": "streamable-http",
+      "url": "https://n8n.jclee.me/mcp-server/http",
       "port": 8081,
-      "env": {
-        "N8N_BASE_URL": "http://192.168.50.110:5678",
-        "N8N_API_KEY": "${N8N_API_KEY}"
-      },
-      "description": "n8n workflow automation (43 tools via @nextoolsolutions/mcp-n8n)"
+      "disabled": true,
+      "description": "n8n workflow automation via native MCP server"
     },
     "supabase": {
       "location": "hub",
@@ -161,17 +158,18 @@
       "command": "npx",
       "args": ["-y", "@supabase/mcp-server-supabase"],
       "port": 8066,
+      "disabled": true,
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
       },
-      "description": "Supabase database and edge function management"
+      "description": "Supabase Cloud Management API (disabled: self-hosted has no Management API v1)"
     },
     "dev-browser": {
       "location": "hub",
       "transport": "sse",
       "docker_service": "mcp-dev-browser",
       "port": 8057,
-      "description": "Browser automation with persistent page state via Chrome DevTools Protocol"
+      "description": "Browser automation with persistent page state"
     }
   }
 }
