@@ -90,3 +90,12 @@ moved {
   from = module.lxc["proxy"].proxmox_virtual_environment_container.this
   to   = module.lxc["cliproxy"].proxmox_virtual_environment_container.this
 }
+moved {
+  from = proxmox_virtual_environment_firewall_rules.container["proxy"]
+  to   = proxmox_virtual_environment_firewall_rules.container["cliproxy"]
+}
+
+moved {
+  from = proxmox_virtual_environment_firewall_options.container["proxy"]
+  to   = proxmox_virtual_environment_firewall_options.container["cliproxy"]
+}

@@ -31,8 +31,6 @@ apply:all:
         TF_WORKSPACE_NAME: "pve"
       - TF_WORKING_DIR: "102-traefik/terraform"
         TF_WORKSPACE_NAME: "traefik"
-      - TF_WORKING_DIR: "104-grafana/terraform"
-        TF_WORKSPACE_NAME: "grafana"
       - TF_WORKING_DIR: "105-elk/terraform"
         TF_WORKSPACE_NAME: "elk"
       - TF_WORKING_DIR: "108-archon/terraform"

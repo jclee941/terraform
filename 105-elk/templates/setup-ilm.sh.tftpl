@@ -12,14 +12,14 @@
 # but remote execution payloads are exempt when target hosts lack Go runtime.
 #
 # Tiers:
-#   critical  (90d) — core infrastructure: elk, supabase, grafana, archon, pve
+#   critical  (90d) — core infrastructure: elk, supabase, archon, pve
 #   standard  (30d) — all other services (catch-all default)
 #   ephemeral  (7d) — debug, unknown, github-runner, youtube
 # Managed by Terraform — do not edit manually
 # Sets up tiered ILM policies and index templates for log retention
 #
 # Tiers:
-#   critical  (90d) — core infrastructure: elk, supabase, grafana, archon, pve
+#   critical  (90d) — core infrastructure: elk, supabase, archon, pve
 #   standard  (30d) — all other services (catch-all default)
 #   ephemeral  (7d) — debug, unknown, github-runner, youtube
 set -euo pipefail
@@ -100,7 +100,7 @@ create_index_template() {
 
 # Critical tier: core infrastructure services (90d retention)
 create_index_template "logs-critical" "homelab-logs-critical-90d" 300 \
-  "logs-elk-*" "logs-supabase-*" "logs-grafana-*" "logs-archon-*" "logs-pve-*" "logs-mcphub-*" "logs-opencode-*"
+  "logs-elk-*" "logs-supabase-*" "logs-archon-*" "logs-pve-*" "logs-mcphub-*" "logs-opencode-*"
 
 # Ephemeral tier: debug, unknown, and high-volume ephemeral sources (7d retention)
 create_index_template "logs-ephemeral" "homelab-logs-ephemeral-7d" 250 \
@@ -115,7 +115,7 @@ create_index_template "logs-template" "homelab-logs-30d" 200 \
   "logs-*"
 
 echo "ILM setup complete. Four index templates configured:"
-echo "  critical           (90d): elk, supabase, grafana, archon, pve, mcphub, opencode"
+echo "  critical           (90d): elk, supabase, archon, pve, mcphub, opencode"
 echo "  ephemeral           (7d): unknown, debug, github-runner, youtube"
 echo "  cloudflare-workers (30d): cloudflare-workers"
 echo "  standard           (30d): all other services (default)"

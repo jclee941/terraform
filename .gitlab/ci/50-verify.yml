@@ -19,8 +19,6 @@ verify:services:
     matrix:
       - SERVICE: "traefik"
         URL: "http://192.168.50.102:8080"
-      - SERVICE: "grafana"
-        URL: "http://192.168.50.104:3000"
       - SERVICE: "elk"
         URL: "http://192.168.50.105:9200"
   script:

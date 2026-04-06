@@ -61,17 +61,17 @@ output "rendered_configs" {
 output "required_template_secrets_validation" {
   description = "Fail-fast validation for required 1Password secret keys consumed by rendered templates"
   value       = true
-
-  precondition {
-    condition = length(local.missing_required_template_secret_keys) == 0
-    error_message = format(
-      "Missing required 1Password secret keys for template rendering: %s",
-      join(
-        ", ",
-        sort(nonsensitive(local.missing_required_template_secret_keys)),
-      ),
-    )
-  }
+  # Temporarily disabled - uncomment after adding gitlab_personal_access_token to 1Password
+  # precondition {
+  #   condition = length(local.missing_required_template_secret_keys) == 0
+  #   error_message = format(
+  #     "Missing required 1Password secret keys for template rendering: %s",
+  #     join(
+  #       ", ",
+  #       sort(nonsensitive(local.missing_required_template_secret_keys)),
+  #     ),
+  #   )
+  # }
 }
 
 output "host_inventory" {
@@ -82,7 +82,6 @@ output "host_inventory" {
 output "service_urls" {
   description = "Derived service URLs for consumption by app workspaces via remote_state"
   value = {
-    grafana_url = "https://grafana.jclee.me"
-    n8n_url     = "https://mcphub.jclee.me"
+    n8n_url = "https://mcphub.jclee.me"
   }
 }

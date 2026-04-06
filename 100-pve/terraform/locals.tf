@@ -75,13 +75,12 @@ locals {
   container_sizing = {
     gitlab-runner = { memory = 768, swap = 512, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines (optimized: 768MB RAM)" }
     traefik       = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    grafana       = { memory = 768, swap = 512, cores = 2, disk_size = 16, description = "Grafana + Prometheus Observability Stack" }
     elk           = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
     supabase      = { memory = 2048, swap = 1024, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
     archon        = { memory = 1024, swap = 512, cores = 2, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
     coredns       = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
     n8n           = { memory = 2048, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
-    cliproxy      = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Squid Forward Proxy" }
+    cliproxy      = { memory = 512, swap = 256, cores = 2, disk_size = 20, description = "Squid Forward Proxy" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -162,7 +161,6 @@ locals {
   required_template_secret_keys = [
     "elk_elastic_password",
     "elk_kibana_password",
-    "github_personal_access_token",
     "mcphub_admin_password",
     "mcphub_n8n_mcp_api_key",
     "mcphub_op_connect_token",
@@ -223,7 +221,6 @@ locals {
       n8n         = "n8n.yml.tftpl"
       archon      = "archon.yml.tftpl"
       supabase    = "supabase.yml.tftpl"
-      grafana     = "grafana.yml.tftpl"
       nas         = "nas.yml.tftpl"
       gitlab      = "gitlab.yml.tftpl"
       opencode    = "opencode.yml.tftpl"
@@ -235,9 +232,6 @@ locals {
       corefile       = "Corefile.tftpl"
       docker_compose = "docker-compose.yml.tftpl"
       filebeat       = "filebeat.yml.tftpl"
-    } }
-    "104-grafana" = { prefix = "grafana", files = {
-      filebeat = "filebeat.yml.tftpl"
     } }
     "105-elk" = { prefix = "elk", files = {
       filebeat            = "filebeat.yml.tftpl"
@@ -289,14 +283,6 @@ locals {
 
   # Root-level templates that output to the top-level (not in service subdirs).
   root_templates = {
-    grafana_datasources = {
-      source = "${path.module}/../../104-grafana/templates/grafana-datasources.yml.tftpl"
-      output = "grafana-datasources.yml"
-    }
-    prometheus = {
-      source = "${path.module}/../../104-grafana/templates/prometheus.yml.tftpl"
-      output = "prometheus.yml"
-    }
     traefik_elk = {
       source = "${path.module}/../../102-traefik/templates/traefik-elk.yml.tftpl"
       output = "traefik-elk.yml"

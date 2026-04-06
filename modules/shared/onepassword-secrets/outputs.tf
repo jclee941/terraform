@@ -1,7 +1,4 @@
 locals {
-  grafana_admin_password        = try(data.onepassword_item.this["grafana"].section_map["Credentials"].field_map["admin_password"].value, "")
-  grafana_service_account_token = try(data.onepassword_item.this["grafana"].section_map["Credentials"].field_map["service_account_token"].value, "")
-
   proxmox_api_token_value = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["api_token_value"].value, try(data.onepassword_item.this["proxmox"].credential, ""))
   proxmox_endpoint        = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["endpoint"].value, "")
   proxmox_ssh_private_key = try(data.onepassword_item.this["proxmox"].section_map["Keys"].field_map["private_key"].value, "")
@@ -84,10 +81,6 @@ output "secrets" {
   description = "Flat map of all homelab secrets for template_vars merge (37 keys)"
   sensitive   = true
   value = {
-    # Grafana
-    grafana_admin_password        = local.grafana_admin_password
-    grafana_service_account_token = local.grafana_service_account_token
-
     # Proxmox
     proxmox_api_token_value = local.proxmox_api_token_value
     proxmox_ssh_private_key = local.proxmox_ssh_private_key

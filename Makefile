@@ -2,7 +2,7 @@
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
-# Accepts full paths (100-pve) or short aliases (pve, grafana, elk, etc.)
+# Accepts full paths (100-pve) or short aliases (pve, elk, etc.)
 SVC ?= 100-pve
 
 # Workspace alias map: short name → directory path
@@ -11,7 +11,6 @@ ALIAS_jclee      := 80-jclee
 ALIAS_pve        := 100-pve
 ALIAS_runner     := 101-runner
 ALIAS_traefik    := 102-traefik/terraform
-ALIAS_grafana    := 104-grafana/terraform
 ALIAS_elk        := 105-elk/terraform
 ALIAS_supabase   := 107-supabase
 ALIAS_archon     := 108-archon/terraform
@@ -35,7 +34,7 @@ define check_svc_dir
 		echo "Error: workspace directory '$(TF_DIR)' does not exist."; \
 		echo "Available workspaces:"; \
 		echo "  Direct: $$(ls -d [0-9]*/ | tr -d '/' | tr '\n' ' ')"; \
-		echo "  Aliases: jclee pve runner traefik grafana elk supabase archon n8n mcphub oc synology youtube cloudflare github safetywallet slack gcp"; \
+		echo "  Aliases: jclee pve runner traefik elk supabase archon n8n mcphub oc synology youtube cloudflare github safetywallet slack gcp"; \
 		exit 1; \
 	fi
 endef
@@ -108,7 +107,6 @@ test: ## Run all Terraform tests (module + integration + workspace)
 	cd tests/integration && terraform init -backend=false && terraform test
 	cd tests/workspaces/pve && terraform init -backend=false && terraform test
 	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
-	cd tests/workspaces/grafana && terraform init -backend=false && terraform test
 	cd tests/workspaces/elk && terraform init -backend=false && terraform test
 	cd tests/workspaces/slack && terraform init -backend=false && terraform test
 
@@ -123,7 +121,6 @@ test-integration: ## Run integration tests only
 test-workspace: ## Run workspace validation tests only
 	cd tests/workspaces/pve && terraform init -backend=false && terraform test
 	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
-	cd tests/workspaces/grafana && terraform init -backend=false && terraform test
 	cd tests/workspaces/elk && terraform init -backend=false && terraform test
 	cd tests/workspaces/slack && terraform init -backend=false && terraform test
 
