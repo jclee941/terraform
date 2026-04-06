@@ -5,5 +5,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 RUN npm install -g mcp-proxy@6.4.0
 RUN npm install --save @bldg-7/proxmox-mcp@latest pino-pretty@latest
 
+# Patch: merge args into command array for PVE agent/exec API compatibility
+# PVE API only accepts 'command' + 'input-data', not 'args' or 'capture-output'
+# Upstream: https://github.com/Bldg-7/proxmox-mcp/issues (1.2.1 bug)
+RUN tee /tmp/fix-agent-exec.cjs <<'EOF' && node /tmp/fix-agent-exec.cjs && rm /tmp/fix-agent-exec.cjs
+const fs = require("fs");
+const f = "node_modules/@bldg-7/proxmox-mcp/dist/tools/vm-advanced.js";
+let s = fs.readFileSync(f, "utf8");
+// Fix 1: merge args into command array instead of passing as separate param
+s = s.replace(
+  /if \(validated\.args\)\n\s+payload\.args = validated\.args;/,
+  "if (validated.args) { payload.command = [validated.command, ...validated.args]; } else { payload.command = [validated.command]; }"
+);
+// Fix 2: remove capture-output param (not in PVE API schema)
+s = s.replace(
+  /if \(validated\['capture-output'\][\s\S]*?payload\['capture-output'\].*?\n\s*\}/,
+  "// capture-output removed (PVE API incompatible)"
+);
+fs.writeFileSync(f, s);
+console.log("Patched agentExec: args merged into command, capture-output removed");
+EOF
+
 EXPOSE 8055
 CMD ["mcp-proxy", "--port", "8055", "--host", "0.0.0.0", "--", "node", "node_modules/@bldg-7/proxmox-mcp/dist/index.js"]
