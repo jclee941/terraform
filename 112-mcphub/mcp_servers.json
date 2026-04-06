@@ -16,7 +16,7 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-gitlab@0.6.2"],
+      "args": ["-y", "@modelcontextprotocol/server-gitlab"],
       "port": 8079,
       "env": {
         "GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_PERSONAL_ACCESS_TOKEN}",
