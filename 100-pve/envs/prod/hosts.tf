@@ -66,17 +66,6 @@ locals {
       }
     }
 
-    grafana = {
-      vmid  = 104
-      ip    = "192.168.50.104"
-      roles = ["observability", "monitoring"]
-      ports = {
-        grafana    = 3000
-        prometheus = 9090
-        cadvisor   = 8888
-      }
-    }
-
     elk = {
       vmid  = 105
       ip    = "192.168.50.105"

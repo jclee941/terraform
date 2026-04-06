@@ -55,30 +55,6 @@ module "lxc_config" {
       }
     }
 
-    grafana = {
-      vmid           = module.hosts.hosts.grafana.vmid
-      hostname       = "grafana"
-      ip_address     = module.hosts.hosts.grafana.ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      cloud_init = {
-        packages = ["curl", "jq", "software-properties-common"]
-        runcmd   = ["systemctl enable filebeat || true"]
-      }
-
-      config_files = {
-        "prometheus.yml" = {
-          path    = "/etc/prometheus/prometheus.yml"
-          content = module.config_renderer.rendered_configs.prometheus
-        }
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.grafana_filebeat
-        }
-      }
-    }
-
     elk = {
       vmid           = module.hosts.hosts.elk.vmid
       hostname       = "elk"

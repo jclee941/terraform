@@ -46,7 +46,6 @@ test:workspaces:
     matrix:
       - TEST_DIR: "tests/workspaces/pve"
       - TEST_DIR: "tests/workspaces/cloudflare"
-      - TEST_DIR: "tests/workspaces/grafana"
       - TEST_DIR: "tests/workspaces/elk"
       - TEST_DIR: "tests/workspaces/slack"
   script:

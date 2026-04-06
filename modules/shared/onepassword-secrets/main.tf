@@ -20,11 +20,6 @@ data "onepassword_vault" "this" {
 # Each 1Password item should contain a section named "secrets" with fields
 # matching the original Vault KV key names.
 #
-# Item structure:
-#   Item: "grafana"  (category: password)
-#     └── Section: "secrets"
-#         ├── Field: "admin_password"        (CONCEALED)
-#         └── Field: "service_account_token" (CONCEALED)
 # ---------------------------------------------------------------------------
 
 locals {
@@ -34,7 +29,6 @@ locals {
     "cloudflare",
     "elk",
     "github",
-    "grafana",
     "mcphub",
     "n8n",
 

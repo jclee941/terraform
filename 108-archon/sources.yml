@@ -40,11 +40,6 @@ sources:
     knowledge_type: documentation
     max_depth: 2
 
-  - url: https://grafana.com/docs/grafana/latest/
-    tags: [observability, grafana]
-    knowledge_type: documentation
-    max_depth: 2
-
   # --- Database & Backend ---
   - url: https://supabase.com/docs
     tags: [backend, supabase, database]

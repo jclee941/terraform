@@ -6,7 +6,7 @@
 
 ## OVERVIEW
 
-Homelab infrastructure-as-code monorepo. Provisions Proxmox LXC/VM fleet, networking, monitoring, and external services via Terraform workspaces with 1Password secret injection and GitHub Actions CI/CD.
+Homelab infrastructure-as-code monorepo. Provisions Proxmox LXC/VM fleet, networking, monitoring, and external services via Terraform workspaces with 1Password secret injection and GitLab CI/CD.
 
 - **Domain**: `jclee.me` — **Subnet**: `192.168.50.0/24`
 - **Terraform**: 1.10.5 (`>= 1.7, < 2.0`)
@@ -20,7 +20,7 @@ terraform/
 ├── 100-pve/                  # Tier 0: Central orchestrator (all LXC/VM lifecycle)
 │   ├── envs/prod/hosts.tf    # SSoT: all host IPs, VMIDs, roles, ports
 │   └── configs/              # Rendered outputs (NEVER hand-edit)
-├── 10x-{svc}/                # Tier 1 infra: traefik, coredns, grafana, elk, supabase, archon
+├── 10x-{svc}/                # Tier 1 infra: traefik, coredns, elk, supabase, archon
 ├── 11x-{svc}/                # Tier 1 infra: n8n, mcphub
 ├── 2xx-{svc}/                # VM-based apps: oc, synology, youtube
 ├── 3xx-{svc}/                # External: cloudflare, github, safetywallet, slack
@@ -31,7 +31,7 @@ terraform/
 ├── tests/                    # terraform test: unit, integration, workspace
 ├── scripts/                  # Go operational tooling (14 scripts, stdlib-only)
 ├── docs/                     # Architecture docs, ADRs, runbooks
-├── .github/workflows/        # CI/CD (72 workflows)
+├── .gitlab/ci/               # CI/CD pipeline definitions (7 stages)
 ├── ARCHITECTURE.md           # Full architecture reference
 ├── DEPENDENCY_MAP.md         # Module dependency graph + template inventory
 └── CODE_STYLE.md             # Naming, file org, variable, template conventions
@@ -45,7 +45,6 @@ terraform/
 | Modify service config | `{NNN}-{svc}/templates/*.tftpl` → rendered by `100-pve` |
 | Add/rotate secret | `modules/shared/onepassword-secrets/main.tf` + 1Password vault |
 | New Traefik route | `102-traefik/templates/*.yml.tftpl` |
-| Grafana dashboard/alert | `104-grafana/terraform/main.tf` or `dashboards/` |
 | ELK pipeline | `105-elk/templates/logstash.conf.tftpl` |
 | Cloudflare DNS/tunnel | `300-cloudflare/main.tf` |
 | GitHub repo management | `301-github/main.tf` |
@@ -61,7 +60,7 @@ terraform/
 | Tier | Workspaces | Apply Order |
 | ---- | ---------- | ----------- |
 | 0 (core) | `100-pve` | First — provisions all LXC/VM |
-| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon` | Second (parallel) — consume `remote_state` from 100-pve |
+| 1 (infra) | `102-traefik`, `105-elk`, `108-archon` | Second (parallel) — consume `remote_state` from 100-pve |
 | Independent | `300-cloudflare`, `301-github`, `320-slack`, `400-gcp` | Any order — no Proxmox dependency |
 | Template-only | 10 workspaces | No `.tf` files — templates rendered by 100-pve |
 
@@ -104,7 +103,7 @@ Sync to GitHub: `go run scripts/sync-vault-secrets.go`.
 ## COMMANDS
 
 ```bash
-make plan SVC=pve         # terraform plan (aliases: pve, grafana, elk, cloudflare, etc.)
+make plan SVC=pve         # terraform plan (aliases: pve, elk, cloudflare, etc.)
 make fmt                  # format all .tf files
 make validate SVC=pve     # terraform validate
 make lint                 # all linters (yaml, tf fmt, go vet, tflint)
@@ -117,7 +116,7 @@ make docs                 # generate module README.md via terraform-docs
 make security             # tflint + checkov security scan
 ```
 
-18 workspace aliases: `jclee pve runner traefik grafana elk supabase archon n8n mcphub oc synology youtube cloudflare github safetywallet slack gcp`
+17 workspace aliases: `jclee pve runner traefik elk supabase archon n8n mcphub oc synology youtube cloudflare github safetywallet slack gcp`
 
 ## Review guidelines
 
@@ -136,5 +135,5 @@ make security             # tflint + checkov security scan
 - **Sync conflict**: This file is in `qws941/.github` sync list and will be overwritten on next sync push. Update `.github/sync.yml` to exclude AGENTS.md for this repo if repo-specific content must persist.
 - Full architecture details: `ARCHITECTURE.md`. Module dependency graph: `DEPENDENCY_MAP.md`. Code conventions: `CODE_STYLE.md`.
 - Subdirectory AGENTS.md files exist in all workspaces, modules, scripts, docs, tests, and .github — see child directories for context-specific guidance.
-- CI runner: self-hosted on LXC 101. PR → plan, merge → apply. Drift detection Mon–Fri 00:00 UTC.
+- CI runner: GitLab shared runners + self-hosted on LXC 101 for Proxmox. PR → plan, merge → apply. Drift detection Mon–Fri 00:00 UTC via scheduled pipelines.
 - 52 `.tftpl` template files across 10 service workspaces, rendered centrally by `100-pve/config_renderer`.

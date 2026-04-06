@@ -50,7 +50,6 @@ drift:detection:
     matrix:
       - TF_WORKING_DIR: "100-pve"
       - TF_WORKING_DIR: "102-traefik/terraform"
-      - TF_WORKING_DIR: "104-grafana/terraform"
       - TF_WORKING_DIR: "105-elk/terraform"
       - TF_WORKING_DIR: "108-archon/terraform"
       - TF_WORKING_DIR: "215-synology"
