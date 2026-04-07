@@ -156,3 +156,20 @@ variable "template_file_id" {
     error_message = "template_file_id must match format 'storage:vztmpl/...'."
   }
 }
+
+
+variable "mount_points" {
+  description = "List of mount points to add to the container"
+  type = list(object({
+    volume = string
+    path   = string
+  }))
+  default = []
+
+  validation {
+    condition = alltrue([
+      for mp in var.mount_points : length(mp.volume) > 0 && length(mp.path) > 0
+    ])
+    error_message = "Each mount point must have a non-empty volume and path."
+  }
+}

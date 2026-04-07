@@ -1,0 +1,23 @@
+http:
+  routers:
+    registry:
+      rule: Host(`registry.${domain}`)
+      entryPoints:
+        - websecure
+      service: registry
+      tls:
+        certResolver: cf
+      priority: 10
+
+    registry-http:
+      rule: Host(`registry.${domain}`)
+      entryPoints:
+        - web
+      service: registry
+      priority: 10
+
+  services:
+    registry:
+      loadBalancer:
+        servers:
+          - url: http://${hosts.synology.ip}:${hosts.synology.ports.gitlab_registry}

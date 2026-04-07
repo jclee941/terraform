@@ -67,6 +67,14 @@ resource "proxmox_virtual_environment_container" "this" {
     template_file_id = var.template_file_id
     type             = "debian"
   }
+  dynamic "mount_point" {
+    for_each = var.mount_points
+    content {
+      volume = mount_point.value.volume
+      path   = mount_point.value.path
+    }
+  }
+
 
   # =============================================================================
   # LIFECYCLE MANAGEMENT

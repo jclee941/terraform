@@ -41,6 +41,7 @@ module "lxc" {
   managed_vmid_min = var.managed_vmid_range.min
   managed_vmid_max = var.managed_vmid_range.max
   ssh_public_keys  = var.ssh_public_keys
+  mount_points     = lookup(each.value, "mount_points", [])
 }
 
 # =============================================================================
