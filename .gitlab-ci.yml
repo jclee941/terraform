@@ -68,6 +68,7 @@ include:
   - local: '.gitlab/ci/30-plan.yml'
   - local: '.gitlab/ci/40-apply.yml'
   - local: '.gitlab/ci/50-verify.yml'
+  - local: '.gitlab/ci/45-nfs-cache-deploy.yml'
   - local: '.gitlab/ci/60-drift-detection.yml'
 
 # Global cache for Terraform plugins

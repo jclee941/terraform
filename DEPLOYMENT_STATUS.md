@@ -23,69 +23,75 @@
   - LXC path: `/srv/gitlab-runner/cache`
   - LXC ID: 101
 
-### 4. GitLab Runner Setup Script
-- **File**: `101-runner/scripts/setup-gitlab-runner-with-cache.go`
-- **Features**:
-  - Automatic cache directory setup
-  - Runner registration with local cache configuration
-  - Systemd service installation
+### 4. Deployment Automation
+- **GitLab CI/CD** (`.gitlab/ci/45-nfs-cache-deploy.yml`):
+  - `deploy-nfs-synology` - Create NFS share on Synology (manual trigger)
+  - `deploy-nfs-proxmox` - Mount NFS and configure LXC (manual trigger)
+  - `deploy-gitlab-runner` - Setup GitLab Runner (manual trigger)
+  - `deploy-nfs-cache-all` - Complete deployment in one job (manual trigger)
 
-### 5. Documentation & Scripts
+- **Local Scripts**:
+  - `scripts/deploy-nfs-cache.go` - Local deployment orchestrator
+  - `scripts/verify-nfs-cache.go` - Health check and verification
+  - `scripts/setup-nfs-share-synology.go` - Synology share setup
+  - `scripts/setup-nfs-cache-proxmox.go` - Proxmox NFS mount setup
+  - `101-runner/scripts/setup-gitlab-runner-with-cache.go` - Runner setup
+
+### 5. Documentation
 - **Files Created**:
   - `docs/runbooks/gitlab-runner-nfs-cache.md` - Complete runbook
-  - `scripts/setup-nfs-share-synology.go` - Synology share setup (Go)
-  - `scripts/setup-nfs-cache-proxmox.go` - NFS mount setup (Go)
+  - `docs/runbooks/ssh-setup-ci-deployment.md` - SSH key setup for CI
   - `IMPLEMENTATION_SUMMARY.md` - Technical summary
 
-## ⏳ Pending Manual Steps
+## 🚀 Quick Start - Choose Your Method
 
-### Step 1: Create NFS Share on Synology
+### Method 1: GitLab CI/CD (Recommended)
+
+Prerequisites: SSH keys configured in CI/CD variables (see `docs/runbooks/ssh-setup-ci-deployment.md`)
+
+1. **Go to GitLab** → CI/CD → Pipelines
+2. **Click "Run pipeline"** on master branch
+3. **Select deployment job:**
+   - `deploy-nfs-cache-all` - Deploy everything at once ⭐ Recommended
+   - Individual steps: `deploy-nfs-synology`, `deploy-nfs-proxmox`, `deploy-gitlab-runner`
+
+### Method 2: Local Deployment Script
+
+Prerequisites: SSH key access to both Synology and Proxmox as root
+
 ```bash
-# SSH to Synology (192.168.50.215) as jclee
-ssh jclee@192.168.50.215
+# Deploy everything
+go run scripts/deploy-nfs-cache.go --step=all -v
 
-# Run the Go setup script
-go run scripts/setup-nfs-share-synology.go
+# Or deploy individual steps
+go run scripts/deploy-nfs-cache.go --step=synology -v
+go run scripts/deploy-nfs-cache.go --step=proxmox -v
+go run scripts/deploy-nfs-cache.go --step=runner -v
 
-# Or manually:
-sudo synoshare --add gitlab-runner-cache "GitLab Runner Cache" /volume1/gitlab-runner-cache
-sudo synoshare --setnfs gitlab-runner-cache enable
-sudo synonfsext --add-rule gitlab-runner-cache 192.168.50.0/24 rw
+# Dry run (show commands without executing)
+go run scripts/deploy-nfs-cache.go --step=all --dry-run
 ```
 
-### Step 2: Run Deployment Script on Proxmox
+### Method 3: Manual Step-by-Step
+
+See `docs/runbooks/gitlab-runner-nfs-cache.md` for detailed manual steps.
+
+## 🔍 Verification
+
+### Quick Health Check
+
 ```bash
-# From your workstation
-scp scripts/setup-nfs-cache-proxmox.go root@192.168.50.100:/tmp/
-ssh root@192.168.50.100 "cd /tmp && go run setup-nfs-cache-proxmox.go"
+# Check all components
+go run scripts/verify-nfs-cache.go
+
+# JSON output for automation
+go run scripts/verify-nfs-cache.go --json
+
+# Attempt to fix issues automatically
+go run scripts/verify-nfs-cache.go --fix
 ```
 
-This script will:
-- Mount NFS share on Proxmox host
-- Configure LXC 101 mount point
-- Restart LXC container
-- Verify mount inside container
-
-### Step 3: Setup GitLab Runner
-```bash
-# SSH into LXC 101
-ssh root@192.168.50.101
-
-# Or from Proxmox
-pct exec 101 -- bash
-
-# Run setup script
-go run /opt/runner/scripts/setup-gitlab-runner-with-cache.go
-```
-
-### Step 4: Apply Terraform Changes
-```bash
-cd /path/to/terraform
-make plan SVC=pve
-# Review and apply via CI/CD pipeline
-```
-
-## 🔧 Verification Commands
+### Manual Verification Commands
 
 ```bash
 # Test NFS share from Proxmox
@@ -124,22 +130,69 @@ GitLab Runner Docker Jobs
   └─ /cache (Docker Volume)
 ```
 
-## ⚠️ Known Issues
+## 📋 Deployment Checklist
 
-1. **Synology NFS Share**: Must be created manually (no Terraform resource available)
-2. **Proxmox SSH**: Requires root access to run deployment script
-3. **Terraform Apply**: Must be done via CI/CD (local apply disabled)
+- [ ] SSH keys configured in GitLab CI/CD (for CI method)
+- [ ] Local SSH access to Synology and Proxmox (for local method)
+- [ ] Terraform changes reviewed and approved
+- [ ] CI/CD pipeline triggered
+- [ ] NFS share created on Synology
+- [ ] NFS mounted on Proxmox host
+- [ ] LXC 101 configured with mount point
+- [ ] GitLab Runner installed and configured
+- [ ] Cache directory writable inside LXC
+- [ ] Registry routing verified
+- [ ] Test CI job with cache enabled
+
+## 🛠️ Troubleshooting
+
+### NFS Mount Fails
+
+```bash
+# Check NFS server is running on Synology
+ssh root@192.168.50.215 "synoservice --status nfsd"
+
+# Check exports
+showmount -e 192.168.50.215
+
+# Manual mount test
+ssh root@192.168.50.100 "mount -t nfs -o vers=4.1 192.168.50.215:/volume1/gitlab-runner-cache /mnt/gitlab-runner-cache"
+```
+
+### LXC Won't Start
+
+```bash
+# Check LXC config syntax
+ssh root@192.168.50.100 "cat /etc/pve/lxc/101.conf"
+
+# Check logs
+ssh root@192.168.50.100 "cat /var/log/syslog | grep 101"
+```
+
+### GitLab Runner Not Active
+
+```bash
+# Check status inside LXC
+pct exec 101 -- systemctl status gitlab-runner
+
+# View logs
+pct exec 101 -- journalctl -u gitlab-runner -n 50
+```
 
 ## 📚 References
 
 - Runbook: `docs/runbooks/gitlab-runner-nfs-cache.md`
+- SSH Setup: `docs/runbooks/ssh-setup-ci-deployment.md`
 - Implementation: `IMPLEMENTATION_SUMMARY.md`
 - Scripts: 
+  - `scripts/deploy-nfs-cache.go`
+  - `scripts/verify-nfs-cache.go`
   - `scripts/setup-nfs-share-synology.go`
   - `scripts/setup-nfs-cache-proxmox.go`
+  - `101-runner/scripts/setup-gitlab-runner-with-cache.go`
 
 ---
 
-**Status**: Infrastructure ready. Pending manual execution on hardware.
+**Status**: ✅ Infrastructure ready. Deployment automation complete.
 
-Created: 2025-04-07
+Last Updated: 2025-04-07
