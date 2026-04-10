@@ -149,6 +149,7 @@ locals {
       ports = {
         dsm       = 5000
         dsm_https = 5001
+        registry  = 5000
       }
     }
 

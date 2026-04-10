@@ -191,3 +191,57 @@ variable "portainer_timezone" {
   type        = string
   default     = "Asia/Seoul"
 }
+
+# -----------------------------------------------------------------------------
+# Docker Registry (with MinIO S3 backend)
+# -----------------------------------------------------------------------------
+
+variable "enable_registry" {
+  description = "Enable Docker Registry container on Synology"
+  type        = bool
+  default     = true
+}
+
+variable "registry_version" {
+  description = "Docker Registry image tag"
+  type        = string
+  default     = "2"
+}
+
+variable "registry_share_path" {
+  description = "Synology share path for Registry compose project"
+  type        = string
+  default     = "/docker/registry"
+}
+
+variable "registry_port" {
+  description = "Published HTTP port for Docker Registry"
+  type        = string
+  default     = "5000"
+}
+
+variable "minio_endpoint" {
+  description = "MinIO S3 endpoint for Registry backend"
+  type        = string
+  default     = "http://192.168.50.215:9000"
+}
+
+variable "minio_root_user" {
+  description = "MinIO root user for Registry backend"
+  type        = string
+  default     = "minioadmin"
+  sensitive   = true
+}
+
+variable "minio_root_password" {
+  description = "MinIO root password for Registry backend"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "minio_registry_bucket" {
+  description = "MinIO bucket name for Registry storage"
+  type        = string
+  default     = "docker-registry"
+}

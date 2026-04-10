@@ -135,49 +135,48 @@ resource "synology_container_project" "gitlab_runner" {
 }
 
 # -----------------------------------------------------------------------------
-# Portainer — Docker container management UI
+# Docker Registry — S3-backed container registry using MinIO
 # -----------------------------------------------------------------------------
 
-resource "synology_container_project" "portainer" {
-  for_each = var.enable_portainer ? { portainer = true } : {}
+resource "synology_container_project" "registry" {
+  for_each = var.enable_registry ? { registry = true } : {}
 
-  name       = "portainer"
-  share_path = var.portainer_share_path
+  name       = "registry"
+  share_path = var.registry_share_path
   run        = true
 
   services = {
-    portainer = {
-      image          = "portainer/portainer-ce:${var.portainer_version}"
-      container_name = "portainer"
-      hostname       = "portainer"
+    registry = {
+      image          = "registry:${var.registry_version}"
+      container_name = "registry"
+      hostname       = "registry"
       restart        = "unless-stopped"
 
       environment = {
-        TZ = var.portainer_timezone
+        REGISTRY_STORAGE                   = "s3"
+        REGISTRY_STORAGE_S3_REGION         = "us-east-1"
+        REGISTRY_STORAGE_S3_BUCKET         = var.minio_registry_bucket
+        REGISTRY_STORAGE_S3_ENDPOINT       = var.minio_endpoint
+        REGISTRY_STORAGE_S3_ACCESSKEY      = var.minio_root_user
+        REGISTRY_STORAGE_S3_SECRETKEY      = var.minio_root_password
+        REGISTRY_STORAGE_S3_V4AUTH         = "true"
+        REGISTRY_STORAGE_S3_SECURE         = "false"
+        REGISTRY_STORAGE_S3_ROOTDIRECTORY  = "/"
+        REGISTRY_STORAGE_S3_FORCEPATHSTYLE = "true"
       }
 
       ports = [
         {
-          target    = 9443
-          published = var.portainer_https_port
-        },
-        {
-          target    = 8000
-          published = var.portainer_edge_port
+          target    = 5000
+          published = var.registry_port
         },
       ]
 
       volumes = [
         {
-          type      = "bind"
-          source    = "/var/run/docker.sock"
-          target    = "/var/run/docker.sock"
-          read_only = true
-        },
-        {
           type   = "bind"
-          source = "/volume1/docker/portainer/data"
-          target = "/data"
+          source = "/volume1/docker/registry/data"
+          target = "/var/lib/registry"
         },
       ]
     }
