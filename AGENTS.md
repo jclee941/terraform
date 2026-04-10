@@ -137,3 +137,4 @@ make security             # tflint + checkov security scan
 - Subdirectory AGENTS.md files exist in all workspaces, modules, scripts, docs, tests, and .github — see child directories for context-specific guidance.
 - CI runner: GitLab shared runners + self-hosted on LXC 101 for Proxmox. PR → plan, merge → apply. Drift detection Mon–Fri 00:00 UTC via scheduled pipelines.
 - 52 `.tftpl` template files across 10 service workspaces, rendered centrally by `100-pve/config_renderer`.
+- **Recent changes (2026-04-08)**: GitLab Runner (LXC 101) memory increased from 768MB to 3GB (3072MB) for improved Docker-in-Docker CI performance. NFS cache mount enabled at `/srv/gitlab-runner/cache`.

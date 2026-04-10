@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# EXCEPTION: Shell template retained as remote execution payload
+#
+# This template generates a shell script executed on remote ELK hosts via
+## Terraform provisioners. Target hosts are minimal Debian containers without
+# Go runtime, making Go binary deployment impractical.
+#
+# The canonical Go version exists at 105-elk/scripts/setup-ilm.go for local
+## tooling, but this template serves a different execution context.
+#
+# Per AGENTS.md and monorepo-standards.md, operational scripts must be Go,
+# but remote execution payloads are exempt when target hosts lack Go runtime.
+#
+# Tiers:
+#   critical  (90d) — core infrastructure: elk, supabase, grafana, archon, pve
+#   standard  (30d) — all other services (catch-all default)
+#   ephemeral  (7d) — debug, unknown, github-runner, youtube
+# Managed by Terraform — do not edit manually
+# Sets up tiered ILM policies and index templates for log retention
+#
+# Tiers:
+#   critical  (90d) — core infrastructure: elk, supabase, grafana, archon, pve
+#   standard  (30d) — all other services (catch-all default)
+#   ephemeral  (7d) — debug, unknown, github-runner, youtube
+set -euo pipefail
+
+ES_HOST="http://localhost:9200"
+ES_AUTH="elastic:I93bmZ/uT3haNpdL9GJ+neTf"
+
+echo "Waiting for Elasticsearch..."
+until curl -sf -u "${ES_AUTH}" "${ES_HOST}/_cluster/health" > /dev/null 2>&1; do
+  sleep 5
+done
+echo "Elasticsearch is ready."
+
+# —— ILM Policies ————————————————————————————————————————————————
+
+create_ilm_policy() {
+  local name="$1" delete_after="$2"
+  echo "Creating ILM policy: ${name} (delete after ${delete_after})"
+  curl -sf -u "${ES_AUTH}" -X PUT "${ES_HOST}/_ilm/policy/${name}" \
+    -H 'Content-Type: application/json' \
+    -d '{
+    "policy": {
+      "phases": {
+        "hot": {
+          "min_age": "0ms",
+          "actions": {
+            "set_priority": { "priority": 100 }
+          }
+        },
+        "delete": {
+          "min_age": "'"${delete_after}"'",
+          "actions": {
+            "delete": {}
+          }
+        }
+      }
+    }
+  }'
+  echo
+}
+
+create_ilm_policy "homelab-logs-critical-90d"  "90d"
+create_ilm_policy "homelab-logs-30d"           "30d"
+create_ilm_policy "homelab-logs-ephemeral-7d"  "7d"
+
+# —— Index Templates —————————————————————————————————————————————
+# Priority determines which template wins when multiple patterns match.
+# Higher priority = takes precedence.
+#   critical           (300) — specific critical service patterns
+#   ephemeral          (250) — specific ephemeral patterns
+#   cloudflare-workers (225) — CF Worker traces
+#   standard           (200) — catch-all logs-* (default tier)
+
+create_index_template() {
+  local name="$1" policy="$2" priority="$3"
+  shift 3
+  # Remaining args are index patterns
+  local patterns
+  patterns=$(printf '"%s",' "$@")
+  patterns="[${patterns%,}]"
+
+  echo "Creating index template: ${name} (policy=${policy}, priority=${priority})"
+  curl -sf -u "${ES_AUTH}" -X PUT "${ES_HOST}/_index_template/${name}" \
+    -H 'Content-Type: application/json' \
+    -d '{
+    "index_patterns": '"${patterns}"',
+    "priority": '"${priority}"',
+    "template": {
+      "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0,
+        "index.lifecycle.name": "'"${policy}"'"
+      }
+    }
+  }'
+  echo
+}
+
+# Critical tier: core infrastructure services (90d retention)
+create_index_template "logs-critical" "homelab-logs-critical-90d" 300 \
+  "logs-elk-*" "logs-supabase-*" "logs-grafana-*" "logs-archon-*" "logs-pve-*" "logs-mcphub-*" "logs-opencode-*"
+
+# Ephemeral tier: debug, unknown, and high-volume ephemeral sources (7d retention)
+create_index_template "logs-ephemeral" "homelab-logs-ephemeral-7d" 250 \
+  "logs-unknown-*" "logs-debug-*" "logs-github-runner-*" "logs-youtube-*"
+
+# Cloudflare Workers tier: CF Worker traces (30d retention)
+create_index_template "logs-cloudflare-workers" "homelab-logs-30d" 225 \
+  "logs-cloudflare-workers-*"
+
+# Standard tier: catch-all for remaining services (30d retention)
+create_index_template "logs-template" "homelab-logs-30d" 200 \
+  "logs-*"
+
+echo "ILM setup complete. Four index templates configured:"
+echo "  critical           (90d): elk, supabase, grafana, archon, pve, mcphub, opencode"
+echo "  ephemeral           (7d): unknown, debug, github-runner, youtube"
+echo "  cloudflare-workers (30d): cloudflare-workers"
+echo "  standard           (30d): all other services (default)"

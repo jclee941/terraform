@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "onepassword_secrets" {
-  source          = "../modules/shared/onepassword-secrets"
+  source          = "../../modules/shared/onepassword-secrets"
   vault_name      = var.onepassword_vault_name
   enable_pbs      = var.enable_pbs
   enable_synology = var.enable_synology
@@ -15,7 +15,7 @@ module "onepassword_secrets" {
 # =============================================================================
 
 module "config_renderer" {
-  source = "../modules/proxmox/config-renderer"
+  source = "../../modules/proxmox/config-renderer"
 
   template_vars = merge(
     module.onepassword_secrets.secrets,

@@ -12,18 +12,6 @@
       "port": 8059,
       "description": "Git repository operations"
     },
-    "gitlab": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-gitlab"],
-      "port": 8079,
-      "env": {
-        "GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_PERSONAL_ACCESS_TOKEN}",
-        "GITLAB_API_URL": "http://192.168.50.215:8929/api/v4"
-      },
-      "description": "GitLab API operations for self-hosted instance"
-    },
     "kratos": {
       "location": "hub",
       "transport": "stdio",

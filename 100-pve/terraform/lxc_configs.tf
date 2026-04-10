@@ -10,11 +10,10 @@ module "lxc_config" {
   ssh_user           = "root"
   ssh_private_key    = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
-  lxc_containers = {
-    gitlab-runner = {
-      vmid           = module.hosts.hosts["gitlab-runner"].vmid
-      hostname       = "gitlab-runner"
-      ip_address     = module.hosts.hosts["gitlab-runner"].ip
+    runner = {
+      vmid           = module.hosts.hosts["runner"].vmid
+      hostname       = "runner"
+      ip_address     = module.hosts.hosts["runner"].ip
       deploy         = var.deploy_lxc_configs
       setup_filebeat = true
 

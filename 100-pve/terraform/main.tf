@@ -79,13 +79,13 @@ moved {
 }
 
 moved {
-  from = module.lxc["runner"].proxmox_virtual_environment_container.this
-  to   = module.lxc["gitlab-runner"].proxmox_virtual_environment_container.this
+  from = module.lxc["gitlab-runner"].proxmox_virtual_environment_container.this
+  to   = module.lxc["runner"].proxmox_virtual_environment_container.this
 }
 
 moved {
-  from = proxmox_virtual_environment_firewall_rules.container["runner"]
-  to   = proxmox_virtual_environment_firewall_rules.container["gitlab-runner"]
+  from = proxmox_virtual_environment_firewall_rules.container["gitlab-runner"]
+  to   = proxmox_virtual_environment_firewall_rules.container["runner"]
 }
 moved {
   from = module.lxc["proxy"].proxmox_virtual_environment_container.this

@@ -24,7 +24,4 @@ output "r2_bucket_name" {
   value       = cloudflare_r2_bucket.synology_cache.name
 }
 
-output "access_application_id" {
-  description = "Cloudflare Access application ID for Synology"
-  value       = cloudflare_zero_trust_access_application.synology.id
-}
+

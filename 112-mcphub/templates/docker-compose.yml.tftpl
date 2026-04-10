@@ -11,10 +11,9 @@ services:
       - npm_cache:/root/.npm
       - /usr/bin/op:/usr/bin/op:ro
       - ./op-mcp-server:/app/op-mcp-server:ro
-      - /mnt/oc-dev:/home/jclee/dev:ro
-      - /mnt/oc-dev/gmail:/home/jclee/dev/gmail
+      - /mnt/oc-home:/home/jclee
       - ./.gitconfig:/root/.gitconfig:ro
-      - /mnt/oc-kratos:/root/.kratos
+      - /mnt/oc-home/.kratos:/root/.kratos
       - ./patches:/app/patches:ro
       - /usr/lib/google-cloud-sdk:/usr/lib/google-cloud-sdk:ro
       - /usr/bin/gcloud:/usr/bin/gcloud:ro
@@ -84,7 +83,7 @@ services:
       - .env
     environment:
       - HOST=0.0.0.0
-      - PORT=8057
+      - PORT=8157
       - RELAY_MODE=auto
     healthcheck:
       test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8057,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]

@@ -1,0 +1,31 @@
+http:
+  routers:
+    nas:
+      rule: Host(`nas.jclee.me`)
+      entryPoints:
+        - websecure
+      service: nas
+      middlewares:
+        - rate-limit-relaxed@file
+        - chain-basic-auth@file
+      tls:
+        certResolver: cf
+      priority: 10
+
+    nas-http:
+      rule: Host(`nas.jclee.me`)
+      entryPoints:
+        - web
+      service: nas
+      priority: 10
+
+  services:
+    nas:
+      loadBalancer:
+        serversTransport: nas-transport
+        servers:
+          - url: https://192.168.50.215:5001
+
+  serversTransports:
+    nas-transport:
+      insecureSkipVerify: true

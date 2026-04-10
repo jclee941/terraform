@@ -8,11 +8,7 @@ resource "cloudflare_logpush_job" "worker_traces" {
   dataset    = "workers_trace_events"
   enabled    = true
 
-  destination_conf = join("", [
-    "https://logstash-ingest.${var.homelab_domain}/",
-    "?header_CF-Access-Client-Id=${cloudflare_zero_trust_access_service_token.logpush.client_id}",
-    "&header_CF-Access-Client-Secret=${cloudflare_zero_trust_access_service_token.logpush.client_secret}",
-  ])
+  destination_conf = "https://logstash-ingest.${var.homelab_domain}/"
 
   output_options = {
     field_names      = ["EventTimestampMs", "Outcome", "Exceptions", "Logs", "ScriptName", "ScriptVersion", "Event"]

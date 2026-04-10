@@ -3,7 +3,7 @@
 # =============================================================================
 
 module "vm_config" {
-  source = "../modules/proxmox/vm-config"
+  source = "../../modules/proxmox/vm-config"
 
   deploy_vm_configs = var.deploy_vm_configs
   ssh_user          = "root"
@@ -105,11 +105,9 @@ module "vm_config" {
           "systemctl enable fail2ban",
           "systemctl start fail2ban",
           "mkdir -p /opt/mcphub",
-          "mkdir -p /mnt/oc-dev /mnt/oc-kratos",
-          "grep -q oc-dev /etc/fstab || echo 'jclee@${module.hosts.hosts["jclee-dev"].ip}:/home/jclee/dev /mnt/oc-dev fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab",
-          "grep -q oc-kratos /etc/fstab || echo 'jclee@${module.hosts.hosts["jclee-dev"].ip}:/home/jclee/.kratos /mnt/oc-kratos fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab",
-          "mountpoint -q /mnt/oc-dev || mount /mnt/oc-dev || true",
-          "mountpoint -q /mnt/oc-kratos || mount /mnt/oc-kratos || true",
+          "mkdir -p /mnt/oc-home",
+          "grep -q oc-home /etc/fstab || echo 'jclee@${module.hosts.hosts["jclee-dev"].ip}:/home/jclee /mnt/oc-home fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab",
+          "mountpoint -q /mnt/oc-home || mount /mnt/oc-home || true",
           "systemctl daemon-reload",
           "curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg",
           "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' > /etc/apt/sources.list.d/google-cloud-sdk.list",
@@ -133,13 +131,13 @@ module "vm_config" {
           },
           {
             path        = "/opt/mcphub/Dockerfile.proxmox"
-            content     = file("${path.module}/../112-mcphub/Dockerfile.proxmox")
+            content     = file("${path.module}/../../112-mcphub/Dockerfile.proxmox")
             permissions = "0644"
             owner       = "root:root"
           },
           {
             path        = "/opt/mcphub/Dockerfile.playwright"
-            content     = file("${path.module}/../112-mcphub/Dockerfile.playwright")
+            content     = file("${path.module}/../../112-mcphub/Dockerfile.playwright")
             permissions = "0644"
             owner       = "root:root"
           },
@@ -157,19 +155,19 @@ module "vm_config" {
           },
           {
             path        = "/opt/mcphub/.gitconfig"
-            content     = file("${path.module}/../112-mcphub/config/.gitconfig")
+            content     = file("${path.module}/../../112-mcphub/config/.gitconfig")
             permissions = "0644"
             owner       = "root:root"
           },
           {
             path        = "/opt/mcphub/patches/patch-placeholder.cjs"
-            content     = file("${path.module}/../112-mcphub/config/patch-placeholder.cjs")
+            content     = file("${path.module}/../../112-mcphub/config/patch-placeholder.cjs")
             permissions = "0644"
             owner       = "root:root"
           },
           {
             path        = "/opt/mcphub/patches/entrypoint-patch"
-            content     = filebase64("${path.module}/../112-mcphub/config/entrypoint-patch")
+            content     = filebase64("${path.module}/../../112-mcphub/config/entrypoint-patch")
             permissions = "0755"
             owner       = "root:root"
             encoding    = "base64"

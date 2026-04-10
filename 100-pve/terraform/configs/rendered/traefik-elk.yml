@@ -1,0 +1,59 @@
+http:
+  routers:
+    kibana:
+      rule: Host(`elk.jclee.me`) || Host(`kibana.jclee.me`)
+      entryPoints:
+        - websecure
+      service: kibana
+      middlewares:
+        - rate-limit-standard@file
+        - chain-basic-auth@file
+      tls:
+        certResolver: cf
+      priority: 10
+
+    kibana-http:
+      rule: Host(`elk.jclee.me`) || Host(`kibana.jclee.me`)
+      entryPoints:
+        - web
+      service: kibana
+      priority: 10
+
+    elasticsearch:
+      rule: Host(`es.jclee.me`)
+      entryPoints:
+        - websecure
+      service: elasticsearch
+      middlewares:
+        - elk-ipallowlist
+        - rate-limit-api@file
+      tls:
+        certResolver: cf
+      priority: 10
+
+    elasticsearch-http:
+      rule: Host(`es.jclee.me`)
+      entryPoints:
+        - web
+      service: elasticsearch
+      middlewares:
+        - elk-ipallowlist
+      priority: 10
+
+  middlewares:
+    elk-ipallowlist:
+      ipAllowList:
+        sourceRange:
+          - "192.168.50.0/24"
+          - "127.0.0.1/32"
+
+  services:
+    kibana:
+      loadBalancer:
+        servers:
+          - url: http://192.168.50.105:5601
+
+    elasticsearch:
+      loadBalancer:
+        servers:
+          - url: http://192.168.50.105:9200

@@ -10,7 +10,7 @@ LXC container (VMID 101) running multiple GitHub Actions self-hosted runner inst
 | IP | 192.168.50.101 |
 | OS | Debian 12 |
 | CPU | 2 cores |
-| Memory | 2048 MB |
+| Memory | 3072 MB (3 GB) |
 | Disk | 32 GB |
 | Privileged | No (unprivileged, nesting enabled) |
 

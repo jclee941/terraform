@@ -152,3 +152,42 @@ variable "gitlab_runner_share_path" {
   type        = string
   default     = "/docker/gitlab-runner"
 }
+# -----------------------------------------------------------------------------
+# Portainer
+# -----------------------------------------------------------------------------
+
+variable "enable_portainer" {
+  description = "Enable Portainer CE container deployment on Synology"
+  type        = bool
+  default     = false
+}
+
+variable "portainer_version" {
+  description = "Portainer CE image tag"
+  type        = string
+  default     = "latest"
+}
+
+variable "portainer_share_path" {
+  description = "Synology share path for Portainer compose project"
+  type        = string
+  default     = "/docker/portainer"
+}
+
+variable "portainer_https_port" {
+  description = "Published HTTPS port for Portainer web UI"
+  type        = string
+  default     = "9443"
+}
+
+variable "portainer_edge_port" {
+  description = "Published TCP port for Portainer Edge agent communication"
+  type        = string
+  default     = "8000"
+}
+
+variable "portainer_timezone" {
+  description = "Timezone used by Portainer container"
+  type        = string
+  default     = "Asia/Seoul"
+}

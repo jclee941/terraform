@@ -1,0 +1,60 @@
+# Filebeat configuration for 112-mcphub (MCP Hub + AI/Tools VM)
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+filebeat.inputs:
+  # Docker container logs (mcphub, mcp-proxmox, mcp-playwright, mcp-dev-browser, n8n, vault)
+  - type: filestream
+    id: docker-containers
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    parsers:
+      - container: {}
+    prospector.scanner.symlinks: true
+    fields:
+      service: mcphub
+      host_role: mcphub
+    fields_under_root: false
+
+  # System logs
+  - type: filestream
+    id: system-logs
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    fields:
+      service: system
+      host_role: mcphub
+    fields_under_root: false
+
+  # Auth logs
+  - type: filestream
+    id: auth-logs
+    paths:
+      - /var/log/auth.log
+    fields:
+      service: auth
+      host_role: mcphub
+    fields_under_root: false
+
+processors:
+  - add_host_metadata: ~
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
+output.logstash:
+  hosts: ["192.168.50.105:5044"]
+
+filebeat.registry.path: /var/lib/filebeat/registry
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+
+max_message_bytes: 999999

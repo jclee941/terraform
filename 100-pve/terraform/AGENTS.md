@@ -26,7 +26,7 @@ terraform/
 | Container provisioning | `main.tf` → `module.lxc` | Calls `../modules/proxmox/lxc` for each guest |
 | VM provisioning | `main.tf` → `module.vm` | Calls `../modules/proxmox/vm` for mcphub (112) |
 | Host inventory | `locals.tf` → `module.hosts` | Imports from `../envs/prod/hosts.tf` |
-| Memory sizing | `locals.tf` → `container_sizing` | Budget: 16.3 GB + 9.3 GB swap |
+| Memory sizing | `locals.tf` → `container_sizing` | Budget: 20 GB + 9.75 GB swap |
 | Filebeat setup | `lxc_configs.tf`, `vm_configs.tf` | `setup_filebeat` provisioner blocks |
 | Config rendering | `secrets.tf` → `module.config_renderer` | Template → file conversion |
 
@@ -48,4 +48,11 @@ terraform plan              # Preview changes
 terraform apply             # Apply changes (CI only — local disabled)
 terraform validate          # Syntax validation
 terraform fmt -recursive    # Format all files
+terraform fmt -recursive    # Format all files
 ```
+
+## NOTES
+
+- Memory budget updated (2026-04-08): GitLab Runner increased from 768MB to 3072MB
+- Total dedicated memory: 20 GB + 9.75 GB swap = 29.75 GB effective
+- NFS cache mount configured for LXC 101 at `/srv/gitlab-runner/cache`

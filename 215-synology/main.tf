@@ -133,3 +133,53 @@ resource "synology_container_project" "gitlab_runner" {
     }
   }
 }
+
+# -----------------------------------------------------------------------------
+# Portainer — Docker container management UI
+# -----------------------------------------------------------------------------
+
+resource "synology_container_project" "portainer" {
+  for_each = var.enable_portainer ? { portainer = true } : {}
+
+  name       = "portainer"
+  share_path = var.portainer_share_path
+  run        = true
+
+  services = {
+    portainer = {
+      image          = "portainer/portainer-ce:${var.portainer_version}"
+      container_name = "portainer"
+      hostname       = "portainer"
+      restart        = "unless-stopped"
+
+      environment = {
+        TZ = var.portainer_timezone
+      }
+
+      ports = [
+        {
+          target    = 9443
+          published = var.portainer_https_port
+        },
+        {
+          target    = 8000
+          published = var.portainer_edge_port
+        },
+      ]
+
+      volumes = [
+        {
+          type      = "bind"
+          source    = "/var/run/docker.sock"
+          target    = "/var/run/docker.sock"
+          read_only = true
+        },
+        {
+          type   = "bind"
+          source = "/volume1/docker/portainer/data"
+          target = "/data"
+        },
+      ]
+    }
+  }
+}

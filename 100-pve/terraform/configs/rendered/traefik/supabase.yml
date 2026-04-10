@@ -1,0 +1,49 @@
+http:
+  routers:
+    supabase-internal:
+      rule: Host(`supabase.jclee.me`) && ClientIP(`192.168.50.0/24`)
+      entryPoints:
+        - websecure
+      service: supabase-studio
+      middlewares:
+        - rate-limit-standard@file
+        - chain-basic-auth@file
+      tls:
+        certResolver: cf
+      priority: 100
+
+    supabase-internal-http:
+      rule: Host(`supabase.jclee.me`) && ClientIP(`192.168.50.0/24`)
+      entryPoints:
+        - web
+      service: supabase-studio
+      priority: 100
+
+    supabase:
+      rule: Host(`supabase.jclee.me`)
+      entryPoints:
+        - websecure
+      service: supabase
+      middlewares:
+        - rate-limit-standard@file
+      tls:
+        certResolver: cf
+      priority: 10
+
+    supabase-http:
+      rule: Host(`supabase.jclee.me`)
+      entryPoints:
+        - web
+      service: supabase
+      priority: 10
+
+  services:
+    supabase-studio:
+      loadBalancer:
+        servers:
+          - url: http://192.168.50.107:3000
+
+    supabase:
+      loadBalancer:
+        servers:
+          - url: http://192.168.50.107:8000

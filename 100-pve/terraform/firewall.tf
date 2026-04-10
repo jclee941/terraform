@@ -6,9 +6,9 @@
 
 locals {
   # ── Guest registry ─────────────────────────────────────────────────────────
-  firewall_guests = {
-    cliproxy        = "container"
-    "gitlab-runner" = "container"
+    cliproxy = "container"
+    runner   = "container"
+    traefik  = "container"
     traefik         = "container"
     coredns         = "container"
     elk             = "container"

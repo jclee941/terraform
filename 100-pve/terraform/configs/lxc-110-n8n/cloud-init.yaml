@@ -1,0 +1,17 @@
+#cloud-config
+hostname: n8n
+manage_etc_hosts: true
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - curl
+  - jq
+  - ca-certificates
+
+
+runcmd:
+  - systemctl enable filebeat || true
+
+final_message: "Cloud-init completed for n8n"

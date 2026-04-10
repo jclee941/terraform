@@ -1,0 +1,17 @@
+# CoreDNS Docker Compose for 103-coredns (Split DNS Resolver)
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
+services:
+  coredns:
+    image: coredns/coredns:latest
+    container_name: coredns
+    restart: unless-stopped
+    command: -conf /etc/coredns/Corefile
+    network_mode: host
+    volumes:
+      - /opt/coredns/Corefile:/etc/coredns/Corefile:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -57,3 +57,20 @@ output "gitlab_runner_enabled" {
   description = "Whether GitLab Runner is deployed"
   value       = var.enable_gitlab_runner
 }
+
+# -----------------------------------------------------------------------------
+# Portainer
+# -----------------------------------------------------------------------------
+
+output "portainer_enabled" {
+  description = "Whether Portainer container project is enabled"
+  value       = var.enable_portainer
+}
+
+output "portainer_endpoints" {
+  description = "Portainer endpoint details when container project is enabled"
+  value = var.enable_portainer ? {
+    https_url = "https://192.168.50.215:${var.portainer_https_port}"
+    edge_port = var.portainer_edge_port
+  } : null
+}

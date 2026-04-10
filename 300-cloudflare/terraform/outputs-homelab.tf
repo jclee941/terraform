@@ -18,10 +18,4 @@ output "homelab_dns_records" {
   }
 }
 
-output "homelab_access_applications" {
-  description = "Cloudflare Access applications for restricted services"
-  value = {
-    for key, app in cloudflare_zero_trust_access_application.homelab :
-    key => app.domain
-  }
-}
+

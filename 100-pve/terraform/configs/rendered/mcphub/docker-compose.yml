@@ -1,0 +1,119 @@
+services:
+  mcphub:
+    image: samanhappy/mcphub:0.12.6
+    container_name: mcphub
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./mcp_settings.json:/app/mcp_settings.json
+      - mcphub_data:/app/data
+      - npm_cache:/root/.npm
+      - /usr/bin/op:/usr/bin/op:ro
+      - ./op-mcp-server:/app/op-mcp-server:ro
+      - /mnt/oc-dev:/home/jclee/dev
+      - ./.gitconfig:/root/.gitconfig:ro
+      - /mnt/oc-kratos:/root/.kratos
+      - ./patches:/app/patches:ro
+      - /usr/lib/google-cloud-sdk:/usr/lib/google-cloud-sdk:ro
+      - /usr/bin/gcloud:/usr/bin/gcloud:ro
+      - ./gcloud-config:/root/.config/gcloud
+    env_file:
+      - .env
+    environment:
+      - MCPHUB_PORT=3000
+    entrypoint: ["/app/patches/entrypoint-patch"]
+    command: ["pnpm", "start"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - mcp-proxmox
+      - mcp-playwright
+      - mcp-dev-browser
+
+  mcp-proxmox:
+    build:
+      context: .
+      dockerfile: Dockerfile.proxmox
+    container_name: mcp-proxmox
+    restart: unless-stopped
+    ports:
+      - "8055:8055"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8055,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  mcp-playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+    container_name: mcp-playwright
+    restart: unless-stopped
+    ports:
+      - "8056:8056"
+    env_file:
+      - .env
+    environment:
+      - PLAYWRIGHT_MCP_HEADLESS=true
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8056,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  mcp-dev-browser:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev-browser
+    container_name: mcp-dev-browser
+    restart: unless-stopped
+    ports:
+      - "8057:8057"
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8057
+      - RELAY_MODE=auto
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8057,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.51.0
+    container_name: cadvisor
+    ports:
+      - "8888:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  mcphub_data:
+  npm_cache:

@@ -33,14 +33,14 @@ locals {
       }
     }
 
-    gitlab-runner = {
+    runner = {
       vmid  = 101
       ip    = "192.168.50.101"
-      roles = ["ci", "runner", "gitlab"]
+      roles = ["ci", "runner", "github"]
       ports = {}
     }
 
-    # Note: gitlab-runner (101) is active - LXC container for GitLab CI (migrated from HDD to SSD 2026-03-28)
+    # Note: runner (101) is active - LXC container for GitHub Actions CI (migrated from HDD to SSD 2026-03-28)
     # Removed: vault (was 101->repurposed), terraform (103),
     # minio_cache (109), n8n (110), swagger (was 112->repurposed), github_runner (113->repurposed to 101)
     # Removed: mcpdog (111) - migrated to mcphub (112)
@@ -145,13 +145,10 @@ locals {
     synology = {
       vmid  = 215
       ip    = "192.168.50.215"
-      roles = ["nas", "storage", "gitlab", "ci"]
+      roles = ["nas", "storage"]
       ports = {
-        dsm             = 5000
-        dsm_https       = 5001
-        gitlab_http     = 8929
-        gitlab_ssh      = 2224
-        gitlab_registry = 5050
+        dsm       = 5000
+        dsm_https = 5001
       }
     }
 

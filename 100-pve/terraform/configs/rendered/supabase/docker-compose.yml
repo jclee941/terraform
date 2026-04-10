@@ -1,0 +1,213 @@
+services:
+  studio:
+    image: supabase/studio:20250224-95cc97d
+    container_name: supabase-studio
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: http://192.168.50.107:8000
+      SUPABASE_ANON_KEY: eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24iLCAiaXNzIjogInN1cGFiYXNlIiwgImlhdCI6IDE3NzE2MDA4MDAsICJleHAiOiAyMDg2OTYwODAwfQ.TiwflrKfacFVLlR2k7owaIPfJ8C75bwqRXqP0pzJY3o
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogInNlcnZpY2Vfcm9sZSIsICJpc3MiOiAic3VwYWJhc2UiLCAiaWF0IjogMTc3MTYwMDgwMCwgImV4cCI6IDIwODY5NjA4MDB9.vLTEQu-8UATji7axVljZzlmPUrbqbFmx7fjXaQc580Y
+    ports:
+      - "3000:3000"
+    depends_on:
+      - kong
+      - meta
+      - db
+    networks:
+      - supabase
+
+  kong:
+    image: kong:2.8.1
+    container_name: supabase-kong
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    volumes:
+      - ./kong.yml:/var/lib/kong/kong.yml:ro
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - auth
+      - rest
+      - realtime
+      - storage
+    networks:
+      - supabase
+
+  auth:
+    image: supabase/gotrue:v2.158.1
+    container_name: supabase-auth
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://192.168.50.107:8000
+      GOTRUE_SITE_URL: http://supabase.jclee.me
+      GOTRUE_URI_ALLOW_LIST: "http://localhost:3000,http://192.168.50.107:3000"
+      GOTRUE_JWT_SECRET: cwCVl7uY4WJUyZo/IpYauD9G8kqvbfhbolfNZVQNeME=
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_admin:xaBI7AtdjCSRXO/B4JzKRzTw@db:5432/postgres
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_DISABLE_SIGNUP: "false"
+    ports:
+      - "9999:9999"
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  rest:
+    image: postgrest/postgrest:v12.2.8
+    container_name: supabase-rest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PGRST_DB_URI: postgres://authenticator:xaBI7AtdjCSRXO/B4JzKRzTw@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: cwCVl7uY4WJUyZo/IpYauD9G8kqvbfhbolfNZVQNeME=
+    ports:
+      - "3001:3000"
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  realtime:
+    image: supabase/realtime:v2.34.47
+    container_name: supabase-realtime
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: xaBI7AtdjCSRXO/B4JzKRzTw
+      DB_NAME: postgres
+      PORT: 4000
+      JWT_SECRET: cwCVl7uY4WJUyZo/IpYauD9G8kqvbfhbolfNZVQNeME=
+      SECRET_KEY_BASE: cwCVl7uY4WJUyZo/IpYauD9G8kqvbfhbolfNZVQNeME=
+      APP_NAME: realtime
+      SEED_SELF_HOST: "true"
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  meta:
+    image: supabase/postgres-meta:v0.84.3
+    container_name: supabase-meta
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: xaBI7AtdjCSRXO/B4JzKRzTw
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  storage:
+    image: supabase/storage-api:v1.20.3
+    container_name: supabase-storage
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ANON_KEY: eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24iLCAiaXNzIjogInN1cGFiYXNlIiwgImlhdCI6IDE3NzE2MDA4MDAsICJleHAiOiAyMDg2OTYwODAwfQ.TiwflrKfacFVLlR2k7owaIPfJ8C75bwqRXqP0pzJY3o
+      SERVICE_KEY: eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogInNlcnZpY2Vfcm9sZSIsICJpc3MiOiAic3VwYWJhc2UiLCAiaWF0IjogMTc3MTYwMDgwMCwgImV4cCI6IDIwODY5NjA4MDB9.vLTEQu-8UATji7axVljZzlmPUrbqbFmx7fjXaQc580Y
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: cwCVl7uY4WJUyZo/IpYauD9G8kqvbfhbolfNZVQNeME=
+      DATABASE_URL: postgres://supabase_storage_admin:xaBI7AtdjCSRXO/B4JzKRzTw@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      REGION: local
+      GLOBAL_S3_BUCKET: supabase-storage
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - rest
+    volumes:
+      - supabase_storage_data:/var/lib/storage
+    networks:
+      - supabase
+
+  db:
+    image: supabase/postgres:15.8.1.049
+    container_name: supabase-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PASSWORD: xaBI7AtdjCSRXO/B4JzKRzTw
+      POSTGRES_DB: postgres
+      POSTGRES_USER: supabase_admin
+      JWT_SECRET: cwCVl7uY4WJUyZo/IpYauD9G8kqvbfhbolfNZVQNeME=
+      JWT_EXP: 3600
+    ports:
+      - "5432:5432"
+    volumes:
+      - supabase_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supabase_admin -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - supabase
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    container_name: supabase-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: postgresql://supabase_admin:xaBI7AtdjCSRXO/B4JzKRzTw@db:5432/postgres?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - supabase
+
+networks:
+  supabase:
+    driver: bridge
+
+volumes:
+  supabase_db_data:
+  supabase_storage_data:

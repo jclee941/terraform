@@ -71,9 +71,9 @@ locals {
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
-  # Total dedicated: 18176 MB (17.75 GB) + swap: 8960 MB (8.75 GB) = 27136 MB effective
+  # Total dedicated: 20480 MB (20 GB) + swap: 9984 MB (9.75 GB) = 30464 MB effective
   container_sizing = {
-    gitlab-runner = { memory = 768, swap = 512, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines (optimized: 768MB RAM)", mount_points = [{ volume = "/mnt/gitlab-runner-cache", path = "/srv/gitlab-runner/cache" }] }
+    gitlab-runner = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines (3GB RAM)", mount_points = [{ volume = "/mnt/gitlab-runner-cache", path = "/srv/gitlab-runner/cache" }] }
     traefik       = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     elk           = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
     supabase      = { memory = 2048, swap = 1024, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }

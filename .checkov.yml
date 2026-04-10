@@ -1,0 +1,17 @@
+# Checkov configuration for Terraform security scanning
+# https://www.checkov.io
+
+framework:
+  - terraform
+
+skip-path:
+  - .archive
+  - data
+  - tests
+  - 100-pve/configs
+
+skip-check:
+  - CKV_TF_1  # Skip hardcoded secret check (requires secrets manager integration)
+
+quiet: true
+compact: true

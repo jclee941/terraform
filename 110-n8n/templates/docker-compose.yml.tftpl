@@ -30,6 +30,7 @@ services:
       start_period: 30s
     volumes:
       - n8n_data:/home/node/.n8n
+      - /home/node/.ssh:/home/node/.ssh:ro
     networks:
       - n8n_default
 

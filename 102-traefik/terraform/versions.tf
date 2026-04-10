@@ -5,8 +5,7 @@ terraform {
 
   # NOTE: LXC lifecycle is owned by 100-pve/main.tf (module "lxc" for_each).
   # Config deployment is also owned by 100-pve via config-renderer templates.
-  # This workspace is reserved for future Traefik provider resources
-  # (e.g., direct API management), similar to 104-grafana/terraform/.
+  # This workspace is reserved for future Traefik provider resources.
   required_providers {}
 }
 

@@ -3,8 +3,6 @@ locals {
   proxmox_endpoint        = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["endpoint"].value, "")
   proxmox_ssh_private_key = try(data.onepassword_item.this["proxmox"].section_map["Keys"].field_map["private_key"].value, "")
 
-  github_personal_access_token = try(data.onepassword_item.this["github"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["github"].credential, ""))
-  gitlab_personal_access_token = try(data.onepassword_item.this["gitlab"].credential, try(data.onepassword_item.this["gitlab"].password, ""))
 
   supabase_service_key        = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, "")
   supabase_anon_key           = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["anon_key"].value, "")
@@ -59,8 +57,8 @@ locals {
   pbs_username    = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["Login"].field_map["username"].value, "") : ""
   pbs_fingerprint = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["Connection"].field_map["fingerprint"].value, "") : ""
 
-  synology_user     = var.enable_synology ? try(data.onepassword_item.this["synology"].section_map["Credentials"].field_map["user"].value, "") : ""
-  synology_password = var.enable_synology ? try(data.onepassword_item.this["synology"].section_map["Credentials"].field_map["password"].value, "") : ""
+  synology_user     = var.enable_synology ? try(data.onepassword_item.this["synology"].section_map["Credentials"].field_map["user"].value, try(data.onepassword_item.this["synology"].username, "")) : ""
+  synology_password = var.enable_synology ? try(data.onepassword_item.this["synology"].section_map["Credentials"].field_map["password"].value, try(data.onepassword_item.this["synology"].password, "")) : ""
 
   youtube_google_client_id     = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["OAuth"].field_map["google_client_id"].value, "") : ""
   youtube_google_client_secret = var.enable_youtube ? try(data.onepassword_item.this["youtube"].section_map["OAuth"].field_map["google_client_secret"].value, "") : ""
@@ -86,8 +84,6 @@ output "secrets" {
     proxmox_ssh_private_key = local.proxmox_ssh_private_key
 
     # GitHub
-    github_personal_access_token = local.github_personal_access_token
-    gitlab_personal_access_token = local.gitlab_personal_access_token
 
     # Supabase
     supabase_service_key        = local.supabase_service_key

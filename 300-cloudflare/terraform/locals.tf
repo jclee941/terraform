@@ -1,5 +1,5 @@
 locals {
-  inventory = yamldecode(file("${path.module}/inventory/secrets.yaml"))
+  inventory = yamldecode(file("${path.module}/../inventory/secrets.yaml"))
 
   all_secrets = try(local.inventory.secrets, [])
 
@@ -19,15 +19,12 @@ locals {
     elk          = { subdomain = "elk" }
     kibana       = { subdomain = "kibana" }
     es           = { subdomain = "es" }
-    grafana      = { subdomain = "grafana" }
     mcphub       = { subdomain = "mcphub" }
     archon       = { subdomain = "archon" }
     supabase     = { subdomain = "supabase" }
     nas          = { subdomain = "nas" }
     n8n          = { subdomain = "n8n" }
-    opencode     = { subdomain = "opencode" }
     opencode-api = { subdomain = "opencode-api" }
-    gitlab       = { subdomain = "gitlab" }
   }
 
   # TCP/non-HTTP services exposed directly via Cloudflare Tunnel (bypass Traefik)
@@ -63,25 +60,5 @@ locals {
       origin    = "tcp://${var.jclee_dev_ip}:22"
     }
   }
-
-  # Services requiring Cloudflare Access protection
-  # All homelab HTTP services are protected by CF Access email auth
-  restricted_services = {
-    elk          = { subdomain = "elk", name = "ELK" }
-    kibana       = { subdomain = "kibana", name = "Kibana" }
-    es           = { subdomain = "es", name = "Elasticsearch" }
-    grafana      = { subdomain = "grafana", name = "Grafana" }
-    mcphub       = { subdomain = "mcphub", name = "MCP Hub" }
-    archon       = { subdomain = "archon", name = "Archon" }
-    supabase     = { subdomain = "supabase", name = "Supabase" }
-    n8n          = { subdomain = "n8n", name = "n8n" }
-    nas          = { subdomain = "nas", name = "NAS" }
-    opencode     = { subdomain = "opencode", name = "OpenCode" }
-    opencode-api = { subdomain = "opencode-api", name = "OpenCode API" }
-    gitlab       = { subdomain = "gitlab", name = "GitLab" }
-  }
-
-  # Services that allow internal network bypass (no CF Access auth required from homelab IP)
-  internal_bypass_services = ["elk", "kibana", "es", "grafana", "mcphub", "archon", "supabase", "n8n", "nas", "opencode", "opencode-api", "gitlab"]
 
 }

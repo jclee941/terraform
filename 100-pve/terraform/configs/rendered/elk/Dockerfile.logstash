@@ -1,0 +1,4 @@
+FROM docker.elastic.co/logstash/logstash:8.17.0
+
+# Prometheus metrics are exposed via the logstash-exporter sidecar (port 9198).
+# Keep the base image unmodified to avoid JRuby plugin instability in LXC.
