@@ -227,9 +227,9 @@ variable "minio_endpoint" {
 }
 
 variable "minio_root_user" {
-  description = "MinIO root user for Registry backend"
+  description = "MinIO root user for Registry backend (from 1Password if empty)"
   type        = string
-  default     = "minioadmin"
+  default     = ""
   sensitive   = true
 }
 

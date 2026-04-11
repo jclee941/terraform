@@ -73,6 +73,9 @@ locals {
   # AI & Media Integrations for n8n
   telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
 
+  # Docker Registry (MinIO backend)
+  registry_minio_user     = try(data.onepassword_item.this["registry"].username, try(data.onepassword_item.this["registry"].credential, "minioadmin"))
+  registry_minio_password = try(data.onepassword_item.this["registry"].password, "")
 }
 
 output "secrets" {
@@ -149,6 +152,9 @@ output "secrets" {
     # AI & Media Integrations for n8n
     telegram_bot_token = local.telegram_bot_token
 
+    # Docker Registry (MinIO backend)
+    registry_minio_user     = local.registry_minio_user
+    registry_minio_password = local.registry_minio_password
   }
 }
 
