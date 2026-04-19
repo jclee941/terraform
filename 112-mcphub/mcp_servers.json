@@ -137,7 +137,7 @@
       "transport": "streamable-http",
       "url": "https://n8n.jclee.me/mcp-server/http",
       "port": 8081,
-      "disabled": true,
+      "disabled": false,
       "description": "n8n workflow automation via native MCP server"
     },
     "supabase": {
@@ -158,6 +158,17 @@
       "docker_service": "mcp-dev-browser",
       "port": 8057,
       "description": "Browser automation with persistent page state"
+    },
+    "github": {
+      "location": "hub",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "port": 8082,
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "description": "GitHub API operations"
     }
   }
 }
