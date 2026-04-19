@@ -6,6 +6,9 @@ locals {
   # GitHub
   github_personal_access_token = try(data.onepassword_item.this["github"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["github"].credential, ""))
 
+  # GitLab
+  gitlab_personal_access_token = try(data.onepassword_item.this["gitlab"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["gitlab"].password, ""))
+
   supabase_service_key        = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, "")
   supabase_anon_key           = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["anon_key"].value, "")
   supabase_service_role_key   = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_role_key"].value, try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, ""))
@@ -90,6 +93,7 @@ output "secrets" {
 
     # GitHub
     github_personal_access_token = local.github_personal_access_token
+    gitlab_personal_access_token = local.gitlab_personal_access_token
 
     supabase_service_key        = local.supabase_service_key
     supabase_anon_key           = local.supabase_anon_key

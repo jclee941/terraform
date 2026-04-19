@@ -6,18 +6,18 @@
 
 locals {
   # ── Guest registry ─────────────────────────────────────────────────────────
-    cliproxy = "container"
-    runner   = "container"
-    traefik  = "container"
-    traefik         = "container"
-    coredns         = "container"
-    elk             = "container"
-    supabase        = "container"
-    archon          = "container"
-    n8n             = "container"
-    mcphub          = "vm"
-    "jclee-dev"     = "vm"
-    youtube         = "vm"
+  firewall_guests = {
+    cliproxy    = "container"
+    runner      = "container"
+    traefik     = "container"
+    coredns     = "container"
+    elk         = "container"
+    supabase    = "container"
+    archon      = "container"
+    n8n         = "container"
+    mcphub      = "vm"
+    "jclee-dev" = "vm"
+    youtube     = "vm"
   }
 
   # ── Port labels ────────────────────────────────────────────────────────────

@@ -73,14 +73,14 @@ locals {
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
   # Total dedicated: 20480 MB (20 GB) + swap: 9984 MB (9.75 GB) = 30464 MB effective
   container_sizing = {
-    gitlab-runner = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitLab CI Runner - Docker executor for GitLab CI/CD pipelines (3GB RAM)", mount_points = [{ volume = "/mnt/gitlab-runner-cache", path = "/srv/gitlab-runner/cache" }] }
-    traefik       = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    elk           = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
-    supabase      = { memory = 2048, swap = 1024, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
-    archon        = { memory = 1024, swap = 512, cores = 2, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
-    coredns       = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
-    n8n           = { memory = 2048, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
-    cliproxy      = { memory = 512, swap = 256, cores = 2, disk_size = 20, description = "Squid Forward Proxy" }
+    runner   = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitHub Actions CI Runner - Docker executor (3GB RAM)", mount_points = [{ volume = "/mnt/gitlab-runner-cache", path = "/srv/gitlab-runner/cache" }] }
+    traefik  = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
+    elk      = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
+    supabase = { memory = 2048, swap = 1024, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
+    archon   = { memory = 1024, swap = 512, cores = 2, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
+    coredns  = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
+    n8n      = { memory = 2048, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
+    cliproxy = { memory = 512, swap = 256, cores = 2, disk_size = 20, description = "Squid Forward Proxy" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -223,7 +223,6 @@ locals {
       archon      = "archon.yml.tftpl"
       supabase    = "supabase.yml.tftpl"
       nas         = "nas.yml.tftpl"
-      gitlab      = "gitlab.yml.tftpl"
       registry    = "registry.yml.tftpl"
       opencode    = "opencode.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"

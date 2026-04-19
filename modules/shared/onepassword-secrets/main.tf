@@ -29,6 +29,7 @@ locals {
     "cloudflare",
     "elk",
     "github",
+    "gitlab",
     "mcphub",
     "n8n",
 
@@ -45,6 +46,7 @@ locals {
     var.enable_synology ? toset(["synology"]) : toset([]),
     var.enable_youtube ? toset(["youtube"]) : toset([]),
     var.enable_gcp ? toset(["gcp"]) : toset([]),
+    var.enable_registry ? toset(["registry"]) : toset([]),
   )
 
   # Combined set for the for_each.

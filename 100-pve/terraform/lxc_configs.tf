@@ -10,6 +10,7 @@ module "lxc_config" {
   ssh_user           = "root"
   ssh_private_key    = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
+  lxc_containers = {
     runner = {
       vmid           = module.hosts.hosts["runner"].vmid
       hostname       = "runner"
