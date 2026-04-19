@@ -3,6 +3,8 @@ locals {
   proxmox_endpoint        = try(data.onepassword_item.this["proxmox"].section_map["Credentials"].field_map["endpoint"].value, "")
   proxmox_ssh_private_key = try(data.onepassword_item.this["proxmox"].section_map["Keys"].field_map["private_key"].value, "")
 
+  # GitHub
+  github_personal_access_token = try(data.onepassword_item.this["github"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["github"].credential, ""))
 
   supabase_service_key        = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, "")
   supabase_anon_key           = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["anon_key"].value, "")
@@ -74,8 +76,8 @@ locals {
   telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
 
   # Docker Registry (MinIO backend)
-  registry_minio_user     = try(data.onepassword_item.this["registry"].username, try(data.onepassword_item.this["registry"].credential, "minioadmin"))
-  registry_minio_password = try(data.onepassword_item.this["registry"].password, "")
+  registry_minio_user     = var.enable_registry ? try(data.onepassword_item.this["registry"].username, try(data.onepassword_item.this["registry"].credential, "minioadmin")) : "minioadmin"
+  registry_minio_password = var.enable_registry ? try(data.onepassword_item.this["registry"].password, "") : ""
 }
 
 output "secrets" {
@@ -87,8 +89,8 @@ output "secrets" {
     proxmox_ssh_private_key = local.proxmox_ssh_private_key
 
     # GitHub
+    github_personal_access_token = local.github_personal_access_token
 
-    # Supabase
     supabase_service_key        = local.supabase_service_key
     supabase_anon_key           = local.supabase_anon_key
     supabase_service_role_key   = local.supabase_service_role_key

@@ -29,7 +29,7 @@ module "config_renderer" {
 
       elk_version = "8.17.0"
 
-      mcphub_version = "0.12.6"
+      mcphub_version = "0.12.12"
 
       es_heap                     = "3g"
       logstash_heap               = "1g"

@@ -135,9 +135,9 @@ locals {
     mcphub = {
       vmid        = 112
       description = "MCPHub - Unified MCP Server Gateway"
-      memory      = 8192
-      balloon_min = 2048
-      cores       = 2
+      memory      = 10240
+      balloon_min = 3072
+      cores       = 4
       disk_size   = 32
     }
     youtube = {
@@ -161,6 +161,7 @@ locals {
   required_template_secret_keys = [
     "elk_elastic_password",
     "elk_kibana_password",
+    "github_personal_access_token",
     "mcphub_admin_password",
     "mcphub_n8n_mcp_api_key",
     "mcphub_op_connect_token",
