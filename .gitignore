@@ -93,3 +93,6 @@ scripts/bin/
 # Compiled Go binaries in config directories
 **/config/entrypoint-patch
 **/config/*.exe
+
+
+<!-- LLM review probe 1777811213 — auto-removed after verification -->
