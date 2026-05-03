@@ -93,3 +93,5 @@ scripts/bin/
 # Compiled Go binaries in config directories
 **/config/entrypoint-patch
 **/config/*.exe
+
+<!-- LLM final probe 1777812018 -->
