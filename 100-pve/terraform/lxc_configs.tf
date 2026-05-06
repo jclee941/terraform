@@ -6,7 +6,7 @@ module "lxc_config" {
   source = "../../modules/proxmox/lxc-config"
 
   deploy_lxc_configs = var.deploy_lxc_configs
-  mcp_host           = module.hosts.hosts.mcphub.ip
+  ssh_user           = "root"
   ssh_user           = "root"
   ssh_private_key    = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 

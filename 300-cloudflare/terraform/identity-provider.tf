@@ -35,9 +35,3 @@ resource "cloudflare_zero_trust_access_identity_provider" "otp" {
 # Ordered IdP list for Access applications:
 # - Google first (primary SSO) when configured
 # - OTP always present (fallback)
-locals {
-  allowed_identity_providers = concat(
-    local.google_idp_configured ? [cloudflare_zero_trust_access_identity_provider.google[0].id] : [],
-    [cloudflare_zero_trust_access_identity_provider.otp.id]
-  )
-}

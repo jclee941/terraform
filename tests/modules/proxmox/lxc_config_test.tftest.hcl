@@ -26,7 +26,6 @@ run "test_single_container_with_service" {
       }
     }
 
-    mcp_host             = "192.168.50.112"
     deploy_lxc_configs   = false
     enable_health_checks = false
   }
@@ -78,7 +77,6 @@ run "test_multiple_containers" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = false
   }
 
@@ -150,7 +148,6 @@ run "test_service_count" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = false
   }
 
@@ -193,7 +190,6 @@ run "test_config_files_output" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = false
   }
 
@@ -230,7 +226,6 @@ run "test_docker_compose_output" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = false
   }
 
@@ -263,7 +258,6 @@ run "test_container_without_services" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = false
   }
 
@@ -303,7 +297,6 @@ run "test_docker_compose_null" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = false
   }
 
@@ -335,7 +328,6 @@ run "test_deploy_requires_ssh_key_when_enabled" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = true
     ssh_private_key    = ""
   }
@@ -362,7 +354,6 @@ run "test_deploy_with_ssh_key_passes_check" {
       }
     }
 
-    mcp_host           = "192.168.50.112"
     deploy_lxc_configs = true
     ssh_private_key    = "mock-ssh-key-for-testing-only" # pragma: allowlist secret
   }

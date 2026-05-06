@@ -11,6 +11,10 @@ terraform {
     onepassword = {
       source  = "1Password/onepassword"
       version = "~> 3.2"
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
     }
+  }
   }
 }

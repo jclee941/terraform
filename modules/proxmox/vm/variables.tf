@@ -225,11 +225,6 @@ variable "on_boot" {
   default     = true
 }
 
-variable "numa" {
-  description = "Enable NUMA"
-  type        = bool
-  default     = false
-}
 
 variable "hostpci_devices" {
   description = "PCI devices to pass through to the VM (use 'mapping' for resource-mapped devices, 'id' for raw passthrough)"
