@@ -40,7 +40,12 @@ module "lxc_config" {
 
       cloud_init = {
         packages = ["curl", "jq", "ca-certificates"]
-        runcmd   = ["systemctl enable filebeat || true"]
+        runcmd = [
+          "mkdir -p /etc/traefik/dynamic",
+          "rm -f /etc/traefik/dynamic/gitlab.yml /etc/traefik/dynamic/gitlab-http.yml /etc/traefik/dynamic/archon.yml /etc/traefik/dynamic/supabase.yml /etc/traefik/dynamic/glitchtip.yml /etc/traefik/dynamic/bot.yml /etc/traefik/dynamic/opencode.yml /etc/traefik/dynamic/code.yml /etc/traefik/dynamic/vault.yml",
+          "systemctl enable filebeat || true",
+          "systemctl reload traefik || systemctl restart traefik || true",
+        ]
       }
 
       config_files = {
@@ -51,6 +56,26 @@ module "lxc_config" {
         "filebeat.yml" = {
           path    = "/etc/filebeat/filebeat.yml"
           content = module.config_renderer.rendered_configs.traefik_filebeat
+        }
+        "middlewares.yml" = {
+          path    = "/etc/traefik/dynamic/middlewares.yml"
+          content = module.config_renderer.rendered_configs.traefik_middlewares
+        }
+        "registry.yml" = {
+          path    = "/etc/traefik/dynamic/registry.yml"
+          content = module.config_renderer.rendered_configs.traefik_registry
+        }
+        "mcphub.yml" = {
+          path    = "/etc/traefik/dynamic/mcphub.yml"
+          content = module.config_renderer.rendered_configs.traefik_mcphub
+        }
+        "n8n.yml" = {
+          path    = "/etc/traefik/dynamic/n8n.yml"
+          content = module.config_renderer.rendered_configs.traefik_n8n
+        }
+        "nas.yml" = {
+          path    = "/etc/traefik/dynamic/nas.yml"
+          content = module.config_renderer.rendered_configs.traefik_nas
         }
       }
     }
@@ -63,8 +88,13 @@ module "lxc_config" {
       setup_filebeat = true
 
       cloud_init = {
-        packages = ["curl", "jq", "ca-certificates"]
-        runcmd   = ["systemctl enable filebeat || true"]
+        packages = ["curl", "jq", "ca-certificates", "nfs-common"]
+        runcmd = [
+          "mkdir -p /mnt/nas-elk",
+          "mountpoint -q /mnt/nas-elk || mount -t nfs -o vers=3,nolock,rw,hard,noatime ${module.hosts.hosts.synology.ip}:/volume1/shared/elk-snapshots /mnt/nas-elk || true",
+          "grep -q '/mnt/nas-elk' /etc/fstab || echo '${module.hosts.hosts.synology.ip}:/volume1/shared/elk-snapshots /mnt/nas-elk nfs vers=3,nolock,rw,hard,noatime,_netdev,x-systemd.automount 0 0' >> /etc/fstab",
+          "systemctl enable filebeat || true",
+        ]
       }
 
       docker_compose = {
@@ -105,56 +135,6 @@ module "lxc_config" {
       }
     }
 
-    supabase = {
-      vmid           = module.hosts.hosts.supabase.vmid
-      hostname       = "supabase"
-      ip_address     = module.hosts.hosts.supabase.ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      cloud_init = {
-        packages = ["curl", "jq", "ca-certificates"]
-        runcmd   = ["systemctl enable filebeat || true"]
-      }
-
-      docker_compose = {
-        path    = "/opt/supabase/docker-compose.yml"
-        content = module.config_renderer.rendered_configs.supabase_docker_compose
-      }
-
-      config_files = {
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.supabase_filebeat
-        }
-      }
-    }
-
-    archon = {
-      vmid           = module.hosts.hosts.archon.vmid
-      hostname       = "archon"
-      ip_address     = module.hosts.hosts.archon.ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      cloud_init = {
-        packages = ["curl", "jq", "ca-certificates"]
-        runcmd   = ["systemctl enable filebeat || true"]
-      }
-
-      docker_compose = {
-        path    = "/opt/archon/docker-compose.yml"
-        content = module.config_renderer.rendered_configs.archon_docker_compose
-      }
-
-      config_files = {
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.archon_filebeat
-        }
-      }
-    }
-
     coredns = {
       vmid           = module.hosts.hosts.coredns.vmid
       hostname       = "coredns"
@@ -186,7 +166,7 @@ module "lxc_config" {
 
     cliproxy = {
       vmid           = module.hosts.hosts["cliproxy"].vmid
-      hostname       = "proxy"
+      hostname       = "cliproxy"
       ip_address     = module.hosts.hosts["cliproxy"].ip
       deploy         = var.deploy_lxc_configs
       setup_filebeat = false

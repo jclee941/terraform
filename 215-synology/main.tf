@@ -11,19 +11,6 @@ provider "synology" {
 
 provider "onepassword" {}
 
-locals {
-  _registry_config = var.enable_gitlab_registry ? [
-    "registry_external_url '${var.gitlab_registry_external_url}'",
-    "registry['enable'] = true",
-    "registry_nginx['enable'] = true",
-    "registry_nginx['listen_port'] = ${var.gitlab_registry_port}",
-  ] : []
-
-  gitlab_omnibus_config = join("\n", concat([
-    "external_url '${var.gitlab_external_url}'",
-  ], local._registry_config))
-}
-
 # -----------------------------------------------------------------------------
 # Data Sources
 # -----------------------------------------------------------------------------
@@ -40,94 +27,49 @@ resource "synology_core_package" "container_manager" {
   name = "ContainerManager"
 }
 
-resource "synology_container_project" "gitlab" {
-  for_each = var.enable_gitlab_project ? { gitlab = true } : {}
 
-  name       = "gitlab"
-  share_path = var.gitlab_project_share_path
+
+# -----------------------------------------------------------------------------
+# MinIO — S3-compatible object storage backend for Docker Registry
+# -----------------------------------------------------------------------------
+
+resource "synology_container_project" "minio" {
+  for_each = var.enable_registry ? { minio = true } : {}
+
+  name       = "minio"
+  share_path = var.minio_share_path
   run        = true
 
   services = {
-    gitlab = {
-      image          = "gitlab/gitlab-ce:${var.gitlab_version}"
-      container_name = "gitlab"
-      hostname       = "gitlab"
+    minio = {
+      image          = "minio/minio:${var.minio_version}"
+      container_name = "minio"
+      hostname       = "minio"
       restart        = "unless-stopped"
+      command        = ["server", "/data", "--console-address", ":9001"]
 
       environment = {
-        TZ                    = var.gitlab_timezone
-        GITLAB_OMNIBUS_CONFIG = local.gitlab_omnibus_config
+        MINIO_ROOT_USER     = local.effective_minio_user
+        MINIO_ROOT_PASSWORD = local.effective_minio_password
+        MINIO_REGION_NAME   = "us-east-1"
       }
 
-      ports = concat([
+      ports = [
         {
-          target    = tonumber(var.gitlab_http_port)
-          published = var.gitlab_http_port
+          target    = 9000
+          published = "9000"
         },
         {
-          target    = 22
-          published = var.gitlab_ssh_port
-        },
-        ], var.enable_gitlab_registry ? [
-        {
-          target    = tonumber(var.gitlab_registry_port)
-          published = var.gitlab_registry_port
-        },
-      ] : [])
-
-      volumes = [
-        {
-          type   = "bind"
-          source = "/volume1/docker/gitlab/config"
-          target = "/etc/gitlab"
-        },
-        {
-          type   = "bind"
-          source = "/volume1/docker/gitlab/logs"
-          target = "/var/log/gitlab"
-        },
-        {
-          type   = "bind"
-          source = "/volume1/docker/gitlab/data"
-          target = "/var/opt/gitlab"
+          target    = 9001
+          published = "9001"
         },
       ]
-    }
-  }
-}
-
-# -----------------------------------------------------------------------------
-# GitLab Runner — Docker executor for CI/CD pipelines
-# -----------------------------------------------------------------------------
-
-resource "synology_container_project" "gitlab_runner" {
-  for_each = var.enable_gitlab_runner ? { gitlab_runner = true } : {}
-
-  name       = "gitlab-runner"
-  share_path = var.gitlab_runner_share_path
-  run        = true
-
-  services = {
-    "gitlab-runner" = {
-      image          = "gitlab/gitlab-runner:${var.gitlab_runner_image}"
-      container_name = "gitlab-runner"
-      hostname       = "gitlab-runner"
-      restart        = "unless-stopped"
-
-      environment = {
-        TZ = var.gitlab_timezone
-      }
 
       volumes = [
         {
           type   = "bind"
-          source = "/volume1/docker/gitlab-runner/config"
-          target = "/etc/gitlab-runner"
-        },
-        {
-          type   = "bind"
-          source = "/var/run/docker.sock"
-          target = "/var/run/docker.sock"
+          source = "/volume1/docker/minio/data"
+          target = "/data"
         },
       ]
     }
@@ -140,6 +82,8 @@ resource "synology_container_project" "gitlab_runner" {
 
 resource "synology_container_project" "registry" {
   for_each = var.enable_registry ? { registry = true } : {}
+
+  depends_on = [synology_container_project.minio]
 
   name       = "registry"
   share_path = var.registry_share_path
@@ -156,9 +100,9 @@ resource "synology_container_project" "registry" {
         REGISTRY_STORAGE                   = "s3"
         REGISTRY_STORAGE_S3_REGION         = "us-east-1"
         REGISTRY_STORAGE_S3_BUCKET         = var.minio_registry_bucket
-        REGISTRY_STORAGE_S3_ENDPOINT       = var.minio_endpoint
-        REGISTRY_STORAGE_S3_ACCESSKEY      = var.minio_root_user
-        REGISTRY_STORAGE_S3_SECRETKEY      = var.minio_root_password
+        REGISTRY_STORAGE_S3_REGIONENDPOINT = var.minio_endpoint
+        REGISTRY_STORAGE_S3_ACCESSKEY      = local.effective_minio_user
+        REGISTRY_STORAGE_S3_SECRETKEY      = local.effective_minio_password
         REGISTRY_STORAGE_S3_V4AUTH         = "true"
         REGISTRY_STORAGE_S3_SECURE         = "false"
         REGISTRY_STORAGE_S3_ROOTDIRECTORY  = "/"

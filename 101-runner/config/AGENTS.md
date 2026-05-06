@@ -1,28 +1,26 @@
-# AGENTS: 101-runner/config — GitLab Runner Configuration
+# AGENTS: 101-runner/config — GitHub Actions Runner Configuration
 
 ## OVERVIEW
-Configuration templates and runtime configs for the GitLab Runner LXC (VMID 101). Runner executes CI/CD pipelines for all Terraform workspaces.
+Configuration assets for the GitHub Actions self-hosted runner LXC (VMID 101). Runner executes CI/CD workflows for all Terraform workspaces.
 
 ## STRUCTURE
 ```
 config/
-├── config.toml.tftpl      # Main runner config template
-└── .gitlab/               # CI helper configs
+└── filebeat.yml          # Log forwarding to ELK (105)
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Runner registration | `config.toml.tftpl` | Executor, cache, concurrent jobs |
-| CI helper scripts | `.gitlab/` | Shared CI utilities |
+| Filebeat shipping | `filebeat.yml` | Forwards `/var/log/*` to Logstash:5044 |
 
 ## CONVENTIONS
-- Use `config.toml.tftpl` as template, rendered to `/etc/gitlab-runner/config.toml`
-- Shell executor with Docker-in-Docker support
-- Cache: S3-compatible (MinIO) on infra subnet
+- Templates rendered by Terraform (`100-pve` workspace) into the LXC.
+- Runner registration handled by `scripts/register-all-repos.go` (no static config.toml).
+- Cache: NFS bind mount at `/srv/runner/cache`.
 
 ## ANTI-PATTERNS
-- NEVER commit registration tokens — use 1Password
-- NEVER use privileged containers in production
-- NEVER hardcode URLs — use `module.hosts` references
+- NEVER commit registration tokens — use 1Password.
+- NEVER use privileged containers in production.
+- NEVER hardcode URLs — use `module.hosts` references.

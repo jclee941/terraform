@@ -69,7 +69,7 @@ http:
     basic-auth:
       basicAuth:
         users:
-          - "${traefik_htpasswd_hash}"
+          - "admin:$2y$10$vu1uqdsZG3.qn69ow2SK.egtD9.gDo7p9/AKLO/j/R5lo1bZwod5C"
 
     # Chain: security headers + basic auth (required per AGENTS.md convention)
     chain-basic-auth:
@@ -77,12 +77,3 @@ http:
         middlewares:
           - security-headers
           - basic-auth
-
-    # Registry IP allowlist: LAN + Cloudflare proxy egress (homelab-only access)
-    registry-allowlist:
-      ipAllowList:
-        sourceRange:
-          - 127.0.0.1/32
-          - 192.168.50.0/24      # Homelab LAN (runner=101, traefik=102, oc=200, youtube=220, synology=215)
-          - 172.16.0.0/12        # Docker bridge networks (registry/minio/traefik containers)
-

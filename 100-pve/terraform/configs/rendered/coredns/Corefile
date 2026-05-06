@@ -18,18 +18,16 @@ jclee.me:53 {
 
 homelab.local:53 {
     hosts {
-        192.168.50.108 archon.homelab.local
         192.168.50.114 cliproxy.homelab.local
         192.168.50.103 coredns.homelab.local
         192.168.50.105 elk.homelab.local
-        192.168.50.101 gitlab-runner.homelab.local
-        192.168.50.104 grafana.homelab.local
         192.168.50.80 jclee.homelab.local
         192.168.50.200 jclee-dev.homelab.local
         192.168.50.112 mcphub.homelab.local
         192.168.50.110 n8n.homelab.local
+        192.168.50.250 pbs.homelab.local
         192.168.50.100 pve.homelab.local
-        192.168.50.107 supabase.homelab.local
+        192.168.50.101 runner.homelab.local
         192.168.50.215 synology.homelab.local
         192.168.50.102 traefik.homelab.local
         192.168.50.220 youtube.homelab.local

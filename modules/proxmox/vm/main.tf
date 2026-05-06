@@ -29,6 +29,14 @@ resource "proxmox_virtual_environment_vm" "this" {
     }
   }
 
+  dynamic "tpm_state" {
+    for_each = var.bios == "ovmf" ? [1] : []
+    content {
+      datastore_id = var.datastore_id
+      version      = "v2.0"
+    }
+  }
+
   clone {
     vm_id = var.clone_template_id
     full  = true
@@ -41,6 +49,10 @@ resource "proxmox_virtual_environment_vm" "this" {
   cpu {
     cores = var.cores
     type  = var.cpu_type
+  }
+
+  vga {
+    type = "std"
   }
 
   memory {
@@ -126,7 +138,6 @@ resource "proxmox_virtual_environment_vm" "this" {
       disk[0].datastore_id,
       efi_disk,
       initialization,
-      vga,
     ]
 
     prevent_destroy = true

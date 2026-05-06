@@ -1,0 +1,50 @@
+# Filebeat configuration for 101-runner (GitHub Actions Self-hosted Runner)
+# Rendered by Terraform - DO NOT EDIT MANUALLY
+
+filebeat.inputs:
+  # System logs
+  - type: filestream
+    id: system-logs
+    paths:
+      - /var/log/*.log
+      - /var/log/syslog
+    fields:
+      service: runner
+      host_role: runner
+    fields_under_root: false
+
+  # GitHub Actions Runner diagnostic logs
+  - type: filestream
+    id: runner-diag-logs
+    paths:
+      - /home/runner/runners/*/_diag/*.log
+    fields:
+      service: runner
+      host_role: runner
+    fields_under_root: false
+
+  # Auth logs
+  - type: filestream
+    id: auth-logs
+    paths:
+      - /var/log/auth.log
+    fields:
+      service: auth
+      host_role: runner
+    fields_under_root: false
+
+processors:
+  - add_host_metadata: ~
+
+output.logstash:
+  hosts: ["192.168.50.105:5044"]
+
+filebeat.registry.path: /var/lib/filebeat/registry
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+
+max_message_bytes: 999999

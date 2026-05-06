@@ -1,7 +1,7 @@
 http:
   routers:
     registry:
-      rule: Host(`registry.${domain}`)
+      rule: Host(`registry.jclee.me`)
       entryPoints:
         - websecure
       service: registry
@@ -13,7 +13,7 @@ http:
       priority: 10
 
     registry-http:
-      rule: Host(`registry.${domain}`)
+      rule: Host(`registry.jclee.me`)
       entryPoints:
         - web
       service: registry
@@ -25,4 +25,4 @@ http:
     registry:
       loadBalancer:
         servers:
-          - url: http://${hosts.synology.ip}:${hosts.synology.ports.registry}
+          - url: http://192.168.50.215:5051

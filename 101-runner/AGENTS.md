@@ -11,25 +11,23 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 - Swap: 1536 MB
 - Cores: 2
 - Disk: 32 GB
-- NFS Cache: `/srv/gitlab-runner/cache` (Synology NAS via NFS v4.1)
+- NFS Cache: `/srv/runner/cache` (Synology NAS via NFS v4.1)
 
 ## STRUCTURE
 
 ```
 101-runner/
 ├── README.md                   # Hardware/Setup documentation
-├── TEST_CHECKLIST.md          # Deployment verification checklist
+├── README.md                   # Hardware/Setup documentation
 ├── config/
 │   └── filebeat.yml           # Log forwarding to ELK (105)
 ├── templates/
 │   └── filebeat.yml.tftpl     # Templated filebeat config
 └── scripts/                   # Runner lifecycle management (Go)
     ├── setup-runner.go              # Dependency bootstrap, Docker, Terraform, Bazel
-    ├── setup-gitlab-runner-with-cache.go  # Setup with NFS cache support
     ├── register-all-repos.go        # Multi-instance bulk registration
     ├── register-repo.go             # Single repo registration
     ├── unregister-all.go            # Safe cleanup with backward compat
-    └── recover-runner.sh            # Recovery script for failed setups
 ```
 
 ## MULTI-INSTANCE MODEL
@@ -46,15 +44,15 @@ Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user
 
 ```
 Synology NAS (192.168.50.215)
-  └── /volume1/gitlab-runner-cache (NFS Export)
+  └── /volume1/runner-cache (NFS Export)
        ↓ NFS v4.1
 Proxmox Host (192.168.50.100)
-  └── /mnt/gitlab-runner-cache (Host Mount)
+  └── /mnt/runner-cache (Host Mount)
        ↓ Bind Mount
-LXC 101 (gitlab-runner)
-  └── /srv/gitlab-runner/cache (Container Path)
+LXC 101 (runner)
+  └── /srv/runner/cache (Container Path)
        ↓ Volume Mount
-GitLab Runner Docker executor jobs
+GitHub Actions Runner Docker executor jobs
 ```
 
 ## WHERE TO LOOK
@@ -63,12 +61,10 @@ GitLab Runner Docker executor jobs
 |------|------|-------|
 | **Add new repo** | `scripts/register-all-repos.go` | Auto-discovers all repos via API |
 | **Add single repo** | `scripts/register-repo.go` | `go run scripts/register-repo.go <name> [instance]` |
-| **Setup with cache** | `scripts/setup-gitlab-runner-with-cache.go` | Includes NFS cache configuration |
 | **Troubleshoot logs**| `config/filebeat.yml` | Verified against Logstash:5044 |
 | **Base dependencies**| `scripts/setup-runner.go` | Python, Docker, Terraform, Bazel |
 | **Service Control** | `README.md` | `systemctl status github-runner-{N}-{repo}` |
 | **Safe cleanup** | `scripts/unregister-all.go` | Token revocation + multi-instance + legacy cleanup |
-| **Recovery** | `scripts/recover-runner.sh` | Restore failed runner setups |
 
 ## CONVENTIONS
 
@@ -79,7 +75,7 @@ GitLab Runner Docker executor jobs
 - **Naming**: Follows `{VMID}-{HOSTNAME}` (101-runner) for Proxmox and GitHub identifiers.
 - **Script Safety**: Keep scripts repeatable and safe for reruns during recovery.
 - **Scaling**: Increase `RUNNER_COUNT` to add more parallel capacity per repo.
-- **Cache Usage**: Docker executor configured to use `/srv/gitlab-runner/cache` for build cache.
+- **Cache Usage**: Docker executor configured to use `/srv/runner/cache` for build cache.
 
 ## ANTI-PATTERNS
 
@@ -93,8 +89,8 @@ GitLab Runner Docker executor jobs
 ## COMMANDS
 
 ```bash
-# Setup with NFS cache
-go run scripts/setup-gitlab-runner-with-cache.go
+# Setup runner (deps + register)
+go run scripts/setup-runner.go
 
 # Register all repos (default 2 instances)
 GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
@@ -105,8 +101,8 @@ systemctl status github-runner-1-terraform
 journalctl -u github-runner-2-terraform -f
 
 # Verify NFS cache mount
-pct exec 101 -- df -h /srv/gitlab-runner/cache
-pct exec 101 -- ls -la /srv/gitlab-runner/cache
+pct exec 101 -- df -h /srv/runner/cache
+pct exec 101 -- ls -la /srv/runner/cache
 ```
 
 ## NOTES

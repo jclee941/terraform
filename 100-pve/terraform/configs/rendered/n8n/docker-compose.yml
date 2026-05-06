@@ -80,10 +80,53 @@ services:
     networks:
       - n8n_default
 
+  postgres-backup:
+    image: postgres:16-alpine
+    container_name: n8n-postgres-backup
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGUSER: n8n
+      PGPASSWORD: ncR9fdvI13RCnguYuxGJ7iSi
+      PGDATABASE: n8n
+    volumes:
+      - n8n_postgres_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        apk add --no-cache dcron 2>/dev/null || true
+        mkdir -p /backups
+        cat >/etc/periodic/daily/n8n-pgdump <<'EOSCRIPT'
+        #!/bin/sh
+        set -eu
+        TS=$$(date +%Y%m%d-%H%M%S)
+        OUT=/backups/n8n-$$TS.sql.gz
+        echo "[backup] start $$TS"
+        pg_dumpall --clean --if-exists | gzip -9 > $$OUT.tmp && mv $$OUT.tmp $$OUT
+        echo "[backup] wrote $$OUT ($$(stat -c%s $$OUT) bytes)"
+        # retain last 14 daily dumps
+        ls -1t /backups/n8n-*.sql.gz 2>/dev/null | awk 'NR>14' | xargs -r rm -f
+        EOSCRIPT
+        chmod +x /etc/periodic/daily/n8n-pgdump
+        crond -f -d 8
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - n8n_default
+
 volumes:
   n8n_data:
     driver: local
   n8n_postgres_data:
+    driver: local
+  n8n_postgres_backups:
     driver: local
 
 networks:

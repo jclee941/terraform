@@ -29,7 +29,7 @@ Planned Google Cloud Platform workspace for cloud-native resources. This workspa
 | Makefile alias | ✅ Ready | `ALIAS_gcp := 400-gcp` |
 | 1Password secrets | ✅ Prepared | `enable_gcp` variable in onepassword-secrets module |
 | Test scaffolding | ⚠️ Placeholder | `tests/workspaces/gcp/` — minimal stub only |
-| CI pipeline | ❌ Not configured | Would need `.gitlab/ci/` addition |
+| CI pipeline | ❌ Not configured | Would need `.github/workflows/` addition |
 
 ## INTENDED RESOURCES (Inference)
 
@@ -55,9 +55,7 @@ Based on workspace patterns, this would likely provision:
 
 ## NOTES
 
-- Planned per `docs/infrastructure-modernization-roadmap.md`
-- Referenced in root `AGENTS.md` as part of 400s cloud tier
-- Migration checklist entry exists in `docs/runbooks/gitlab-migration-checklist.md`
+- Referenced in root `AGENTS.md` as part of 400s cloud tier.
 
 ## NEXT STEPS TO IMPLEMENT
 
@@ -66,4 +64,4 @@ Based on workspace patterns, this would likely provision:
 3. Define required GCP resources
 4. Wire up `onepassword-secrets` with `enable_gcp = true`
 5. Add real tests to `tests/workspaces/gcp/`
-6. Configure CI job in `.gitlab-ci.yml`
+6. Configure CI job in `.github/workflows/`.

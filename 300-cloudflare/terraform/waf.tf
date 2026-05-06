@@ -26,7 +26,7 @@ resource "cloudflare_ruleset" "waf_custom" {
     # Rule 2: Block suspicious paths
     {
       description = "Block suspicious paths - .env, wp-admin, wp-login, xmlrpc, phpmyadmin, .git, config.json, actuator"
-      expression  = "not http.request.uri.path within {\"/\" \"/kibana\" \"/elasticsearch\" \"/api\" \"/archon\" \"/mcphub\" \"/n8n\" \"/vault\" \"/supabase\"} and (http.request.uri.path contains \"/.env\" or http.request.uri.path contains \"/wp-admin\" or http.request.uri.path contains \"/wp-login.php\" or http.request.uri.path contains \"/xmlrpc.php\" or http.request.uri.path contains \"/phpmyadmin\" or http.request.uri.path contains \"/.git\" or http.request.uri.path contains \"/config.json\" or http.request.uri.path contains \"/actuator\")"
+      expression  = "not http.request.uri.path within {\"/\" \"/kibana\" \"/elasticsearch\" \"/api\" \"/mcphub\" \"/n8n\"} and (http.request.uri.path contains \"/.env\" or http.request.uri.path contains \"/wp-admin\" or http.request.uri.path contains \"/wp-login.php\" or http.request.uri.path contains \"/xmlrpc.php\" or http.request.uri.path contains \"/phpmyadmin\" or http.request.uri.path contains \"/.git\" or http.request.uri.path contains \"/config.json\" or http.request.uri.path contains \"/actuator\")"
       action      = "block"
       enabled     = true
     },

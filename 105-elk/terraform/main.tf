@@ -6,7 +6,6 @@ locals {
   # Service key must match the `service` field set by Logstash (logstash.conf.tftpl).
   # Tier determines ILM retention: critical=90d, standard=30d, ephemeral=7d.
   log_services = {
-    archon             = { name = "Archon", tier = "critical" }
     auth               = { name = "Auth", tier = "standard" }
     cloudflare-workers = { name = "Cloudflare Workers", tier = "standard" }
     docker             = { name = "Docker", tier = "standard" }
@@ -15,7 +14,6 @@ locals {
     mcphub             = { name = "MCPHub", tier = "standard" }
     opencode           = { name = "OpenCode", tier = "standard" }
     pve                = { name = "PVE", tier = "critical" }
-    supabase           = { name = "Supabase", tier = "critical" }
     synology           = { name = "Synology", tier = "standard" }
     system             = { name = "System", tier = "standard" }
     youtube            = { name = "YouTube", tier = "ephemeral" }
@@ -181,7 +179,7 @@ resource "elasticstack_elasticsearch_snapshot_repository" "homelab_backups" {
   name = "homelab-backups"
 
   fs {
-    location                  = "/usr/share/elasticsearch/data/backup"
+    location                  = "/usr/share/elasticsearch/snapshots"
     compress                  = true
     max_restore_bytes_per_sec = "40mb"
   }

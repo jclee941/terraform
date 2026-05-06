@@ -12,8 +12,6 @@ locals {
     traefik     = "container"
     coredns     = "container"
     elk         = "container"
-    supabase    = "container"
-    archon      = "container"
     n8n         = "container"
     mcphub      = "vm"
     "jclee-dev" = "vm"
@@ -52,9 +50,6 @@ locals {
     }
     elk = {
       exclude = ["es_transport", "logstash_api", "logstash_http"]
-    }
-    supabase = {
-      exclude = ["inbucket"]
     }
     n8n = {
       exclude = ["postgres"]

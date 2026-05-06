@@ -1,28 +1,25 @@
 http:
   routers:
     registry:
-      rule: Host(`registry.${domain}`)
+      rule: Host(`registry.jclee.me`)
       entryPoints:
         - websecure
       service: registry
       middlewares:
-        - registry-allowlist@file
         - rate-limit-relaxed@file
       tls:
         certResolver: cf
       priority: 10
 
     registry-http:
-      rule: Host(`registry.${domain}`)
+      rule: Host(`registry.jclee.me`)
       entryPoints:
         - web
       service: registry
-      middlewares:
-        - registry-allowlist@file
       priority: 10
 
   services:
     registry:
       loadBalancer:
         servers:
-          - url: http://${hosts.synology.ip}:${hosts.synology.ports.registry}
+          - url: http://192.168.50.215:5051

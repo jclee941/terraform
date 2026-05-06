@@ -20,8 +20,6 @@ locals {
     kibana       = { subdomain = "kibana" }
     es           = { subdomain = "es" }
     mcphub       = { subdomain = "mcphub" }
-    archon       = { subdomain = "archon" }
-    supabase     = { subdomain = "supabase" }
     nas          = { subdomain = "nas" }
     n8n          = { subdomain = "n8n" }
     opencode-api = { subdomain = "opencode-api" }

@@ -77,3 +77,12 @@ http:
         middlewares:
           - security-headers
           - basic-auth
+
+    # Registry IP allowlist: LAN + Cloudflare proxy egress (homelab-only access)
+    registry-allowlist:
+      ipAllowList:
+        sourceRange:
+          - 127.0.0.1/32
+          - 192.168.50.0/24      # Homelab LAN (runner=101, traefik=102, oc=200, youtube=220, synology=215)
+          - 172.16.0.0/12        # Docker bridge networks (registry/minio/traefik containers)
+
