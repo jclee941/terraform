@@ -7,7 +7,6 @@ module "lxc_config" {
 
   deploy_lxc_configs = var.deploy_lxc_configs
   ssh_user           = "root"
-  ssh_user           = "root"
   ssh_private_key    = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
   lxc_containers = {
