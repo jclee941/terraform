@@ -2,8 +2,8 @@
 
 > **Status: Superseded** — Bazel governance (BUILD.bazel, OWNERS) removed. Directory structure and workspace numbering conventions remain active.
 
-**Status:** Accepted  
-**Date:** 2026-02-13  
+**Status:** Superseded
+**Date:** 2026-02-13
 
 ## Context
 
@@ -26,7 +26,7 @@ Adopt a flat monorepo structure with Bazel build system:
 ## Consequences
 
 - Single source of truth for all infrastructure
-- Bazel validates BUILD files across all directories
+- Historical Bazel validation and OWNERS governance have been removed; current governance is documented in repository conventions, CI, and workspace ordering docs.
 - Module sharing via relative paths (`../modules/`)
 - Atomic commits across providers
 - CI/CD runs against entire repo

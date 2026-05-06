@@ -79,7 +79,7 @@ pct exec {VMID} -- journalctl -n 50 --no-pager
 
 ## Prevention
 - Scheduled vzdump backups configured via Proxmox UI
-- Grafana alert rules managed in `104-grafana/terraform/alerting_rules.tf`
+- Grafana alert rules managed through the template/config pipeline
 - Retention policy: keep-daily=7, keep-weekly=4, keep-monthly=3
 - Grafana alert for backup failures
 - Test restores quarterly to verify backup integrity

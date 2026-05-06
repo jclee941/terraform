@@ -21,32 +21,14 @@ go run scripts/setup-github-secrets.go --audit
 
 ## Architecture
 
-```
-1Password (homelab vault, 14 items)
-  │
-  ├── onepassword-secrets module (42 secret keys)
-  │     │
-  │     ├── 100-pve (via versions.tf provider) ┤
-  │     ├── 104-grafana/terraform ──────────────┤
-  │     ├── 105-elk/terraform ────────────────┤
-  │     ├── 215-synology ────────────────────┤
-  │     ├── 300-cloudflare ───────────────────┤
-  │     ├── 301-github ──────────────────────┤
-  │     └── 320-slack ───────────────────────┤
-  │           │
-  │           ▼
-  │     config-renderer module (templates .tftpl)
-  │           │
-  │           ▼
-  │     rendered .env / .yml / docker-compose files
-  │           │
-  │           ▼
-  │     cloud-init deploy to LXC/VM hosts
-  │
-  go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
-  │
-  └── MCPHub .env (OP_SERVICE_ACCOUNT_TOKEN for MCP servers)
-        LXC 112 at /opt/mcphub/.env
+```mermaid
+flowchart LR
+  Vault["1Password vault\nhomelab"] --> Module["onepassword-secrets module"]
+  Module --> Terraform["Terraform workspaces"]
+  Terraform --> Templates["templatefile() rendering"]
+  Templates --> Runtime["Runtime .env / config files"]
+  Terraform --> GH["GitHub Actions secrets sync"]
+  GH --> CI["CI/CD workflows"]
 ```
 
 ## 1Password Item Inventory
@@ -91,7 +73,6 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | Workspace             | Has onepassword.tf       | Key Secrets Consumed                               |
 | --------------------- | ------------------------ | -------------------------------------------------- |
 | 100-pve               | via versions.tf provider | `proxmox_api_token`, all template secrets          |
-| 104-grafana/terraform | ✅                       | `grafana_service_account_token`, `slack_webhook_url` |
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
 | 215-synology          | ✅                       | `synology_username`, `synology_password`           |
 | 300-cloudflare        | ✅                       | `cloudflare_account_id`, `zone_id`, `github_token` |
@@ -100,6 +81,8 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | 102-traefik           | ❌                       | —                                                  |
 | 108-archon            | ❌                       | —                                                  |
 
+Grafana secrets are consumed by the template/config pipeline, not by a standalone Grafana Terraform workspace.
+
 ## Runtime Secret Distribution
 
 Per-host `.env` secrets deployed via config-renderer templates:
@@ -107,7 +90,7 @@ Per-host `.env` secrets deployed via config-renderer templates:
 | Host          | Secrets                                                                                                                                    |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | 102-traefik   | `homelab_tunnel_token` (via cloudflared compose)                                                                                           |
-| 104-grafana   | `GRAFANA_ADMIN_PASSWORD`                                                                                                                   |
+| Grafana runtime | `GRAFANA_ADMIN_PASSWORD`                                                                                                                 |
 | 105-elk       | `elastic_password`, `kibana_password` (in docker-compose env vars)                                                                         |
 | 107-supabase  | `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `DASHBOARD_PASSWORD`                                                    |
 | 108-archon    | `OPENAI_API_KEY`                                                                                                                           |

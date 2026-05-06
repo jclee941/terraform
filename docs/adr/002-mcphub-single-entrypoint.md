@@ -12,7 +12,7 @@ AI development tools (OpenCode) required access to 24 MCP servers. Managing indi
 Use MCPHub (VM 112:3000) as a single gateway for all MCP servers:
 - Clients configure ONE endpoint: `http://192.168.50.112:3000/mcp`
 - All server definitions in `mcp_servers.json` (SSoT)
-- Local-only servers (bazel, in-memoria) remain client-side
+- Local-only servers remain client-side when they are not suitable for MCPHub hosting
 - StreamableHTTP support (legacy SSE compatibility at the gateway)
 
 ## Alternatives Considered

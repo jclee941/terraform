@@ -97,5 +97,5 @@ docker compose -f /opt/n8n/docker-compose.yml restart
 ## Prevention
 
 - Grafana alerts monitor all services via blackbox exporter
-- Check `104-grafana/terraform/alerting_rules.tf` for alert configuration
+- Check the Grafana alerting template/config source for alert configuration
 - Alerts route to Slack (critical/warning) and alert-log-fallback (info)
