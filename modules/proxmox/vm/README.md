@@ -4,6 +4,16 @@ Provisions QEMU/KVM virtual machines on Proxmox VE via the `bpg/proxmox`
 provider. Supports cloud-init, PCI passthrough, and clone-based deployments
 with validation for VMID, memory alignment, BIOS type, and disk interface.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Inputs["Input variables"] --> Module["Terraform module"]
+  Module --> Resources["Managed resources or rendered templates"]
+  Resources --> Outputs["Output values"]
+  Outputs --> Consumers["Workspace consumers"]
+```
+
 <!-- BEGIN_TF_DOCS -->
 
 

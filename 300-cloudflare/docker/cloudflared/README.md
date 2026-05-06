@@ -1,38 +1,46 @@
 # Cloudflare Tunnel — Synology NAS
 
-Runs `cloudflared` as a Docker container on the Synology NAS to establish a secure tunnel to Cloudflare.
+## Overview
+
+Runs `cloudflared` as a Docker container on the Synology NAS to establish a secure tunnel to Cloudflare. Bridges external traffic to the DSM API and other NAS services.
 
 ## Architecture
 
+```mermaid
+flowchart LR
+  Internet["Internet"] --> CF["Cloudflare Edge"]
+  CF --> Tunnel["Cloudflare Tunnel"]
+  Tunnel --> Container["cloudflared container"]
+  Container --> DSM["Synology DSM API\nlocalhost:5001"]
 ```
-CF Edge → CF Tunnel → cloudflared (this container) → Synology DSM API (localhost:5001)
-```
 
-## Setup
+## Source of Truth
 
-### 1. Get Tunnel Token
+- **Terraform workspace**: `../../terraform/` (tunnel token output)
+- **Docker Compose**: `docker-compose.yml` in this directory
+- **Environment**: `.env` (tunnel token, never commit)
 
-After applying Terraform:
+## Operations
+
+### Setup
 
 ```bash
+# Get tunnel token from Terraform output
 cd ../../terraform
 terraform output -raw tunnel_token
-```
 
-### 2. Create `.env` File
-
-```bash
+# Create environment file
 cp .env.example .env
-# Edit .env and paste the tunnel token
+# Paste the tunnel token into .env
 ```
 
-### 3. Deploy
+### Deploy
 
 ```bash
 # SSH into Synology NAS
 ssh admin@192.168.50.215
 
-# Navigate to this directory (or copy files)
+# Navigate to this directory
 cd /volume1/docker/cloudflared
 
 # Start the tunnel
@@ -42,7 +50,7 @@ docker compose up -d
 docker compose logs -f
 ```
 
-## Operations
+### Lifecycle
 
 ```bash
 # Check status
@@ -61,10 +69,8 @@ docker compose pull && docker compose up -d
 docker compose down
 ```
 
-## Troubleshooting
+## Safety Notes
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `ERR Failed to connect` | Invalid token | Re-run `terraform output -raw tunnel_token` |
-| `connection refused` | DSM not running on 5001 | Check DSM HTTPS port in Control Panel |
-| Container restarts | Network issue | Check `docker compose logs` for details |
+- Never commit `.env` or tunnel tokens to git.
+- If the container fails to connect, re-run `terraform output -raw tunnel_token` to verify the token.
+- Ensure DSM HTTPS is running on port 5001.

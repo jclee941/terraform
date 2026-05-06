@@ -4,6 +4,16 @@ Provisions LXC containers on Proxmox VE via the `bpg/proxmox` provider.
 Handles CPU, memory, storage, and network configuration with input validation
 for VMID ranges, memory minimums, and hostname format.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Inputs["Input variables"] --> Module["Terraform module"]
+  Module --> Resources["Managed resources or rendered templates"]
+  Resources --> Outputs["Output values"]
+  Outputs --> Consumers["Workspace consumers"]
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

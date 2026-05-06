@@ -1,19 +1,28 @@
-# 310-safetywallet — SafetyWallet Service
-
-| Property          | Value                                |
-| ----------------- | ------------------------------------ |
-| CF Tunnel         | 310-safetywallet (abd283cf)          |
-| Connector ID      | 48725a8c-44b2-4c51-9d55-4bc02991abe6 |
-| Provisioned by TF | No                                   |
+# 310-safetywallet: SafetyWallet Service
 
 ## Overview
 
-SafetyWallet external service directory. Connected via dedicated Cloudflare tunnel.
+SafetyWallet external service directory. Connected to the homelab via a dedicated Cloudflare tunnel. This is a reserved workspace for future Terraform provider integration.
 
-## External Access
+## Architecture
+
+```mermaid
+flowchart LR
+  Internet["Internet"] --> CF["Cloudflare Tunnel\n310-safetywallet"]
+  CF --> Service["SafetyWallet service"]
+```
+
+## Source of Truth
+
+- **Cloudflare tunnel config**: Cloudflare Dashboard → tunnel `310-safetywallet`
+- **Tunnel ID**: `abd283cf-032a-402b-8c41-5689315bd47b`
+
+## Operations
 
 Access is managed via Cloudflare tunnel with Zero Trust policies configured in the Cloudflare Dashboard.
 
-## Integration
+## Safety Notes
 
-- CF tunnel: Cloudflare Dashboard → tunnel `310-safetywallet`
+- Not provisioned by Terraform. Manual connector configuration only.
+- Do not store secrets or credentials in this directory.
+- Do not hardcode tunnel IDs in other workspaces.

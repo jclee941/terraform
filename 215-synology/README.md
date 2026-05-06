@@ -1,50 +1,39 @@
-# 215-synology
+# 215-synology: Synology NAS
 
-Synology NAS — network-attached storage for the homelab, managed via Terraform.
+## Overview
 
-- **IP**: `192.168.50.215`
-- **DSM**: Port 5001 (HTTPS API), Port 5000 (HTTP proxied via Traefik at `nas.jclee.me`)
-- **Roles**: NAS, Storage
-- **Provider**: `synology-community/synology` ~>0.6
+Synology NAS providing network-attached storage for the homelab. Managed via the `synology-community/synology` Terraform provider for DSM packages, Docker Compose projects, and file operations.
 
-## Terraform Resources
+## Architecture
 
-| Resource | Purpose |
-|----------|---------|
-| `synology_core_package.container_manager` | Ensure ContainerManager package is installed |
-| `data.synology_core_network.this` | Read NAS network configuration |
+```mermaid
+flowchart LR
+  Internet["Internet"] --> Cloudflare["Cloudflare Tunnel"]
+  Cloudflare --> Traefik["Traefik"]
+  Traefik --> DSM["Synology DSM\n192.168.50.215"]
+  DSM --> Services["Container Manager\nMinIO / Registry"]
+```
 
-## Integration
+## Source of Truth
 
-This device is referenced as a host in `100-pve/envs/prod/hosts.tf` and consumed by:
-- **Traefik** (`102-traefik/templates/synology.yml.tftpl`) for reverse proxy routing
-- **Cloudflare** (`300-cloudflare/`) for tunnel connectivity
-- **ELK** (`105-elk/`) for syslog ingestion
+- **Host inventory**: `100-pve/envs/prod/hosts.tf` → `hosts.synology`
+- **Terraform resources**: `main.tf`, `variables.tf`, `onepassword.tf`
+- **Traefik routing**: `102-traefik/templates/synology.yml.tftpl`
 
-## Credentials
-
-DSM admin credentials are stored in 1Password vault "homelab" under item "synology" with fields:
-- `secrets.user` — DSM admin username
-- `secrets.password` — DSM admin password
-
-## Usage
+## Operations
 
 ```bash
 make plan SVC=synology    # Plan changes
 # Apply via CI only (merge to main/master)
 ```
 
-### GitLab CI Migration
+## Safety Notes
 
-- GitLab pipeline file: `/.gitlab-ci.yml` (Synology jobs)
-- Migration runbook: `docs/runbooks/gitlab-synology-migration.md`
-
-## Notes
-
-- Physical device, not a Proxmox VM/LXC
-- Provider requires DSM 7.0+ with HTTPS enabled on port 5001
-- `skip_cert_check = true` for self-signed DSM certificates
-- IP and port information flows through `module.hosts` → dependent workspaces
+- This is a **physical device**, not a Proxmox VM/LXC.
+- Provider requires DSM 7.0+ with HTTPS enabled on port 5001.
+- `skip_cert_check = true` is set for self-signed DSM certificates.
+- Do not hardcode IPs in service configs. Use `module.hosts.synology_ip`.
+- DSM admin credentials are stored in 1Password vault "homelab" under item "synology".
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -71,8 +60,8 @@ make plan SVC=synology    # Plan changes
 
 | Name | Type |
 |------|------|
-| [synology_container_project.gitlab](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
-| [synology_container_project.gitlab_runner](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
+| [synology_container_project.minio](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
+| [synology_container_project.registry](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
 | [synology_core_package.container_manager](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/core_package) | resource |
 | [synology_core_network.this](https://registry.terraform.io/providers/synology-community/synology/latest/docs/data-sources/core_network) | data source |
 
@@ -81,22 +70,23 @@ make plan SVC=synology    # Plan changes
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_enable_container_manager_package"></a> [enable\_container\_manager\_package](#input\_enable\_container\_manager\_package) | Manage ContainerManager package installation via Terraform | `bool` | `false` | no |
-| <a name="input_enable_gitlab_project"></a> [enable\_gitlab\_project](#input\_enable\_gitlab\_project) | Enable GitLab CE container project deployment on Synology | `bool` | `false` | no |
-| <a name="input_enable_gitlab_registry"></a> [enable\_gitlab\_registry](#input\_enable\_gitlab\_registry) | Enable GitLab Container Registry | `bool` | `false` | no |
-| <a name="input_enable_gitlab_runner"></a> [enable\_gitlab\_runner](#input\_enable\_gitlab\_runner) | Enable GitLab Runner container on Synology | `bool` | `false` | no |
-| <a name="input_gitlab_external_url"></a> [gitlab\_external\_url](#input\_gitlab\_external\_url) | External URL advertised by GitLab | `string` | `"http://192.168.50.215:8929"` | no |
-| <a name="input_gitlab_http_port"></a> [gitlab\_http\_port](#input\_gitlab\_http\_port) | Published HTTP port for GitLab web UI | `string` | `"8929"` | no |
-| <a name="input_gitlab_project_share_path"></a> [gitlab\_project\_share\_path](#input\_gitlab\_project\_share\_path) | Synology share path for GitLab compose project | `string` | `"/docker/gitlab"` | no |
-| <a name="input_gitlab_registry_external_url"></a> [gitlab\_registry\_external\_url](#input\_gitlab\_registry\_external\_url) | External URL for GitLab Container Registry | `string` | `"http://192.168.50.215:5050"` | no |
-| <a name="input_gitlab_registry_port"></a> [gitlab\_registry\_port](#input\_gitlab\_registry\_port) | Published port for GitLab Container Registry | `string` | `"5050"` | no |
-| <a name="input_gitlab_runner_image"></a> [gitlab\_runner\_image](#input\_gitlab\_runner\_image) | GitLab Runner Docker image tag | `string` | `"alpine"` | no |
-| <a name="input_gitlab_runner_share_path"></a> [gitlab\_runner\_share\_path](#input\_gitlab\_runner\_share\_path) | Synology share path for GitLab Runner compose project | `string` | `"/docker/gitlab-runner"` | no |
-| <a name="input_gitlab_runner_tags"></a> [gitlab\_runner\_tags](#input\_gitlab\_runner\_tags) | Comma-separated runner tags for job matching | `string` | `"synology,terraform,docker"` | no |
-| <a name="input_gitlab_runner_token"></a> [gitlab\_runner\_token](#input\_gitlab\_runner\_token) | GitLab Runner authentication token (glrt-* prefix, from GitLab UI) | `string` | `""` | no |
-| <a name="input_gitlab_ssh_port"></a> [gitlab\_ssh\_port](#input\_gitlab\_ssh\_port) | Published SSH port for Git over SSH | `string` | `"2224"` | no |
-| <a name="input_gitlab_timezone"></a> [gitlab\_timezone](#input\_gitlab\_timezone) | Timezone used by GitLab container | `string` | `"Asia/Seoul"` | no |
-| <a name="input_gitlab_version"></a> [gitlab\_version](#input\_gitlab\_version) | GitLab CE image tag | `string` | `"17.8.0-ce.0"` | no |
+| <a name="input_enable_portainer"></a> [enable\_portainer](#input\_enable\_portainer) | Enable Portainer CE container deployment on Synology | `bool` | `false` | no |
+| <a name="input_enable_registry"></a> [enable\_registry](#input\_enable\_registry) | Enable Docker Registry container on Synology | `bool` | `true` | no |
+| <a name="input_minio_endpoint"></a> [minio\_endpoint](#input\_minio\_endpoint) | MinIO S3 endpoint for Registry backend | `string` | `"http://192.168.50.215:9000"` | no |
+| <a name="input_minio_registry_bucket"></a> [minio\_registry\_bucket](#input\_minio\_registry\_bucket) | MinIO bucket name for Registry storage | `string` | `"docker-registry"` | no |
+| <a name="input_minio_root_password"></a> [minio\_root\_password](#input\_minio\_root\_password) | MinIO root password for Registry backend | `string` | `""` | no |
+| <a name="input_minio_root_user"></a> [minio\_root\_user](#input\_minio\_root\_user) | MinIO root user for Registry backend (from 1Password if empty) | `string` | `""` | no |
+| <a name="input_minio_share_path"></a> [minio\_share\_path](#input\_minio\_share\_path) | Synology share path for MinIO compose project | `string` | `"/docker/minio"` | no |
+| <a name="input_minio_version"></a> [minio\_version](#input\_minio\_version) | MinIO server image tag | `string` | `"latest"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret retrieval | `string` | `"homelab"` | no |
+| <a name="input_portainer_edge_port"></a> [portainer\_edge\_port](#input\_portainer\_edge\_port) | Published TCP port for Portainer Edge agent communication | `string` | `"8000"` | no |
+| <a name="input_portainer_https_port"></a> [portainer\_https\_port](#input\_portainer\_https\_port) | Published HTTPS port for Portainer web UI | `string` | `"9443"` | no |
+| <a name="input_portainer_share_path"></a> [portainer\_share\_path](#input\_portainer\_share\_path) | Synology share path for Portainer compose project | `string` | `"/docker/portainer"` | no |
+| <a name="input_portainer_timezone"></a> [portainer\_timezone](#input\_portainer\_timezone) | Timezone used by Portainer container | `string` | `"Asia/Seoul"` | no |
+| <a name="input_portainer_version"></a> [portainer\_version](#input\_portainer\_version) | Portainer CE image tag | `string` | `"latest"` | no |
+| <a name="input_registry_port"></a> [registry\_port](#input\_registry\_port) | Published HTTP port for Docker Registry | `string` | `"5051"` | no |
+| <a name="input_registry_share_path"></a> [registry\_share\_path](#input\_registry\_share\_path) | Synology share path for Registry compose project | `string` | `"/docker/registry"` | no |
+| <a name="input_registry_version"></a> [registry\_version](#input\_registry\_version) | Docker Registry image tag | `string` | `"2"` | no |
 | <a name="input_synology_host"></a> [synology\_host](#input\_synology\_host) | Synology DSM HTTPS URL (e.g. https://192.168.50.215:5001) | `string` | `"https://192.168.50.215:5001"` | no |
 | <a name="input_synology_password"></a> [synology\_password](#input\_synology\_password) | Synology DSM admin password (overridden by 1Password if available) | `string` | `""` | no |
 | <a name="input_synology_skip_cert_check"></a> [synology\_skip\_cert\_check](#input\_synology\_skip\_cert\_check) | Skip TLS certificate verification for self-signed DSM certs | `bool` | `true` | no |
@@ -107,10 +97,9 @@ make plan SVC=synology    # Plan changes
 | Name | Description |
 |------|-------------|
 | <a name="output_container_manager_installed"></a> [container\_manager\_installed](#output\_container\_manager\_installed) | Whether ContainerManager package is installed |
-| <a name="output_gitlab_endpoints"></a> [gitlab\_endpoints](#output\_gitlab\_endpoints) | GitLab endpoint details when container project is enabled |
-| <a name="output_gitlab_project_enabled"></a> [gitlab\_project\_enabled](#output\_gitlab\_project\_enabled) | Whether GitLab container project management is enabled |
-| <a name="output_gitlab_registry_enabled"></a> [gitlab\_registry\_enabled](#output\_gitlab\_registry\_enabled) | Whether GitLab Container Registry is enabled |
-| <a name="output_gitlab_registry_endpoint"></a> [gitlab\_registry\_endpoint](#output\_gitlab\_registry\_endpoint) | GitLab Container Registry endpoint when enabled |
-| <a name="output_gitlab_runner_enabled"></a> [gitlab\_runner\_enabled](#output\_gitlab\_runner\_enabled) | Whether GitLab Runner is deployed |
 | <a name="output_network_info"></a> [network\_info](#output\_network\_info) | Synology NAS network configuration |
+| <a name="output_portainer_enabled"></a> [portainer\_enabled](#output\_portainer\_enabled) | Whether Portainer container project is enabled |
+| <a name="output_portainer_endpoints"></a> [portainer\_endpoints](#output\_portainer\_endpoints) | Portainer endpoint details when container project is enabled |
+| <a name="output_registry_enabled"></a> [registry\_enabled](#output\_registry\_enabled) | Whether standalone Docker Registry + MinIO is enabled |
+| <a name="output_registry_endpoints"></a> [registry\_endpoints](#output\_registry\_endpoints) | Docker Registry and MinIO endpoint details when enabled |
 <!-- END_TF_DOCS -->
