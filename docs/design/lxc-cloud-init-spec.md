@@ -1,8 +1,10 @@
 # LXC Cloud-Init Technical Specification
 
-## Overview
+**Status:** Implemented
+**Date:** 2026-03-30
+**Last Updated:** 2026-05-07
 
-This document specifies the technical implementation of cloud-init support for LXC containers in the Terraform Proxmox infrastructure.
+This document specifies the technical implementation of cloud-init support for LXC containers in the Terraform Proxmox infrastructure. The design has been fully implemented in `modules/proxmox/lxc-config`.
 
 ## Goals
 
@@ -13,51 +15,17 @@ This document specifies the technical implementation of cloud-init support for L
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     100-pve/lxc_configs.tf                  │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  module "lxc_config" {                               │  │
-│  │    containers = {                                    │  │
-│  │      traefik = {                                     │  │
-│  │        # ... standard fields ...                     │  │
-│  │        cloud_init = {                                │  │
-│  │          packages = ["curl", "jq"]                   │  │
-│  │          write_files = [...]                         │  │
-│  │          runcmd = [...]                              │  │
-│  │        }                                             │  │
-│  │      }                                               │  │
-│  │    }                                                 │  │
-│  │  }                                                   │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│              modules/proxmox/lxc-config/                    │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  main.tf                                             │  │
-│  │  - Render cloud-init template                        │  │
-│  │  - Deploy via SSH                                    │  │
-│  │  - Track execution with sentinel                     │  │
-│  └──────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  templates/cloud-init-lxc.yaml.tftpl                 │  │
-│  │  - LXC-optimized cloud-init structure                │  │
-│  └──────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  variables.tf                                        │  │
-│  │  - cloud_init object type definition                 │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Target LXC Container                     │
-│  /etc/cloud/cloud.cfg.d/99-terraform.cfg (cloud-init yaml) │
-│  /var/lib/cloud/.terraform-init-done (sentinel file)       │
-│  /var/lib/cloud/.terraform-init-hash (config hash)         │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  Config["100-pve/lxc_configs.tf\ncloud_init blocks"] --> Module["modules/proxmox/lxc-config"]
+  Module --> Template["templates/cloud-init-lxc.yaml.tftpl"]
+  Template --> Rendered["Rendered cloud-init YAML"]
+  Rendered --> SSH["SSH deploy"]
+  SSH --> Target["Target LXC Container"]
+
+  Target --> CloudCfg["/etc/cloud/cloud.cfg.d/99-terraform.cfg"]
+  Target --> Hash["/var/lib/cloud/.terraform-init-hash"]
+  Target --> Done["/var/lib/cloud/.terraform-init-done"]
 ```
 
 ## Data Structures
@@ -247,6 +215,31 @@ resource "null_resource" "lxc_cloud_init" {
 }
 ```
 
+### Apply and Reapply Flow
+
+```mermaid
+sequenceDiagram
+  participant TF as Terraform
+  participant Module as lxc-config module
+  participant LXC as Target LXC
+  participant Apt as apt/systemd/files
+
+  TF->>Module: Evaluate cloud_init input
+  Module->>Module: Render YAML and compute hash
+  Module->>LXC: Read existing sentinel/hash
+  alt Hash unchanged
+    LXC-->>Module: Same hash
+    Module-->>TF: Skip apply
+  else Hash changed or missing
+    Module->>LXC: Upload 99-terraform.cfg
+    Module->>Apt: Install packages
+    Module->>LXC: Write files
+    Module->>LXC: Run commands
+    Module->>LXC: Write hash and done sentinel
+    Module-->>TF: Apply complete
+  end
+```
+
 ## Container Migration
 
 ### Existing Containers
@@ -278,41 +271,60 @@ module "lxc_config" {
 3. **Phase 3**: Migrate existing `systemd_services` to `runcmd`
 4. **Phase 4**: Remove deprecated `config_files` and `systemd_services`
 
-## Testing
+### Idempotency State
 
-### Unit Tests
+```mermaid
+stateDiagram-v2
+  [*] --> NoSentinel
+  NoSentinel --> Apply: first run
+  Apply --> Completed: success
+  Apply --> Failed: error
 
-```go
-// tests/unit/lxc_cloud_init_test.go
-func TestCloudInitTemplateRenders(t *testing.T) {
-    vars := map[string]interface{}{
-        "hostname": "test",
-        "packages": []string{"curl"},
-        "write_files": []map[string]string{...},
-        "runcmd": []string{"echo test"},
-    }
-    // Render template and validate YAML
-}
+  Completed --> Skip: same hash
+  Completed --> Reapply: hash changed
+  Reapply --> Completed: success
+  Reapply --> Failed: error
+
+  Failed --> ManualRollback: clear sentinel or restore config
+  ManualRollback --> Apply
+  Skip --> [*]
 ```
+## QA Checklist
 
-### Integration Tests
+Before marking cloud-init deployment as verified for a container:
 
-1. Create test LXC container
-2. Apply cloud-init configuration
-3. Verify packages installed
-4. Verify files written
-5. Verify commands executed
-6. Re-apply and verify idempotency
-7. Modify config and verify re-execution
+- [ ] `terraform plan` shows no unexpected changes for the lxc-config module
+- [ ] `/etc/cloud/cloud.cfg.d/99-terraform.cfg` exists and contains valid YAML
+- [ ] `/var/lib/cloud/.terraform-init-done` exists after first apply
+- [ ] `/var/lib/cloud/.terraform-init-hash` matches the rendered config hash
+- [ ] Re-running `terraform apply` skips execution (idempotency)
+- [ ] Modifying `cloud_init` input triggers re-execution
+- [ ] Packages listed in `cloud_init.packages` are installed (`dpkg -l | grep <pkg>`)
+- [ ] Files listed in `cloud_init.write_files` exist with correct permissions and ownership
+- [ ] Commands in `cloud_init.runcmd` executed successfully (check logs or state)
+- [ ] No secrets are visible in rendered configs or `/etc/cloud/cloud.cfg.d/99-terraform.cfg`
+## Rollback Checklist
 
-## Rollback
+If cloud-init deployment fails or leaves a container in a partial state:
 
-To rollback cloud-init changes:
-
-1. Remove sentinel file: `rm /var/lib/cloud/.terraform-init-done /var/lib/cloud/.terraform-init-hash`
-2. Remove cloud-init config: `rm /etc/cloud/cloud.cfg.d/99-terraform.cfg`
-3. Revert changes manually or re-run Terraform with previous state
-
+1. **Clear sentinel files** to force re-execution on next apply:
+   ```bash
+   rm /var/lib/cloud/.terraform-init-done /var/lib/cloud/.terraform-init-hash
+   ```
+2. **Remove the cloud-init config** if it causes startup failures:
+   ```bash
+   rm /etc/cloud/cloud.cfg.d/99-terraform.cfg
+   ```
+3. **Revert package changes** manually if needed:
+   ```bash
+   apt-get remove --purge <package>
+   ```
+4. **Restore file state** from backup or previous Terraform state:
+   ```bash
+   # Re-run Terraform with the previous known-good state
+   terraform apply
+   ```
+5. **Verify rollback** by checking that sentinels are gone and container boots cleanly.
 ## Security Considerations
 
 1. **SSH Access**: Requires root SSH access to LXC containers
@@ -330,5 +342,7 @@ To rollback cloud-init changes:
 ## References
 
 - [ADR 014: Cloud-Init for LXC Containers](../adr/014-cloud-init-for-lxc.md)
+- [modules/proxmox/lxc-config/](../../modules/proxmox/lxc-config/)
+- [modules/proxmox/lxc-config/templates/cloud-init-lxc.yaml.tftpl](../../modules/proxmox/lxc-config/templates/cloud-init-lxc.yaml.tftpl)
 - [modules/proxmox/vm-config/templates/cloud-init.yaml.tftpl](../../modules/proxmox/vm-config/templates/cloud-init.yaml.tftpl)
 - [Proxmox LXC Documentation](https://pve.proxmox.com/wiki/Linux_Container)
