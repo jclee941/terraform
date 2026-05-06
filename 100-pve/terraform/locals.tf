@@ -70,15 +70,15 @@ locals {
 
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
-  # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
-  # Total dedicated: 20480 MB (20 GB) + swap: 9984 MB (9.75 GB) = 30464 MB effective
+  # Strategy: Match live Proxmox allocation for active containers.
+  # Total dedicated: 28160 MB (27.5 GB) + swap: 10752 MB (10.5 GB) = 38912 MB effective
   container_sizing = {
     runner   = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitHub Actions CI Runner - Docker executor (3GB RAM)", mount_points = [{ volume = "/mnt/runner-cache", path = "/srv/runner/cache" }] }
     traefik  = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
     elk      = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk" }] }
     coredns  = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
     n8n      = { memory = 2048, swap = 512, cores = 2, disk_size = 64, description = "n8n Workflow Automation + PostgreSQL" }
-    cliproxy = { memory = 512, swap = 256, cores = 2, disk_size = 20, description = "Squid Forward Proxy" }
+    cliproxy = { memory = 8192, swap = 1024, cores = 2, disk_size = 40, description = "Squid Forward Proxy" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -147,12 +147,19 @@ locals {
       disk_size   = 300
       bios        = "ovmf"
       machine     = "q35"
+      hostpci_devices = [
+        { device = "hostpci0", mapping = "gpu", pcie = true }
+      ]
+      usb_devices = [
+        { host = "04e8:6860" },
+        { host = "04e8:6860", usb3 = true },
+      ]
     }
     jclee-dev = {
       vmid        = 200
       description = "OpenCode Development VM (oc)"
       memory      = 28672
-      balloon_min = 4096
+      balloon_min = 28672
       cores       = 8
       disk_size   = 200
       hostname    = "oc"

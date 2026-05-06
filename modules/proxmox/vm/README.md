@@ -66,9 +66,10 @@ No modules.
 | <a name="input_memory"></a> [memory](#input\_memory) | Dedicated memory in MB | `number` | n/a | yes |
 | <a name="input_network_gateway"></a> [network\_gateway](#input\_network\_gateway) | Network gateway IP | `string` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node name | `string` | n/a | yes |
-| <a name="input_numa"></a> [numa](#input\_numa) | Enable NUMA | `bool` | `false` | no |
 | <a name="input_on_boot"></a> [on\_boot](#input\_on\_boot) | Start VM on host boot | `bool` | `true` | no |
+| <a name="input_qemu_agent_trim"></a> [qemu\_agent\_trim](#input\_qemu\_agent\_trim) | Enable fstrim on cloned disks via QEMU agent | `bool` | `true` | no |
 | <a name="input_ssd_emulation"></a> [ssd\_emulation](#input\_ssd\_emulation) | Enable SSD emulation (TRIM support via guest OS) | `bool` | `true` | no |
+| <a name="input_usb_devices"></a> [usb\_devices](#input\_usb\_devices) | USB devices to pass through to the VM | <pre>list(object({<br/>    host = string<br/>    usb3 = optional(bool, false)<br/>  }))</pre> | `[]` | no |
 | <a name="input_vmid"></a> [vmid](#input\_vmid) | VM ID | `number` | n/a | yes |
 
 ## Outputs

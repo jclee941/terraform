@@ -236,3 +236,18 @@ variable "hostpci_devices" {
   }))
   default = []
 }
+
+variable "usb_devices" {
+  description = "USB devices to pass through to the VM"
+  type = list(object({
+    host = string
+    usb3 = optional(bool, false)
+  }))
+  default = []
+}
+
+variable "qemu_agent_trim" {
+  description = "Enable fstrim on cloned disks via QEMU agent"
+  type        = bool
+  default     = true
+}

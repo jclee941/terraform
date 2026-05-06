@@ -44,6 +44,7 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   agent {
     enabled = true
+    trim    = var.qemu_agent_trim
   }
 
   cpu {
@@ -84,6 +85,13 @@ resource "proxmox_virtual_environment_vm" "this" {
     }
   }
 
+  dynamic "usb" {
+    for_each = var.usb_devices
+    content {
+      host = usb.value.host
+      usb3 = usb.value.usb3
+    }
+  }
   initialization {
     datastore_id      = var.cloud_init_datastore_id
     user_data_file_id = var.cloud_init_file_id
