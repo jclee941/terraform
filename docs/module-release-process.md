@@ -13,7 +13,7 @@ Example: `modules/proxmox/lxc/v1.0.0`
    - `terraform init`
    - `terraform validate`
    - `terraform plan`
-3. Update `modules/CHANGELOG.md` with a new version section.
+3. Write release notes in the Git tag message or create a GitHub release.
 4. Create module tag(s):
    - `git tag modules/proxmox/lxc/vX.Y.Z`
 5. Push tags to remote:
@@ -27,7 +27,7 @@ Use Git source URLs pinned to module-specific refs:
 
 ```hcl
 module "example" {
-  source = "git::https://gitlab.com/qws941/terraform.git//modules/proxmox/lxc?ref=modules/proxmox/lxc/v1.0.0"
+  source = "git::https://github.com/qws941/terraform.git//modules/proxmox/lxc?ref=modules/proxmox/lxc/v1.0.0"
 }
 ```
 
