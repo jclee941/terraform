@@ -9,7 +9,7 @@ name: CI Failure Issues
 
 on:
   workflow_run:
-    workflows: ["Sanity", "Auto Deploy Workflows"]
+    workflows: ["Sanity", "Auto Deploy Workflows", "PR Checks"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -35,6 +35,11 @@ on:
         required: false
         type: boolean
         default: false
+      pr_number:
+        description: PR number (0 if not applicable)
+        required: false
+        type: string
+        default: '0'
 
 permissions:
   contents: read
@@ -63,11 +68,13 @@ jobs:
             HEAD_SHA="${{ inputs.head_sha }}"
             RUN_ID="${{ inputs.run_id }}"
             CONCLUSION="${{ inputs.conclusion }}"
+            PR_NUMBER="${{ inputs.pr_number || '0' }}"
           else
             WF_NAME='${{ github.event.workflow_run.name }}'
             HEAD_SHA='${{ github.event.workflow_run.head_sha }}'
             RUN_ID='${{ github.event.workflow_run.id }}'
             CONCLUSION='${{ github.event.workflow_run.conclusion }}'
+            PR_NUMBER='${{ github.event.workflow_run.pull_requests[0].number || '0' }}'
           fi
           {
             echo "wf_name=$WF_NAME"
@@ -75,6 +82,7 @@ jobs:
             echo "run_id=$RUN_ID"
             echo "conclusion=$CONCLUSION"
             echo "short_sha=${HEAD_SHA:0:8}"
+            echo "pr_number=$PR_NUMBER"
           } >> "$GITHUB_OUTPUT"
 
       - name: On success, close any open ci-failure issue for this workflow
@@ -106,6 +114,30 @@ jobs:
               || echo "::warning::failed to close #$N; continuing"
           done
 
+      - name: On success, close legacy auto-deploy failure issues
+        if: steps.ev.outputs.conclusion == 'success' && steps.ev.outputs.wf_name == 'Auto Deploy Workflows'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          set -eu
+          LEGACY_ISSUES=$(gh issue list --repo "$GITHUB_REPOSITORY" \
+            --state open --search "in:title \"chore: auto-deploy failed on\"" \
+            --json number,title --jq '.[] | .number' 2>/dev/null || true)
+          if [ -z "$LEGACY_ISSUES" ]; then
+            echo "::notice::No legacy auto-deploy failure issues to close"
+            exit 0
+          fi
+          for N in $LEGACY_ISSUES; do
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "::notice::DRY-RUN: would close legacy auto-deploy issue #$N"
+              continue
+            fi
+            gh issue close "$N" --repo "$GITHUB_REPOSITORY" \
+              --comment "Resolved by a successful Auto Deploy Workflows run. Auto-closed by jclee-bot." \
+              --reason completed \
+              || echo "::warning::failed to close legacy issue #$N; continuing"
+          done
       - name: Ensure label exists
         if: steps.ev.outputs.conclusion == 'failure'
         env:
@@ -122,6 +154,7 @@ jobs:
           HEAD_SHA: ${{ steps.ev.outputs.head_sha }}
           SHORT_SHA: ${{ steps.ev.outputs.short_sha }}
           RUN_ID: ${{ steps.ev.outputs.run_id }}
+          PR_NUMBER: ${{ steps.ev.outputs.pr_number }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: |
           set -eu
@@ -133,7 +166,11 @@ jobs:
             --json number,title \
             --jq ".[] | select(.title == \"$TITLE\") | .number" 2>/dev/null | head -1 || true)
           RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$RUN_ID"
-          BODY="## CI Failure"$'\n\n'"- **Workflow:** $WF_NAME"$'\n'"- **Commit:** $HEAD_SHA"$'\n'"- **Run:** $RUN_URL"$'\n\n'"### Action Required"$'\n'"Inspect the failed run and either fix the underlying problem or close this issue if the failure was transient."$'\n\n'"> Auto-managed by jclee-bot (ci-failure-issues.yml)"
+          PR_LINE=""
+          if [ "$PR_NUMBER" != "0" ] && [ -n "$PR_NUMBER" ]; then
+            PR_LINE="- **PR:** #$PR_NUMBER"$'\n'
+          fi
+          BODY="## CI Failure"$'\n\n'"- **Workflow:** $WF_NAME"$'\n'"- **Commit:** $HEAD_SHA"$'\n'"$PR_LINE- **Run:** $RUN_URL"$'\n\n'"### Action Required"$'\n'"Inspect the failed run and either fix the underlying problem or close this issue if the failure was transient."$'\n\n'"> Auto-managed by jclee-bot (ci-failure-issues.yml)"
           if [ -n "$EXISTING" ]; then
             if [ "$DRY_RUN" = "true" ]; then
               echo "::notice::DRY-RUN: would comment on existing issue #$EXISTING"
