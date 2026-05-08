@@ -23,12 +23,12 @@ data "onepassword_vault" "this" { ... }
 - Terraform files: `snake_case.tf` — `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, `locals.tf`
 - Templates: `kebab-case.tftpl` — `docker-compose.yml.tftpl`, `cloud-init.yaml.tftpl`
 - Scripts: `kebab-case.sh` or `kebab-case.go`
-- Directories: `kebab-case` with numeric prefix for workspaces — `100-pve`, `104-grafana`
+- Directories: `kebab-case` with numeric prefix for workspaces — `100-pve`, `105-elk`
 
 ### Resource Naming
 
 - Single-instance resources use `"this"` as the name: `resource "x" "this" { ... }`
-- Multi-instance resources use descriptive names: `resource "x" "grafana" { ... }`
+- Multi-instance resources use descriptive names: `resource "x" "elk" { ... }`
 - Module names match their purpose: `module "lxc"`, `module "config_renderer"`
 
 ## File Organization
@@ -188,7 +188,7 @@ Templates receive a `template_vars` map containing:
 ```hcl
 template_vars = {
   hosts                  = module.hosts.hosts        # Full host inventory
-  grafana_admin_password = module.secrets.secrets.grafana.admin_password
+  elk_kibana_password = module.secrets.secrets.elk.kibana_password
   # ... service-specific vars
 }
 ```
@@ -198,7 +198,7 @@ template_vars = {
 ```
 # In .tftpl files
 ${hosts.elk.ip}:${hosts.elk.ports.elasticsearch}
-${grafana_admin_password}
+${elk_kibana_password}
 ```
 
 ## Secret Handling
@@ -342,6 +342,14 @@ Test directories mirror the module/workspace structure under `tests/`.
 - **Branch naming**: `type/description` (e.g., `feat/add-metrics-export`)
 - **PR size**: ~200 LOC max. Squash merge only.
 - **Merge policy**: Squash merge only. Merge commits disabled.
+
+## Documentation Conventions
+
+- Use Mermaid for architecture and dependency diagrams. Never use ASCII art for new diagrams.
+- Preserve terraform-docs generated blocks between `<!-- BEGIN_TF_DOCS -->` and `<!-- END_TF_DOCS -->` markers. Regenerate via `make docs`, do not edit by hand.
+- Keep all documentation in English unless explicitly scoped otherwise.
+- Do not hand-edit synced subdirectory `AGENTS.md` files. These are managed by the `qws941/.github` sync pipeline.
+- Do not hand-edit generated `configs/` directories. Regenerate via `terraform apply` in `100-pve`.
 
 ## Anti-Patterns
 

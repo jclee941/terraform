@@ -1,3 +1,50 @@
+# 105-elk/terraform: ELK Terraform Provider Workspace
+
+## Overview
+
+Nested `elasticstack` provider workspace managing ILM policies, index templates, Kibana spaces, data views, and snapshot repositories for the homelab logging stack.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Filebeat["Filebeat agents"] --> Logstash["Logstash"]
+  Cloudflare["Cloudflare Logpush"] --> Logstash
+  Logstash --> Elasticsearch["Elasticsearch"]
+  Elasticsearch --> Kibana["Kibana"]
+  Terraform["Terraform elasticstack provider"] --> Elasticsearch
+```
+
+## Source of Truth
+
+- **ILM policies and index templates**: `main.tf`
+- **Kibana objects**: `main.tf`
+- **1Password secrets**: `onepassword.tf`
+- **Provider outputs**: `outputs.tf`
+
+## Operations
+
+```bash
+make plan SVC=elk
+make validate SVC=elk
+```
+
+### Testing
+
+```bash
+cd tests/workspaces/elk
+terraform init -backend=false
+terraform test
+```
+
+## Safety Notes
+
+- Do not create Kibana spaces, data views, or ILM policies manually when Terraform owns them.
+- Do not rename `log_services` keys without updating Logstash routing and tests.
+- Provider auth is 1Password-backed. tfvars overrides are break-glass only.
+- Local apply is disabled. Use CI/CD for all applies.
+
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

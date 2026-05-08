@@ -25,17 +25,14 @@ data "onepassword_vault" "this" {
 locals {
   # Items that are always looked up.
   required_items = toset([
-    "archon",
     "cloudflare",
     "elk",
     "github",
-    "gitlab",
     "mcphub",
     "n8n",
 
     "proxmox",
     "slack",
-    "supabase",
     "telegram",
     "traefik",
   ])

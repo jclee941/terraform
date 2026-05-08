@@ -15,7 +15,7 @@
 2. **1Password Connect** (112:8090) — Secret provider for all workspaces
 3. **Traefik** (102) — Routing for all services
 4. **ELK** (105) — Logging pipeline
-5. **Grafana** (104) — Monitoring/alerting
+5. **Monitoring services** — Grafana/alerting runtime managed by templates
 6. **Runner** (101) — CI/CD
 7. **Remaining services** — Supabase, Archon, MCPHub
 
@@ -38,7 +38,7 @@
 # 3. Start critical LXCs
 pct start 102  # traefik
 pct start 105  # elk
-pct start 104  # grafana
+# Start monitoring runtime if present in current inventory
 ```
 
 ### Terraform State Recovery

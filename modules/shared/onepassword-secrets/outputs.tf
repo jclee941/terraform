@@ -6,20 +6,8 @@ locals {
   # GitHub
   github_personal_access_token = try(data.onepassword_item.this["github"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["github"].credential, ""))
 
-  # GitLab
-  gitlab_personal_access_token = try(data.onepassword_item.this["gitlab"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["gitlab"].password, ""))
 
-  supabase_service_key        = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, "")
-  supabase_anon_key           = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["anon_key"].value, "")
-  supabase_service_role_key   = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_role_key"].value, try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["service_key"].value, ""))
-  supabase_db_password        = try(data.onepassword_item.this["supabase"].section_map["Database"].field_map["db_password"].value, "")
-  supabase_jwt_secret         = try(data.onepassword_item.this["supabase"].section_map["Keys"].field_map["jwt_secret"].value, "")
-  supabase_dashboard_password = try(data.onepassword_item.this["supabase"].section_map["Dashboard"].field_map["password"].value, "")
-  supabase_url                = try(data.onepassword_item.this["supabase"].section_map["Connection"].field_map["url"].value, try(data.onepassword_item.this["supabase"].section_map["Connection"].field_map["api_url"].value, ""))
-  supabase_dashboard_username = try(data.onepassword_item.this["supabase"].section_map["Dashboard"].field_map["username"].value, "")
 
-  archon_anthropic_key = try(data.onepassword_item.this["archon"].section_map["API Keys"].field_map["anthropic_api_key"].value, "")
-  openai_api_key       = try(data.onepassword_item.this["archon"].section_map["API Keys"].field_map["openai_api_key"].value, "")
 
   cloudflare_api_key         = try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["global_api_key"].value, try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["api_key"].value, ""))
   cloudflare_api_token       = try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["api_token"].value, try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["api_key"].value, ""))
@@ -93,18 +81,8 @@ output "secrets" {
 
     # GitHub
     github_personal_access_token = local.github_personal_access_token
-    gitlab_personal_access_token = local.gitlab_personal_access_token
 
-    supabase_service_key        = local.supabase_service_key
-    supabase_anon_key           = local.supabase_anon_key
-    supabase_service_role_key   = local.supabase_service_role_key
-    supabase_db_password        = local.supabase_db_password
-    supabase_jwt_secret         = local.supabase_jwt_secret
-    supabase_dashboard_password = local.supabase_dashboard_password
 
-    # Archon
-    archon_anthropic_key = local.archon_anthropic_key
-    openai_api_key       = local.openai_api_key
 
     # Cloudflare
     cloudflare_api_key         = local.cloudflare_api_key
@@ -168,9 +146,6 @@ output "metadata" {
   description = "Non-secret configuration metadata: usernames, URLs, IDs (14 keys)"
   sensitive   = false
   value = {
-    # Supabase
-    supabase_url                = local.supabase_url
-    supabase_dashboard_username = local.supabase_dashboard_username
 
     # Cloudflare
     cloudflare_email      = local.cloudflare_email
@@ -200,21 +175,19 @@ output "connection_info" {
   description = "Non-secret connection details and routing metadata (16 keys)"
   sensitive   = false
   value = {
-    proxmox_endpoint            = local.proxmox_endpoint
-    slack_webhook_url           = local.slack_webhook_url
-    supabase_url                = local.supabase_url
-    supabase_dashboard_username = local.supabase_dashboard_username
-    cloudflare_email            = local.cloudflare_email
-    cloudflare_account_id       = local.cloudflare_account_id
-    cloudflare_zone_id          = local.cloudflare_zone_id
-    n8n_webhook_url             = local.n8n_webhook_url
-    pbs_server                  = local.pbs_server
-    pbs_datastore               = local.pbs_datastore
-    pbs_username                = local.pbs_username
-    pbs_fingerprint             = local.pbs_fingerprint
-    youtube_google_project_id   = local.youtube_google_project_id
-    youtube_channel_id          = local.youtube_channel_id
-    gcp_project_id              = local.gcp_project_id
-    gcp_region                  = local.gcp_region
+    proxmox_endpoint          = local.proxmox_endpoint
+    slack_webhook_url         = local.slack_webhook_url
+    cloudflare_email          = local.cloudflare_email
+    cloudflare_account_id     = local.cloudflare_account_id
+    cloudflare_zone_id        = local.cloudflare_zone_id
+    n8n_webhook_url           = local.n8n_webhook_url
+    pbs_server                = local.pbs_server
+    pbs_datastore             = local.pbs_datastore
+    pbs_username              = local.pbs_username
+    pbs_fingerprint           = local.pbs_fingerprint
+    youtube_google_project_id = local.youtube_google_project_id
+    youtube_channel_id        = local.youtube_channel_id
+    gcp_project_id            = local.gcp_project_id
+    gcp_region                = local.gcp_region
   }
 }

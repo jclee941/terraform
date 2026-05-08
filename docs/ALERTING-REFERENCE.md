@@ -75,7 +75,7 @@ error_classification:GATEWAY_ERROR                           # Gateway errors
 
 ### 3. Alerting — Grafana
 
-Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
+Config: Grafana alerting templates/config rendered through the `100-pve` pipeline.
 
 **Contact points:**
 
@@ -135,7 +135,7 @@ Config: `104-grafana/terraform/main.tf` (Terraform-managed alert rules)
 | Filebeat configs  | Terraform-deployed via lxc-config/vm-config modules |
 | Logstash template | `105-elk/templates/logstash.conf.tftpl`             |
 | Logstash config   | `105-elk/config/logstash.yml`                       |
-| Grafana alerts    | `104-grafana/terraform/alerting_rules.tf`           |
+| Grafana alerts    | Template/config pipeline rendered by `100-pve`      |
 | n8n workflows     | `scripts/n8n-workflows/`                            |
 
 ## Known Issues

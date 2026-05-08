@@ -9,7 +9,6 @@ templates/
 ├── dashboard.yml.tftpl    # Traefik dashboard route (restricted)
 ├── grafana.yml.tftpl      # Grafana route
 ├── elk.yml.tftpl          # Kibana route
-├── archon.yml.tftpl       # Archon route
 ├── n8n.yml.tftpl          # n8n route
 ├── mcphub.yml.tftpl       # MCPHub route
 └── *.yml.tftpl            # Service-specific routes

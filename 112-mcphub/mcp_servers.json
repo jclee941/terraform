@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "MCP Server Catalog — Single Source of Truth for all MCP server definitions. Consumed by: Terraform (mcp_settings.json rendering), OpenCode gen pipeline (config.py), validation scripts.",
+  "$comment": "MCP Server Catalog \u2014 Single Source of Truth for all MCP server definitions. Consumed by: Terraform (mcp_settings.json rendering), OpenCode gen pipeline (config.py), validation scripts.",
   "mcp_host": "192.168.50.112",
   "mcp_timeout": 60000,
   "servers": {
@@ -8,7 +8,10 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@mseep/git-mcp-server"],
+      "args": [
+        "-y",
+        "@mseep/git-mcp-server"
+      ],
       "port": 8059,
       "description": "Git repository operations"
     },
@@ -16,7 +19,10 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "kratos-mcp"],
+      "args": [
+        "-y",
+        "kratos-mcp"
+      ],
       "port": 8060,
       "description": "Ory Kratos identity management"
     },
@@ -97,22 +103,21 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "terraform-mcp-server"],
+      "args": [
+        "-y",
+        "terraform-mcp-server"
+      ],
       "port": 8071,
       "description": "Terraform plan and state inspection"
-    },
-    "archon": {
-      "location": "hub",
-      "transport": "streamable-http",
-      "url": "http://192.168.50.108:8051/mcp",
-      "port": 8078,
-      "description": "Archon AI knowledge management"
     },
     "elk": {
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@awesome-ai/elasticsearch-mcp"],
+      "args": [
+        "-y",
+        "@awesome-ai/elasticsearch-mcp"
+      ],
       "port": 8065,
       "env": {
         "ES_HOST": "${ES_HOST}",
@@ -125,7 +130,9 @@
       "location": "hub",
       "transport": "stdio",
       "command": "node",
-      "args": ["/app/op-mcp-server/index.mjs"],
+      "args": [
+        "/app/op-mcp-server/index.mjs"
+      ],
       "port": 8077,
       "env": {
         "OP_SERVICE_ACCOUNT_TOKEN": "${OP_SERVICE_ACCOUNT_TOKEN}"
@@ -140,18 +147,6 @@
       "disabled": false,
       "description": "n8n workflow automation via native MCP server"
     },
-    "supabase": {
-      "location": "hub",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["-y", "@supabase/mcp-server-supabase"],
-      "port": 8066,
-      "disabled": true,
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
-      },
-      "description": "Supabase Cloud Management API (disabled: self-hosted has no Management API v1)"
-    },
     "dev-browser": {
       "location": "hub",
       "transport": "sse",
@@ -163,7 +158,10 @@
       "location": "hub",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
       "port": 8082,
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"

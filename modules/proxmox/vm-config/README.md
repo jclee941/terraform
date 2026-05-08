@@ -4,6 +4,16 @@ Renders and deploys configuration files to QEMU VMs via SSH.
 Supports cloud-init templates and post-provisioning config deployment
 using the hosts map pattern from `envs/prod/hosts.tf`.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Inputs["Input variables"] --> Module["Terraform module"]
+  Module --> Resources["Managed resources or rendered templates"]
+  Resources --> Outputs["Output values"]
+  Outputs --> Consumers["Workspace consumers"]
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

@@ -1,0 +1,44 @@
+http:
+  routers:
+    mcphub:
+      rule: "Host(`mcphub.jclee.me`)"
+      entryPoints:
+        - websecure
+      service: mcphub
+      middlewares:
+        - rate-limit-api@file
+        - chain-basic-auth@file
+      tls:
+        certResolver: cf
+      priority: 10
+
+    mcphub-http:
+      rule: "Host(`mcphub.jclee.me`)"
+      entryPoints:
+        - web
+      service: mcphub
+      priority: 10
+
+    mcphub-mcp:
+      rule: "Host(`mcphub.jclee.me`) && PathPrefix(`/mcp`)"
+      entryPoints:
+        - websecure
+      service: mcphub
+      middlewares:
+        - rate-limit-api@file
+      tls:
+        certResolver: cf
+      priority: 100
+
+    mcphub-mcp-http:
+      rule: "Host(`mcphub.jclee.me`) && PathPrefix(`/mcp`)"
+      entryPoints:
+        - web
+      service: mcphub
+      priority: 100
+
+  services:
+    mcphub:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.50.112:3000"

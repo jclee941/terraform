@@ -17,6 +17,26 @@
 - `gh` CLI authenticated (for GitHub operations)
 ## Standard Deployment Flow
 
+```mermaid
+sequenceDiagram
+  participant Dev as Developer
+  participant PR as Pull Request
+  participant CI as GitHub Actions
+  participant TF as Terraform
+  participant PVE as Proxmox / External Provider
+
+  Dev->>PR: Open change
+  PR->>CI: Trigger plan workflow
+  CI->>TF: terraform init / validate / plan
+  TF-->>CI: Plan result
+  CI-->>PR: Status check
+  Dev->>PR: Merge after review
+  PR->>CI: Trigger apply workflow
+  CI->>TF: terraform apply
+  TF->>PVE: Reconcile infrastructure
+  PVE-->>CI: Apply result
+```
+
 ### 1. Edit Configuration
 
 ```bash
@@ -50,7 +70,7 @@ CI automatically runs:
 
 Push to `master` triggers the corresponding apply workflow:
 - `terraform-apply.yml` for 100-pve (core infrastructure)
-- `{svc}-apply.yml` for service-specific workspaces (archon, cloudflare, elk, github, grafana, traefik)
+- `{svc}-apply.yml` for service-specific workspaces (archon, cloudflare, elk, github, traefik)
 - `worker-deploy.yml` for Cloudflare Workers
 
 Each apply workflow includes:
@@ -67,7 +87,7 @@ make verify
 
 # Or check specific service
 curl -s http://192.168.50.NNN:PORT/health
-# Check Grafana dashboards for anomalies
+# Check monitoring dashboards for anomalies
 # Check ELK for error spikes
 ```
 
@@ -106,17 +126,16 @@ Never run `terraform apply` locally against production.
 | Archon | archon-plan.yml | archon-apply.yml | 108-archon/** |
 | Cloudflare | cloudflare-plan.yml | cloudflare-apply.yml | 300-cloudflare/** |
 | ELK | elk-plan.yml | elk-apply.yml | 105-elk/** |
-| Grafana | grafana-plan.yml | grafana-apply.yml | 104-grafana/** |
 | Traefik | traefik-plan.yml | traefik-apply.yml | 102-traefik/** |
 | CF Worker | — | worker-deploy.yml | 300-cloudflare/workers/** |
 
-Services without dedicated workspaces (101-runner, 107-supabase, 112-mcphub, 215-synology, 220-youtube) are managed through the 100-pve orchestrator.
+Services without dedicated workspaces (101-runner, Grafana, 107-supabase, 112-mcphub, 215-synology, 220-youtube) are managed through the 100-pve orchestrator and template/config pipeline.
 
 ## Post-Deploy Checklist
 
 - [ ] CI apply workflow succeeded (green check in Actions)
 - [ ] Service responds on expected port
 - [ ] Traefik routing works (if externally accessible)
-- [ ] Logs flowing to ELK (check Grafana)
+- [ ] Logs flowing to ELK
 - [ ] Monitoring alerts not firing
 - [ ] `make plan SVC=xxx` shows no further drift

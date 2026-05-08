@@ -20,7 +20,6 @@ lxc-config/
 | variable | `enable_health_checks` | `bool` | No | Enables post-deploy `systemctl is-active` checks. |
 | variable | `ssh_private_key` | `string` | No | SSH key content for remote `file`/`remote-exec` provisioners. |
 | variable | `ssh_user` | `string` | No | SSH user for target LXCs (default `root`). |
-| variable | `mcp_host` | `string` | Yes | MCPHub host IP passed into templates/services. |
 | output | `lxc_configs` | - | - | Per-container rendered path and service/config summary. |
 | output | `service_count` | - | - | Total managed systemd service count. |
 

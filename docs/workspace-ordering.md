@@ -9,16 +9,20 @@ app workspaces.
 
 ## Dependency Graph
 
-```
-100-pve (root)
-  ├── 102-traefik/terraform    (reads host_inventory)
-  ├── 104-grafana/terraform    (reads host_inventory)
-  ├── 105-elk/terraform        (reads host_inventory)
-  ├── 108-archon/terraform     (reads host_inventory)
+```mermaid
+graph TD
+  PVE["100-pve\nProvision fleet and render configs"] --> Infra["Tier 1 infra workspaces"]
+  Infra --> Traefik["102-traefik"]
+  Infra --> ELK["105-elk"]
+  Infra --> Archon["108-archon"]
 
-300-cloudflare                 (independent — no remote_state dependency)
-301-github                     (independent — no remote_state dependency)
-320-slack                      (independent — no remote_state dependency)
+  PVE --> Templates["Template-only services\nRendered by 100-pve"]
+  Templates --> Runtime["Runtime deploy to LXC/VM"]
+
+  External["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
+  External --> GitHub["301-github"]
+  External --> Slack["320-slack"]
+  External --> GCP["400-gcp"]
 ```
 
 ## Apply Order
@@ -37,18 +41,20 @@ They are independent of each other and can run in parallel.
 | Workspace | CI Workflow | Triggers On |
 |-----------|-------------|-------------|
 | `102-traefik/terraform` | `traefik-plan.yml` / `traefik-apply.yml` | `102-traefik/**` |
-| `104-grafana/terraform` | `grafana-plan.yml` / `grafana-apply.yml` | `104-grafana/**` |
 | `105-elk/terraform` | `elk-plan.yml` / `elk-apply.yml` | `105-elk/**` |
 | `108-archon/terraform` | `archon-plan.yml` / `archon-apply.yml` | `108-archon/**` |
+
+Grafana is managed through the current template/config pipeline rather than as a standalone Terraform workspace.
 
 ### Tier Independent — External Providers
 
 | Workspace | CI Workflow | Triggers On |
 |-----------|-------------|-------------|
-TQ|| `300-cloudflare` | `cloudflare-plan.yml` / `cloudflare-apply.yml` | `300-cloudflare/**` |
-MX|| `301-github` | `github-plan.yml` / `github-apply.yml` | `301-github/**` |
-ZZ|| `310-safetywallet` | `safetywallet-plan.yml` / `safetywallet-apply.yml` (GitLab CI) | `310-safetywallet/**` |
-XQ|| `320-slack` | `slack-plan.yml` / `slack-apply.yml` (GitHub Actions, not migrating) | `320-slack/**` |
+| `300-cloudflare` | `cloudflare-plan.yml` / `cloudflare-apply.yml` | `300-cloudflare/**` |
+| `301-github` | `github-plan.yml` / `github-apply.yml` | `301-github/**` |
+| `310-safetywallet` | `safetywallet-plan.yml` / `safetywallet-apply.yml` (GitLab CI) | `310-safetywallet/**` |
+| `320-slack` | `slack-plan.yml` / `slack-apply.yml` | `320-slack/**` |
+| `400-gcp` | `gcp-plan.yml` / `gcp-apply.yml` | `400-gcp/**` |
 ## CI/CD Notes
 
 - **Path-based triggers**: Each workspace pair fires only on changes to its
@@ -74,6 +80,7 @@ When changing `100-pve` outputs consumed by downstream workspaces:
 make plan SVC=100-pve && make apply SVC=100-pve
 
 # 2. Apply dependent workspaces (can be parallel)
-make plan SVC=104-grafana/terraform && make apply SVC=104-grafana/terraform
-make plan SVC=105-elk/terraform && make apply SVC=105-elk/terraform
+make plan SVC=traefik && make apply SVC=traefik
+make plan SVC=elk && make apply SVC=elk
+make plan SVC=archon && make apply SVC=archon
 ```

@@ -70,7 +70,7 @@ setup: ## Load local credentials from 1Password
 
 ## Linting targets
 
-lint: lint-yaml lint-tf lint-go lint-tflint ## Run all linters
+XY|lint: lint-yaml lint-tf lint-go lint-tflint lint-docs ## Run all linters
 
 lint-yaml: ## Lint YAML files
 	yamllint -c .yamllint.yml .
@@ -90,6 +90,9 @@ lint-tflint: ## Run tflint on all workspaces
 	done
 	@echo "==> tflint modules/"
 	@tflint --chdir=modules/ --config=$(CURDIR)/.tflint.hcl 2>&1 || true
+
+lint-docs: ## Validate documentation quality
+	go run scripts/validate-docs/main.go
 
 security: lint-tflint ## Run security scan (tflint + checkov) locally
 	@echo ''

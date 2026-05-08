@@ -1,28 +1,37 @@
-# 200-oc — OpenCode Dev Machine (VM)
-
-| ----------------- | ----------------------- |
-| Host ID | 200 |
-| IP | 192.168.50.200 |
-| Roles | development, workstation|
-| Ports | SSH (22), RDP (3389), OpenCode (8090) |
-| Provisioned by TF | Yes (100-pve) |
+# 200-oc: OpenCode Dev Machine (VM)
 
 ## Overview
 
-OpenCode development VM on Proxmox. Terraform-provisioned via `100-pve/main.tf` as `jclee-dev`. Hosts OpenCode agent runtime and development tooling.
+OpenCode development VM on Proxmox. Terraform-provisioned via `100-pve/main.tf` as `jclee-dev`. Hosts the OpenCode agent runtime and development tooling.
 
-## External Access
+## Architecture
 
-- **SSH**: `ssh.jclee.me` — CF tunnel → .200:22 (Zero Trust email auth, 720h session)
-- **SSH (alt)**: `oc-ssh.jclee.me` — CF tunnel → .200:22
-- **RDP**: `oc-rdp.jclee.me` — CF tunnel → .200:3389
+```mermaid
+flowchart LR
+  Internet["Internet"] --> Cloudflare["Cloudflare Tunnel"]
+  Cloudflare --> Access["Cloudflare Access\nZero Trust"]
+  Access --> OC["OpenCode VM\n192.168.50.200"]
+  OC --> Services["OpenCode runtime\nSSH / RDP"]
+```
 
-## Integration
+## Source of Truth
 
-- Host inventory: `100-pve/envs/prod/hosts.tf` → `hosts.jclee-dev`
-- VM definition: `100-pve/main.tf` → `vm_definitions`
-- CF SSH: `300-cloudflare/locals.tf` → `tcp_services.ssh`
-- CF SSH (alt): `300-cloudflare/locals.tf` → `tcp_services.oc-ssh`
-- CF RDP: `300-cloudflare/locals.tf` → `tcp_services.oc-rdp`
-- CF access: `300-cloudflare/access.tf` → `tcp_services`
-- Firewall: `100-pve/firewall.tf` → VM-level security group
+- **Host inventory**: `100-pve/envs/prod/hosts.tf` → `hosts.jclee-dev`
+- **VM definition**: `100-pve/main.tf` → `vm_definitions`
+- **Cloudflare tunnels**: `300-cloudflare/locals.tf` → `tcp_services`
+
+## Operations
+
+```bash
+# SSH access (local network)
+ssh jclee@192.168.50.200
+
+# SSH access (external via CF tunnel)
+ssh -o ProxyCommand="cloudflared access tcp --hostname ssh.jclee.me" jclee@ssh.jclee.me
+```
+
+## Safety Notes
+
+- External access requires Cloudflare Access with email authentication.
+- Do not expose ports directly. All external access routes through CF tunnel.
+- Do not hardcode `192.168.50.200` in dependent configs. Use `var.jclee_dev_ip`.

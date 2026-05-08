@@ -1,19 +1,42 @@
-# 112-mcphub
+# 112-mcphub: MCP Server Hub
 
-MCPhub MCP Server Hub for the jclee.me homelab. Aggregates and proxies Model Context Protocol servers.
+## Overview
 
-## Services
+MCPHub aggregates and proxies Model Context Protocol (MCP) servers for the `jclee.me` homelab. It provides a gateway, catalog UI, and stdio/SSE proxy for MCP clients.
 
-- **MCPhub** (3000) — MCP server gateway, catalog UI, and stdio/SSE proxy for 12 MCP servers
-- **1Password Connect** (8090) — Vault access API consumed by op-mcp-server sidecar
-- **Proxmox MCP** (8055) — SSE sidecar for Proxmox VE management
-- **Playwright MCP** (8056) — SSE sidecar for browser automation
-- **Dev Browser MCP** (8057) — SSE sidecar for browser automation with persistent page state
+## Architecture
 
-## Access
+```mermaid
+flowchart TD
+  Clients["MCP clients"] --> Hub["MCPHub\nVM 112"]
+  Hub --> OnePassword["1Password Connect\nPort 8090"]
+  Hub --> Tools["MCP server catalog"]
+  Hub --> Docker["Docker Compose services"]
+  Tools --> External["External APIs and local services"]
+```
 
-- MCPhub UI: https://mcphub.jclee.me
+## Source of Truth
 
-## Management
+- **Host inventory**: `100-pve/envs/prod/hosts.tf`
+- **MCP catalog**: `mcp_servers.json`
+- **Docker Compose template**: `templates/docker-compose.yml.tftpl`
+- **1Password secrets**: `homelab` vault under item `mcphub`
 
-Managed by Terraform via `100-pve/main.tf`. See `AGENTS.md` for conventions.
+## Operations
+
+```bash
+# SSH into the VM
+ssh mcphub
+
+# Check container status
+docker compose -f /opt/mcphub/docker-compose.yml ps
+
+# View logs
+docker compose -f /opt/mcphub/docker-compose.yml logs -f
+```
+
+## Safety Notes
+
+- Managed by Terraform via `100-pve/main.tf`. Do not mutate via UI.
+- Catalog changes require updating `mcp_servers.json` and re-running Terraform.
+- Secrets stay as `${ENV_VAR}` placeholders in templates. Never inject plaintext tokens.

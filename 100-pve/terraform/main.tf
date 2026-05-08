@@ -54,7 +54,7 @@ module "vm" {
 
   node_name        = local.node_name
   vmid             = each.value.vmid
-  hostname         = each.key
+  hostname         = try(each.value.hostname, each.key)
   description      = each.value.description
   ip_address       = module.hosts.hosts[each.key].ip
   memory           = each.value.memory
@@ -78,15 +78,6 @@ moved {
   to   = module.vm["mcphub"].proxmox_virtual_environment_vm.this
 }
 
-moved {
-  from = module.lxc["gitlab-runner"].proxmox_virtual_environment_container.this
-  to   = module.lxc["runner"].proxmox_virtual_environment_container.this
-}
-
-moved {
-  from = proxmox_virtual_environment_firewall_rules.container["gitlab-runner"]
-  to   = proxmox_virtual_environment_firewall_rules.container["runner"]
-}
 moved {
   from = module.lxc["proxy"].proxmox_virtual_environment_container.this
   to   = module.lxc["cliproxy"].proxmox_virtual_environment_container.this

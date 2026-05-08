@@ -29,7 +29,6 @@ All MCP servers are **STDIO child processes** inside the MCPHub container — th
 | proxmox     | sse                 | ✅ Connected               | —                                       |
 | playwright  | sse                 | ✅ Connected               | —                                       |
 | **n8n**     | **streamable-http** | ✅ Connected               | —                                       |
-| gitlab      | stdio               | ✅ Connected               | —                                       |
 | supabase    | stdio               | ⏳ Pending (new)           | —                                       |
 
 ## Diagnosis

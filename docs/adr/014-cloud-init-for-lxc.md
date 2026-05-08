@@ -1,6 +1,6 @@
 # ADR 014: Cloud-Init for LXC Containers
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-03-28
 **Author**: Sisyphus (AI Agent)
 **Scope**: 100-pve, modules/proxmox/lxc-config
@@ -159,6 +159,17 @@ resource "null_resource" "cloud_init_deploy" {
 - [Proxmox LXC documentation](https://pve.proxmox.com/wiki/Linux_Container)
 - modules/proxmox/vm-config/templates/cloud-init.yaml.tftpl
 
-## Status History
+## Implementation Status
+
+This ADR has been implemented.
+
+- `cloud_init` variable added to `modules/proxmox/lxc-config/variables.tf`
+- Template `modules/proxmox/lxc-config/templates/cloud-init-lxc.yaml.tftpl` created
+- `local_file.cloud_init_configs` renders cloud-init YAML locally
+- `null_resource.deploy_cloud_init` deploys via SSH with hash-based idempotency
+- Sentinel files (`/var/lib/cloud/.terraform-init-done` and `/var/lib/cloud/.terraform-init-hash`) track execution state
+- Full technical specification: [docs/design/lxc-cloud-init-spec.md](../design/lxc-cloud-init-spec.md)
 
 - 2026-03-28: Proposed
+- 2026-03-30: Accepted
+- 2026-05-07: Implemented

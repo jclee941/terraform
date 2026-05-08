@@ -1,12 +1,12 @@
-# Terraform State Rollback (GitLab CI)
+# Terraform State Rollback (GitHub Actions CI)
 
 ## Purpose
 
-Restore a workspace state to the pre-apply snapshot captured in the same GitLab pipeline when an apply fails.
+Restore a workspace state to the pre-apply snapshot captured in the same GitHub Actions pipeline when an apply fails.
 
 ## Scope
 
-- Applies to GitLab CI deploy stage jobs in `.gitlab/ci/40-apply.yml`.
+- Applies to GitHub Actions deploy stage jobs in `.github/workflows/`.
 - Uses pre-apply backups stored in `gs://tfstate-homelab-backups`.
 - Rollback remains **manual approval only**.
 

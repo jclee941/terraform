@@ -225,6 +225,7 @@ variable "on_boot" {
   default     = true
 }
 
+
 variable "hostpci_devices" {
   description = "PCI devices to pass through to the VM (use 'mapping' for resource-mapped devices, 'id' for raw passthrough)"
   type = list(object({

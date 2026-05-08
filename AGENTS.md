@@ -6,13 +6,26 @@
 
 ## OVERVIEW
 
-Homelab infrastructure-as-code monorepo. Provisions Proxmox LXC/VM fleet, networking, monitoring, and external services via Terraform workspaces with 1Password secret injection and GitLab CI/CD.
+Homelab infrastructure-as-code monorepo. Provisions Proxmox LXC/VM fleet, networking, monitoring, and external services via Terraform workspaces with 1Password secret injection and GitHub Actions CI/CD.
 
 - **Domain**: `jclee.me` — **Subnet**: `192.168.50.0/24`
 - **Terraform**: 1.10.5 (`>= 1.7, < 2.0`)
 - **21 workspaces**: numeric prefix (`80` physical, `100s` Proxmox infra, `200s` VMs, `300s` external, `400s` cloud)
 - **6 modules**: `modules/proxmox/{lxc,vm,lxc-config,vm-config,config-renderer}`, `modules/shared/onepassword-secrets`
 
+```mermaid
+flowchart LR
+  Agent["User / AI Agent"] --> Repo["Terraform Repo"]
+  Repo --> CI["GitHub Actions Runner\nLXC 101"]
+  CI --> TF["Terraform Workspaces"]
+  TF --> PVE["100-pve\nCentral Orchestrator"]
+  PVE --> Fleet["Proxmox LXC / VM Fleet"]
+  TF --> OP["1Password\nhomelab vault"]
+  TF --> CF["Cloudflare\nDNS / Access / Tunnel"]
+  Fleet --> ELK["ELK\nLogs and Search"]
+  CF --> Traefik["Traefik\nIngress LXC 102"]
+  Traefik --> Fleet
+```
 ## STRUCTURE
 
 ```text
@@ -31,7 +44,7 @@ terraform/
 ├── tests/                    # terraform test: unit, integration, workspace
 ├── scripts/                  # Go operational tooling (14 scripts, stdlib-only)
 ├── docs/                     # Architecture docs, ADRs, runbooks
-├── .gitlab/ci/               # CI/CD pipeline definitions (7 stages)
+├── .github/workflows/         # GitHub Actions CI/CD workflows
 ├── ARCHITECTURE.md           # Full architecture reference
 ├── DEPENDENCY_MAP.md         # Module dependency graph + template inventory
 └── CODE_STYLE.md             # Naming, file org, variable, template conventions
@@ -107,6 +120,7 @@ make plan SVC=pve         # terraform plan (aliases: pve, elk, cloudflare, etc.)
 make fmt                  # format all .tf files
 make validate SVC=pve     # terraform validate
 make lint                 # all linters (yaml, tf fmt, go vet, tflint)
+make lint-docs            # validate documentation quality
 make test                 # all terraform tests (unit + integration + workspace)
 make test-unit            # module unit tests only
 make verify               # production verification (Go script)
@@ -135,6 +149,6 @@ make security             # tflint + checkov security scan
 - **Sync conflict**: This file is in `qws941/.github` sync list and will be overwritten on next sync push. Update `.github/sync.yml` to exclude AGENTS.md for this repo if repo-specific content must persist.
 - Full architecture details: `ARCHITECTURE.md`. Module dependency graph: `DEPENDENCY_MAP.md`. Code conventions: `CODE_STYLE.md`.
 - Subdirectory AGENTS.md files exist in all workspaces, modules, scripts, docs, tests, and .github — see child directories for context-specific guidance.
-- CI runner: GitLab shared runners + self-hosted on LXC 101 for Proxmox. PR → plan, merge → apply. Drift detection Mon–Fri 00:00 UTC via scheduled pipelines.
+- CI runner: GitHub Actions self-hosted runner on LXC 101 (`homelab` label). PR → plan, merge → apply. Drift detection Mon–Fri 00:00 UTC via scheduled workflows.
 - 52 `.tftpl` template files across 10 service workspaces, rendered centrally by `100-pve/config_renderer`.
-- **Recent changes (2026-04-08)**: GitLab Runner (LXC 101) memory increased from 768MB to 3GB (3072MB) for improved Docker-in-Docker CI performance. NFS cache mount enabled at `/srv/gitlab-runner/cache`.
+- **Recent changes (2026-04-08)**: GitHub Actions Runner (LXC 101) memory increased from 768MB to 3GB (3072MB) for improved Docker-in-Docker CI performance. NFS cache mount enabled at `/srv/runner/cache`.

@@ -14,7 +14,6 @@
 | 100  | 192.168.50.100 | pve       | 192.168.50.1 |
 | 101  | 192.168.50.101 | runner    | 192.168.50.1 |
 | 102  | 192.168.50.102 | traefik   | 192.168.50.1 |
-| 104  | 192.168.50.104 | grafana   | 192.168.50.1 |
 | 105  | 192.168.50.105 | elk       | 192.168.50.1 |
 | 112  | 192.168.50.112 | mcphub    | 192.168.50.1 |
 
@@ -109,6 +108,6 @@ pct exec 102 -- docker restart traefik
 ## Prevention
 
 - Traefik routing configs managed by Terraform — do NOT edit manually on LXC 102
-- All routing files in `102-traefik/config/` (elk.yml, mcp.yml, mcphub.yml)
+- All routing files in `102-traefik/config/` (service-specific `*.yml` files)
 - DNS records managed in Cloudflare
 - Monitor with blackbox exporter in Grafana (SLA dashboard)

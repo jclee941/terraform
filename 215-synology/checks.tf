@@ -15,12 +15,14 @@ check "required_secrets" {
   }
 }
 
-check "gitlab_runner_token" {
+
+check "registry_credentials" {
   assert {
     condition = (
-      !var.enable_gitlab_runner ||
-      length(trimspace(var.gitlab_runner_token)) > 0
+      !var.enable_registry ||
+      (length(trimspace(local.effective_minio_user)) > 0 &&
+      length(trimspace(local.effective_minio_password)) > 0)
     )
-    error_message = "GitLab Runner is enabled but runner token is empty. Create a runner in GitLab UI (Settings > CI/CD > Runners) and set TF_VAR_gitlab_runner_token."
+    error_message = "Registry is enabled but MinIO credentials are empty. Set 1Password item 'registry' (username/password) or TF_VAR_minio_root_user/TF_VAR_minio_root_password."
   }
 }

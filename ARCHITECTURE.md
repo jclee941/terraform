@@ -1,6 +1,6 @@
 # Architecture
 
-**Last Updated:** 2026-03-15
+**Last Updated:** 2026-05-07
 
 ## Overview
 
@@ -17,7 +17,6 @@ Homelab infrastructure-as-code monorepo. Provisions a Proxmox LXC/VM fleet, netw
 | Terraform | 1.10.5 | Infrastructure provisioning |
 | bpg/proxmox | ~>0.94 | Proxmox VE provider |
 | 1Password/onepassword | ~>3.2 | Secret retrieval |
-| grafana/grafana | ~>4.0 | Dashboard/alert management |
 | elastic/elasticstack | ~>0.13 | ILM/index template management |
 | cloudflare/cloudflare | ~>5.0 | DNS, tunnels, Access, Workers |
 | TFLint | 0.10.0 | Terraform linting (recommended preset) |
@@ -40,7 +39,6 @@ terraform/
 ├── 101-runner/                   # Template-only: GitHub Actions runner
 ├── 102-traefik/                  # Tier 1: Reverse proxy config
 ├── 103-coredns/                  # Template-only: Split DNS
-├── 104-grafana/                  # Tier 1: Observability dashboards/alerts
 ├── 105-elk/                      # Tier 1: Log aggregation (ES + Logstash + Kibana)
 ├── 107-supabase/                 # Template-only: Backend-as-a-Service
 ├── 108-archon/                   # Tier 1: AI knowledge management
@@ -66,7 +64,7 @@ terraform/
 ├── tests/
 │   ├── modules/                  # Unit tests (proxmox, shared)
 │   ├── integration/              # Cross-module integration tests
-│   └── workspaces/               # Workspace validation (pve, cloudflare, grafana, elk, slack)
+| `tests/workspaces/{pve,cloudflare,elk,slack}/` | `make test-workspace` |
 ├── scripts/                      # Operational tooling (Go)
 ├── docs/                         # Architecture docs, ADRs, runbooks
 ├── .github/workflows/            # CI/CD workflows
@@ -80,7 +78,7 @@ terraform/
 | Tier | Workspaces | Role | Apply Order |
 | ---- | ---------- | ---- | ----------- |
 | 0 (core) | `100-pve` | Central orchestrator. Provisions 7 LXC + 3 VM. | First |
-| 1 (infra) | `102-traefik`, `104-grafana`, `105-elk`, `108-archon` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
+| 1 (infra) | `102-traefik`, `105-elk`, `108-archon` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
 | Independent | `300-cloudflare`, `301-github`, `320-slack`, `400-gcp` | No Proxmox dependency. | Third (parallel) |
 | Template-only | 10 workspaces | Config templates + docker-compose only, no `.tf` files. | N/A |
 
@@ -92,49 +90,100 @@ terraform/
 | 101 | runner | .101 | LXC | GitHub Actions self-hosted runner |
 | 102 | traefik | .102 | LXC | Reverse proxy (ingress) |
 | 103 | coredns | .103 | LXC | Split DNS |
-| 104 | grafana | .104 | LXC | Prometheus + Grafana |
 | 105 | elk | .105 | LXC | ELK Stack |
-| 107 | supabase | .107 | LXC | Backend-as-a-Service |
-| 108 | archon | .108 | LXC | AI knowledge management |
-| 112 | mcphub | .112 | VM | MCP Hub + n8n + 1Password Connect |
+| 110 | n8n | .110 | LXC | Workflow automation |
+| 112 | mcphub | .112 | VM | MCP Hub + 1Password Connect |
+| 114 | cliproxy | .114 | LXC | Squid proxy |
 | 200 | oc | .200 | VM | OpenCode dev environment (RTX 5070 Ti GPU passthrough) |
 | 215 | synology | .215 | Physical | NAS storage |
 | 220 | youtube | .220 | VM | YouTube automation |
+| 250 | pbs | .250 | VM | Proxmox Backup Server |
 
 ## Data Flows
 
-### Config Pipeline
+### Service Topology
 
-```
-100-pve/envs/prod/hosts.tf (SSoT)
-         │
-         ▼
-    module.hosts (IPs, VMIDs, roles, ports)
-         │
-    ┌────┴────────────────┐
-    ▼                     ▼
-module.onepassword_secrets  module.config_renderer
-    │                     │
-    │              renders .tftpl templates
-    │                     │
-    ▼                     ▼
-module.lxc / module.vm   configs/ (per service)
-    │                     │
-    ▼                     ▼
-Proxmox API          cloud-init → /opt/{service}/
-```
+```mermaid
+flowchart TB
+  Internet["Internet"] --> CFDNS["Cloudflare DNS"]
+  CFDNS --> CFAccess["Cloudflare Access"]
+  CFAccess --> CFTunnel["Cloudflare Tunnel"]
+  CFTunnel --> Traefik["Traefik\nLXC 102"]
 
-### Network Topology
+  subgraph Homelab["Homelab 192.168.50.0/24"]
+    Traefik --> CoreDNS["CoreDNS\nLXC 103"]
+    Traefik --> ELK["ELK\nLXC 105"]
+    Traefik --> Supabase["Supabase\nLXC 107"]
+    Traefik --> Archon["Archon\nLXC 108"]
+    Traefik --> N8N["n8n\nLXC 110"]
+    Traefik --> MCPHub["MCPHub\nVM 112"]
+    Traefik --> OC["OpenCode\nVM 200"]
+    Traefik --> Synology["Synology\nNAS 215"]
+    Traefik --> YouTube["YouTube\nVM 220"]
+  end
 
-```
-Internet → Cloudflare DNS → CF Tunnel → Traefik:102 → Service LXC/VM
+  PVE["Proxmox Host\n100"] --> Homelab
 ```
 
-### Observability
+### Terraform Control Flow
 
+```mermaid
+flowchart LR
+  Hosts["100-pve/envs/prod/hosts.tf\nHost SSoT"] --> HostModule["module.hosts"]
+  HostModule --> LXC["modules/proxmox/lxc"]
+  HostModule --> VM["modules/proxmox/vm"]
+  HostModule --> LXCConfig["modules/proxmox/lxc-config"]
+  HostModule --> VMConfig["modules/proxmox/vm-config"]
+
+  OP["modules/shared/onepassword-secrets"] --> Renderer["modules/proxmox/config-renderer"]
+  HostModule --> Renderer
+  Renderer --> Configs["100-pve/configs/\nGenerated outputs"]
+
+  LXC --> PVEAPI["Proxmox API"]
+  VM --> PVEAPI
+  LXCConfig --> SSH["SSH deploy"]
+  VMConfig --> SSH
+  Configs --> SSH
+  SSH --> Targets["/opt/{service}/ on LXC/VM"]
 ```
-Services → Filebeat → Logstash:5044 → Elasticsearch:9200 → Grafana:3000
-Services → node_exporter → Prometheus:9090 → Grafana:3000
+
+### Workspace Apply Order
+
+```mermaid
+graph TD
+  PVE["100-pve\nTier 0 core"] --> Tier1["Tier 1 parallel"]
+  Tier1 --> Traefik["102-traefik"]
+  Tier1 --> ELK["105-elk"]
+  Tier1 --> Archon["108-archon"]
+
+  PVE --> Template["Template-only rendered by 100-pve"]
+  Template --> Runner["101-runner"]
+  Template --> CoreDNS["103-coredns"]
+  Template --> Supabase["107-supabase"]
+  Template --> N8N["110-n8n"]
+  Template --> MCPHub["112-mcphub"]
+  Template --> OC["200-oc"]
+  Template --> Synology["215-synology"]
+  Template --> YouTube["220-youtube"]
+
+  Independent["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
+  Independent --> GitHub["301-github"]
+  Independent --> Slack["320-slack"]
+  Independent --> GCP["400-gcp"]
+```
+
+### Observability Flow
+
+```mermaid
+flowchart LR
+  Services["LXC / VM Services"] --> Filebeat["Filebeat Agents"]
+  PVEHost["Proxmox Host"] --> Filebeat
+  Cloudflare["Cloudflare Logpush"] --> Logpush["HTTPS Logpush Ingest"]
+
+  Filebeat --> Logstash["Logstash\n105:5044"]
+  Logpush --> Logstash
+  Logstash --> Elasticsearch["Elasticsearch\n105:9200"]
+  Elasticsearch --> Kibana["Kibana\n105"]
 ```
 
 ## Module Architecture
@@ -167,7 +216,7 @@ Services → node_exporter → Prometheus:9090 → Grafana:3000
 
 - **Connect Server**: LXC 112, port 8090
 - **Auth**: `OP_CONNECT_TOKEN` + `OP_CONNECT_HOST` environment variables
-- **Access pattern**: `module.secrets.secrets["grafana_service_account_token"]`
+- **Access pattern**: `module.secrets.secrets["elk_kibana_system_password"]`
 go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
 
 ## CI/CD
@@ -185,7 +234,7 @@ go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
 | ----- | -------- | ------- |
 | Unit (modules) | `tests/modules/{proxmox,shared}/` | `make test-unit` |
 | Integration | `tests/integration/` | `make test-integration` |
-| Workspace validation | `tests/workspaces/{pve,cloudflare,grafana,elk,slack}/` | `make test-workspace` |
+| Workspace validation | `tests/workspaces/{pve,cloudflare,elk,slack}/` | `make test-workspace` |
 | All | — | `make test` |
 
 ## Key References
@@ -197,5 +246,5 @@ go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
 | Workspace ordering | `docs/workspace-ordering.md` |
 | Backup strategy | `docs/backup-strategy.md` |
 | ADRs | `docs/adr/` |
-| Drift runbook | `docs/runbooks/drift-detection.md` |
+| Drift detection | Scheduled GitHub Actions workflow (Mon–Fri 00:00 UTC) |
 | Alert reference | `docs/ALERTING-REFERENCE.md` |

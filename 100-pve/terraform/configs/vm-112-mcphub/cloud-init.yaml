@@ -23,7 +23,7 @@ write_files:
     content: |
       services:
         mcphub:
-          image: samanhappy/mcphub:0.12.6
+          image: samanhappy/mcphub:0.12.12
           container_name: mcphub
           restart: unless-stopped
           ports:
@@ -34,9 +34,9 @@ write_files:
             - npm_cache:/root/.npm
             - /usr/bin/op:/usr/bin/op:ro
             - ./op-mcp-server:/app/op-mcp-server:ro
-            - /mnt/oc-dev:/home/jclee/dev
+            - /mnt/oc-home:/home/jclee
             - ./.gitconfig:/root/.gitconfig:ro
-            - /mnt/oc-kratos:/root/.kratos
+            - /mnt/oc-home/.kratos:/root/.kratos
             - ./patches:/app/patches:ro
             - /usr/lib/google-cloud-sdk:/usr/lib/google-cloud-sdk:ro
             - /usr/bin/gcloud:/usr/bin/gcloud:ro
@@ -106,7 +106,7 @@ write_files:
             - .env
           environment:
             - HOST=0.0.0.0
-            - PORT=8057
+            - PORT=8157
             - RELAY_MODE=auto
           healthcheck:
             test: ["CMD-SHELL", "node -e \"const net=require('net');const s=net.connect(8057,'127.0.0.1');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),3000);\""]
@@ -145,7 +145,7 @@ write_files:
     permissions: '0644'
     owner: root:root
     content: |
-      {"mcpServers":{"archon":{"type":"streamable-http","url":"http://192.168.50.108:8051/mcp"},"elk":{"args":["-y","@awesome-ai/elasticsearch-mcp"],"command":"npx","env":{"ES_HOST":"${ES_HOST}","ES_PASSWORD":"${ES_PASSWORD}","ES_USERNAME":"${ES_USERNAME}"}},"git":{"args":["-y","@mseep/git-mcp-server"],"command":"npx"},"github":{"args":["-y","@modelcontextprotocol/server-github"],"command":"npx","env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_PERSONAL_ACCESS_TOKEN}"}},"gitlab":{"args":["-y","@modelcontextprotocol/server-gitlab"],"command":"npx","env":{"GITLAB_API_URL":"http://192.168.50.215:8929/api/v4","GITLAB_PERSONAL_ACCESS_TOKEN":"${GITLAB_PERSONAL_ACCESS_TOKEN}"}},"kratos":{"args":["-y","kratos-mcp"],"command":"npx"},"n8n":{"type":"streamable-http","url":"http://192.168.50.110:5678/mcp-server/http"},"onepassword":{"args":["/app/op-mcp-server/index.mjs"],"command":"node","env":{"OP_SERVICE_ACCOUNT_TOKEN":"${OP_SERVICE_ACCOUNT_TOKEN}"}},"playwright":{"type":"sse","url":"http://mcp-playwright:8056/sse"},"proxmox":{"tools":{"proxmox_acl":{"enabled":false},"proxmox_acme_account":{"enabled":false},"proxmox_acme_cert":{"enabled":false},"proxmox_acme_info":{"enabled":false},"proxmox_agent_freeze":{"enabled":false},"proxmox_agent_hw":{"enabled":false},"proxmox_agent_power":{"enabled":false},"proxmox_agent_user":{"enabled":false},"proxmox_apt":{"enabled":false},"proxmox_ceph":{"enabled":false},"proxmox_ceph_fs":{"enabled":false},"proxmox_ceph_mds":{"enabled":false},"proxmox_ceph_mon":{"enabled":false},"proxmox_ceph_osd":{"enabled":false},"proxmox_ceph_pool":{"enabled":false},"proxmox_certificate":{"enabled":false},"proxmox_cloudinit":{"enabled":false},"proxmox_cluster_backup_job":{"enabled":false},"proxmox_cluster_config":{"enabled":false},"proxmox_cluster_firewall":{"enabled":false},"proxmox_cluster_firewall_alias":{"enabled":false},"proxmox_cluster_firewall_group":{"enabled":false},"proxmox_cluster_firewall_ipset":{"enabled":false},"proxmox_cluster_firewall_ipset_entry":{"enabled":false},"proxmox_cluster_firewall_rule":{"enabled":false},"proxmox_cluster_replication_job":{"enabled":false},"proxmox_console_spice":{"enabled":false},"proxmox_console_term":{"enabled":false},"proxmox_console_vnc":{"enabled":false},"proxmox_domain":{"enabled":false},"proxmox_file_restore":{"enabled":false},"proxmox_group":{"enabled":false},"proxmox_guest_clone":{"enabled":false},"proxmox_guest_delete":{"enabled":false},"proxmox_guest_disk_move":{"enabled":false},"proxmox_guest_firewall_rule":{"enabled":false},"proxmox_guest_pause":{"enabled":false},"proxmox_guest_resume":{"enabled":false},"proxmox_guest_template":{"enabled":false},"proxmox_ha_group":{"enabled":false},"proxmox_ha_resource":{"enabled":false},"proxmox_lxc_mountpoint":{"enabled":false},"proxmox_node_bulk":{"enabled":false},"proxmox_node_disk_admin":{"enabled":false},"proxmox_node_power":{"enabled":false},"proxmox_node_replication":{"enabled":false},"proxmox_node_subscription":{"enabled":false},"proxmox_notification":{"enabled":false},"proxmox_pool":{"enabled":false},"proxmox_role":{"enabled":false},"proxmox_sdn_controller":{"enabled":false},"proxmox_sdn_subnet":{"enabled":false},"proxmox_sdn_vnet":{"enabled":false},"proxmox_sdn_zone":{"enabled":false},"proxmox_user":{"enabled":false},"proxmox_user_token":{"enabled":false},"proxmox_vm_disk":{"enabled":false}},"type":"sse","url":"http://mcp-proxmox:8055/sse"},"supabase":{"args":["-y","@supabase/mcp-server-supabase"],"command":"npx","env":{"SUPABASE_ACCESS_TOKEN":"${SUPABASE_ACCESS_TOKEN}"}},"terraform":{"args":["-y","terraform-mcp-server"],"command":"npx"}}}
+      {"mcpServers":{"archon":{"type":"streamable-http","url":"http://192.168.50.108:8051/mcp"},"dev-browser":{"type":"sse","url":"http://mcp-dev-browser:8057/sse"},"elk":{"args":["-y","@awesome-ai/elasticsearch-mcp"],"command":"npx","env":{"ES_HOST":"${ES_HOST}","ES_PASSWORD":"${ES_PASSWORD}","ES_USERNAME":"${ES_USERNAME}"}},"git":{"args":["-y","@mseep/git-mcp-server"],"command":"npx"},"github":{"args":["-y","@modelcontextprotocol/server-github"],"command":"npx","env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_PERSONAL_ACCESS_TOKEN}"}},"kratos":{"args":["-y","kratos-mcp"],"command":"npx"},"n8n":{"type":"streamable-http","url":"https://n8n.jclee.me/mcp-server/http"},"onepassword":{"args":["/app/op-mcp-server/index.mjs"],"command":"node","env":{"OP_SERVICE_ACCOUNT_TOKEN":"${OP_SERVICE_ACCOUNT_TOKEN}"}},"playwright":{"type":"sse","url":"http://mcp-playwright:8056/sse"},"proxmox":{"tools":{"proxmox_acl":{"enabled":false},"proxmox_acme_account":{"enabled":false},"proxmox_acme_cert":{"enabled":false},"proxmox_acme_info":{"enabled":false},"proxmox_agent_freeze":{"enabled":false},"proxmox_agent_hw":{"enabled":false},"proxmox_agent_power":{"enabled":false},"proxmox_agent_user":{"enabled":false},"proxmox_apt":{"enabled":false},"proxmox_ceph":{"enabled":false},"proxmox_ceph_fs":{"enabled":false},"proxmox_ceph_mds":{"enabled":false},"proxmox_ceph_mon":{"enabled":false},"proxmox_ceph_osd":{"enabled":false},"proxmox_ceph_pool":{"enabled":false},"proxmox_certificate":{"enabled":false},"proxmox_cloudinit":{"enabled":false},"proxmox_cluster_backup_job":{"enabled":false},"proxmox_cluster_config":{"enabled":false},"proxmox_cluster_firewall":{"enabled":false},"proxmox_cluster_firewall_alias":{"enabled":false},"proxmox_cluster_firewall_group":{"enabled":false},"proxmox_cluster_firewall_ipset":{"enabled":false},"proxmox_cluster_firewall_ipset_entry":{"enabled":false},"proxmox_cluster_firewall_rule":{"enabled":false},"proxmox_cluster_replication_job":{"enabled":false},"proxmox_console_spice":{"enabled":false},"proxmox_console_term":{"enabled":false},"proxmox_console_vnc":{"enabled":false},"proxmox_domain":{"enabled":false},"proxmox_file_restore":{"enabled":false},"proxmox_group":{"enabled":false},"proxmox_guest_clone":{"enabled":false},"proxmox_guest_delete":{"enabled":false},"proxmox_guest_disk_move":{"enabled":false},"proxmox_guest_firewall_rule":{"enabled":false},"proxmox_guest_pause":{"enabled":false},"proxmox_guest_resume":{"enabled":false},"proxmox_guest_template":{"enabled":false},"proxmox_ha_group":{"enabled":false},"proxmox_ha_resource":{"enabled":false},"proxmox_lxc_mountpoint":{"enabled":false},"proxmox_node_bulk":{"enabled":false},"proxmox_node_disk_admin":{"enabled":false},"proxmox_node_power":{"enabled":false},"proxmox_node_replication":{"enabled":false},"proxmox_node_subscription":{"enabled":false},"proxmox_notification":{"enabled":false},"proxmox_pool":{"enabled":false},"proxmox_role":{"enabled":false},"proxmox_sdn_controller":{"enabled":false},"proxmox_sdn_subnet":{"enabled":false},"proxmox_sdn_vnet":{"enabled":false},"proxmox_sdn_zone":{"enabled":false},"proxmox_user":{"enabled":false},"proxmox_user_token":{"enabled":false},"proxmox_vm_disk":{"enabled":false}},"type":"sse","url":"http://mcp-proxmox:8055/sse"},"supabase":{"args":["-y","@supabase/mcp-server-supabase"],"command":"npx","env":{"SUPABASE_ACCESS_TOKEN":"${SUPABASE_ACCESS_TOKEN}"}},"terraform":{"args":["-y","terraform-mcp-server"],"command":"npx"}},"systemConfig":{"routing":{"enableBearerAuth":false,"enableGlobalRoute":true,"enableGroupNameRoute":true,"skipAuth":true}}}
       
   - path: /opt/mcphub/Dockerfile.proxmox
     permissions: '0644'
@@ -157,6 +157,27 @@ write_files:
       RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
       RUN npm install -g mcp-proxy@6.4.0
       RUN npm install --save @bldg-7/proxmox-mcp@latest pino-pretty@latest
+      
+      # Patch: merge args into command array for PVE agent/exec API compatibility
+      # PVE API only accepts 'command' + 'input-data', not 'args' or 'capture-output'
+      # Upstream: https://github.com/Bldg-7/proxmox-mcp/issues (1.2.1 bug)
+      RUN tee /tmp/fix-agent-exec.cjs <<'EOF' && node /tmp/fix-agent-exec.cjs && rm /tmp/fix-agent-exec.cjs
+      const fs = require("fs");
+      const f = "node_modules/@bldg-7/proxmox-mcp/dist/tools/vm-advanced.js";
+      let s = fs.readFileSync(f, "utf8");
+      // Fix 1: merge args into command array instead of passing as separate param
+      s = s.replace(
+        /if \(validated\.args\)\n\s+payload\.args = validated\.args;/,
+        "if (validated.args) { payload.command = [validated.command, ...validated.args]; } else { payload.command = [validated.command]; }"
+      );
+      // Fix 2: remove capture-output param (not in PVE API schema)
+      s = s.replace(
+        /if \(validated\['capture-output'\][\s\S]*?payload\['capture-output'\].*?\n\s*\}/,
+        "// capture-output removed (PVE API incompatible)"
+      );
+      fs.writeFileSync(f, s);
+      console.log("Patched agentExec: args merged into command, capture-output removed");
+      EOF
       
       EXPOSE 8055
       CMD ["mcp-proxy", "--port", "8055", "--host", "0.0.0.0", "--", "node", "node_modules/@bldg-7/proxmox-mcp/dist/index.js"]
@@ -182,13 +203,13 @@ write_files:
     permissions: '0600'
     owner: root:root
     content: |
-      MCPHUB_ADMIN_PASSWORD=c}Tq{lm<]Eu>vi)4r={lyaxo
+      # MCPHUB_ADMIN_PASSWORD — disabled to prevent Bearer auth enforcement
+      # MCPHUB_ADMIN_PASSWORD=c}Tq{lm<]Eu>vi)4r={lyaxo
       N8N_MCP_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZDFhZDdhMS01ODA5LTRkNTYtYWU2Zi02MmRlNGRkNjc3MjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiODhjNDJiOWUtNThjOC00NGJmLTk2ZDQtZGJmZmZiNGRhYTg2IiwiaWF0IjoxNzcwNzEwNTYzLCJleHAiOjE3Nzg0NzIwMDB9.nSdSyLnxtIk7QaHIVGz6xZB_-ZqBFeXcCzl92KIfRu4
       N8N_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZDFhZDdhMS01ODA5LTRkNTYtYWU2Zi02MmRlNGRkNjc3MjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiODhjNDJiOWUtNThjOC00NGJmLTk2ZDQtZGJmZmZiNGRhYTg2IiwiaWF0IjoxNzcwNzEwNTYzLCJleHAiOjE3Nzg0NzIwMDB9.nSdSyLnxtIk7QaHIVGz6xZB_-ZqBFeXcCzl92KIfRu4
       OP_SERVICE_ACCOUNT_TOKEN=ops_eyJzaWduSW5BZGRyZXNzIjoibXkuMXBhc3N3b3JkLmNvbSIsInVzZXJBdXRoIjp7Im1ldGhvZCI6IlNSUGctNDA5NiIsImFsZyI6IlBCRVMyZy1IUzI1NiIsIml0ZXJhdGlvbnMiOjY1MDAwMCwic2FsdCI6IkdJX0FHU19IbVVXTHNGd1JKUmZsaFEifSwiZW1haWwiOiJ2cnRrbXVwNWd1Zm82QDFwYXNzd29yZHNlcnZpY2VhY2NvdW50cy5jb20iLCJzcnBYIjoiMzZjZWIxZGE0ZmE1NzUwZGY3NzcxZDVkNmEwYTNiNWIzYTE1MTEzM2ZjMWJiMmIxZDUxOTExMDdiNTgzMTBjYSIsIm11ayI6eyJhbGciOiJBMjU2R0NNIiwiZXh0Ijp0cnVlLCJrIjoiYV80VElqWThWbE9vWDVmeXRhc1Ywdi15RDkySHRHM3BoNlJZVDlvQ1VWSSIsImtleV9vcHMiOlsiZW5jcnlwdCIsImRlY3J5cHQiXSwia3R5Ijoib2N0Iiwia2lkIjoibXAifSwic2VjcmV0S2V5IjoiQTMtVDhDRTlHLVNSTTZLSy1ENDhMRC1YVEE2Ui1aRzc5RC1INVFKQiIsInRocm90dGxlU2VjcmV0Ijp7InNlZWQiOiIxODJlMTc5MjgxNTVjYmE1MDY5NDg0ZThlOWM1NDJmYWRhZmM2NGMxMDNiM2YyYzE2YjZkZjRjYmYyYWM2OTU0IiwidXVpZCI6Iks3SEczQ0w2S1JHNURPSENYNllLUENRSldFIn0sImRldmljZVV1aWQiOiJoNXFjdHg0ZXhtZnptam1wa2UzdTZ3eGpxNCJ9
       OP_CONNECT_HOST=http://192.168.50.112:8090
       OP_CONNECT_TOKEN=ops_eyJzaWduSW5BZGRyZXNzIjoibXkuMXBhc3N3b3JkLmNvbSIsInVzZXJBdXRoIjp7Im1ldGhvZCI6IlNSUGctNDA5NiIsImFsZyI6IlBCRVMyZy1IUzI1NiIsIml0ZXJhdGlvbnMiOjY1MDAwMCwic2FsdCI6IkdJX0FHU19IbVVXTHNGd1JKUmZsaFEifSwiZW1haWwiOiJ2cnRrbXVwNWd1Zm82QDFwYXNzd29yZHNlcnZpY2VhY2NvdW50cy5jb20iLCJzcnBYIjoiMzZjZWIxZGE0ZmE1NzUwZGY3NzcxZDVkNmEwYTNiNWIzYTE1MTEzM2ZjMWJiMmIxZDUxOTExMDdiNTgzMTBjYSIsIm11ayI6eyJhbGciOiJBMjU2R0NNIiwiZXh0Ijp0cnVlLCJrIjoiYV80VElqWThWbE9vWDVmeXRhc1Ywdi15RDkySHRHM3BoNlJZVDlvQ1VWSSIsImtleV9vcHMiOlsiZW5jcnlwdCIsImRlY3J5cHQiXSwia3R5Ijoib2N0Iiwia2lkIjoibXAifSwic2VjcmV0S2V5IjoiQTMtVDhDRTlHLVNSTTZLSy1ENDhMRC1YVEE2Ui1aRzc5RC1INVFKQiIsInRocm90dGxlU2VjcmV0Ijp7InNlZWQiOiIxODJlMTc5MjgxNTVjYmE1MDY5NDg0ZThlOWM1NDJmYWRhZmM2NGMxMDNiM2YyYzE2YjZkZjRjYmYyYWM2OTU0IiwidXVpZCI6Iks3SEczQ0w2S1JHNURPSENYNllLUENRSldFIn0sImRldmljZVV1aWQiOiJoNXFjdHg0ZXhtZnptam1wa2UzdTZ3eGpxNCJ9
-      GITHUB_PERSONAL_ACCESS_TOKEN=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
       SUPABASE_ACCESS_TOKEN=eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogInNlcnZpY2Vfcm9sZSIsICJpc3MiOiAic3VwYWJhc2UiLCAiaWF0IjogMTc3MTYwMDgwMCwgImV4cCI6IDIwODY5NjA4MDB9.vLTEQu-8UATji7axVljZzlmPUrbqbFmx7fjXaQc580Y
       ES_HOST=http://192.168.50.105:9200
       ES_USERNAME=elastic
@@ -201,8 +222,11 @@ write_files:
       PROXMOX_TOKEN_VALUE=5c12515e-f63d-4c1e-9573-cc0faf729766
       PROXMOX_ALLOW_ELEVATED=true
       
-      GITLAB_PERSONAL_ACCESS_TOKEN=
-      GITLAB_API_URL=http://192.168.50.215:8929/api/v4
+      GITHUB_PERSONAL_ACCESS_TOKEN=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
+      
+      # MCPhub configuration
+      REQUEST_TIMEOUT=60000
+      
   - path: /etc/filebeat/filebeat.yml
     permissions: '0644'
     owner: root:root
@@ -360,11 +384,9 @@ runcmd:
   - systemctl enable fail2ban
   - systemctl start fail2ban
   - mkdir -p /opt/mcphub
-  - mkdir -p /mnt/oc-dev /mnt/oc-kratos
-  - grep -q oc-dev /etc/fstab || echo 'jclee@192.168.50.200:/home/jclee/dev /mnt/oc-dev fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab
-  - grep -q oc-kratos /etc/fstab || echo 'jclee@192.168.50.200:/home/jclee/.kratos /mnt/oc-kratos fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab
-  - mountpoint -q /mnt/oc-dev || mount /mnt/oc-dev || true
-  - mountpoint -q /mnt/oc-kratos || mount /mnt/oc-kratos || true
+  - mkdir -p /mnt/oc-home
+  - grep -q oc-home /etc/fstab || echo 'jclee@192.168.50.200:/home/jclee /mnt/oc-home fuse.sshfs _netdev,allow_other,default_permissions,IdentityFile=/root/.ssh/id_rsa,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 0 0' >> /etc/fstab
+  - mountpoint -q /mnt/oc-home || mount /mnt/oc-home || true
   - systemctl daemon-reload
   - curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
   - echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' > /etc/apt/sources.list.d/google-cloud-sdk.list

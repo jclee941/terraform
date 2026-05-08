@@ -73,13 +73,11 @@ locals {
   # Strategy: Reduce dedicated RAM, use swap for cold pages (idle JVM, DB buffers)
   # Total dedicated: 20480 MB (20 GB) + swap: 9984 MB (9.75 GB) = 30464 MB effective
   container_sizing = {
-    runner   = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitHub Actions CI Runner - Docker executor (3GB RAM)", mount_points = [{ volume = "/mnt/gitlab-runner-cache", path = "/srv/gitlab-runner/cache" }] }
+    runner   = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitHub Actions CI Runner - Docker executor (3GB RAM)", mount_points = [{ volume = "/mnt/runner-cache", path = "/srv/runner/cache" }] }
     traefik  = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    elk      = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)" }
-    supabase = { memory = 2048, swap = 1024, cores = 4, disk_size = 64, description = "Supabase Backend-as-a-Service" }
-    archon   = { memory = 1024, swap = 512, cores = 2, disk_size = 20, description = "Archon AI Knowledge Management + MCP Server" }
+    elk      = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk" }] }
     coredns  = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
-    n8n      = { memory = 2048, swap = 512, cores = 2, disk_size = 16, description = "n8n Workflow Automation + PostgreSQL" }
+    n8n      = { memory = 2048, swap = 512, cores = 2, disk_size = 64, description = "n8n Workflow Automation + PostgreSQL" }
     cliproxy = { memory = 512, swap = 256, cores = 2, disk_size = 20, description = "Squid Forward Proxy" }
   }
 
@@ -143,11 +141,22 @@ locals {
     youtube = {
       vmid        = 220
       description = "YouTube Media Server"
-      memory      = 16384
+      memory      = 32768
       balloon_min = 4096
       cores       = 8
       disk_size   = 300
       bios        = "ovmf"
+      machine     = "q35"
+    }
+    jclee-dev = {
+      vmid        = 200
+      description = "OpenCode Development VM (oc)"
+      memory      = 28672
+      balloon_min = 4096
+      cores       = 8
+      disk_size   = 200
+      hostname    = "oc"
+      bios        = "seabios"
       machine     = "q35"
     }
   }
@@ -167,20 +176,13 @@ locals {
     "mcphub_op_connect_token",
     "mcphub_op_service_account_token",
     "mcphub_proxmox_token_name",
-    "gitlab_personal_access_token",
     "mcphub_proxmox_token_value",
     "n8n_api_key",
     "n8n_encryption_key",
     "n8n_github_token",
     "n8n_postgres_password",
-    "openai_api_key",
     "proxmox_ssh_private_key",
     "slack_bot_token",
-    "supabase_anon_key",
-    "supabase_dashboard_password",
-    "supabase_db_password",
-    "supabase_jwt_secret",
-    "supabase_service_role_key",
     "telegram_bot_token",
     "traefik_htpasswd_hash",
   ]
@@ -197,8 +199,6 @@ locals {
 
   # Metadata keys consumed by service templates (must not be placeholder)
   required_template_metadata_keys = [
-    "supabase_url",
-    "supabase_dashboard_username",
   ]
 
   placeholder_template_metadata_keys = [
@@ -220,11 +220,8 @@ locals {
     "102-traefik" = { prefix = "traefik", files = {
       mcphub      = "mcphub.yml.tftpl"
       n8n         = "n8n.yml.tftpl"
-      archon      = "archon.yml.tftpl"
-      supabase    = "supabase.yml.tftpl"
       nas         = "nas.yml.tftpl"
       registry    = "registry.yml.tftpl"
-      opencode    = "opencode.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"
       cloudflared = "cloudflared-docker-compose.yml.tftpl"
       middlewares = "middlewares.yml.tftpl"
@@ -242,16 +239,6 @@ locals {
       ilm_policy          = "ilm-policy.json.tftpl"
       setup_ilm           = "setup-ilm.sh.tftpl"
       dockerfile_logstash = "Dockerfile.logstash.tftpl"
-    } }
-    "107-supabase" = { prefix = "supabase", files = {
-      filebeat       = "filebeat.yml.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      env            = ".env.tftpl"
-    } }
-    "108-archon" = { prefix = "archon", files = {
-      filebeat       = "filebeat.yml.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      env            = ".env.tftpl"
     } }
     "110-n8n" = { prefix = "n8n", files = {
       filebeat       = "filebeat.yml.tftpl"

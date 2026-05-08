@@ -49,10 +49,6 @@ variable "lxc_containers" {
   default = {}
 }
 
-variable "mcp_host" {
-  description = "MCP server host IP (MCPHub VM 112)"
-  type        = string
-}
 
 variable "deploy_lxc_configs" {
   description = "Whether to deploy LXC configurations via SSH"

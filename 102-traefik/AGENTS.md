@@ -8,7 +8,7 @@ High-performance edge router and reverse proxy (LXC 102) for the `jclee.me` ecos
 
 - `terraform/`: Resource lifecycle and main container config.
 - `templates/`: Jinja2/TF templates for dynamic route generation.
-- `tf-configs/`: **Rendered SSoT**. Final YAMLs generated from `hosts.tf`.
+- `100-pve/terraform/configs/rendered/traefik/`: **Rendered SSoT**. Final YAMLs generated from `hosts.tf` via the `100-pve` config_renderer module.
 - `config/`: Static and manually maintained dynamic file provider configs.
 - `templates/cloudflared-docker-compose.yml.tftpl`: Cloudflared tunnel connector template (rendered by 100-pve pipeline).
 
@@ -16,8 +16,8 @@ High-performance edge router and reverse proxy (LXC 102) for the `jclee.me` ecos
 
 | Task            | Location                                           | Notes                            |
 | --------------- | -------------------------------------------------- | -------------------------------- |
-| Service routing | `tf-configs/traefik-{service}.yml`                 | Generated from central inventory |
-| Middlewares     | `tf-configs/traefik.yml`, `config/middlewares.yml` | Primary middleware definitions   |
+| Service routing | `100-pve/terraform/configs/rendered/traefik/{service}.yml` | Generated from central inventory                |
+| Middlewares     | `100-pve/terraform/configs/rendered/traefik/middlewares.yml`, `config/middlewares.yml` | Primary middleware definitions   |
 | Cert management | `/etc/traefik/acme.json` (inside LXC 102)          | SSL state                        |
 | Access logs     | `/var/log/traefik/access.log`                      | Monitored via Filebeat           |
 

@@ -1,6 +1,6 @@
 # Terraform Monorepo — Dependency Graph & Entry Points
 
-**Generated:** 2026-03-03
+**Generated:** 2026-05-07
 **Scope:** Complete module dependency mapping, template inventory, provider matrix
 
 ---
@@ -15,115 +15,85 @@
 
 ### SECONDARY WORKSPACES (Terraform-managed)
 
-| Workspace          | Entry Point         | Role                     | Modules Used            | Providers                      |
-| ------------------ | ------------------- | ------------------------ | ----------------------- | ------------------------------ |
-| **102-traefik**    | `terraform/main.tf` | Reverse proxy config     | None (direct resources) | None (template-only)           |
-| **104-grafana**    | `terraform/main.tf` | Observability dashboards | None                    | grafana ~>4.0                  |
-| **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.13            |
-| **108-archon**     | `terraform/main.tf` | AI knowledge mgmt        | None                    | None (LXC-managed)             |
-| **300-cloudflare** | `main.tf`           | External DNS/tunnel      | None                    | cloudflare ~>5.0, github ~>6.6 |
-| **301-github**     | `main.tf`           | GitHub repo/ruleset mgmt | None                    | github ~>6.6, onepassword ~>3.2 |
-| **320-slack**      | `main.tf`           | Slack integration        | None                    | slack ~>1.0, onepassword ~>3.2  |
+| Workspace          | Entry Point         | Role                     | Modules Used            | Providers                                           |
+| ------------------ | ------------------- | ------------------------ | ----------------------- | --------------------------------------------------- |
+| **102-traefik**    | `terraform/main.tf` | Reverse proxy config     | None (remote-state shim) | None (template-only)                                |
+| **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.13, onepassword ~>3.2              |
+| **215-synology**   | `main.tf`           | NAS management           | onepassword-secrets     | synology ~>0.6, onepassword ~>3.2                   |
+| **300-cloudflare** | `main.tf`           | External DNS/tunnel      | onepassword-secrets     | cloudflare ~>5.0, random ~>3.0, onepassword ~>3.2, time ~>0.12 |
 
 ### TEMPLATE-ONLY WORKSPACES (No Terraform)
 
 | Workspace         | Purpose               | Templates          | Rendered By                    |
 | ----------------- | --------------------- | ------------------ | ------------------------------ |
 | **101-runner**    | GitHub Actions runner | filebeat.yml.tftpl | 100-pve/module.config_renderer |
-| **107-supabase**  | Backend-as-a-Service  | 3x .tftpl          | 100-pve/module.config_renderer |
-| **112-mcphub**    | MCP server hub        | 4x .tftpl          | 100-pve/module.config_renderer |
-| **215-synology**  | NAS inventory         | None (data only)   | Manual                         |
-| **220-youtube**   | YouTube VM            | filebeat.yml.tftpl | 100-pve/module.config_renderer |
+| **103-coredns**   | DNS resolver          | 3x .tftpl          | 100-pve/module.config_renderer |
+| **110-n8n**       | Workflow automation   | 3x .tftpl          | 100-pve/module.config_renderer |
+| **112-mcphub**    | MCP server hub        | 5x .tftpl          | 100-pve/module.config_renderer |
+| **220-youtube**   | YouTube VM            | 3x .tftpl          | 100-pve/module.config_renderer |
+
+### PLACEHOLDER WORKSPACES
+
+| Workspace           | Status    | Notes                        |
+| ------------------- | --------- | ---------------------------- |
+| **80-jclee**        | Reserved  | Workstation documentation    |
+| **114-cliproxy**    | Reserved  | Placeholder                  |
+| **200-oc**          | Reserved  | OpenCode workspace docs      |
+| **310-safetywallet**| Reserved  | Placeholder                  |
+| **320-slack**       | Reserved  | Placeholder                  |
+| **400-gcp**         | Reserved  | Placeholder                  |
 
 ---
 
 ## MODULE DEPENDENCY GRAPH
 
+```mermaid
+graph TD
+  Main["100-pve/main.tf"] --> Hosts["100-pve/envs/prod/hosts.tf"]
+  Main --> LXC["modules/proxmox/lxc"]
+  Main --> VM["modules/proxmox/vm"]
+  Main --> LXCConfig["modules/proxmox/lxc-config"]
+  Main --> VMConfig["modules/proxmox/vm-config"]
+  Main --> Renderer["modules/proxmox/config-renderer"]
+  Main --> Secrets["modules/shared/onepassword-secrets"]
+
+  Hosts --> Renderer
+  Secrets --> Renderer
+  Renderer --> Rendered["100-pve/configs/"]
+  LXC --> Proxmox["Proxmox LXC Resources"]
+  VM --> ProxmoxVM["Proxmox VM Resources"]
+  LXCConfig --> LXCGuest["LXC Guest Config"]
+  VMConfig --> VMGuest["VM Cloud-Init / Systemd"]
+```
+
 ### CORE MODULES (modules/proxmox/)
 
-```
-modules/proxmox/
-├── lxc/                    # LXC container provisioning
-│   ├── main.tf             # proxmox_virtual_environment_lxc resource
-│   ├── variables.tf        # vmid, hostname, ip, cores, memory, disk_size, etc.
-│   └── outputs.tf          # container_id, container_status
-│
-├── vm/                     # QEMU VM provisioning
-│   ├── main.tf             # proxmox_virtual_environment_vm resource
-│   ├── variables.tf        # vmid, vm_name, cores, memory, disk_size, cloud_init_file
-│   └── outputs.tf          # vm_id, vm_status
-│
-├── lxc-config/             # LXC config rendering
-│   ├── main.tf             # Renders lxc-systemd.service.tftpl
-│   ├── variables.tf        # hostname, ip, service_name, etc.
-│   ├── outputs.tf          # rendered_config
-│   └── templates/
-│       └── lxc-systemd.service.tftpl
-│
-├── vm-config/              # VM config rendering (cloud-init)
-│   ├── main.tf             # Renders cloud-init.yaml.tftpl + systemd.service.tftpl
-│   ├── variables.tf        # hostname, ip, cloud_init_vars, etc.
-│   ├── outputs.tf          # rendered_cloud_init, rendered_systemd
-│   └── templates/
-│       ├── cloud-init.yaml.tftpl
-│       └── systemd.service.tftpl
-│
-└── config-renderer/        # Central template rendering pipeline
-    ├── main.tf             # Renders all service .tftpl files
-    ├── variables.tf        # hosts, template_vars, service_configs
-    └── outputs.tf          # rendered_configs (map of service → rendered content)
-```
+| Module            | Purpose                        | Key Outputs                     |
+| ----------------- | ------------------------------ | ------------------------------- |
+| `lxc`             | LXC container provisioning     | container_id, container_status  |
+| `vm`              | QEMU VM provisioning           | vm_id, vm_status                |
+| `lxc-config`      | LXC config rendering           | rendered_config                 |
+| `vm-config`       | VM cloud-init / systemd        | rendered_cloud_init, rendered_systemd |
+| `config-renderer` | Central template pipeline      | rendered_configs (map)          |
 
 ### SHARED MODULES (modules/shared/)
 
-```
-modules/shared/
-└── onepassword-secrets/    # 1Password secret fetching
-    ├── main.tf             # data "onepassword_item" × 12 services
-    ├── variables.tf        # vault_name (default: "homelab")
-    └── outputs.tf          # secrets map (grafana, proxmox, etc.)
-```
+| Module              | Purpose                 | Key Outputs        |
+| ------------------- | ----------------------- | ------------------ |
+| `onepassword-secrets` | 1Password secret fetch | secrets map        |
 
 ---
 
-## DEPENDENCY FLOW (100-pve → Modules)
+## TEMPLATE RENDERING PIPELINE
 
-```
-100-pve/main.tf
-├── module "hosts"
-│   └── source: ./envs/prod
-│       └── hosts.tf (SSoT: IPs, VMIDs, roles)
-│
-├── module "lxc"
-│   └── source: ../modules/proxmox/lxc
-│       └── Provisions 7 containers (101-105, 107-108)
-│
-├── module "vm"
-│   └── source: ../modules/proxmox/vm
-│       └── Provisions 4 VMs (109, 112, 200, 220)
-│
-├── module "vm_config"
-│   └── source: ../modules/proxmox/vm-config
-│       └── Renders cloud-init for VMs
-│
-├── module "lxc_config"
-│   └── source: ../modules/proxmox/lxc-config
-│       └── Renders systemd configs for containers
-│
-├── module "onepassword_secrets"
-│   └── source: ../modules/shared/onepassword-secrets
-│       └── Fetches 12 service secrets from 1Password
-│
-└── module "config_renderer"
-    └── source: ../modules/proxmox/config-renderer
-        └── Renders all service templates:
-            ├── 101-runner/templates/filebeat.yml.tftpl
-            ├── 102-traefik/templates/*.yml.tftpl (13 routes)
-            ├── 104-grafana/templates/*.yml.tftpl
-            ├── 105-elk/templates/*.tftpl
-            ├── 107-supabase/templates/*.tftpl
-            ├── 108-archon/templates/*.tftpl
-            └── 112-mcphub/templates/*.tftpl
+```mermaid
+flowchart LR
+  Templates["Service templates\n{NNN}-{svc}/templates/*.tftpl"] --> Renderer["config-renderer module"]
+  Hosts["module.hosts.hosts"] --> Renderer
+  Secrets["module.onepassword_secrets.secrets"] --> Renderer
+  Renderer --> Outputs["100-pve/configs/\nGenerated files"]
+  Outputs --> Deploy["SSH / provisioner deploy"]
+  Deploy --> Runtime["/opt/{service}/\nRuntime config"]
 ```
 
 ---
@@ -135,37 +105,41 @@ modules/shared/
 | Workspace                      | Template                      | Purpose             | Rendered By       | Output Path                                     |
 | ------------------------------ | ----------------------------- | ------------------- | ----------------- | ----------------------------------------------- |
 | **101-runner**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-101-runner/filebeat.yml             |
-| **102-traefik**                | archon.yml.tftpl              | Traefik route       | config-renderer   | configs/rendered/traefik/archon.yml             |
-|                                | supabase.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/supabase.yml           |
+| **102-traefik**                | cloudflared-docker-compose.yml.tftpl | Cloudflared tunnel  | config-renderer   | configs/lxc-102-traefik/cloudflared-docker-compose.yml |
 |                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-102-traefik/filebeat.yml            |
-|                                | synology.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/synology.yml           |
-|                                | traefik-elk.yml.tftpl         | Traefik route       | config-renderer   | configs/rendered/traefik/traefik-elk.yml        |
-|                                | vault.yml.tftpl               | Traefik route       | config-renderer   | configs/rendered/traefik/vault.yml              |
 |                                | mcphub.yml.tftpl              | Traefik route       | config-renderer   | configs/rendered/traefik/mcphub.yml             |
+|                                | middlewares.yml.tftpl         | Traefik middlewares | config-renderer   | configs/rendered/traefik/middlewares.yml        |
 |                                | n8n.yml.tftpl                 | Traefik route       | config-renderer   | configs/rendered/traefik/n8n.yml                |
-| **104-grafana**                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-104-grafana/filebeat.yml            |
-|                                | grafana-datasources.yml.tftpl | Grafana datasources | config-renderer   | configs/lxc-104-grafana/grafana-datasources.yml |
-|                                | prometheus.yml.tftpl          | Prometheus config   | config-renderer   | configs/lxc-104-grafana/prometheus.yml          |
-| **105-elk**                    | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-105-elk/filebeat.yml                |
+|                                | nas.yml.tftpl                 | Traefik route       | config-renderer   | configs/rendered/traefik/nas.yml                |
+|                                | registry.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/registry.yml           |
+|                                | traefik-elk.yml.tftpl         | Traefik route       | config-renderer   | configs/rendered/traefik/traefik-elk.yml        |
+| **103-coredns**                | Corefile.tftpl                | CoreDNS config      | config-renderer   | configs/lxc-103-coredns/Corefile                |
+|                                | docker-compose.yml.tftpl      | CoreDNS stack       | config-renderer   | configs/lxc-103-coredns/docker-compose.yml      |
+|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-103-coredns/filebeat.yml            |
+| **105-elk**                    | docker-compose.yml.tftpl      | ELK stack           | config-renderer   | configs/lxc-105-elk/docker-compose.yml          |
 |                                | Dockerfile.logstash.tftpl     | Logstash container  | config-renderer   | configs/lxc-105-elk/Dockerfile.logstash         |
-|                                | setup-ilm.sh.tftpl            | ILM setup script    | config-renderer   | configs/lxc-105-elk/setup-ilm.sh                |
+|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-105-elk/filebeat.yml                |
 |                                | ilm-policy.json.tftpl         | ILM policy          | config-renderer   | configs/lxc-105-elk/ilm-policy.json             |
-|                                | docker-compose.yml.tftpl      | ELK stack           | config-renderer   | configs/lxc-105-elk/docker-compose.yml          |
 |                                | logstash.conf.tftpl           | Logstash pipeline   | config-renderer   | configs/lxc-105-elk/logstash.conf               |
 |                                | logstash.yml.tftpl            | Logstash config     | config-renderer   | configs/lxc-105-elk/logstash.yml                |
-| **107-supabase**               | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-107-supabase/filebeat.yml           |
-|                                | docker-compose.yml.tftpl      | Supabase stack      | config-renderer   | configs/lxc-107-supabase/docker-compose.yml     |
-|                                | .env.tftpl                    | Env vars            | config-renderer   | configs/lxc-107-supabase/.env                   |
-| **108-archon**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-108-archon/filebeat.yml             |
-|                                | docker-compose.yml.tftpl      | Archon stack        | config-renderer   | configs/lxc-108-archon/docker-compose.yml       |
-|                                | .env.tftpl                    | Env vars            | config-renderer   | configs/lxc-108-archon/.env                     |
-| **112-mcphub**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/vm-112-mcphub/filebeat.yml              |
+|                                | setup-ilm.sh.tftpl            | ILM setup script    | config-renderer   | configs/lxc-105-elk/setup-ilm.sh                |
+| **110-n8n**                    | docker-compose.yml.tftpl      | n8n stack           | config-renderer   | configs/lxc-110-n8n/docker-compose.yml          |
+|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-110-n8n/filebeat.yml                |
+|                                | n8n.env.tftpl                 | n8n env vars        | config-renderer   | configs/lxc-110-n8n/n8n.env                     |
+| **112-mcphub**                 | .env.tftpl                    | Env vars            | config-renderer   | configs/vm-112-mcphub/.env                      |
 |                                | docker-compose.yml.tftpl      | MCPHub stack        | config-renderer   | configs/vm-112-mcphub/docker-compose.yml        |
+|                                | docker-compose-op-connect.yml.tftpl | 1Password Connect | config-renderer   | configs/vm-112-mcphub/docker-compose-op-connect.yml |
+|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/vm-112-mcphub/filebeat.yml              |
 |                                | mcp_settings.json.tftpl       | MCP server catalog  | config-renderer   | configs/rendered/mcphub/mcp_settings.json       |
-|                                | .env.tftpl                    | Env vars            | config-renderer   | configs/vm-112-mcphub/.env                      |
+| **220-youtube**                | .env.tftpl                    | Env vars            | config-renderer   | configs/vm-220-youtube/.env                     |
+|                                | docker-compose.yml.tftpl      | YouTube stack       | config-renderer   | configs/vm-220-youtube/docker-compose.yml       |
+|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/vm-220-youtube/filebeat.yml             |
 | **modules/proxmox/vm-config**  | cloud-init.yaml.tftpl         | Cloud-init          | vm-config module  | (inline in VM resource)                         |
 |                                | systemd.service.tftpl         | Systemd service     | vm-config module  | (inline in VM resource)                         |
-| **modules/proxmox/lxc-config** | lxc-systemd.service.tftpl     | Systemd service     | lxc-config module | (inline in LXC resource)                        |
+| **modules/proxmox/lxc-config** | cloud-init-lxc.yaml.tftpl     | Cloud-init (LXC)    | lxc-config module | (inline in LXC resource)                        |
+|                                | lxc-systemd.service.tftpl     | Systemd service     | lxc-config module | (inline in LXC resource)                        |
+
+**Total:** 34 `.tftpl` files across 8 service workspaces and 2 module template directories.
 
 ### Template Variables (from 100-pve/main.tf)
 
@@ -175,8 +149,7 @@ template_vars = {
   hosts = module.hosts.hosts
 
   # Service secrets (from 1Password)
-  grafana_admin_password = module.onepassword_secrets.secrets.grafana.admin_password
-  # ... 10 more services
+  # ... consumed via module.onepassword_secrets.secrets
 
   # MCP catalog
   mcp_servers = local.mcp_catalog.servers
@@ -193,22 +166,40 @@ template_vars = {
 
 ## PROVIDER REQUIREMENTS MATRIX
 
+### Provider Dependency Graph
+
+```mermaid
+graph LR
+  PVE["100-pve"] --> Proxmox["bpg/proxmox"]
+  PVE --> OnePassword["1Password/onepassword"]
+
+  ELK["105-elk"] --> Elastic["elastic/elasticstack"]
+  ELK --> OnePassword
+
+  Synology["215-synology"] --> SynologyProvider["synology-community/synology"]
+  Synology --> OnePassword
+
+  Cloudflare["300-cloudflare"] --> CFProvider["cloudflare/cloudflare"]
+  Cloudflare --> Random["hashicorp/random"]
+  Cloudflare --> Time["hashicorp/time"]
+  Cloudflare --> OnePassword
+```
+
 ### By Workspace
 
-| Workspace          | Provider              | Version | Auth Method           | Purpose              |
-| ------------------ | --------------------- | ------- | --------------------- | -------------------- |
-| **100-pve**        | bpg/proxmox           | ~>0.94  | API token (env)       | LXC/VM provisioning  |
-|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching      |
-| **102-traefik**    | None                  | —       | —                     | Template-only        |
-| **104-grafana**    | grafana/grafana       | ~>4.0   | API token (env)       | Dashboard/alert mgmt |
-| **105-elk**        | elastic/elasticstack  | ~>0.13  | API key (env)         | Index/ILM/space mgmt |
-| **108-archon**     | None                  | —       | —                     | LXC-managed          |
-| **300-cloudflare** | cloudflare/cloudflare | ~>5.0   | API token (env)       | DNS/tunnel/access    |
-|                    | integrations/github   | ~>6.6   | Token (env)           | Repo/secret mgmt     |
-| **301-github**     | integrations/github   | ~>6.6   | Token (env)           | Repo/ruleset mgmt    |
-|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching      |
-| **320-slack**      | pablovarela/slack     | ~>1.0   | Token (env)           | Channel management   |
-|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching      |
+| Workspace          | Provider              | Version | Auth Method           | Purpose                |
+| ------------------ | --------------------- | ------- | --------------------- | ---------------------- |
+| **100-pve**        | bpg/proxmox           | ~>0.94  | API token (env)       | LXC/VM provisioning    |
+|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching        |
+| **102-traefik**    | None                  | —       | —                     | Template-only          |
+| **105-elk**        | elastic/elasticstack  | ~>0.13  | API key (env)         | Index/ILM/space mgmt   |
+|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching        |
+| **215-synology**   | synology-community/synology | ~>0.6 | DSM credentials (env) | NAS package/container mgmt |
+|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching        |
+| **300-cloudflare** | cloudflare/cloudflare | ~>5.0   | API token (env)       | DNS/tunnel/access      |
+|                    | hashicorp/random      | ~>3.0   | —                     | Random values          |
+|                    | hashicorp/time        | ~>0.12  | —                     | Time-based rotation    |
+|                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching        |
 
 ### Environment Variables (Required for CI/Local)
 
@@ -220,13 +211,10 @@ export OP_CONNECT_TOKEN="ops_..."
 export OP_CONNECT_HOST="http://192.168.50.112:8090"
 
 # Secondary workspaces
-export GRAFANA_URL="http://192.168.50.104:3000"
-export GRAFANA_AUTH="admin:${GRAFANA_ADMIN_PASSWORD}"
 export ELASTICSEARCH_ENDPOINTS="http://192.168.50.105:9200"
 export ELASTICSEARCH_USERNAME="elastic"
 export ELASTICSEARCH_PASSWORD="${ELK_ELASTIC_PASSWORD}"
 export CLOUDFLARE_API_TOKEN="..."
-export GITHUB_TOKEN="ghp_..."
 ```
 
 ---
@@ -235,12 +223,12 @@ export GITHUB_TOKEN="ghp_..."
 
 | Data Source                                             | Workspace            | Purpose                                        |
 | ------------------------------------------------------- | -------------------- | ---------------------------------------------- |
-| `data "proxmox_virtual_environment_nodes"`              | 100-pve              | Validate Proxmox node availability             |
+| `data "proxmox_virtual_environment_nodes"`              | 100-pve, modules/lxc, modules/vm | Validate Proxmox node availability     |
 | `data "onepassword_vault"`                              | 100-pve (via module) | Resolve vault UUID by name                     |
-| `data "onepassword_item"`                               | 100-pve (via module) | Fetch 12 service secrets                       |
-| `data "grafana_data_source"`                            | 104-grafana          | Reference Prometheus/Elasticsearch datasources |
-| `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare       | Fetch tunnel token                             |
-| `data "terraform_remote_state"`                         | 102, 108, 301        | Cross-workspace state reference (from 100-pve) |
+| `data "onepassword_item"`                               | 100-pve (via module) | Fetch service secrets                          |
+| `data "terraform_remote_state"`                         | 102-traefik          | Cross-workspace state reference (from 100-pve) |
+| `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare       | Fetch tunnel tokens                            |
+| `data "synology_core_network"`                          | 215-synology         | Read NAS network configuration                 |
 
 ---
 
@@ -257,9 +245,28 @@ export GITHUB_TOKEN="ghp_..."
 ### For Workspace-Specific Work
 
 - **Traefik routes**: Edit `/home/jclee/dev/terraform/102-traefik/templates/*.yml.tftpl`
-- **Grafana dashboards**: Edit `/home/jclee/dev/terraform/104-grafana/terraform/main.tf`
 - **ELK pipelines**: Edit `/home/jclee/dev/terraform/105-elk/templates/logstash.conf.tftpl`
 - **Cloudflare DNS**: Edit `/home/jclee/dev/terraform/300-cloudflare/main.tf`
+- **Synology NAS**: Edit `/home/jclee/dev/terraform/215-synology/main.tf`
+
+### Entrypoint Decision Tree
+
+```mermaid
+flowchart TD
+  Need["What do you need to change?"] --> Host["Add or modify LXC/VM"]
+  Need --> Route["Add or modify ingress route"]
+  Need --> Logs["Change ELK pipeline"]
+  Need --> DNS["Change Cloudflare DNS / Access"]
+  Need --> Module["Change reusable module"]
+  Need --> Secret["Add or rotate secret"]
+
+  Host --> PVE["Edit 100-pve/locals.tf and 100-pve/envs/prod/hosts.tf"]
+  Route --> Traefik["Edit 102-traefik/templates/*.yml.tftpl"]
+  Logs --> ELK["Edit 105-elk/templates/logstash.conf.tftpl"]
+  DNS --> CF["Edit 300-cloudflare/*.tf"]
+  Module --> Modules["Edit modules/proxmox/ or modules/shared/"]
+  Secret --> Secrets["Edit modules/shared/onepassword-secrets and 1Password vault"]
+```
 
 ### For Module Development
 

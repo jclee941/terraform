@@ -10,7 +10,7 @@
 
 | Component        | Location                                  | Rules                   |
 | ---------------- | ----------------------------------------- | ----------------------- |
-| Grafana Alerting | `104-grafana/terraform/alerting_rules.tf` | 14 rules, 3 groups      |
+| Grafana Alerting | Template/config pipeline rendered by `100-pve` | 14 rules, 3 groups      |
 | Contact Points   | slack-alerts + alert-log-fallback          | Routes to Slack / logs  |
 
 Alert groups: `homelab-logs`, `mcp-alerts`, `infrastructure-health`
@@ -19,7 +19,7 @@ Alert groups: `homelab-logs`, `mcp-alerts`, `infrastructure-health`
 
 ### 1. Define the Rule
 
-Edit `104-grafana/terraform/alerting_locals.tf` and add under the appropriate group:
+Edit the Grafana alerting template/config source used by the `100-pve` config-renderer pipeline and add under the appropriate group:
 
 ```yaml
 - uid: new-rule-uid

@@ -14,7 +14,6 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 | VMID | Name      | Type | Backup Schedule | Purpose                                   |
 | ---- | --------- | ---- | --------------- | ----------------------------------------- |
 | 102  | traefik   | LXC  | 02:00 UTC daily | Reverse proxy / edge router               |
-| 104  | grafana   | LXC  | 02:00 UTC daily | Observability stack                       |
 | 105  | elk       | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch               |
 | 107  | supabase  | LXC  | 02:00 UTC daily | Supabase BaaS (PostgreSQL, Auth, Storage) |
 | 108  | archon    | LXC  | 02:00 UTC daily | AI Knowledge Management (Archon)          |
@@ -59,14 +58,14 @@ Oldest backup automatically deleted: ~2025-11-11 (90 days old)
 
 ## Backup Execution Details
 
-### LXC Containers (102, 104, 105, 107, 108)
+### LXC Containers (102, 105, 107, 108)
 
 **Schedule**: Daily at **02:00 UTC** (9:00 PM UTC-5)
 **Command**:
 
 ```bash
 pvesh create /cluster/backup \
-  --vmid 102,104,105,107,108 \
+  --vmid 102,105,107,108 \
   --schedule "0 2 * * *" \
   --storage local \
   --mode snapshot \
@@ -131,7 +130,7 @@ pvesh create /cluster/backup \
 
 ## Restore Procedures
 
-### LXC Container Restore (e.g., 104-grafana)
+### LXC Container Restore (example: 105-elk)
 
 **Prerequisites**:
 
@@ -143,13 +142,13 @@ pvesh create /cluster/backup \
 1. **List available backups**:
 
    ```bash
-   ls -lah /var/lib/vz/dump/ | grep 104
+   ls -lah /var/lib/vz/dump/ | grep 105
    ```
 
    Example output:
 
    ```
-   -rw-r--r-- 1 root root 2.1G Feb 11 02:15 vzdump-lxc-104-2026_02_11-02_15_00.tar.zst
+   -rw-r--r-- 1 root root 2.1G Feb 11 02:15 vzdump-lxc-105-2026_02_11-02_15_00.tar.zst
    ```
 
 2. **Restore to new container (105-new)**:
@@ -157,8 +156,8 @@ pvesh create /cluster/backup \
    ```bash
    pvesh create /nodes/pve/lxc \
       --vmid 150 \
-      --hostname grafana-restored \
-     --archive /var/lib/vz/dump/vzdump-lxc-104-2026_02_11-02_15_00.tar.zst
+      --hostname elk-restored \
+     --archive /var/lib/vz/dump/vzdump-lxc-105-2026_02_11-02_15_00.tar.zst
    ```
 
    Or via GUI: Datacenter → Backup → select backup → Restore
@@ -173,14 +172,14 @@ pvesh create /cluster/backup \
 
    ```bash
    pct exec 150 -- ip a
-   pct exec 150 -- systemctl status grafana-server
+   pct exec 150 -- systemctl status docker
    ```
 
 5. **(Optional) Swap old for restored**:
    ```bash
-   pct stop 104 && pct destroy 104
+   pct stop 105 && pct destroy 105
    pct move-storage 150 --storage local
-   sed -i 's/150/104/' /etc/pve/nodes/pve/lxc/150.conf
+   sed -i 's/150/105/' /etc/pve/nodes/pve/lxc/150.conf
    ```
 
 ### VM Restore (e.g., 112-mcphub)
@@ -230,19 +229,19 @@ If you only need to restore a subset of files:
 
    ```bash
    mkdir /tmp/restore
-   tar -xf /var/lib/vz/dump/vzdump-lxc-104-2026_02_11-02_15_00.tar.zst \
+   tar -xf /var/lib/vz/dump/vzdump-lxc-105-2026_02_11-02_15_00.tar.zst \
      -C /tmp/restore --strip-components=1
    ```
 
 2. **Extract specific files**:
 
    ```bash
-   cp /tmp/restore/etc/grafana/grafana.ini /tmp/grafana.ini.bak
+   cp /tmp/restore/opt/elk/docker-compose.yml /tmp/docker-compose.yml.bak
    ```
 
 3. **Restore to running container**:
    ```bash
-   pct push 104 /tmp/grafana.ini.bak /etc/grafana/grafana.ini.restored
+   pct push 105 /tmp/docker-compose.yml.bak /opt/elk/docker-compose.yml.restored
    ```
 
 ## Verification & Testing
@@ -260,13 +259,13 @@ Backups are verified post-creation by Proxmox:
 
 ```bash
 cd /var/lib/vz/dump/
-tar -tzf vzdump-lxc-104-2026_02_11-02_15_00.tar.zst | head -20
+tar -tzf vzdump-lxc-105-2026_02_11-02_15_00.tar.zst | head -20
 ```
 
 **Estimate restore time** (dry-run):
 
 ```bash
-tar -tzf vzdump-lxc-104-2026_02_11-02_15_00.tar.zst | wc -l
+tar -tzf vzdump-lxc-105-2026_02_11-02_15_00.tar.zst | wc -l
 ```
 
 **Monthly restore test** (recommended):
@@ -277,7 +276,7 @@ tar -tzf vzdump-lxc-104-2026_02_11-02_15_00.tar.zst | wc -l
 
 ## Disaster Recovery Scenarios
 
-### Scenario 1: Single Service Failure (e.g., Grafana)
+### Scenario 1: Single Service Failure
 
 1. **Restore to temporary VMID** (e.g., 150)
 2. **Start and verify services**
@@ -321,9 +320,9 @@ tail -50 /var/mail/root
 journalctl -u postfix -f
 ```
 
-### Grafana Alerts
+### Monitoring Alerts
 
-Two backup-related alert rules (in `104-grafana/terraform/alerting_rules.tf`):
+Backup-related alert rules are managed through the monitoring template/config pipeline:
 
 - **Host Silent**: Triggers if a host stops sending logs (possible backup failure)
 - **Disk Usage High**: Alerts if `/var/lib/vz/dump/` exceeds 80% capacity
@@ -352,17 +351,16 @@ Estimated daily backup sizes (with zstd compression):
 | VMID      | Service   | Uncompressed | Compressed (zstd) | Daily Growth |
 | --------- | --------- | ------------ | ----------------- | ------------ |
 | 102       | traefik   | ~500 MB      | ~150 MB           | 150 MB       |
-| 104       | grafana   | ~1.5 GB      | ~400 MB           | 400 MB       |
 | 105       | elk       | ~4.0 GB      | ~1.2 GB           | 1.2 GB       |
 | 112       | mcphub    | ~2.0 GB      | ~600 MB           | 600 MB       |
-| **Total** |           | **8.0 GB**   | **~2.35 GB**      | **~2.35 GB** |
+| **Total** |           | **6.5 GB**   | **~1.95 GB**      | **~1.95 GB** |
 
 ### Retention Storage
 
 With 90-day retention (21 daily + 4 weekly + 3 monthly snapshots):
 
 ```
-~2.35 GB/day × ~28 backups (average) = ~66 GB total retention
+~1.95 GB/day × ~28 backups (average) = ~55 GB total retention
 ```
 
 **Current available**: `/var/lib/vz/dump/` on PVE (check with `df -h`)
@@ -388,4 +386,4 @@ When storage reaches 80%:
 - [vzdump Manual](https://pve.proxmox.com/wiki/Backup_and_Restore#Using_vzdump)
 - [Restore Guide](https://pve.proxmox.com/wiki/Backup_and_Restore#Restoring_Backups)
 - Project: [AGENTS.md](./AGENTS.md)
-- Infrastructure Status: [terraform/envs/prod/hosts.tf](./terraform/envs/prod/hosts.tf)
+- Infrastructure Status: [`100-pve/envs/prod/hosts.tf`](../100-pve/envs/prod/hosts.tf)

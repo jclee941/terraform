@@ -61,17 +61,16 @@ output "rendered_configs" {
 output "required_template_secrets_validation" {
   description = "Fail-fast validation for required 1Password secret keys consumed by rendered templates"
   value       = true
-  # Temporarily disabled - uncomment after adding gitlab_personal_access_token to 1Password
-  # precondition {
-  #   condition = length(local.missing_required_template_secret_keys) == 0
-  #   error_message = format(
-  #     "Missing required 1Password secret keys for template rendering: %s",
-  #     join(
-  #       ", ",
-  #       sort(nonsensitive(local.missing_required_template_secret_keys)),
-  #     ),
-  #   )
-  # }
+  precondition {
+    condition = length(local.missing_required_template_secret_keys) == 0
+    error_message = format(
+      "Missing required 1Password secret keys for template rendering: %s",
+      join(
+        ", ",
+        sort(nonsensitive(local.missing_required_template_secret_keys)),
+      ),
+    )
+  }
 }
 
 output "host_inventory" {

@@ -107,20 +107,6 @@ variable "synology_nas_port" {
   }
 }
 
-variable "access_allowed_emails" {
-  description = "List of email addresses allowed through CF Access"
-  type        = list(string)
-
-  validation {
-    condition     = length(var.access_allowed_emails) > 0
-    error_message = "access_allowed_emails must contain at least one email address."
-  }
-
-  validation {
-    condition     = alltrue([for email in var.access_allowed_emails : can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", email))])
-    error_message = "All entries in access_allowed_emails must be valid email addresses."
-  }
-}
 
 variable "google_oauth_client_id" {
   description = "Google OAuth 2.0 Client ID for CF Access IdP (optional if provided via 1Password)"
@@ -206,13 +192,3 @@ variable "youtube_ip" {
 }
 
 
-variable "homelab_public_ip" {
-  description = "Public IP address of homelab network for CF Access internal bypass"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.homelab_public_ip == null || can(regex("^(\\d{1,3}\\.){3}\\d{1,3}$", var.homelab_public_ip))
-    error_message = "homelab_public_ip must be a valid IPv4 address or null."
-  }
-}

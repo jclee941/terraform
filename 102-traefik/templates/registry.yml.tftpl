@@ -6,6 +6,7 @@ http:
         - websecure
       service: registry
       middlewares:
+        - registry-allowlist@file
         - rate-limit-relaxed@file
       tls:
         certResolver: cf
@@ -16,6 +17,8 @@ http:
       entryPoints:
         - web
       service: registry
+      middlewares:
+        - registry-allowlist@file
       priority: 10
 
   services:

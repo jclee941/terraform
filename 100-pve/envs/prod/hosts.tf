@@ -24,8 +24,17 @@ locals {
       ports = {}
     }
 
+    pbs = {
+      vmid  = 250
+      ip    = "192.168.50.250"
+      roles = ["backup", "pbs"]
+      ports = {
+        api = 8007
+      }
+    }
+
     cliproxy = {
-      vmid  = 100
+      vmid  = 114
       ip    = "192.168.50.114"
       roles = ["proxy", "squid"]
       ports = {
@@ -82,31 +91,6 @@ locals {
       }
     }
 
-    supabase = {
-      vmid  = 107
-      ip    = "192.168.50.107"
-      roles = ["database", "backend-as-a-service", "auth"]
-      ports = {
-        studio            = 3000
-        api               = 8000
-        db                = 5432
-        realtime          = 4000
-        inbucket          = 9000
-        postgres_exporter = 9187
-      }
-    }
-
-    archon = {
-      vmid  = 108
-      ip    = "192.168.50.108"
-      roles = ["ai", "knowledge-management", "mcp"]
-      ports = {
-        ui     = 3737
-        server = 8181
-        mcp    = 8051
-      }
-    }
-
     n8n = {
       vmid  = 110
       ip    = "192.168.50.110"
@@ -152,7 +136,6 @@ locals {
         registry      = 5051
         minio_api     = 9000
         minio_console = 9001
-        gitlab_http   = 8929
       }
     }
     youtube = {

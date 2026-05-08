@@ -4,6 +4,16 @@ Central template rendering pipeline. Takes `.tftpl` templates and a
 variable map (including the hosts inventory), renders them via
 `templatefile()`, and writes output to `tf-configs/` directories.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Inputs["Input variables"] --> Module["Terraform module"]
+  Module --> Resources["Managed resources or rendered templates"]
+  Resources --> Outputs["Output values"]
+  Outputs --> Consumers["Workspace consumers"]
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

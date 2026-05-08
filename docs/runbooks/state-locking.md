@@ -10,7 +10,6 @@ All workspaces use local backend (state files stored alongside each workspace):
 |-----------|------------|
 | 100-pve | `100-pve/terraform.tfstate` |
 | 102-traefik | `102-traefik/terraform/terraform.tfstate` |
-| 104-grafana | `104-grafana/terraform/terraform.tfstate` |
 | 105-elk | `105-elk/terraform/terraform.tfstate` |
 | 108-archon | `108-archon/terraform/terraform.tfstate` |
 | 300-cloudflare | `300-cloudflare/terraform.tfstate` |

@@ -1,6 +1,6 @@
 // Patch MCP SDK inputSchema.type validation for Zod v4 compatibility.
 // Problem: z.literal("object") rejects tools that omit inputSchema.type
-// (e.g., @modelcontextprotocol/server-gitlab uses SDK 1.0.1 which doesn't set type).
+// (e.g., legacy MCP servers using SDK 1.0.1 omit inputSchema.type).
 // Fix: z.literal("object").default("object") — defaults missing type to "object".
 //
 // Affects: node_modules/@modelcontextprotocol/sdk/dist/{cjs,esm}/types.js

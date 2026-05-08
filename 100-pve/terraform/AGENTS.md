@@ -53,6 +53,6 @@ terraform fmt -recursive    # Format all files
 
 ## NOTES
 
-- Memory budget updated (2026-04-08): GitLab Runner increased from 768MB to 3072MB
-- Total dedicated memory: 20 GB + 9.75 GB swap = 29.75 GB effective
-- NFS cache mount configured for LXC 101 at `/srv/gitlab-runner/cache`
+- Memory budget: GitHub Actions Runner (LXC 101) is 3072MB / 1536MB swap.
+- Total dedicated memory: 20 GB + 9.75 GB swap = 29.75 GB effective.
+- NFS cache mount configured for LXC 101 at `/srv/runner/cache`.

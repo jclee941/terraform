@@ -12,6 +12,9 @@ packages:
 
 
 runcmd:
+  - mkdir -p /etc/traefik/dynamic
+  - rm -f /etc/traefik/dynamic/gitlab.yml /etc/traefik/dynamic/gitlab-http.yml
   - systemctl enable filebeat || true
+  - systemctl reload traefik || systemctl restart traefik || true
 
 final_message: "Cloud-init completed for traefik"

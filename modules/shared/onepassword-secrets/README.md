@@ -8,6 +8,16 @@ The module exposes three output maps:
 - `metadata` — stable non-secret metadata kept for backward compatibility
 - `connection_info` — endpoints, URLs, usernames, IDs, and related connection fields
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Inputs["Input variables"] --> Module["Terraform module"]
+  Module --> Resources["Managed resources or rendered templates"]
+  Resources --> Outputs["Output values"]
+  Outputs --> Consumers["Workspace consumers"]
+```
+
 ## 1Password Item Structure
 
 Preferred item structure uses semantic section names with spaces:
@@ -59,6 +69,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_enable_gcp"></a> [enable\_gcp](#input\_enable\_gcp) | Whether to look up GCP secrets from 1Password (requires 'gcp' item in vault) | `bool` | `false` | no |
 | <a name="input_enable_pbs"></a> [enable\_pbs](#input\_enable\_pbs) | Whether to look up PBS secrets from 1Password (requires 'pbs' item in vault) | `bool` | `false` | no |
+| <a name="input_enable_registry"></a> [enable\_registry](#input\_enable\_registry) | Whether to look up Docker Registry (MinIO) secrets from 1Password (requires 'registry' item in vault) | `bool` | `false` | no |
 | <a name="input_enable_synology"></a> [enable\_synology](#input\_enable\_synology) | Whether to look up Synology secrets from 1Password (requires 'synology' item in vault) | `bool` | `false` | no |
 | <a name="input_enable_youtube"></a> [enable\_youtube](#input\_enable\_youtube) | Whether to look up YouTube secrets from 1Password (requires 'youtube' item in vault) | `bool` | `false` | no |
 | <a name="input_vault_name"></a> [vault\_name](#input\_vault\_name) | 1Password vault name containing homelab secrets | `string` | `"homelab"` | no |
