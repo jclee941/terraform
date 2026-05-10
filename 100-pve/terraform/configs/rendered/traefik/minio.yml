@@ -1,10 +1,10 @@
 http:
   routers:
-    registry:
-      rule: Host(`registry.jclee.me`)
+    minio:
+      rule: Host(`minio.jclee.me`)
       entryPoints:
         - websecure
-      service: registry
+      service: minio
       middlewares:
         - registry-allowlist@file
         - rate-limit-relaxed@file
@@ -12,17 +12,18 @@ http:
         certResolver: cf
       priority: 10
 
-    registry-http:
-      rule: Host(`registry.jclee.me`)
+    minio-http:
+      rule: Host(`minio.jclee.me`)
       entryPoints:
         - web
-      service: registry
+      service: minio
       middlewares:
         - registry-allowlist@file
+        - rate-limit-relaxed@file
       priority: 10
 
   services:
-    registry:
+    minio:
       loadBalancer:
         servers:
-          - url: http://192.168.50.215:5051
+          - url: http://192.168.50.215:9001

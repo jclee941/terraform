@@ -25,6 +25,7 @@ homelab.local:53 {
         192.168.50.200 jclee-dev.homelab.local
         192.168.50.112 mcphub.homelab.local
         192.168.50.110 n8n.homelab.local
+        192.168.50.250 pbs.homelab.local
         192.168.50.100 pve.homelab.local
         192.168.50.101 runner.homelab.local
         192.168.50.215 synology.homelab.local

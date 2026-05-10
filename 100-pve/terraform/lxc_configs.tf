@@ -76,6 +76,10 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/nas.yml"
           content = module.config_renderer.rendered_configs.traefik_nas
         }
+        "minio.yml" = {
+          path    = "/etc/traefik/dynamic/minio.yml"
+          content = module.config_renderer.rendered_configs.traefik_minio
+        }
       }
     }
 
