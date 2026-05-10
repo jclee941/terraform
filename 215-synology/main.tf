@@ -11,6 +11,13 @@ provider "synology" {
 
 provider "onepassword" {}
 
+provider "minio" {
+  minio_server   = trimprefix(var.minio_endpoint, "http://")
+  minio_region   = "us-east-1"
+  minio_user     = local.effective_minio_user
+  minio_password = local.effective_minio_password
+}
+
 # -----------------------------------------------------------------------------
 # Data Sources
 # -----------------------------------------------------------------------------
@@ -49,9 +56,10 @@ resource "synology_container_project" "minio" {
       command        = ["server", "/data", "--console-address", ":9001"]
 
       environment = {
-        MINIO_ROOT_USER     = local.effective_minio_user
-        MINIO_ROOT_PASSWORD = local.effective_minio_password
-        MINIO_REGION_NAME   = "us-east-1"
+        MINIO_ROOT_USER            = local.effective_minio_user
+        MINIO_ROOT_PASSWORD        = local.effective_minio_password
+        MINIO_REGION_NAME          = "us-east-1"
+        MINIO_BROWSER_REDIRECT_URL = "https://minio.jclee.me"
       }
 
       ports = [
@@ -126,3 +134,21 @@ resource "synology_container_project" "registry" {
     }
   }
 }
+
+# -------------------------------------------------------------------------
+# MinIO IAM User — Console admin account
+# -------------------------------------------------------------------------
+
+resource "minio_iam_user" "console_admin" {
+  count         = var.minio_console_admin_password != "" ? 1 : 0
+  name          = "admin"
+  secret        = var.minio_console_admin_password
+  force_destroy = true
+}
+
+resource "minio_iam_user_policy_attachment" "console_admin" {
+  count       = length(minio_iam_user.console_admin)
+  user_name   = minio_iam_user.console_admin[0].id
+  policy_name = "consoleAdmin"
+}
+

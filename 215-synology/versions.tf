@@ -12,5 +12,9 @@ terraform {
       source  = "1Password/onepassword"
       version = "~> 3.2"
     }
+    minio = {
+      source  = "aminueza/minio"
+      version = "~> 3.2"
+    }
   }
 }

@@ -144,3 +144,10 @@ variable "minio_share_path" {
   type        = string
   default     = "/docker/minio"
 }
+
+variable "minio_console_admin_password" {
+  description = "Password for the MinIO console admin IAM user"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
