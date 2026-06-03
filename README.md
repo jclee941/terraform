@@ -3,9 +3,9 @@
 [![Terraform](https://img.shields.io/badge/Terraform-1.10.5-7B42BC?logo=terraform)](https://www.terraform.io)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-33%20workflows-2088FF?logo=github-actions)](.github/workflows)
-[![OpenSSF Scorecard](https://img.shields.io/endpoint?url=https://api.scorecard.dev/projects/github.com/jclee/terraform/badge)](https://scorecard.dev)
+[![OpenSSF Scorecard](https://img.shields.io/badge/Scorecard-OpenSSF-green?logo=openssf)](https://scorecard.dev)
 [![Proxmox VE](https://img.shields.io/badge/Proxmox-VE_8.3-E57000?logo=proxmox)](https://www.proxmox.com/)
-[![Infrastructure](https://img.shields.io/badge/Workspaces-21-orange?logo=hashiCorp)](Makefile)
+[![Workspaces](https://img.shields.io/badge/Workspaces-21-orange?logo=hashicorp)](Makefile)
 
 > English version follows Korean content / 한국어 다음에 영어 버전이 이어집니다.
 
@@ -37,19 +37,29 @@ Infrastructure-as-code monorepo for `jclee.me`. Provisions a Proxmox LXC/VM flee
 
 ### Configuration Management / 구성 관리
 
-- **Template-driven config pipeline**: `hosts.tf` → module rendering → `.tftpl` templates → rendered configs → SSH deploy
-- **6 reusable modules**: `proxmox/lxc`, `proxmox/vm`, `proxmox/lxc-config`, `proxmox/vm-config`, `proxmox/config-renderer`, `shared/onepassword-secrets`
+- **Template-driven rendering** via `modules/proxmox/config-renderer` and `.tftpl` templates
+- **Cloud-init** support for LXC and VM provisioning
+- **Systemd service unit** file generation for containerized workloads
+- **Docker Compose** orchestration templates for application stacks
 
 ### Secret Management / 시크릿 관리
 
-- **1Password integration** via `onepassword-secrets` module (12 items, 48+ keys)
-- **Zero hardcoded secrets** in Terraform state or git
+- **1Password integration** via `modules/shared/onepassword-secrets`
+- **12 secret items** with **48 keys** in the `homelab` vault
+- Runtime secret injection through Terraform outputs
 
 ### CI/CD Automation / CI/CD 자동화
 
-- **33 GitHub Actions workflows** covering PR lifecycle, issue management, releases, and security scanning
-- **Automated PR workflows**: branch creation, review assignment, checks, merge, cleanup
-- **Health monitoring**: downstream services, CI failure tracking, auto-heal
+- **33 GitHub Actions workflows** covering the full development lifecycle
+- **Automated PR workflows**: checks, review, merge, cleanup
+- **Issue management**: backfill, classification, health checks
+- **Release engineering**: versioning, publishing, downstream validation
+
+### Monitoring & Observability / 모니터링 및的可观测性
+
+- **ELK Stack integration** (Elasticsearch, Logstash, Kibana) on `<homelab-elk>`
+- **Filebeat** log shipping for all containers
+- **Traefik** reverse proxy with automated route management
 
 ---
 
@@ -57,41 +67,80 @@ Infrastructure-as-code monorepo for `jclee.me`. Provisions a Proxmox LXC/VM flee
 
 ```mermaid
 flowchart LR
-    Agent["User / AI Agent"] --> Repo["Terraform Repo<br/>jclee/terraform"]
+    Agent["User / AI Agent"] --> Repo["Terraform Repo"]
     Repo --> CI["GitHub Actions Runner<br/>LXC 101"]
-    CI --> TF["Terraform<br/>Workspaces"]
+    CI --> TF["Terraform Workspaces"]
     TF --> PVE["100-pve<br/>Central Orchestrator"]
-    PVE --> Fleet["Proxmox LXC / VM Fleet<br/>&lt;homelab-host&gt;/24"]
+    PVE --> Fleet["Proxmox LXC / VM Fleet"]
     TF --> OP["1Password<br/>homelab vault"]
     TF --> CF["Cloudflare<br/>DNS / Access / Tunnel"]
-    Fleet --> ELK["ELK Stack<br/>Logs & Monitoring"]
+    Fleet --> ELK["ELK<br/>Logs and Search"]
     CF --> Traefik["Traefik<br/>Ingress LXC 102"]
     Traefik --> Fleet
-    Fleet --> Apps["Container Apps<br/>n8n, mcphub, youtube"]
 ```
 
-### Workspace Tiers / 워크스페이스 티어
+### Workspace Tiers / 워크스페이스 계층
 
-| Tier | Workspaces | Description |
-| ---- | ---------- | ----------- |
-| 0 (core) | `100-pve` | Central orchestrator — provisions all LXC/VM lifecycle |
-| 1 (infra) | `102-traefik`, `105-elk`, `108-archon`, `110-n8n`, `112-mcphub` | Infrastructure services — consume `remote_state` from 100-pve |
-| 2 (apps) | `200-oc`, `215-synology`, `220-youtube` | VM-based applications |
-| 3 (external) | `300-cloudflare`, `301-github`, `310-safetywallet`, `320-slack` | External cloud services |
-| 4 (cloud) | `400-gcp` | Google Cloud Platform |
+| Tier | Workspaces | Description | Apply Order |
+|------|------------|-------------|-------------|
+| 0 (core) | `100-pve` | Central orchestrator — provisions all LXC/VM lifecycle | First |
+| 1 (infra) | `102-traefik`, `105-elk`, `108-archon`, `107-supabase` | Core infrastructure services | Second (parallel) |
+| 2 (apps) | `110-n8n`, `112-mcphub`, `80-jclee`, `101-runner` | Application workloads | Third |
+| 3 (external) | `300-cloudflare`, `301-github`, `320-slack`, `310-safetywallet` | External cloud services | Any order |
+| 4 (cloud) | `400-gcp` | Google Cloud Platform resources | Any order |
 
-### Module Architecture / 모듈 아키텍처
+### Module Hierarchy / 모듈 계층
+
+```mermaid
+flowchart TD
+    subgraph modules["modules/"]
+        direction TB
+        proxmox["proxmox/"]
+        shared["shared/"]
+        
+        proxmox --> lxc["lxc/"]
+        proxmox --> vm["vm/"]
+        proxmox --> lxc_config["lxc-config/"]
+        proxmox --> vm_config["vm-config/"]
+        proxmox --> config_renderer["config-renderer/"]
+        shared --> onepassword["onepassword-secrets/"]
+    end
+    
+    subgraph workspaces["Workspaces"]
+        100_pve["100-pve"]
+        tier1["Tier 1 Infra"]
+        tier2["Tier 2 Apps"]
+        tier3["Tier 3 External"]
+    end
+    
+    100_pve --> lxc
+    100_pve --> vm
+    100_pve --> lxc_config
+    100_pve --> vm_config
+    100_pve --> config_renderer
+    100_pve --> onepassword
+    tier1 --> onepassword
+    tier2 --> onepassword
+    tier3 --> onepassword
+```
+
+### Config Pipeline / 구성 파이프라인
 
 ```
-modules/
-├── proxmox/
-│   ├── lxc/              # LXC container resource
-│   ├── vm/               # VM resource
-│   ├── lxc-config/       # LXC cloud-init + systemd templates
-│   ├── vm-config/        # VM cloud-init + systemd templates
-│   └── config-renderer/  # Generic config file renderer
-└── shared/
-    └── onepassword-secrets/  # 1Password vault access
+hosts.tf (SSoT)
+    │
+    ▼
+module.hosts
+    │
+    ├──► onepassword_secrets ──► runtime secrets
+    │
+    └──► config_renderer ──► templatefile(.tftpl)
+                                   │
+                                   ▼
+                            configs/ (rendered)
+                                   │
+                                   ▼
+                          SSH deploy to /opt/{service}/
 ```
 
 ---
@@ -100,229 +149,199 @@ modules/
 
 ### GitHub Actions Workflows / GitHub Actions 워크플로우
 
-**33 workflow files** organized by function:
+Total: **33 workflows** across `.github/workflows/` and `security/` directories.
 
-#### PR Lifecycle / PR 라이프사이클
+#### Pull Request Workflows / 풀 리퀘스트 워크플로우
 
-| Workflow File | Description |
-| ------------- | ----------- |
-| `01_branch-to-pr.yml` | Create PR from branch with auto-labeling |
-| `02_issue-to-branch.yml` | Create branch from issue |
-| `03_pr-checks.yml` | PR validation checks (terraform fmt, validate, plan) |
-| `04_actionlint.yml` | Workflow syntax validation |
-| `05_gitleaks.yml` | Secret scanning |
-| `06_codeql.yml` | Code quality analysis |
-| `07_dependency-review.yml` | Dependency vulnerability review |
-| `08_scorecard.yml` | Security scorecard |
-| `09_semantic-pr.yml` | Semantic PR title validation |
-| `10_pr-review.yml` | AI-powered PR review (pr-agent) |
-| `11_pr-review.yml` (security/) | Security-specific PR review |
-| `13_pr-auto-merge.yml` | Auto-merge on approve |
-| `14_bot-auto-fix.yml` | Auto-fix for bot-detected issues |
-| `15_merged-pr-cleanup.yml` | Post-merge cleanup (branch delete, label sync) |
+| Workflow File | Purpose |
+|---------------|---------|
+| `01_branch-to-pr.yml` | Creates PR from feature branch with auto-labeling |
+| `03_pr-checks.yml` | Runs Terraform plan, validation, and tests on PRs |
+| `04_actionlint.yml` | Lints all workflow files with actionlint |
+| `05_gitleaks.yml` | Scans for leaked secrets in code |
+| `06_codeql.yml` | GitHub CodeQL security analysis |
+| `07_dependency-review.yml` | Reviews dependency changes for vulnerabilities |
+| `08_scorecard.yml` | OpenSSF Scorecard security assessment |
+| `09_semantic-pr.yml` | Validates conventional commit / semantic PR titles |
+| `10_pr-review.yml` | AI-powered PR review via [CLIProxy](https://cliproxy.jclee.me/v1) |
+| `13_pr-auto-merge.yml` | Auto-merges PRs meeting criteria |
+| `14_bot-auto-fix.yml` | Applies auto-fixes from bot reviews |
+| `15_merged-pr-cleanup.yml` | Cleans up branches after merge |
+| `security/11_pr-review.yml` | Security-focused PR review |
 
-#### Issue Management / 이슈 관리
+#### Issue Management Workflows / 이슈 관리 워크플로우
 
-| Workflow File | Description |
-| ------------- | ----------- |
-| `18_issue-management.yml` | Issue lifecycle automation |
-| `19_issue-backfill.yml` | Backfill issue metadata |
-| `37_ci-failure-issues.yml` | Create issue on CI failure |
-| `91_issue-classification.yml` | Classify and route issues |
+| Workflow File | Purpose |
+|---------------|---------|
+| `02_issue-to-branch.yml` | Creates branch from issue for development |
+| `18_issue-management.yml` | Manages issue lifecycle and labels |
+| `19_issue-backfill.yml` | Backfills issue metadata and relationships |
+| `37_ci-failure-issues.yml` | Creates issues for CI failures |
+| `43_reusable-issue-management.yml` | Reusable issue management logic |
+| `91_issue-classification.yml` | Classifies and routes issues |
 
-#### Release Management / 릴리스 관리
+#### Release & Deployment Workflows /リリース 및 배포 워크플로우
 
-| Workflow File | Description |
-| ------------- | ----------- |
-| `24_release-notes.yml` | Generate release notes |
-| `25_release-publish.yml` | Publish release |
+| Workflow File | Purpose |
+|---------------|---------|
+| `24_release-notes.yml` | Generates release notes from conventional commits |
+| `25_release-publish.yml` | Publishes releases with artifact handling |
+| `29_downstream-health-check.yml` | Validates downstream services after deployment |
 
-#### Documentation / 문서
+#### Documentation Workflows / 문서화 워크플로우
 
-| Workflow File | Description |
-| ------------- | ----------- |
-| `20_readme-gen.yml` | Auto-generate README |
-| `21_docs-sync.yml` | Sync documentation |
-| `42_reusable-docs-sync.yml` | Reusable docs sync workflow |
+| Workflow File | Purpose |
+|---------------|---------|
+| `20_readme-gen.yml` | Regenerates README from templates |
+| `21_docs-sync.yml` | Syncs documentation across the repo |
+| `42_reusable-docs-sync.yml` | Reusable documentation sync logic |
 
-#### Dependency Management / 의존성 관리
+#### Dependency Management Workflows / 의존성 관리 워크플로우
 
-| Workflow File | Description |
-| ------------- | ----------- |
-| `12_dependabot-auto-merge.yml` | Auto-merge Dependabot PRs |
+| Workflow File | Purpose |
+|---------------|---------|
+| `12_dependabot-auto-merge.yml` | Auto-merges Dependabot PRs |
+| `44_reusable-pr-checks.yml` | Reusable PR validation logic |
+| `45_reusable-gitleaks.yml` | Reusable secret scanning logic |
 
-#### Health & Monitoring / 상태 모니터링
+#### Operational Workflows / 운영 워크플로우
 
-| Workflow File | Description |
-| ------------- | ----------- |
-| `29_downstream-health-check.yml` | Check downstream services |
-| `60_ci-auto-heal.yml` | Auto-heal CI failures |
+| Workflow File | Purpose |
+|---------------|---------|
+| `60_ci-auto-heal.yml` | Auto-heals failing CI pipelines |
+| `ci.yml` | Primary CI pipeline |
+| `auto-merge.yml` | General auto-merge logic |
+| `labeler.yml` | Auto-labels PRs based on paths |
+| `welcome.yml` | Welcomes new contributors |
 
-#### Reusable Workflows / 재사용 가능한 워크플로우
+### Terraform Modules / Terraform 모듈
 
-| Workflow File | Description |
-| ------------- | ----------- |
-| `44_reusable-pr-checks.yml` | Reusable PR checks |
-| `45_reusable-gitleaks.yml` | Reusable gitleaks scan |
-| `43_reusable-issue-management.yml` | Reusable issue management |
-
-#### Utility / 유틸리티
-
-| Workflow File | Description |
-| ------------- | ----------- |
-| `auto-merge.yml` | Generic auto-merge |
-| `ci.yml` | Main CI workflow |
-| `labeler.yml` | PR label management |
-| `welcome.yml` | Welcome message for contributors |
+| Module Path | Purpose |
+|-------------|---------|
+| `modules/proxmox/lxc` | Proxmox LXC container resource |
+| `modules/proxmox/vm` | Proxmox VM resource |
+| `modules/proxmox/lxc-config` | LXC configuration and cloud-init |
+| `modules/proxmox/vm-config` | VM configuration and cloud-init |
+| `modules/proxmox/config-renderer` | Template rendering for service configs |
+| `modules/shared/onepassword-secrets` | 1Password secret injection |
 
 ### Makefile Targets / Makefile 타겟
 
+The `Makefile` provides workspace-abstracted commands for all 21 Terraform workspaces:
+
 ```makefile
-# Terraform operations
-make init              # Initialize Terraform workspace
-make plan              # Create Terraform plan
-make apply             # Apply Terraform plan (disabled - use CI/CD)
-make verify           # Verify configuration
-make validate          # Validate Terraform files
-
-# Code quality
-make lint              # Run all linters
-make lint-go           # Lint Go code (if any)
-make fmt               # Format code
-
-# Testing
-make test              # Run all tests
-make test-unit         # Run unit tests
-make test-integration  # Run integration tests
-make test-workspace    # Run workspace tests
-
-# Documentation
-make docs              # Generate documentation
-
-# Pre-commit
-make pre-commit-install   # Install pre-commit hooks
-make pre-commit-run       # Run pre-commit hooks
-
-# Setup
-make setup             # Initial setup
-make drift-check       # Check for state drift
-
-# Service workspace (SVC=100-pve default)
-make backup            # Backup state
-```
-
-**Workspace alias support:**
-
-| Alias | Workspace | Description |
-| ----- | --------- | ----------- |
-| `jclee` | `80-jclee` | Personal workspace |
-| `pve` | `100-pve` | Proxmox core |
-| `runner` | `101-runner` | GitHub Actions runner |
-| `traefik` | `102-traefik/terraform` | Reverse proxy |
-| `elk` | `105-elk/terraform` | ELK stack |
-| `supabase` | `107-supabase` | Supabase |
-| `archon` | `108-archon/terraform` | Archon |
-| `n8n` | `110-n8n` | n8n workflow |
-| `mcphub` | `112-mcphub` | MCP Hub |
-| `oc` | `200-oc` | Owncast |
-| `synology` | `215-synology` | Synology |
-| `youtube` | `220-youtube` | YouTube services |
-| `cloudflare` | `300-cloudflare` | Cloudflare |
-| `github` | `301-github` | GitHub management |
-| `safetywallet` | `310-safetywallet` | Safety wallet |
-| `slack` | `320-slack` | Slack integration |
-| `gcp` | `400-gcp` | Google Cloud |
-
-**Usage example:**
-
-```bash
-# Target default workspace (100-pve)
-make plan
-
-# Target specific workspace
-SVC=105-elk make plan
-SVC=traefik make init
+SVC ?= 100-pve        # Default workspace
+# Aliases: jclee, pve, runner, traefik, elk, supabase, archon, n8n, mcphub,
+#           oc, synology, youtube, cloudflare, github, safetywallet, slack, gcp
 ```
 
 ---
 
 ## Quick Start / 빠른 시작
 
-### Prerequisites / 사전 조건
+### Prerequisites / 사전 요구사항
 
-- Terraform `>= 1.7, < 2.0`
-- GitHub CLI (`gh`)
-- 1Password CLI (`op`) — for local secret access
-- SSH access to `<homelab-host>`
+- **Terraform** `>= 1.7, < 2.0` (tested with `1.10.5`)
+- **Proxmox VE** `8.3` (for local infrastructure)
+- **1Password CLI** (`op`) for secret access
+- **Git** for version control
 
-### Clone and Setup / 클론 및 설정
+### Clone and Initialize / 클론 및 초기화
 
 ```bash
+# Clone the repository
 git clone https://github.com/jclee/terraform.git
 cd terraform
-make setup
-```
 
-### Initialize Workspace / 워크스페이스 초기화
-
-```bash
-# Default (100-pve)
+# Initialize the default workspace (100-pve)
 make init
 
-# Specific workspace
-SVC=105-elk make init
+# Or initialize a specific workspace
+SVC=elk make init
+SVC=traefik make init
 ```
 
-### Plan Changes / 변경 사항 계획
+### Plan Changes / 변경 계획
 
 ```bash
+# Plan default workspace
 make plan
+
+# Plan specific workspace
+SVC=pve make plan
+SVC=cloudflare make plan
 ```
 
 ---
 
 ## Local Development / 로컬 개발
 
-### Environment Setup / 환경 설정
+### Workspace Aliases / 워크스페이스 별칭
+
+The Makefile supports short aliases for convenience:
+
+| Alias | Workspace | Description |
+|-------|-----------|-------------|
+| `pve` | `100-pve` | Proxmox central orchestrator |
+| `runner` | `101-runner` | GitHub Actions runner |
+| `traefik` | `102-traefik/terraform` | Reverse proxy |
+| `elk` | `105-elk/terraform` | ELK stack |
+| `supabase` | `107-supabase` | Supabase |
+| `archon` | `108-archon/terraform` | Archon service |
+| `n8n` | `110-n8n` | n8n workflow automation |
+| `mcphub` | `112-mcphub` | MCP Hub |
+| `oc` | `200-oc` | Owncast |
+| `synology` | `215-synology` | Synology NAS |
+| `youtube` | `220-youtube` | YouTube backup |
+| `cloudflare` | `300-cloudflare` | Cloudflare DNS/Access |
+| `github` | `301-github` | GitHub repo management |
+| `safetywallet` | `310-safetywallet` | SafetyWallet |
+| `slack` | `320-slack` | Slack integration |
+| `gcp` | `400-gcp` | Google Cloud Platform |
+
+### Development Workflow / 개발 워크플로우
 
 ```bash
-# Install pre-commit hooks
-make pre-commit-install
+# 1. Create a feature branch from an issue
+# (Use 02_issue-to-branch.yml workflow or manual)
+git checkout -b feature/my-new-service
 
-# Run pre-commit checks
-make pre-commit-run
+# 2. Make changes to the appropriate workspace
+SVC=pve make plan
 
-# Format code
-make fmt
-
-# Lint
+# 3. Validate and lint
 make lint
+make validate
+
+# 4. Run tests
+make test        # All tests
+make test-unit   # Unit tests only
+
+# 5. Commit using conventional commits
+git commit -m "feat(pve): add new LXC for service"
+
+# 6. Push and create PR
+# (Handled by 01_branch-to-pr.yml workflow)
 ```
 
-### Testing / 테스트
+### Running Tests / 테스트 실행
 
 ```bash
-# Unit tests
+# Run all tests
+make test
+
+# Run unit tests
 make test-unit
 
-# Integration tests
+# Run integration tests
 make test-integration
 
-# Workspace tests
+# Run tests for specific workspace
+SVC=pve make test
+
+# Run workspace-specific tests
 make test-workspace
-
-# All tests
-make test
 ```
-
-### Config Pipeline / 구성 파이프라인
-
-1. Edit `100-pve/envs/prod/hosts.tf` (SSoT)
-2. Module renders templates via `config-renderer`
-3. Outputs to `100-pve/configs/rendered/`
-4. CI deploys via SSH to `/opt/{service}/`
-
-**Never hand-edit rendered configs** — they are regenerated on every apply.
 
 ---
 
@@ -331,114 +350,185 @@ make test
 ### Terraform Commands / Terraform 명령어
 
 | Command | Description |
-| ------- | ----------- |
-| `make init` | Initialize Terraform provider and modules |
-| `make plan` | Generate execution plan |
-| `make apply` | Apply changes (disabled locally) |
-| `make verify` | Verify configuration consistency |
-| `make validate` | Validate Terraform syntax |
-| `make drift-check` | Compare state with actual infrastructure |
+|---------|-------------|
+| `make init` | Initialize Terraform provider and backend |
+| `make plan` | Create execution plan |
+| `make apply` | Apply changes (disabled — use CI/CD) |
+| `make verify` | Verify configuration |
+| `make validate` | Validate HCL syntax |
+| `make fmt` | Format Terraform files |
+| `make drift-check` | Detect infrastructure drift |
+| `make backup` | Backup state before changes |
 
-### Code Quality / 코드 품질
+### Testing Commands / 테스트 명령어
 
 | Command | Description |
-| ------- | ----------- |
-| `make fmt` | Format HCL and Go files |
-| `make lint` | Run all linters |
-| `make lint-go` | Lint Go code |
+|---------|-------------|
+| `make test` | Run all tests |
+| `make test-unit` | Run unit tests only |
+| `make test-integration` | Run integration tests |
+| `make test-workspace` | Run workspace-specific tests |
 
-### Service-Specific / 서비스별
+### Quality Assurance / 품질 관리
+
+| Command | Description |
+|---------|-------------|
+| `make lint` | Run all linters (Terraform, Go, etc.) |
+| `make lint-go` | Lint Go code |
+| `make docs` | Generate documentation |
+
+### Pre-commit / Pre-commit
 
 ```bash
-# Backup
-make backup
+# Install pre-commit hooks
+make pre-commit-install
 
-# Specific workspace
-SVC=300-cloudflare make init
-SVC=301-github make plan
+# Run pre-commit hooks manually
+make pre-commit-run
 ```
 
-### CI/CD Workflows / CI/CD 워크플로우
+### Environment Variables / 환경 변수
 
-**PR Creation:**
-
-1. Push branch → `01_branch-to-pr.yml` creates PR
-2. PR opened → `03_pr-checks.yml` runs validation
-3. Review requested → `10_pr-review.yml` AI review
-
-**PR Merge:**
-
-1. Approved + passing → `13_pr-auto-merge.yml` merges
-2. Merged → `15_merged-pr-cleanup.yml` cleanup
-
-**Issue Management:**
-
-1. Issue created → `18_issue-management.yml` triages
-2. CI failure → `37_ci-failure-issues.yml` creates issue
-3. Release → `24_release-notes.yml` + `25_release-publish.yml`
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SVC` | `100-pve` | Target workspace (path or alias) |
+| `TF_DIR` | Derived from `SVC` | Resolved Terraform directory |
 
 ---
 
 ## Contribution Guide / 기여 가이드
 
-### Workflow / 작업 흐름
+### Branch Strategy / 브랜치 전략
 
-1. **Fork and branch**: Create feature branch from `master`
-2. **Commit**: Follow [CODE_STYLE.md](CODE_STYLE.md) conventions
-3. **Push**: Open PR via `01_branch-to-pr.yml` or manually
-4. **Review**: AI review via `10_pr-review.yml`, human review required
-5. **Merge**: Auto-merge on approval, or manual
-6. **Cleanup**: `15_merged-pr-cleanup.yml` handles branch deletion
+- `master` — production-ready state, protected
+- `feature/*` — feature branches from issues
+- `bugfix/*` — bug fix branches from issues
+- `docs/*` — documentation-only branches
 
-### Naming Conventions / 명명 규칙
+### Commit Convention / 커밋 규칙
 
-- **Workspaces**: `NNN-{service}` (e.g., `100-pve`, `105-elk`)
-- **Modules**: `modules/{provider}/{resource}` (e.g., `modules/proxmox/lxc`)
-- **Templates**: `*.tftpl` extension
-- **Workflows**: `NN_{description}.yml` prefix for ordering
+This project follows **Conventional Commits**:
 
-### Adding New Infrastructure / 새 인프라 추가
+```
+<type>(<scope>): <subject>
 
-1. Add host entry to `100-pve/envs/prod/hosts.tf`
-2. Define sizing in `100-pve/locals.tf`
-3. Create/update `.tftpl` templates in service workspace
-4. PR triggers `03_pr-checks.yml` validation
-5. Merge applies changes via CI
+Types: feat, fix, docs, style, refactor, test, chore, ci, ops
+Scope: workspace or module name (e.g., pve, elk, traefik)
+```
 
-### Secret Management / 시크릿 관리
+Examples:
+
+```bash
+git commit -m "feat(pve): add new LXC for coredns"
+git commit -m "fix(elk): update logstash pipeline"
+git commit -m "docs(readme): update architecture diagram"
+git commit -m "ci(github): add new repository"
+```
+
+### Pull Request Process / 풀 리퀘스트 프로세스
+
+1. **Create PR** from `feature/*` branch (automated via `01_branch-to-pr.yml`)
+2. **Automated checks** run via `03_pr-checks.yml`:
+   - Terraform plan
+   - Validation
+   - Unit tests
+   - Integration tests
+3. **AI Review** performed via [CLIProxy](https://cliproxy.jclee.me/v1) (`10_pr-review.yml`)
+4. **Security scan** via `05_gitleaks.yml` and `06_codeql.yml`
+5. **Auto-merge** if all checks pass (`13_pr-auto-merge.yml`)
+6. **Cleanup** after merge (`15_merged-pr-cleanup.yml`)
+
+### Adding a New Workspace / 새 워크스페이스 추가
+
+1. Create directory with numeric prefix (e.g., `115-newapp/`)
+2. Add `main.tf`, `variables.tf`, `outputs.tf`
+3. Register alias in `Makefile` `ALIAS_*` map if needed
+4. Add to appropriate tier in documentation
+5. Create initial PR with workflow triggers
+
+### Adding a New LXC/VM / 새 LXC/VM 추가
+
+1. Edit `100-pve/locals.tf` for sizing definitions
+2. Edit `100-pve/envs/prod/hosts.tf` for host entry (SSoT)
+3. Create service config templates if needed
+4. Run `SVC=pve make plan` to validate
+
+### Adding Secrets / 시크릿 추가
 
 1. Add secret to 1Password `homelab` vault
-2. Reference via `module.onepassword_secrets.secrets["key"]`
-3. Never commit raw secrets or `.tfstate` with secrets
+2. Update `modules/shared/onepassword-secrets/main.tf`
+3. Reference via `module.onepassword_secrets.secrets["key"]`
 
-### Documentation / 문서
+### Module Development / 모듈 개발
 
-- Update `ARCHITECTURE.md` for architecture changes
-- Update `DEPENDENCY_MAP.md` for module changes
-- Update `AGENTS.md` for agent knowledge
-- Run `make docs` to regenerate docs
+1. Develop in `modules/proxmox/` or `modules/shared/`
+2. Add tests in `*_test.tftest.hcl`
+3. Update module documentation
+4. Version and release
 
-### Security / 보안
+---
 
-- Run `make lint` before commit
-- Scan secrets with `05_gitleaks.yml`
-- Review dependencies via `07_dependency-review.yml`
-- Check scorecard via `08_scorecard.yml`
+## Repository Structure / 저장소 구조
+
+```
+terraform/
+├── .github/
+│   ├── workflows/              # 33 GitHub Actions workflows
+│   └── security/               # Security-specific workflows
+├── modules/
+│   ├── proxmox/                # Proxmox resource modules
+│   │   ├── lxc/                # LXC container module
+│   │   ├── vm/                 # VM module
+│   │   ├── lxc-config/         # LXC configuration module
+│   │   ├── vm-config/          # VM configuration module
+│   │   └── config-renderer/     # Template rendering module
+│   └── shared/                 # Shared modules
+│       └── onepassword-secrets/ # 1Password integration
+├── 100-pve/                     # Tier 0: Central orchestrator
+├── 10x-{svc}/                   # Tier 1: Infrastructure services
+├── 11x-{svc}/                   # Tier 1: Application services
+├── 2xx-{svc}/                   # Tier 2: VM-based workloads
+├── 3xx-{svc}/                   # Tier 3: External services
+├── 400-gcp/                     # Tier 4: GCP resources
+├── docs/                        # Architecture docs and runbooks
+├── tests/                       # Terraform test suites
+├── AGENTS.md                    # AI agent knowledge base
+├── ARCHITECTURE.md              # Full architecture reference
+├── CODE_STYLE.md                # Coding conventions
+├── DEPENDENCY_MAP.md            # Module dependency graph
+├── CONTRIBUTING.md              # Contribution guidelines
+├── Makefile                     # Workspace-abstracted commands
+└── README.md                    # This file
+```
+
+---
+
+## External Integrations / 외부 통합
+
+| Service | Integration | Documentation |
+|---------|-------------|---------------|
+| [CLIProxy](https://cliproxy.jclee.me/v1) | AI PR Review | `10_pr-review.yml` |
+| [1Password](https://1password.com) | Secret Management | `modules/shared/onepassword-secrets/` |
+| [Cloudflare](https://cloudflare.com) | DNS / Access / Tunnel | `300-cloudflare/` |
+| [GitHub](https://github.com) | Repo Management | `301-github/` |
+| [OpenSSF Scorecard](https://scorecard.dev) | Security Assessment | `08_scorecard.yml` |
+| [HashiCorp Terraform](https://terraform.io) | IaC | All workspaces |
 
 ---
 
 ## License / 라이선스
 
-MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
 ---
 
-## Support / 지원
+## Badges Reference / 배지 참조
 
-- **Issues**: Use GitHub Issues for bugs and feature requests
-- **Documentation**: See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/](docs/)
-- **Discussion**: GitHub Discussions for questions
-
----
-
-*This README is auto-generated. Last update: 2026-03-24*
+| Badge | Source |
+|-------|--------|
+| Terraform | `https://img.shields.io/badge/Terraform-1.10.5-7B42BC?logo=terraform` |
+| GitHub Actions | `https://img.shields.io/badge/GitHub_Actions-33%20workflows-2088FF?logo=github-actions` |
+| Scorecard | `https://img.shields.io/endpoint?url=https://api.scorecard.dev/projects/github.com/jclee/terraform/badge` |
+| Proxmox VE | `https://img.shields.io/badge/Proxmox-VE_8.3-E57000?logo=proxmox` |
