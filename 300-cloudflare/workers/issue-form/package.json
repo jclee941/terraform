@@ -14,7 +14,7 @@
     "format": "prettier --write 'src/**/*.ts'"
   },
   "dependencies": {
-    "hono": "^4.11.10"
+    "hono": "^4.12.21"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250224.0",
