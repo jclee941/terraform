@@ -49,26 +49,28 @@ override_module {
       grafana_service_account_token = "mock-secret" # pragma: allowlist secret
       proxmox_api_token_value       = "mock-secret" # pragma: allowlist secret
 
-      supabase_service_key         = "mock-secret" # pragma: allowlist secret
-      archon_anthropic_key         = "mock-secret" # pragma: allowlist secret
-      cloudflare_api_key           = "mock-secret" # pragma: allowlist secret
-      n8n_api_key                  = "mock-secret" # pragma: allowlist secret
-      n8n_github_token             = "mock-secret" # pragma: allowlist secret
-      cloudflare_api_token         = "mock-secret" # pragma: allowlist secret
-      n8n_postgres_password        = "mock-secret" # pragma: allowlist secret
-      n8n_encryption_key           = "mock-secret" # pragma: allowlist secret
-      traefik_htpasswd_hash        = "mock-secret" # pragma: allowlist secret
-      slack_webhook_url            = "mock-secret" # pragma: allowlist secret
-      cloudflare_tunnel_token      = "mock-secret" # pragma: allowlist secret
-      google_oauth_client_id       = "mock-secret" # pragma: allowlist secret
-      google_oauth_client_secret   = "mock-secret" # pragma: allowlist secret
-      slack_bot_token              = "mock-secret" # pragma: allowlist secret
-      pbs_password                 = "mock-secret" # pragma: allowlist secret
-      synology_user                = "mock-secret" # pragma: allowlist secret
-      synology_password            = "mock-secret" # pragma: allowlist secret
-      youtube_google_client_id     = "mock-secret" # pragma: allowlist secret
-      youtube_google_client_secret = "mock-secret" # pragma: allowlist secret
-      youtube_google_refresh_token = "mock-secret" # pragma: allowlist secret
+      supabase_service_key         = "mock-secret"  # pragma: allowlist secret
+      archon_anthropic_key         = "mock-secret"  # pragma: allowlist secret
+      cloudflare_api_key           = "mock-secret"  # pragma: allowlist secret
+      n8n_api_key                  = "mock-secret"  # pragma: allowlist secret
+      n8n_github_token             = "mock-secret"  # pragma: allowlist secret
+      cloudflare_api_token         = "mock-secret"  # pragma: allowlist secret
+      n8n_postgres_password        = "mock-secret"  # pragma: allowlist secret
+      n8n_encryption_key           = "mock-secret"  # pragma: allowlist secret
+      traefik_htpasswd_hash        = "mock-secret"  # pragma: allowlist secret
+      slack_webhook_url            = "mock-secret"  # pragma: allowlist secret
+      cloudflare_tunnel_token      = "mock-secret"  # pragma: allowlist secret
+      google_oauth_client_id       = "mock-secret"  # pragma: allowlist secret
+      google_oauth_client_secret   = "mock-secret"  # pragma: allowlist secret
+      slack_bot_token              = "mock-secret"  # pragma: allowlist secret
+      pbs_password                 = "mock-secret"  # pragma: allowlist secret
+      registry_minio_user          = "test-mc-user" # pragma: allowlist secret
+      registry_minio_password      = "test-mc-pass" # pragma: allowlist secret
+      synology_user                = "mock-secret"  # pragma: allowlist secret
+      synology_password            = "mock-secret"  # pragma: allowlist secret
+      youtube_google_client_id     = "mock-secret"  # pragma: allowlist secret
+      youtube_google_client_secret = "mock-secret"  # pragma: allowlist secret
+      youtube_google_refresh_token = "mock-secret"  # pragma: allowlist secret
     }
     metadata = {
       supabase_url                = "https://supabase.jclee.me"
@@ -87,6 +89,28 @@ override_module {
   }
 }
 
+
+
+# --- BuildKit S3 cache credentials: must use registry 1Password secrets ---
+
+run "test_buildkit_minio_credentials_use_registry_secrets" {
+  command = plan
+
+  assert {
+    condition     = terraform.workspace != "" && !can(regex("minioadmin", file("../../../100-pve/terraform/vm_configs.tf")))
+    error_message = "100-pve VM BuildKit S3 cache config must not hardcode minioadmin."
+  }
+
+  assert {
+    condition     = terraform.workspace != "" && can(regex("registry_minio_user", file("../../../100-pve/terraform/vm_configs.tf"))) && can(regex("registry_minio_password", file("../../../100-pve/terraform/vm_configs.tf")))
+    error_message = "100-pve VM BuildKit S3 cache config must reference registry_minio_user and registry_minio_password from 1Password."
+  }
+
+  assert {
+    condition     = terraform.workspace != "" && can(regex("enable_registry\\s*=\\s*var\\.enable_registry", file("../../../100-pve/terraform/secrets.tf")))
+    error_message = "100-pve must pass var.enable_registry into module.onepassword_secrets."
+  }
+}
 
 # =============================================================================
 # NEGATIVE TESTS — Invalid Variable Values
