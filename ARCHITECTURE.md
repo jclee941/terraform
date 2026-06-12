@@ -29,11 +29,13 @@ Homelab infrastructure-as-code monorepo. Provisions a Proxmox LXC/VM fleet, netw
 terraform/
 ├── 80-jclee/                     # Personal workspace (skeleton)
 ├── 100-pve/                      # Tier 0: Central orchestrator (all LXC/VM lifecycle)
-│   ├── main.tf                   # Providers, module calls
-│   ├── locals.tf                 # Sizing, VM defs, config maps
-│   ├── checks.tf                 # TF 1.5+ validation checks
-│   ├── firewall.tf               # Proxmox firewall rules
-│   ├── variables.tf              # Input variables with validation
+│   ├── terraform/                # Root module (.tf files live here, not at workspace root)
+│   │   ├── main.tf               # Providers, module calls
+│   │   ├── locals.tf             # Sizing, VM defs, config maps
+│   │   ├── checks.tf             # TF 1.5+ validation checks
+│   │   ├── firewall.tf           # Proxmox firewall rules (module.firewall_*)
+│   │   ├── variables.tf          # Input variables with validation
+│   │   └── versions.tf           # required_version, backend, required_providers
 │   ├── envs/prod/hosts.tf        # SSoT: all host IPs, VMIDs, roles, ports
 │   └── configs/                  # Rendered outputs (never hand-edit)
 ├── 101-runner/                   # Template-only: GitHub Actions runner
@@ -72,6 +74,13 @@ terraform/
 ├── DEPENDENCY_MAP.md             # Module dependency graph + template inventory
 └── Makefile                      # Build/lint/test/verify targets
 ```
+
+> **Layout convention**: Active workspaces keep their root module under a nested
+> `{workspace}/terraform/` directory (e.g. `100-pve/terraform/`, `102-traefik/terraform/`,
+> `105-elk/terraform/`, `300-cloudflare/terraform/`). The Makefile aliases resolve to these
+> nested paths. The one exception is `215-synology/`, whose `.tf` files live at the workspace
+> root. `make` targets (`fmt`, `validate`, `lint`) scan the directories that actually contain
+> `.tf` (see `TF_WORKSPACE_DIRS` in the Makefile), so both layouts are covered.
 
 ## Workspace Tiers
 
@@ -208,7 +217,7 @@ flowchart LR
 
 - **Backend**: `backend "local" {}` — state files stored alongside each workspace.
 - **Locking**: No remote locking. CI concurrency groups provide serialization.
-- **State files**: Committed to git (`.tfstate` tracked per workspace).
+- **State files**: Git-ignored (`*.tfstate` excluded via `.gitignore`). State lives locally beside each workspace and is recreated/refreshed via CI.
 
 ## Secrets
 

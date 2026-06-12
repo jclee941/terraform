@@ -49,21 +49,27 @@ Every workspace and module follows this structure:
 
 ### Workspace Layout
 
-Active Terraform workspaces (e.g., `100-pve/`):
+Active Terraform workspaces keep their root module under a nested `terraform/`
+directory (e.g., `100-pve/terraform/`). The sole exception is `215-synology/`,
+which keeps its `.tf` files at the workspace root.
 
 ```
 {workspace}/
-├── main.tf
-├── variables.tf
-├── outputs.tf
-├── versions.tf
-├── locals.tf           # If needed
-├── data.tf             # If needed
+├── terraform/          # Root module — all .tf files live here
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── versions.tf     # required_version, backend, required_providers
+│   ├── locals.tf       # If needed
+│   └── data.tf         # If needed
 ├── envs/prod/          # Environment-specific config (100-pve only)
 ├── templates/          # .tftpl files for config-renderer
 ├── configs/            # Rendered outputs (never hand-edit)
 └── AGENTS.md
 ```
+
+> `215-synology/` is flat: `main.tf`, `variables.tf`, etc. sit directly at
+> `215-synology/` with no `terraform/` subdirectory.
 
 Template-only workspaces:
 
