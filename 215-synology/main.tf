@@ -147,8 +147,7 @@ resource "minio_iam_user" "console_admin" {
 }
 
 resource "minio_iam_user_policy_attachment" "console_admin" {
-  count       = length(minio_iam_user.console_admin)
+  count       = var.minio_console_admin_password != "" ? 1 : 0
   user_name   = minio_iam_user.console_admin[0].id
   policy_name = "consoleAdmin"
 }
-

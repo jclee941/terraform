@@ -1,5 +1,20 @@
 terraform {
   required_version = ">= 1.7, < 2.0"
+
+  required_providers {
+    synology = {
+      source  = "synology-community/synology"
+      version = "~> 0.6"
+    }
+    onepassword = {
+      source  = "1Password/onepassword"
+      version = "~> 3.2"
+    }
+    minio = {
+      source  = "aminueza/minio"
+      version = "~> 3.2"
+    }
+  }
 }
 
 variable "synology_host" {

@@ -1,0 +1,61 @@
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/1password/onepassword" {
+  version     = "3.3.1"
+  constraints = "~> 3.2"
+  hashes = [
+    "h1:35PCpSNLVubReT1imwfC+FpIP5gQWx+rvG4njkXkZKM=",
+    "zh:02d93a7f520ec69ad8944a68dcbf512e2f9920a6696628b8d05e6ad408309f35",
+    "zh:0f91a902da84470af95f0da4dc21127b84e23c856a431ff9ecfe45d9c6775ef0",
+    "zh:161bc55c466214a5d425ba85753d74ed5078212db965f726e6650d2e1524d633",
+    "zh:3de4a9f212e1046016a3ace8816e2cb15cfb7b9579161e468a08b9034d6a5f51",
+    "zh:730105346065ea3d2bd6acc6f5fe36f7b8a2b54c513d20a46bcd51d656e82bb4",
+    "zh:890df766e9b839623b1f0437355032a3c006226a6c200cd911e15ee1a9014e9f",
+    "zh:c29f6025d099bc8f1f96e7bb4cd66c5d07209b4141d2fd7720228cf20c9c8efd",
+    "zh:d8ea431d396986ca6baf033fa9aaccb73d6a9f9b7d42bea7af8dc73b9ef20297",
+  ]
+}
+
+provider "registry.terraform.io/aminueza/minio" {
+  version     = "3.38.1"
+  constraints = "~> 3.2"
+  hashes = [
+    "h1:RPiEWHf8qQFmd8ahWPy53WDMHuOWhVATVThltPp32BI=",
+    "zh:0467780e774ae205f8c9e761fd505d135234c230951c0151ee9ffd69df6604d5",
+    "zh:300882809f0e13fbba3525570038cbd4a46c2a8c63a30507d9819fcdab0b8eff",
+    "zh:384d324b5bc5792b413553af6a0461600bd114c511391ca6d9291fdc599d0ef5",
+    "zh:49a23532f4f32822d60782f717ce7a0725521a95802b74950b3e7f28467be131",
+    "zh:56ad7321a51af1e287ad733746c580c27817b513c8525f4377551c77bb601969",
+    "zh:7923fe9e3ef27406de277634da38e297f70cce4eebd30af4d85351da5f75814a",
+    "zh:96323556c643c196490f34817ffe6b389a567b93bec837ba53f2b66c05edf601",
+    "zh:967e16527644dbc4260becf89894814db10c87d0914961e79ad4383c7bc9e5c7",
+    "zh:ae4dc3072b1b0e68bdcb29f1ea067aa3f32ccddf9201f07422ff6b7333ca8b45",
+    "zh:cfbb1f9cd75cd4deddd0aebdc16ed2ac66a4dd14878ac1b1af43f075401ea7d6",
+    "zh:d56c2e782501faea059f2da7dd2ef27c9eeae721a1d3d4486a67a0ef1fce3530",
+    "zh:edd1cec091e873bd718d7a4a70c84c094a6c26a17bcfc4acf3719dd9816bee09",
+    "zh:fc231f1f0e7c5c8756c9a5582abce3230d642786f09f0a72fc5326502e6b7110",
+  ]
+}
+
+provider "registry.terraform.io/synology-community/synology" {
+  version     = "0.6.11"
+  constraints = "~> 0.6"
+  hashes = [
+    "h1:tHEYXz1rc94y71GuC/k5XodktxArit3Bm8kaC1wtroY=",
+    "zh:3c60d349f34f9381927fcdf03670c434630e1f6168fa2866813008c8077a63c5",
+    "zh:476bc1b0fd66987c1ed0dd0bbbb6c4317d29dad7b3c0e007a5fa8a95069e5641",
+    "zh:570b8610ce6b8863bf62aa34be7bccf386873d83028838085980f84e737a9c47",
+    "zh:6330187d44e04ccf517677b00f1c90e14efb954b7d08a84cf6b5e9b0a0c40893",
+    "zh:860173b9befc400c92a78e6d206a12f2a644aec6b3de02c8598b32da5e42a802",
+    "zh:890df766e9b839623b1f0437355032a3c006226a6c200cd911e15ee1a9014e9f",
+    "zh:90ca05852397e5b7a0b93f8ed0678af10835cf534005c3177a772707bdb74a5c",
+    "zh:9f912c431322775cf62ff6911cc82346d4a5499b34f74d162dff902dba0ccd97",
+    "zh:e1b5cce6d8b2e0392b337ab4474f0b5f8a23ca0155c61805f0552aecb727bc8b",
+    "zh:ea1b224c28160d55df39b291a456b12b65904946bca36a565e731b8b7eacf6de",
+    "zh:ec094d04ce9a2bf7de63f1ec52ad4a7d471be7a6f2df27a6f1a0a14fe83788c9",
+    "zh:f275529f8cfe359537bf75a0d5744d554ba5fad3a7faa5e2c0f8ecaa16060f8d",
+    "zh:fd0d12d7e76336d760912483f43283f74e57791386071a06dac6559da0d76a59",
+    "zh:ff0c80af0354601f72ba253ce4b4054f8886538ba6ee16a3ec7ddad7929f0077",
+  ]
+}
