@@ -65,19 +65,14 @@ terraform test
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_ilm"></a> [ilm](#module\_ilm) | ../../modules/elasticstack/ilm_policy | n/a |
+| <a name="module_index_templates"></a> [index\_templates](#module\_index\_templates) | ../../modules/elasticstack/index_template | n/a |
 | <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../../modules/shared/onepassword-secrets | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [elasticstack_elasticsearch_index_lifecycle.homelab_logs_30d](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_lifecycle) | resource |
-| [elasticstack_elasticsearch_index_lifecycle.homelab_logs_critical_90d](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_lifecycle) | resource |
-| [elasticstack_elasticsearch_index_lifecycle.homelab_logs_ephemeral_7d](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_lifecycle) | resource |
-| [elasticstack_elasticsearch_index_template.logs](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_template) | resource |
-| [elasticstack_elasticsearch_index_template.logs_cloudflare_workers](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_template) | resource |
-| [elasticstack_elasticsearch_index_template.logs_critical](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_template) | resource |
-| [elasticstack_elasticsearch_index_template.logs_ephemeral](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_index_template) | resource |
 | [elasticstack_elasticsearch_snapshot_repository.homelab_backups](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/elasticsearch_snapshot_repository) | resource |
 | [elasticstack_kibana_data_view.logs](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/kibana_data_view) | resource |
 | [elasticstack_kibana_data_view.service_logs](https://registry.terraform.io/providers/elastic/elasticstack/latest/docs/resources/kibana_data_view) | resource |

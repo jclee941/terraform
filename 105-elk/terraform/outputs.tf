@@ -1,11 +1,11 @@
 output "ilm_policy_homelab_logs" {
   description = "Name of the homelab-logs-30d ILM policy"
-  value       = elasticstack_elasticsearch_index_lifecycle.homelab_logs_30d.name
+  value       = module.ilm["logs_30d"].name
 }
 
 output "index_template_logs" {
   description = "Name of the logs index template"
-  value       = elasticstack_elasticsearch_index_template.logs.name
+  value       = module.index_templates["logs"].name
 }
 
 output "kibana_space_id" {
