@@ -62,13 +62,14 @@ The real debt is **structural inconsistency, copy-paste duplication, and a few c
 
 ## Execution Status (what was actually done)
 
-Executed as 11 separate commits on `master` (not pushed). `terraform apply` never run (CI/CD only); verified via `terraform validate` / `terraform test` (plan-level, mock providers) / `terraform fmt`.
+Executed as the R2-R12 refactor commits plus follow-up hardening/verification/report commits on `master` (not pushed). `terraform apply` never run (CI/CD only); verified via `terraform validate` / `terraform test` (plan-level, mock providers) / `terraform fmt`.
 
 | ID | Status | Commit | Note |
 | --- | --- | --- | --- |
 | R1 | DROPPED | — | False positive: `aminueza/minio 3.34.0`, `~> 3.2` correct. |
 | R2 | DONE | `3528944` | synology minio policy count mirrors upstream condition; both states pinned by test. |
 | R3 | DONE | `d5df3d0` | 5 `minioadmin` literals → 1Password; `enable_registry=true` wired; grep=0. |
+| R3b | DONE | `618cb40` + test | Blocking `terraform_data` precondition guard (not a warn-only `check`) fails plan when `enable_registry=true` and registry user/password are empty or still `minioadmin`; static-assertion test in `pve_test`. |
 | R4 | DONE | `98f6c43` | 20 cloudflare root symlinks removed; nested convention. |
 | R5 | DONE | `d31fc15` | fmt/lint scan real `.tf` dirs (`TF_WORKSPACE_DIRS`); fixed broken `XY\|lint` target; aliases repointed. |
 | R5b | DONE | `4c4dd40` | Repointed stale workspace-test module sources (pve 22, cloudflare 18) to nested `terraform/`. |
@@ -86,4 +87,4 @@ Executed as 11 separate commits on `master` (not pushed). `terraform apply` neve
 - **ELK `moved{}` count vs live state:** current `terraform state list` for 105-elk holds only 3 ILM + 3 index_template resources; `logs_cloudflare_workers` is in config but not yet in state. Its `moved{}` block is harmless (Terraform ignores a `from` that isn't in state) but means the "7 resources moved" claim is config-level, not state-level.
 - **pve workspace `terraform test` is not fully green:** remaining `check`-block failures (`mcphub_*` secrets) stem from the in-flight onepassword cleanup (uncommitted, out of scope), not from this refactor. New R3/R10 run blocks pass.
 - **`make lint-docs` fails on a pre-existing `removed-workspace-ref` (104-grafana)** in auto-synced agent notepads/AGENTS.md — pre-existing, left untouched.
-- **In-flight onepassword work preserved:** none of the 11 commits touched `100-pve/terraform/locals.tf`, `300-cloudflare/terraform/{onepassword,identity-provider,variables}.tf`, `modules/shared/onepassword-secrets/outputs.tf`, or `tests/modules/shared/onepassword_secrets_test.tftest.hcl`. Those remain unstaged in the working tree.
+- **In-flight onepassword work preserved:** none of the refactor commits touched `100-pve/terraform/locals.tf`, `300-cloudflare/terraform/{onepassword,identity-provider,variables}.tf`, `modules/shared/onepassword-secrets/outputs.tf`, or `tests/modules/shared/onepassword_secrets_test.tftest.hcl`. Those remain unstaged in the working tree.
