@@ -24,11 +24,11 @@ The real debt is **structural inconsistency, copy-paste duplication, and a few c
 
 ### CRITICAL
 
-- **C1 — Hardcoded credentials in cloud-init.** `100-pve/terraform/vm_configs.tf:221,233-234` embeds `minioadmin/minioadmin` (BuildKit S3 cache access/secret keys) directly in runcmd. Must come from 1Password (`module.onepassword_secrets`).
+- **C1 — Hardcoded credentials in cloud-init.** `100-pve/terraform/vm_configs.tf:221,233-234` embedded `minioadmin/minioadmin` (BuildKit S3 cache access/secret keys) directly in runcmd. **[RESOLVED in R3, commit d5df3d0]** — all 5 literals now resolve from `module.onepassword_secrets.secrets["registry_minio_*"]` (with `enable_registry = true`). `grep minioadmin 100-pve/terraform/` returns 0. Residual: the shared module still has a `"minioadmin"` default fallback in `outputs.tf:64` when the 1Password `registry` item is absent — that line lives in in-flight onepassword work and is out of this refactor's scope (recommend adding required-secret validation there).
 
 ### HIGH
 
-- **B1 — Wrong provider version constraint (bug).** `215-synology/versions.tf:15-18` pins `aminueza/minio` at `~> 3.2`, but that provider is on the `0.x` line. `~> 3.2` is a non-existent major; this is a copy-paste artifact from the adjacent `onepassword ~> 3.2` block. Fix to match the resolved lockfile version (≈ `~> 0.6`).
+- **B1 — ~~Wrong provider version constraint~~ [DROPPED — false positive].** Initial scan flagged `215-synology/versions.tf` `aminueza/minio "~> 3.2"` as a non-existent major. Verified against the lockfile: `aminueza/minio` resolves to `3.34.0`, i.e. it genuinely is on the `3.x` line. `~> 3.2` is CORRECT. No change made.
 - **S1 — Three conflicting directory conventions.** Nested `{ws}/terraform/` (100-pve, 105-elk, 102-traefik) vs flat `{ws}/` (215-synology) vs symlinked root (300-cloudflare: 20 `*.tf` at root are symlinks → `terraform/*.tf`, a Makefile compat shim). Docs (`CODE_STYLE.md:54-66`, `ARCHITECTURE.md:31-38`) describe the **flat** layout as canonical, which only 215-synology follows.
 - **S2 — Makefile alias map inconsistent.** `ALIAS_pve := 100-pve` and `ALIAS_cloudflare := 300-cloudflare` point at directories with no real `.tf` at root (pve) or only symlinks (cloudflare), while `ALIAS_elk/traefik/archon := {ws}/terraform`. `make plan SVC=pve` resolves to a stateless/empty dir.
 - **L1 — `lint-tflint` blind spot.** Makefile runs tflint against alias roots; for nested-layout workspaces the root has no `.tf`, so `terraform_standard_module_structure` and other rules silently scan empty dirs and pass.
@@ -60,13 +60,30 @@ The real debt is **structural inconsistency, copy-paste duplication, and a few c
 | D11 | `_svc_tpl` manual template registry | SSoT dup | derive from filesystem |
 | D12 | IP/hex/url regex validation | 7+4+3 scattered | shared validation locals/module |
 
-## Recommended Refactor Order (smallest blast radius first)
+## Execution Status (what was actually done)
 
-1. **R1 (correctness):** fix `215-synology` `minio ~> 3.2` → resolved `~> 0.x`.
-2. **R2 (correctness):** fix `215-synology/main.tf:150` `count`.
-3. **R3 (security):** move `minioadmin` creds → 1Password.
-4. **R4 (structure):** pick ONE layout convention; remove 300-cloudflare symlinks + repoint Makefile alias.
-5. **R5 (CI):** fix `lint-tflint` to scan `$(TF_DIR)`.
-6. **R6 (cleanup):** remove 100-pve root migration debris.
-7. **R7–R11 (DRY):** extract modules per the duplication table.
-8. **R12 (docs):** sync `ARCHITECTURE.md` / `CODE_STYLE.md` to reality.
+Executed as 11 separate commits on `master` (not pushed). `terraform apply` never run (CI/CD only); verified via `terraform validate` / `terraform test` (plan-level, mock providers) / `terraform fmt`.
+
+| ID | Status | Commit | Note |
+| --- | --- | --- | --- |
+| R1 | DROPPED | — | False positive: `aminueza/minio 3.34.0`, `~> 3.2` correct. |
+| R2 | DONE | `3528944` | synology minio policy count mirrors upstream condition; both states pinned by test. |
+| R3 | DONE | `d5df3d0` | 5 `minioadmin` literals → 1Password; `enable_registry=true` wired; grep=0. |
+| R4 | DONE | `98f6c43` | 20 cloudflare root symlinks removed; nested convention. |
+| R5 | DONE | `d31fc15` | fmt/lint scan real `.tf` dirs (`TF_WORKSPACE_DIRS`); fixed broken `XY\|lint` target; aliases repointed. |
+| R5b | DONE | `4c4dd40` | Repointed stale workspace-test module sources (pve 22, cloudflare 18) to nested `terraform/`. |
+| R6 | DONE | (no commit) | Removed `100-pve/{terraform.tfstate.backup,tfplan,tfplan-n8n,.terraform}` (all git-untracked, so nothing to commit). |
+| R7 | DROPPED | — | Collided with in-flight onepassword cleanup; user agreed to skip. |
+| R8 | DONE | `92a0a1c` | `modules/proxmox/firewall` + 4 `moved{}` blocks. |
+| R9 | DONE | `fe7e685` | `modules/cloudflare/tunnel` for_each + 8 `moved{}` blocks. |
+| R10 | DONE | `730bcf5` | `cloud_init_baseline.tf` locals; `concat`-equivalent runcmd ordering. |
+| R11 | DONE | `f48fa40` | `modules/elasticstack/{ilm_policy,index_template}` + 7 `moved{}` blocks. |
+| R12 | DONE | `c028e1b` | ARCHITECTURE.md/CODE_STYLE.md synced; false "tfstate committed" claim fixed. |
+
+## Verification limits (honest disclosure)
+
+- **State-move safety is NOT plan-verified.** No provider credentials locally and `apply` is CI-only, so `terraform plan` was not run against real state for R8/R9/R11. The `moved{}` blocks were hand-mapped from the pre-refactor resource addresses and validated structurally (`terraform validate` + plan-level module tftests). Claim should read "moved blocks written and structurally correct", NOT "proven no destroy/recreate". **A real `terraform plan` in CI must confirm no destroy/recreate before merge.**
+- **ELK `moved{}` count vs live state:** current `terraform state list` for 105-elk holds only 3 ILM + 3 index_template resources; `logs_cloudflare_workers` is in config but not yet in state. Its `moved{}` block is harmless (Terraform ignores a `from` that isn't in state) but means the "7 resources moved" claim is config-level, not state-level.
+- **pve workspace `terraform test` is not fully green:** remaining `check`-block failures (`mcphub_*` secrets) stem from the in-flight onepassword cleanup (uncommitted, out of scope), not from this refactor. New R3/R10 run blocks pass.
+- **`make lint-docs` fails on a pre-existing `removed-workspace-ref` (104-grafana)** in auto-synced agent notepads/AGENTS.md — pre-existing, left untouched.
+- **In-flight onepassword work preserved:** none of the 11 commits touched `100-pve/terraform/locals.tf`, `300-cloudflare/terraform/{onepassword,identity-provider,variables}.tf`, `modules/shared/onepassword-secrets/outputs.tf`, or `tests/modules/shared/onepassword_secrets_test.tftest.hcl`. Those remain unstaged in the working tree.
