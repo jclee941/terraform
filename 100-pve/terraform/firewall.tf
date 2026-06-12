@@ -122,97 +122,42 @@ locals {
 # NOTE: Firewall rules are defined but NOT applied since firewall_options disables the firewall
 # To re-enable firewall, change enabled = true and policies to "DROP"
 
-resource "proxmox_virtual_environment_firewall_rules" "container" {
-  for_each = local.container_firewall
+module "firewall_container" {
+  source = "../../modules/proxmox/firewall"
 
   node_name    = var.node_name
-  container_id = each.value.vmid
-
-  dynamic "rule" {
-    for_each = each.value.rules
-    content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      comment = "${each.key}: ${rule.value.comment}"
-      log     = "nolog"
-    }
-  }
-
-  dynamic "rule" {
-    for_each = local._egress_common
-    content {
-      type    = "out"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      dest    = rule.value.dest
-      comment = "${each.key}: Egress ${rule.value.comment}"
-      log     = "nolog"
-    }
-  }
+  targets      = local.container_firewall
+  egress_rules = local._egress_common
+  target_kind  = "container"
 }
 
-resource "proxmox_virtual_environment_firewall_rules" "vm" {
-  for_each = local.vm_firewall
-
-  node_name = var.node_name
-  vm_id     = each.value.vmid
-
-  dynamic "rule" {
-    for_each = each.value.rules
-    content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      comment = "${each.key}: ${rule.value.comment}"
-      log     = "nolog"
-    }
-  }
-
-  dynamic "rule" {
-    for_each = local._egress_common
-    content {
-      type    = "out"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      dest    = rule.value.dest
-      comment = "${each.key}: Egress ${rule.value.comment}"
-      log     = "nolog"
-    }
-  }
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Firewall Options — FIREWALL DISABLED (all traffic allowed)
-# ──────────────────────────────────────────────────────────────────────────────
-# enabled: false — Firewall is completely disabled
-# input_policy: ACCEPT — All inbound traffic allowed
-# output_policy: ACCEPT — All outbound traffic allowed
-
-resource "proxmox_virtual_environment_firewall_options" "container" {
-  for_each = local.container_firewall
+module "firewall_vm" {
+  source = "../../modules/proxmox/firewall"
 
   node_name    = var.node_name
-  container_id = each.value.vmid
-
-  enabled       = false
-  input_policy  = "ACCEPT"
-  output_policy = "ACCEPT"
+  targets      = local.vm_firewall
+  egress_rules = local._egress_common
+  target_kind  = "vm"
 }
 
-resource "proxmox_virtual_environment_firewall_options" "vm" {
-  for_each = local.vm_firewall
+moved {
+  from = proxmox_virtual_environment_firewall_rules.container
+  to   = module.firewall_container.proxmox_virtual_environment_firewall_rules.this
+}
 
-  node_name = var.node_name
-  vm_id     = each.value.vmid
+moved {
+  from = proxmox_virtual_environment_firewall_rules.vm
+  to   = module.firewall_vm.proxmox_virtual_environment_firewall_rules.this
+}
 
-  enabled       = false
-  input_policy  = "ACCEPT"
-  output_policy = "ACCEPT"
+moved {
+  from = proxmox_virtual_environment_firewall_options.container
+  to   = module.firewall_container.proxmox_virtual_environment_firewall_options.this
+}
+
+moved {
+  from = proxmox_virtual_environment_firewall_options.vm
+  to   = module.firewall_vm.proxmox_virtual_environment_firewall_options.this
 }
 
 # Import commands (run manually, not as HCL import blocks which break terraform test):
