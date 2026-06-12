@@ -65,6 +65,17 @@ check "deploy_ssh_key_required" {
   }
 }
 
+check "registry_minio_secrets_required" {
+  assert {
+    condition = !var.enable_registry || (
+      length(trimspace(lookup(module.onepassword_secrets.secrets, "registry_minio_user", ""))) > 0 &&
+      length(trimspace(lookup(module.onepassword_secrets.secrets, "registry_minio_password", ""))) > 0 &&
+      trimspace(lookup(module.onepassword_secrets.secrets, "registry_minio_user", "")) != "minioadmin"
+    )
+    error_message = "enable_registry is true but registry MinIO credentials are missing or still the insecure 'minioadmin' default. Add a 'registry' item (minio user + password) to the 1Password vault, or set enable_registry = false."
+  }
+}
+
 check "no_placeholder_secrets" {
   assert {
     condition     = length(local.placeholder_template_secret_keys) == 0
