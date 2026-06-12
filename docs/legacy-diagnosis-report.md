@@ -24,7 +24,7 @@ The real debt is **structural inconsistency, copy-paste duplication, and a few c
 
 ### CRITICAL
 
-- **C1 — Hardcoded credentials in cloud-init.** `100-pve/terraform/vm_configs.tf:221,233-234` embedded `minioadmin/minioadmin` (BuildKit S3 cache access/secret keys) directly in runcmd. **[RESOLVED in R3, commit d5df3d0]** — all 5 literals now resolve from `module.onepassword_secrets.secrets["registry_minio_*"]` (with `enable_registry = true`). `grep minioadmin 100-pve/terraform/` returns 0. Residual: the shared module still has a `"minioadmin"` default fallback in `outputs.tf:64` when the 1Password `registry` item is absent — that line lives in in-flight onepassword work and is out of this refactor's scope (recommend adding required-secret validation there).
+- **C1 — Hardcoded credentials in cloud-init.** `100-pve/terraform/vm_configs.tf:221,233-234` embedded `minioadmin/minioadmin` (BuildKit S3 cache access/secret keys) directly in runcmd. **[RESOLVED in R3, commit d5df3d0; hardened in R3b, commit 386dbaf]** — all 5 literals now resolve from `module.onepassword_secrets.secrets["registry_minio_*"]` (with `enable_registry = true`). `grep minioadmin 100-pve/terraform/vm_configs.tf` returns 0; the only remaining `minioadmin` strings in the workspace are inside the R3b guard in `checks.tf` (which rejects that value). Residual: the shared module still has a `"minioadmin"` default fallback in `outputs.tf:64` when the 1Password `registry` item is absent — that line lives in in-flight onepassword work and is out of this refactor's scope; R3b's blocking guard fails `terraform plan` if that fallback ever reaches 100-pve.
 
 ### HIGH
 
@@ -68,8 +68,8 @@ Executed as the R2-R12 refactor commits plus follow-up hardening/verification/re
 | --- | --- | --- | --- |
 | R1 | DROPPED | — | False positive: `aminueza/minio 3.34.0`, `~> 3.2` correct. |
 | R2 | DONE | `3528944` | synology minio policy count mirrors upstream condition; both states pinned by test. |
-| R3 | DONE | `d5df3d0` | 5 `minioadmin` literals → 1Password; `enable_registry=true` wired; grep=0. |
-| R3b | DONE | `618cb40` + test | Blocking `terraform_data` precondition guard (not a warn-only `check`) fails plan when `enable_registry=true` and registry user/password are empty or still `minioadmin`; static-assertion test in `pve_test`. |
+| R3 | DONE | `d5df3d0` | 5 `minioadmin` literals → 1Password; `enable_registry=true` wired; `grep minioadmin 100-pve/terraform/vm_configs.tf` = 0. |
+| R3b | DONE | `386dbaf` | Blocking `terraform_data` lifecycle precondition (not a warn-only `check`) fails plan when `enable_registry=true` and registry user/password are empty or still `minioadmin`; static-assertion test in `pve_test`. (Superseded the initial check-block attempt `618cb40`.) |
 | R4 | DONE | `98f6c43` | 20 cloudflare root symlinks removed; nested convention. |
 | R5 | DONE | `d31fc15` | fmt/lint scan real `.tf` dirs (`TF_WORKSPACE_DIRS`); fixed broken `XY\|lint` target; aliases repointed. |
 | R5b | DONE | `4c4dd40` | Repointed stale workspace-test module sources (pve 22, cloudflare 18) to nested `terraform/`. |
