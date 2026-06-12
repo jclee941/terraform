@@ -1,1 +1,0 @@
-terraform/checks.tf
