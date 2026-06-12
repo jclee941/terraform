@@ -8,7 +8,7 @@ SVC ?= 100-pve
 # Workspace alias map: short name → directory path
 # App workspaces with nested terraform/ dirs resolve automatically
 ALIAS_jclee      := 80-jclee
-ALIAS_pve        := 100-pve
+ALIAS_pve        := 100-pve/terraform
 ALIAS_runner     := 101-runner
 ALIAS_traefik    := 102-traefik/terraform
 ALIAS_elk        := 105-elk/terraform
@@ -19,7 +19,7 @@ ALIAS_mcphub     := 112-mcphub
 ALIAS_oc         := 200-oc
 ALIAS_synology   := 215-synology
 ALIAS_youtube    := 220-youtube
-ALIAS_cloudflare := 300-cloudflare
+ALIAS_cloudflare := 300-cloudflare/terraform
 ALIAS_github     := 301-github
 ALIAS_safetywallet := 310-safetywallet
 ALIAS_slack      := 320-slack
@@ -27,6 +27,10 @@ ALIAS_gcp        := 400-gcp
 
 # Resolve alias: if ALIAS_$(SVC) is defined, use it; otherwise use SVC as-is
 TF_DIR := $(or $(ALIAS_$(SVC)),$(SVC))
+
+# Workspace directories that actually contain *.tf (nested terraform/ subdirs included,
+# .terraform provider caches excluded). Drives fmt/validate/lint so nested layouts are scanned.
+TF_WORKSPACE_DIRS := $(shell find . -name '*.tf' -not -path '*/.terraform/*' -not -path './tests/*' -not -path './modules/*' -printf '%h\n' | sort -u)
 
 # Validate TF_DIR exists before running terraform commands
 define check_svc_dir
@@ -56,7 +60,7 @@ apply: ## Apply Terraform plan — DISABLED (use CI/CD)
 	@exit 1
 
 fmt: ## Format all Terraform files
-	find . -maxdepth 1 -type d -name '[0-9]*' -exec terraform fmt -recursive {} +
+	@for dir in $(TF_WORKSPACE_DIRS); do terraform fmt -recursive "$$dir"; done
 	terraform fmt -recursive modules/
 
 validate: ## Validate Terraform configuration (SVC=100-pve)
@@ -70,13 +74,13 @@ setup: ## Load local credentials from 1Password
 
 ## Linting targets
 
-XY|lint: lint-yaml lint-tf lint-go lint-tflint lint-docs ## Run all linters
+lint: lint-yaml lint-tf lint-go lint-tflint lint-docs ## Run all linters
 
 lint-yaml: ## Lint YAML files
 	yamllint -c .yamllint.yml .
 
 lint-tf: ## Check Terraform formatting
-	find . -maxdepth 1 -type d -name '[0-9]*' -exec terraform fmt -check -recursive {} +
+	@for dir in $(TF_WORKSPACE_DIRS); do terraform fmt -check -recursive "$$dir"; done
 	terraform fmt -check -recursive modules/
 
 lint-go: ## Vet Go scripts
@@ -84,7 +88,7 @@ lint-go: ## Vet Go scripts
 
 lint-tflint: ## Run tflint on all workspaces
 	@command -v tflint >/dev/null 2>&1 || { echo "tflint not installed. Install: brew install tflint"; exit 1; }
-	@for dir in $(shell find . -maxdepth 1 -type d -name '[0-9]*'); do \
+	@for dir in $(TF_WORKSPACE_DIRS); do \
 		echo "==> tflint $$dir"; \
 		tflint --chdir=$$dir --config=$(CURDIR)/.tflint.hcl 2>&1 || true; \
 	done
