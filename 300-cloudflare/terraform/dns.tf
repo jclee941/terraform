@@ -8,7 +8,7 @@ resource "cloudflare_dns_record" "homelab" {
   zone_id = local.effective_cloudflare_zone_id
   type    = "CNAME"
   name    = each.value.subdomain
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.homelab.id}.cfargotunnel.com"
+  content = "${module.tunnels["homelab"].tunnel_id}.cfargotunnel.com"
   ttl     = 1
   proxied = true
 }
@@ -24,7 +24,7 @@ resource "cloudflare_dns_record" "tcp_services" {
   zone_id = local.effective_cloudflare_zone_id
   type    = "CNAME"
   name    = each.value.subdomain
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.homelab.id}.cfargotunnel.com"
+  content = "${module.tunnels["homelab"].tunnel_id}.cfargotunnel.com"
   ttl     = 1
   proxied = true
 }
@@ -37,7 +37,7 @@ resource "cloudflare_dns_record" "logstash_ingest" {
   zone_id = local.effective_cloudflare_zone_id
   type    = "CNAME"
   name    = "logstash-ingest"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.homelab.id}.cfargotunnel.com"
+  content = "${module.tunnels["homelab"].tunnel_id}.cfargotunnel.com"
   ttl     = 1
   proxied = true
 }

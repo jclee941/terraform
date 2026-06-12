@@ -1,109 +1,87 @@
-# ============================================
-# Cloudflare Tunnel for Synology NAS
-# ============================================
-
-resource "random_password" "tunnel_secret" {
-  length = 64
-}
-
-resource "cloudflare_zero_trust_tunnel_cloudflared" "synology" {
-  account_id    = local.effective_cloudflare_account_id
-  name          = "215-synology"
-  tunnel_secret = base64encode(random_password.tunnel_secret.result)
-
-  lifecycle {
-    ignore_changes = [tunnel_secret, config_src]
+locals {
+  cloudflare_tunnels = {
+    synology = {
+      name = "215-synology"
+      ingress = [
+        {
+          hostname = var.synology_domain
+          service  = "http://${var.synology_nas_ip}:${var.synology_nas_port}"
+        },
+        {
+          service = "http_status:404"
+        },
+      ]
+    }
+    homelab = {
+      name = "traefik"
+      ingress = concat(
+        [for key, svc in local.homelab_services : {
+          hostname = "${svc.subdomain}.${var.homelab_domain}"
+          service  = "http://localhost:80"
+        }],
+        [for key, svc in local.tcp_services : {
+          hostname = "${svc.subdomain}.${var.homelab_domain}"
+          service  = svc.origin
+        }],
+        [{
+          hostname = "logstash-ingest.${var.homelab_domain}"
+          service  = "http://${var.elk_ip}:8080"
+        }],
+        [{ service = "http_status:404" }]
+      )
+    }
+    jclee = {
+      name    = "80-jclee"
+      ingress = null
+    }
   }
 }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared_config" "synology" {
+module "tunnels" {
+  source   = "../../modules/cloudflare/tunnel"
+  for_each = local.cloudflare_tunnels
+
+  name       = each.value.name
   account_id = local.effective_cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.synology.id
-
-  config = {
-    ingress = [
-      {
-        hostname = var.synology_domain
-        service  = "http://${var.synology_nas_ip}:${var.synology_nas_port}"
-      },
-      {
-        service = "http_status:404"
-      }
-    ]
-  }
+  ingress    = each.value.ingress
 }
 
-data "cloudflare_zero_trust_tunnel_cloudflared_token" "synology" {
-  account_id = local.effective_cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.synology.id
+moved {
+  from = random_password.tunnel_secret
+  to   = module.tunnels["synology"].random_password.this
 }
 
-# ============================================
-# Cloudflare tunnel for homelab services
-# ============================================
-
-resource "random_password" "homelab_tunnel_secret" {
-  length = 64
+moved {
+  from = cloudflare_zero_trust_tunnel_cloudflared.synology
+  to   = module.tunnels["synology"].cloudflare_zero_trust_tunnel_cloudflared.this
 }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared" "homelab" {
-  account_id    = local.effective_cloudflare_account_id
-  name          = "traefik"
-  tunnel_secret = base64encode(random_password.homelab_tunnel_secret.result)
-
-  lifecycle {
-    ignore_changes = [tunnel_secret, config_src]
-  }
+moved {
+  from = cloudflare_zero_trust_tunnel_cloudflared_config.synology
+  to   = module.tunnels["synology"].cloudflare_zero_trust_tunnel_cloudflared_config.this[0]
 }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
-  account_id = local.effective_cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
-
-  config = {
-    ingress = concat(
-      [for key, svc in local.homelab_services : {
-        hostname = "${svc.subdomain}.${var.homelab_domain}"
-        service  = "http://localhost:80"
-      }],
-      [for key, svc in local.tcp_services : {
-        hostname = "${svc.subdomain}.${var.homelab_domain}"
-        service  = svc.origin
-      }],
-      [{
-        hostname = "logstash-ingest.${var.homelab_domain}"
-        service  = "http://${var.elk_ip}:8080"
-      }],
-      [{ service = "http_status:404" }]
-    )
-  }
+moved {
+  from = random_password.homelab_tunnel_secret
+  to   = module.tunnels["homelab"].random_password.this
 }
 
-data "cloudflare_zero_trust_tunnel_cloudflared_token" "homelab" {
-  account_id = local.effective_cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
+moved {
+  from = cloudflare_zero_trust_tunnel_cloudflared.homelab
+  to   = module.tunnels["homelab"].cloudflare_zero_trust_tunnel_cloudflared.this
 }
 
-
-# ============================================
-# Cloudflare Tunnel for JCLee Workstation (physical PC, host ID 80)
-# ============================================
-
-resource "random_password" "jclee_tunnel_secret" {
-  length = 64
+moved {
+  from = cloudflare_zero_trust_tunnel_cloudflared_config.homelab
+  to   = module.tunnels["homelab"].cloudflare_zero_trust_tunnel_cloudflared_config.this[0]
 }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared" "jclee" {
-  account_id    = local.effective_cloudflare_account_id
-  name          = "80-jclee"
-  tunnel_secret = base64encode(random_password.jclee_tunnel_secret.result)
-
-  lifecycle {
-    ignore_changes = [tunnel_secret, config_src]
-  }
+moved {
+  from = random_password.jclee_tunnel_secret
+  to   = module.tunnels["jclee"].random_password.this
 }
 
-data "cloudflare_zero_trust_tunnel_cloudflared_token" "jclee" {
-  account_id = local.effective_cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.jclee.id
+moved {
+  from = cloudflare_zero_trust_tunnel_cloudflared.jclee
+  to   = module.tunnels["jclee"].cloudflare_zero_trust_tunnel_cloudflared.this
 }

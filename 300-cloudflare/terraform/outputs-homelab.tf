@@ -1,12 +1,12 @@
 output "homelab_tunnel_id" {
   description = "Cloudflare Tunnel ID for homelab services"
-  value       = cloudflare_zero_trust_tunnel_cloudflared.homelab.id
+  value       = module.tunnels["homelab"].tunnel_id
   sensitive   = true
 }
 
 output "homelab_tunnel_token" {
   description = "Cloudflare Tunnel token for homelab cloudflared connector"
-  value       = data.cloudflare_zero_trust_tunnel_cloudflared_token.homelab.token
+  value       = module.tunnels["homelab"].tunnel_token
   sensitive   = true
 }
 
@@ -17,5 +17,3 @@ output "homelab_dns_records" {
     key => record.name
   }
 }
-
-
