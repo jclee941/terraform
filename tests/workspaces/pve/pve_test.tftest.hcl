@@ -121,7 +121,7 @@ run "test_buildkit_minio_credentials_use_registry_secrets" {
 run "test_endpoint_http_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_endpoint  = "http://192.168.50.100:8006/"
@@ -133,7 +133,7 @@ run "test_endpoint_http_rejected" {
 run "test_endpoint_no_protocol_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_endpoint  = "192.168.50.100:8006"
@@ -147,7 +147,7 @@ run "test_endpoint_no_protocol_rejected" {
 run "test_api_token_missing_realm_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform!tf-token=12345678"
@@ -158,7 +158,7 @@ run "test_api_token_missing_realm_rejected" {
 run "test_api_token_missing_equals_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token"
@@ -171,7 +171,7 @@ run "test_api_token_missing_equals_rejected" {
 run "test_node_name_no_number_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -183,7 +183,7 @@ run "test_node_name_no_number_rejected" {
 run "test_node_name_wrong_prefix_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -195,7 +195,7 @@ run "test_node_name_wrong_prefix_rejected" {
 run "test_node_name_uppercase_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -209,7 +209,7 @@ run "test_node_name_uppercase_rejected" {
 run "test_gateway_invalid_ip_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -223,7 +223,7 @@ run "test_gateway_invalid_ip_rejected" {
 run "test_cidr_no_mask_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -235,7 +235,7 @@ run "test_cidr_no_mask_rejected" {
 run "test_cidr_invalid_notation_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -249,7 +249,7 @@ run "test_cidr_invalid_notation_rejected" {
 run "test_dns_servers_empty_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -261,7 +261,7 @@ run "test_dns_servers_empty_rejected" {
 run "test_dns_servers_too_many_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -275,7 +275,7 @@ run "test_dns_servers_too_many_rejected" {
 run "test_datastore_starts_with_number_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -287,7 +287,7 @@ run "test_datastore_starts_with_number_rejected" {
 run "test_datastore_special_chars_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -301,7 +301,7 @@ run "test_datastore_special_chars_rejected" {
 run "test_vmid_range_min_equals_max_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -313,7 +313,7 @@ run "test_vmid_range_min_equals_max_rejected" {
 run "test_vmid_range_min_greater_than_max_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -325,7 +325,7 @@ run "test_vmid_range_min_greater_than_max_rejected" {
 run "test_vmid_range_below_100_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -337,7 +337,7 @@ run "test_vmid_range_below_100_rejected" {
 run "test_vmid_range_above_255_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -351,7 +351,7 @@ run "test_vmid_range_above_255_rejected" {
 run "test_ssh_key_invalid_format_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -363,7 +363,7 @@ run "test_ssh_key_invalid_format_rejected" {
 run "test_ssh_key_invalid_type_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -377,7 +377,7 @@ run "test_ssh_key_invalid_type_rejected" {
 run "test_onepassword_vault_name_empty_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token      = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -391,7 +391,7 @@ run "test_onepassword_vault_name_empty_rejected" {
 run "test_github_org_invalid_chars_rejected" {
   command = plan
   module {
-    source = "../../../100-pve"
+    source = "../../../100-pve/terraform"
   }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"

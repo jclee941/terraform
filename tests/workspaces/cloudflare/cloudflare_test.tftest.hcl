@@ -40,7 +40,7 @@ run "test_invalid_account_id_too_short" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -58,7 +58,7 @@ run "test_invalid_account_id_uppercase" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -76,7 +76,7 @@ run "test_invalid_account_id_special_chars" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -96,7 +96,7 @@ run "test_invalid_zone_id_too_long" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -116,7 +116,7 @@ run "test_invalid_synology_domain_starts_with_dot" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -134,7 +134,7 @@ run "test_invalid_synology_domain_ends_with_dot" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -154,7 +154,7 @@ run "test_invalid_synology_ip_with_cidr" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -173,7 +173,7 @@ run "test_invalid_synology_ip_not_ip" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -194,7 +194,7 @@ run "test_invalid_synology_port_zero" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -213,7 +213,7 @@ run "test_invalid_synology_port_too_high" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -234,7 +234,7 @@ run "test_invalid_homelab_domain_uppercase" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -256,7 +256,7 @@ run "test_invalid_secrets_store_id_empty" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -277,7 +277,7 @@ run "test_github_token_invalid_prefix" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -296,7 +296,7 @@ run "test_onepassword_vault_name_empty" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -316,7 +316,7 @@ run "test_jclee_ip_invalid" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -335,7 +335,7 @@ run "test_jclee_dev_ip_invalid" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -354,7 +354,7 @@ run "test_elk_ip_invalid" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
@@ -373,7 +373,7 @@ run "test_youtube_ip_invalid" {
   command = plan
 
   module {
-    source = "../../../300-cloudflare"
+    source = "../../../300-cloudflare/terraform"
   }
 
   variables {
