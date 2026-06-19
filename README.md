@@ -126,7 +126,7 @@ hosts.tf (SSoT) → module.hosts → onepassword_secrets + config_renderer
 | `13_pr-auto-merge.yml` | General PR auto-merge |
 | `14_bot-auto-fix.yml` | Bot-initiated fixes |
 | `15_merged-pr-cleanup.yml` | Post-merge cleanup |
-| `18_issue-management.yml` | Issue lifecycle management |
+| `jclee-bot App issue-management` | Issue lifecycle management |
 | `19_issue-backfill.yml` | Issue metadata backfill |
 | `20_readme-gen.yml` | README generation |
 | `21_docs-sync.yml` | Documentation synchronization |
@@ -135,7 +135,7 @@ hosts.tf (SSoT) → module.hosts → onepassword_secrets + config_renderer
 | `29_downstream-health-check.yml` | Downstream service health |
 | `37_ci-failure-issues.yml` | CI failure issue creation |
 | `42_reusable-docs-sync.yml` | Reusable docs sync workflow |
-| `43_reusable-issue-management.yml` | Reusable issue management |
+| `jclee-bot App issue-management` | Reusable issue management |
 | `44_reusable-pr-checks.yml` | Reusable PR checks |
 | `45_reusable-gitleaks.yml` | Reusable gitleaks scan |
 | `60_ci-auto-heal.yml` | CI self-healing automation |
