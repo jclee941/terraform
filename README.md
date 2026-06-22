@@ -5,13 +5,15 @@
 
 ## Badges / 배지
 
-| Badge | Status |
+| Category | Detail |
 | --- | --- |
-| Infrastructure as Code | Terraform 1.10.5 (>= 1.7, < 2.0) |
-| Automation | 16 GitHub Actions workflows |
+| Infrastructure as Code | Terraform `1.10.5` (`>= 1.7, < 2.0`) |
+| Workspace Convention | Flat `NNN-SVC` (e.g. `100-pve`, `105-elk`, `300-cloudflare`) |
+| CI/CD | 16 GitHub Actions workflows |
+| Secret Backend | 1Password `homelab` vault |
 | Security | CodeQL, Gitleaks, Dependency Review, OpenSSF Scorecard |
-| Review Automation | qodo-ai/pr-agent, semantic PR checks, auto-fix, auto-merge |
-| Documentation | README generation, docs sync, release notes |
+| Review Automation | [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent), Dependabot auto-merge |
+| Documentation | README auto-gen, release notes, docs sync |
 | Public Endpoint | `https://cliproxy.jclee.me/v1` |
 | License | MIT |
 
@@ -21,232 +23,127 @@
 
 ## 1. 개요
 
-이 저장소는 `jclee.me` 호멜랩(homelab) 및 관련 외부 서비스를 코드로 관리하기 위한 **Infrastructure-as-Code 모노레포**입니다. Proxmox LXC/VM 플릿, 네트워크, 모니터링, 외부 서비스를 Terraform 워크스페이스로 프로비저닝하며, 1Password 시크릿 주입과 GitHub Actions 기반 CI/CD를 사용합니다.
+이 저장소는 `jclee.me` 호멜랩(homelab)과 관련 외부 서비스를 코드로 관리하기 위한 **Infrastructure-as-Code 모노레포**입니다. Proxmox LXC/VM 플릿, 네트워크, 모니터링, 외부 서비스를 Terraform 워크스페이스로 프로비저닝하며, 1Password 시크릿 주입과 GitHub Actions 기반 CI/CD를 사용합니다.
 
 - **도메인**: `jclee.me`
-- **Terraform**: `1.10.5` (`>= 1.7, < 2.0`)
+- **서브넷**: `<homelab-host>/24` (내부 LXC/VM)
+- **Terraform 버전**: `1.10.5` (`>= 1.7, < 2.0`)
 - **공개 엔드포인트**: `https://cliproxy.jclee.me/v1`
-- **저장소 구조 규칙**: 평탄(flat) `NNN-SVC` 컨벤션 (예: `100-pve`, `105-elk`, `300-cloudflare`)
-  - `1-255` = 내부 인프라 (Proxmox LXC/VM)
-  - `300+` = 외부 서비스 (Cloudflare, AWS 등)
-- **핵심 디렉터리**: `100-pve`(중앙 오케스트레이터), 서비스별 워크스페이스, `modules/`, `templates/`, `.github/workflows/`
+- **워크스페이스 규칙**: 평탄(flat) `NNN-SVC` 컨벤션
+  - `1-255` = 내부 인프라 (Proxmox LXC/VM, 예: `<homelab-host>`)
+  - `300+` = 외부 서비스 (Cloudflare, GitHub, Slack 등)
+  - `400+` = 퍼블릭 클라우드 (GCP 등)
+- **핵심 오케스트레이터**: `100-pve` — 모든 LXC/VM 라이프사이클의 단일 진실 공급원(SSOT)
 
 이 README는 자동화 인벤토리, 저장소 구조, 로컬 개발 절차, 명령어 레퍼런스, 기여 가이드를 한 곳에서 확인할 수 있도록 작성되었습니다.
 
 ## 2. 주요 기능
 
 ### 2.1 Infrastructure as Code
-- Terraform 기반 서비스별 워크스페이스(`100-pve`, `105-elk`, `112-mcphub`, `300-cloudflare` 등)
-- 평탄한 `NNN-SVC` 디렉터리 컨벤션과 `Makefile`의 단축 별칭(`pve`, `elk`, `mcphub`, `cloudflare` 등) 지원
-- `templates/*.tftpl` → `configs/` 렌더링 파이프라인 (`config-renderer` 모듈)
-- 로컬 상태 백엔드, `.tfstate`를 git에 커밋, CI 동시성 그룹으로 apply 직렬화
+- Terraform 기반 **서비스별 워크스페이스** (예: `105-elk/terraform/`, `112-mcphub/`, `300-cloudflare/`)
+- 평탄한 `NNN-SVC` 디렉터리 컨벤션과 `Makefile`의 단축 별칭(`pve`, `elk`, `mcphub`, `cloudflare` 등)
+- `templates/*.tftpl` → 렌더링된 설정 파일 파이프라인 (`config-renderer` 모듈)
+- 로컬 상태 백엔드, `.tfstate`를 git에 커밋, GitHub Actions 동시성(concurrency) 그룹으로 `apply` 직렬화
+- `terraform test`로 유닛/통합/워크스페이스 테스트 수행
 
 ### 2.2 GitHub Automation
 - **16개의 GitHub Actions 워크플로우**로 PR 검사, 리뷰, 보안 분석, 자동 병합, 문서 동기화, 릴리스 발행, CI 자동 복구까지 전 영역 자동화
-- PR-Agent(`qodo-ai/pr-agent`) 기반 자동 PR 리뷰
-- Dependabot PR 자동 병합, 일반 PR 자동 병합
+- [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) 기반 자동 PR 리뷰 (`10_pr-review.yml`)
+- Dependabot PR 자동 병합 (`12_dependabot-auto-merge.yml`) 및 일반 PR 자동 병합 (`13_pr-auto-merge.yml`)
 - Gitleaks, CodeQL, Dependency Review, OpenSSF Scorecard를 통한 공급망 보안
 - README 자동 생성, 릴리스 노트/릴리스 발행, 다운스트림 헬스 체크
 
 ### 2.3 Security and Compliance
-- 1Password `homelab` 볼트의 시크릿 주입 (모듈: `modules/shared/onepassword-secrets`)
-- Gitleaks로 시크릿 하드코딩 방지
-- CodeQL 정적 분석, Dependency Review 의존성 점검
-- OpenSSF Scorecard 기반 공급망 보안 점검
-- Cloudflare Access / Identity Provider 구성 관리
+- 1Password `homelab` 볼트의 시크릿 주입 (`modules/shared/onepassword-secrets`)
+- `onepassword.tf` 워크스페이스별 시크릿 매핑 (예: `300-cloudflare/onepassword.tf`)
+- 시크릿은 절대 평문 커밋 금지 — pre-commit 훅으로 Gitleaks 차단
+- 워크플로우 권한 최소 권한 원칙(`permissions:` 블록 명시)
 
-### 2.4 Observability
-- ELK 스택 (Elasticsearch + Logstash + Kibana) 기반 로그 수집·검색
-- Filebeat(노드 에이전트) + Logstash(파이프라인) + ILM 정책 + Watcher 설정
-- `105-elk/templates/logstash.conf.tftpl` 파이프라인 템플릿
-- ILM 정책 관리 유틸리티 (Go, stdlib-only)
-
-### 2.5 MCP Hub
-- MCP(Multi-Cloud Proxy) 허브 컨테이너 빌드(`Dockerfile.playwright`, `Dockerfile.proxmox`, `Dockerfile.dev-browser`)
-- `validate_mcps.py`로 `mcp_servers.json` 스키마 검증
-- 1Password Connect 통합(`op-mcp-server/`)
-- n8n 라이선스 패치(`patches/n8n/`)
+### 2.4 Documentation
+- 워크스페이스별 `AGENTS.md` 및 `README.md`로 컨텍스트 유지
+- 루트 문서: `ARCHITECTURE.md`, `CODE_STYLE.md`, `CONTRIBUTING.md`, `DEPENDENCY_MAP.md`, `OWNERS`, `OWNERS_ALIASES`
+- 릴리스 발행 시 자동 changelog (`24_release-notes.yml`, `25_release-publish.yml`)
 
 ## 3. 아키텍처
 
-아래 다이어그램은 사용자(또는 AI 에이전트)부터 GitHub → CI → Terraform → Proxmox 플릿 → ELK/Cloudflare/MCP Hub 까지의 흐름을 보여줍니다.
-
 ```mermaid
 flowchart LR
-  Dev["사용자 / AI Agent"]
-  Repo["GitHub Monorepo<br/>Terraform + Templates"]
-  CI["GitHub Actions<br/>16 Workflows"]
-  TF["Terraform Workspaces"]
-  PVE["100-pve<br/>Central Orchestrator"]
-  DNS_ws["103-coredns<br/>Templates + Compose"]
-  ELK_ws["105-elk<br/>ELK Stack"]
-  MCP_ws["112-mcphub<br/>MCP Hub"]
-  CF_ws["300-cloudflare<br/>DNS / Access / IdP"]
-  Fleet["Proxmox LXC / VM Fleet<br/>&lt;homelab-host&gt; / &lt;homelab-elk&gt;"]
-  OP["1Password<br/>homelab vault"]
-  CDN["Cloudflare<br/>DNS / Access / Tunnel"]
-  PRReview["qodo-ai/pr-agent<br/>PR Review"]
-  Public["https://cliproxy.jclee.me/v1"]
+    Agent["User / AI Agent"]
+    Repo["Terraform Monorepo<br/>jclee.me"]
+    CI["GitHub Actions Runner<br/>LXC 101-runner"]
+    TF["Terraform Workspaces<br/>NNN-SVC"]
+    PVE["100-pve<br/>Central Orchestrator<br/>SSOT: hosts.tf"]
+    Fleet["Proxmox LXC / VM Fleet<br/>1-255 prefix"]
+    OP["1Password<br/>homelab vault"]
+    CF["300-cloudflare<br/>DNS / Access / Tunnel"]
+    Traefik["102-traefik<br/>Ingress"]
+    ELK["105-elk<br/>Logs and Search"]
+    MCP["112-mcphub<br/>MCP Aggregation"]
+    Proxy["CLIProxyAPI<br/>https://cliproxy.jclee.me/v1"]
+    Bots["301-github<br/>Repo Management"]
 
-  Dev --> Repo
-  Repo --> CI
-  CI --> TF
-  TF --> PVE
-  TF --> DNS_ws
-  TF --> ELK_ws
-  TF --> MCP_ws
-  TF --> CF_ws
-  PVE --> Fleet
-  TF --> OP
-  Fleet --> ELK_ws
-  CF_ws --> CDN
-  Repo --> PRReview
-  Public --> MCP_ws
+    Agent --> Repo
+    Repo --> CI
+    CI --> TF
+    TF --> PVE
+    PVE --> Fleet
+    TF --> OP
+    TF --> CF
+    TF --> Bots
+    Fleet --> ELK
+    Fleet --> Traefik
+    Fleet --> MCP
+    CF --> Proxy
+    Traefik --> Proxy
+    Bots -.audits.-> Repo
 ```
 
-### 워크스페이스 티어
+**핵심 흐름 요약**
 
-| 티어 | 디렉터리 | 역할 |
-| --- | --- | --- |
-| 0 (Core) | `100-pve` | 모든 LXC/VM 라이프사이클을 관리하는 중앙 오케스트레이터 |
-| 1 (Infra) | `103-coredns`, `105-elk`, `112-mcphub` | `100-pve`의 `remote_state`를 소비하는 인프라 서비스 |
-| External | `300-cloudflare` | Proxmox에 의존하지 않는 외부 서비스 (Cloudflare DNS/Access/IdP/Logpush) |
-| Template-only | (해당 없음) | `.tf` 파일이 없고 `100-pve`가 템플릿만 렌더링 |
+1. `100-pve/envs/prod/hosts.tf`가 모든 LXC/VM의 IP, VMID, 역할, 포트를 정의 (SSOT).
+2. `100-pve`의 모듈 그래프가 `onepassword_secrets`로 시크릿을 주입받고, `config-renderer`로 `templates/*.tftpl`을 렌더링.
+3. 렌더링된 설정은 SSH를 통해 각 LXC/VM의 `/opt/{service}/`로 배포.
+4. 외부 서비스(`300-cloudflare`, `301-github`, `320-slack`, `400-gcp`)는 Proxmox 의존성 없이 독립적으로 apply 가능.
 
-### 컨피그 파이프라인
+## 4. 저장소 구조
 
-```text
-hosts.tf (SSoT) → module.hosts → onepassword_secrets + config_renderer
-  → templatefile(.tftpl) → configs/ → SSH deploy to /opt/{service}/
-```
-
-## 4. 자동화 인벤토리
-
-### 4.1 GitHub Actions 워크플로우 (16개)
-
-| 파일 | 카테고리 | 목적 |
-| --- | --- | --- |
-| `01_branch-to-branch.yml` | Issue→Branch | 브랜치를 이슈에 자동 연결 |
-| `02_issue-to-branch.yml` | Issue→Branch | 이슈로부터 작업 브랜치 자동 생성 |
-| `10_pr-review.yml` | PR Review | `qodo-ai/pr-agent` 기반 자동 PR 리뷰 |
-| `11_security-pr-review.yml` | PR Review (보안) | 보안 관점의 PR 리뷰 |
-| `12_dependabot-auto-merge.yml` | Auto-Merge | Dependabot PR 자동 병합 |
-| `13_pr-auto-merge.yml` | Auto-Merge | 조건을 만족하는 PR 자동 병합 |
-| `14_bot-auto-fix.yml` | Auto-Fix | 리뷰 지적 사항 자동 수정 |
-| `15_merged-pr-cleanup.yml` | Cleanup | 병합된 PR의 브랜치/리소스 정리 |
-| `19_issue-backfill.yml` | Issue Ops | 누락된 이슈 메타데이터 백필 |
-| `24_release-notes.yml` | Release | 릴리스 노트 자동 생성 |
-| `25_release-publish.yml` | Release | GitHub Release 발행 |
-| `29_downstream-health-check.yml` | Health | 다운스트림 서비스 헬스 체크 |
-| `37_ci-failure-issues.yml` | CI Ops | CI 실패를 이슈로 자동 생성 |
-| `60_ci-auto-heal.yml` | CI Auto-Heal | 알려진 CI 실패 패턴 자동 복구 |
-| `91_issue-classification.yml` | Issue Ops | 이슈 자동 분류/라벨링 |
-| `ci.yml` | CI | 메인 CI (lint, validate, plan) |
-
-> 모든 워크플로우 파일은 실제 디스크 이름(숫자 prefix 포함)을 사용합니다.
-
-### 4.2 운영 도구
-
-| 종류 | 개수 | 비고 |
-| --- | --- | --- |
-| Go 운영 스크립트 | 0 | 현재 저장소 트리에는 없음 (향후 `scripts/` 추가 가능, stdlib-only 정책 유지) |
-| Python 유틸리티 | 1 | `112-mcphub/validate_mcps.py` — `mcp_servers.json` 스키마 검증 |
-| Terraform 모듈 | 2 카테고리 | `modules/proxmox/{lxc,vm,lxc-config,vm-config,config-renderer}`, `modules/shared/onepassword-secrets` |
-
-## 5. 저장소 구조
-
-현재 저장소의 실제 최상위 레이아웃은 다음과 같습니다.
+루트 디렉터리 기준 실제 트리(일부 워크스페이스는 축약).
 
 ```text
-terraform/
-├── AGENTS.md                       # AI 에이전트용 프로젝트 지식 베이스
-├── ARCHITECTURE.md                 # 전체 아키텍처 레퍼런스
-├── CODE_STYLE.md                   # 명명/파일/변수/템플릿 컨벤션
-├── CONTRIBUTING.md                 # 기여 절차
-├── DEPENDENCY_MAP.md               # 모듈 의존성 그래프 + 템플릿 인벤토리
-├── LICENSE                         # 라이선스 (MIT)
-├── Makefile                        # 평탄 NNN-SVC 컨벤션 + 별칭 맵
-├── OWNERS                          # 코드 오너십
-├── OWNERS_ALIASES                  # 오너 별칭
-├── README.md                       # 이 문서
-├── build.env                       # 빌드 환경 변수
-│
-├── 103-coredns/                    # CoreDNS 설정 템플릿
+.
+├── AGENTS.md                     # AI 에이전트 지식 베이스
+├── ARCHITECTURE.md               # 전체 아키텍처 레퍼런스
+├── CODE_STYLE.md                 # 명명/파일/변수/템플릿 규약
+├── CONTRIBUTING.md               # 기여 절차
+├── DEPENDENCY_MAP.md             # 모듈 의존성 그래프 + 템플릿 인벤토리
+├── LICENSE                       # MIT
+├── Makefile                      # 워크스페이스 별칭 + Terraform 타깃
+├── OWNERS                        # 코드 오너십
+├── OWNERS_ALIASES                # 팀 별칭
+├── README.md                     # 본 문서
+├── build.env                     # 빌드 환경 변수
+├── 103-coredns/                  # Tier 1: CoreDNS (template-only)
 │   ├── AGENTS.md
 │   ├── README.md
-│   └── templates/
-│       ├── AGENTS.md
-│       ├── Corefile.tftpl
-│       ├── docker-compose.yml.tftpl
-│       └── filebeat.yml.tftpl
-│
-├── 105-elk/                        # ELK 스택 + Terraform 워크스페이스
+│   └── templates/                # Corefile, docker-compose, filebeat
+├── 105-elk/                      # Tier 1: ELK 스택
 │   ├── AGENTS.md
 │   ├── docker-compose.yml
 │   ├── ilm-policy.json
-│   ├── scripts/                    # ILM/Watcher 설정 Go 유틸
-│   │   ├── remove-promtail
-│   │   ├── remove-promtail.go
-│   │   ├── setup-ilm.go
-│   │   └── setup-watcher.go
-│   ├── config/                     # 렌더링된/예제 컨피그
-│   │   ├── AGENTS.md
-│   │   ├── Dockerfile.logstash
-│   │   ├── filebeat.yml
-│   │   ├── ilm-policy.json
-│   │   ├── logstash.conf
-│   │   └── logstash.yml
-│   ├── templates/                  # *.tftpl 원본
-│   │   ├── AGENTS.md
-│   │   ├── Dockerfile.logstash.tftpl
-│   │   ├── docker-compose.yml.tftpl
-│   │   ├── filebeat.yml.tftpl
-│   │   ├── ilm-policy.json.tftpl
-│   │   ├── logstash.conf.tftpl
-│   │   ├── logstash.yml.tftpl
-│   │   └── setup-ilm.sh.tftpl
-│   └── terraform/                  # Terraform 워크스페이스 (ALIAS_elk)
-│       ├── AGENTS.md
-│       ├── README.md
-│       ├── checks.tf
-│       ├── main.tf
-│       ├── onepassword.tf
-│       ├── outputs.tf
-│       ├── providers.tf
-│       ├── validation.tf
-│       ├── variables.tf
-│       └── versions.tf
-│
-├── 112-mcphub/                     # MCP Hub (Multi-Cloud Proxy)
+│   ├── config/                   # 렌더링된 설정 (read-only)
+│   ├── scripts/                  # Go 운영 도구 (setup-ilm, setup-watcher, remove-promtail)
+│   ├── templates/                # tftpl 원본
+│   └── terraform/                # Terraform 워크스페이스 (checks/main/outputs/providers/variables/versions/onepassword/validation)
+├── 112-mcphub/                   # Tier 1: MCP Hub 집계
 │   ├── AGENTS.md
-│   ├── Dockerfile.dev-browser
-│   ├── Dockerfile.playwright
-│   ├── Dockerfile.proxmox
-│   ├── README.md
+│   ├── Dockerfile.{dev-browser,playwright,proxmox}
 │   ├── mcp_servers.json
 │   ├── validate_mcps.py
-│   ├── patches/n8n/
-│   │   ├── license-state.js
-│   │   └── license.js
-│   ├── op-mcp-server/              # 1Password MCP 서버
-│   │   ├── AGENTS.md
-│   │   ├── index.mjs
-│   │   ├── package-lock.json
-│   │   └── package.json
-│   ├── config/
-│   │   ├── AGENTS.md
-│   │   ├── entrypoint-patch.go
-│   │   ├── filebeat.yml
-│   │   ├── patch-placeholder.cjs
-│   │   └── patch-sdk-schema.cjs
-│   └── templates/
-│       ├── AGENTS.md
-│       ├── docker-compose-op-connect.yml.tftpl
-│       ├── docker-compose.yml.tftpl
-│       ├── filebeat.yml.tftpl
-│       └── mcp_settings.json.tftpl
-│
-└── 300-cloudflare/                 # Cloudflare DNS/Access/IdP/Logpush
+│   ├── patches/                  # n8n 라이선스 패치
+│   ├── op-mcp-server/            # Node.js 1Password MCP 서버
+│   ├── config/                   # 진입점 패치, SDK 스키마 패치, filebeat
+│   └── templates/                # docker-compose, filebeat, mcp_settings, 1Password Connect
+└── 300-cloudflare/               # 외부: DNS / Access / Tunnel / Logpush
     ├── AGENTS.md
     ├── README.md
     ├── access.tf
@@ -257,149 +154,115 @@ terraform/
     ├── logpush.tf
     ├── main.tf
     ├── onepassword.tf
-    ├── outputs-homelab.tf
-    ├── outputs-jclee.tf
-    ├── outputs-synology.tf
-    └── outputs.tf
+    └── outputs-{homelab,jclee,synology}.tf
 ```
 
-> `Makefile`은 위 디렉터리 외에 `jclee`, `pve`, `runner`, `traefik`, `supabase`, `archon`, `n8n`, `oc`, `synology`, `youtube`, `github`, `safetywallet`, `slack`, `gcp` 등 추가 워크스페이스 별칭을 정의합니다. 현재 저장소에는 일부 워크스페이스만 커밋되어 있으며, 나머지는 모노레포의 다른 영역에 속합니다.
+> 참고: 루트에 보이는 디렉터리는 이 스냅샷 시점의 실제 디렉터리입니다. 모노레포에는 추가로 `100-pve`, `102-traefik`, `301-github`, `400-gcp` 등 다수의 워크스페이스가 존재하며, `Makefile`의 `ALIAS_*` 맵으로 단축 별칭을 제공합니다.
 
-### 어디서 무엇을 봐야 하는가
+## 5. Automation Inventory / 자동화 인벤토리
 
-| 작업 | 위치 |
-| --- | --- |
-| 새 LXC/VM 추가 | `100-pve/locals.tf` (사이징) + `envs/prod/hosts.tf` (호스트 엔트리) |
-| 서비스 컨피그 수정 | `{NNN}-{svc}/templates/*.tftpl` → `100-pve`가 렌더링 |
-| 시크릿 추가/회전 | `modules/shared/onepassword-secrets/main.tf` + 1Password 볼트 |
-| 새 Traefik 라우트 | `102-traefik/templates/*.yml.tftpl` |
-| ELK 파이프라인 | `105-elk/templates/logstash.conf.tftpl` |
-| Cloudflare DNS/터널 | `300-cloudflare/main.tf` |
-| MCP 서버 설정 | `112-mcphub/mcp_servers.json` (검증: `validate_mcps.py`) |
-| CI/CD 워크플로우 | `.github/workflows/` |
-| 아키텍처 결정 | `docs/adr/` (append-only, supersede with new ADR) |
+### 5.1 GitHub Actions Workflows (16)
 
-## 6. 빠른 시작
+| # | 파일 | 분류 | 역할 |
+| - | ---- | ---- | ---- |
+| 01 | `01_branch-to-pr.yml` | Branch | 브랜치 → PR 자동화 |
+| 02 | `02_issue-to-branch.yml` | Issue | 이슈 → 브랜치 자동 생성 |
+| 03 | `10_pr-review.yml` | PR Review | [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) 자동 리뷰 |
+| 04 | `11_security-pr-review.yml` | PR Review | 보안 관점 PR 리뷰 |
+| 05 | `12_dependabot-auto-merge.yml` | Auto-merge | Dependabot PR 자동 병합 |
+| 06 | `13_pr-auto-merge.yml` | Auto-merge | 일반 PR 자동 병합 (조건 충족 시) |
+| 07 | `14_bot-auto-fix.yml` | Auto-fix | 봇 제안 자동 수정 적용 |
+| 08 | `15_merged-pr-cleanup.yml` | Cleanup | 병합된 PR 브랜치 정리 |
+| 09 | `19_issue-backfill.yml` | Issue | 누락 이슈 백필 |
+| 10 | `24_release-notes.yml` | Release | 릴리스 노트 자동 생성 |
+| 11 | `25_release-publish.yml` | Release | GitHub Release 발행 |
+| 12 | `29_downstream-health-check.yml` | Health | 다운스트림 헬스 체크 |
+| 13 | `37_ci-failure-issues.yml` | CI Auto-heal | CI 실패 → 이슈 자동 생성 |
+| 14 | `60_ci-auto-heal.yml` | CI Auto-heal | CI 자동 복구 |
+| 15 | `91_issue-classification.yml` | Issue | 이슈 자동 분류/라벨링 |
+| 16 | `ci.yml` | CI | 메인 CI 파이프라인 |
 
-### 6.1 사전 요구사항
+### 5.2 Go Automation Tools (0)
 
-- Terraform `1.10.5` (`>= 1.7, < 2.0`)
-- 1Password CLI + `homelab` 볼트 접근 권한
-- Proxmox API 토큰 (시크릿)
-- Git, Make, OpenTofu 호환 도구
+이 저장소에는 루트의 Go 운영 도구가 없습니다. 도메인별 도구는 각 워크스페이스의 `scripts/`에 위치합니다(예: `105-elk/scripts/setup-ilm.go`, `105-elk/scripts/setup-watcher.go`, `105-elk/scripts/remove-promtail.go` — 모두 stdlib 전용).
 
-### 6.2 첫 사용
+## 6. Quick Start / 빠른 시작
+
+### 6.1 사전 요구 사항
+- Terraform `>= 1.7, < 2.0` (검증된 버전: `1.10.5`)
+- GNU Make
+- GitHub CLI (`gh`) — PR/이슈 자동화 검증용
+- 1Password CLI (`op`) — 로컬에서 시크릿을 다룰 경우
+- Proxmox API 토큰 + 1Password `homelab` 볼트 접근권
+
+### 6.2 클론 & 초기화
 
 ```bash
-# 저장소 클론
-git clone <repository-url>
+git clone <repo-url> terraform
 cd terraform
-
-# 워크스페이스 목록 확인
-make help
-
-# 기본 워크스페이스(pve) 초기화
-make init SVC=pve
-
-# 플랜 확인 (apply는 CI/CD에서만 실행)
-make plan SVC=pve
+make init SVC=pve          # 100-pve 초기화
+make plan SVC=pve          # 변경 사항 미리보기
 ```
 
-## 7. 로컬 개발
+수동 `apply`는 **비활성화**되어 있습니다. 모든 변경은 `master` 브랜치 푸시 후 CI/CD를 통해 적용됩니다.
 
-### 7.1 평탄 NNN-SVC 컨벤션
+## 7. 로컬 개발 절차
 
-- 디렉터리 이름은 `NNN-{service}` 형식 (예: `100-pve`, `105-elk`, `300-cloudflare`)
-- `1-255` = 내부 인프라, `300+` = 외부 서비스
-- `Makefile`의 `ALIAS_` 맵을 통해 짧은 별칭 사용 가능 (`pve`, `elk`, `mcphub`, `cloudflare` 등)
-- 별칭이 정의되지 않은 경우 `SVC` 값을 디렉터리 경로로 직접 사용
+1. **워크스페이스 선택**: `SVC` 환경변수로 디렉터리 지정
+   - 전체 경로: `SVC=105-elk/terraform`
+   - 단축 별칭: `SVC=elk`, `SVC=cloudflare`, `SVC=mcphub`
+2. **포맷/린트**: `make fmt SVC=<svc>`, `make lint SVC=<svc>`
+3. **검증**: `make validate SVC=<svc>`
+4. **계획**: `make plan SVC=<svc>`
+5. **테스트**: `make test-unit SVC=<svc>` / `make test-integration SVC=<svc>`
+6. **Pre-commit**: `make pre-commit-install` 후 `make pre-commit-run`
+7. **PR 생성**: `git push` → GitHub에서 PR 오픈 → `10_pr-review.yml`이 자동 리뷰
+8. **자동 병합**: 조건 충족 시 `13_pr-auto-merge.yml`이 자동 병합, 이후 `15_merged-pr-cleanup.yml`이 브랜치 정리
 
-### 7.2 시크릿 처리
+## 8. 명령어 레퍼런스 (Makefile)
 
-1Password 볼트 `homelab` → `modules/shared/onepassword-secrets` 모듈을 통해 주입합니다.
-
-```hcl
-# 사용 예시
-secrets = module.onepassword_secrets.secrets
-```
-
-### 7.3 컨피그 렌더링
-
-```text
-templates/{svc}/*.tftpl
-  ↓ templatefile()
-configs/{svc}/   (NEVER hand-edit)
-  ↓ SSH deploy
-/opt/{svc}/      (target host)
-```
-
-## 8. 명령어 레퍼런스
-
-`Makefile`은 다음 타겟을 제공합니다.
-
-| 타겟 | 설명 |
-| --- | --- |
-| `help` | 사용 가능한 타겟과 설명 출력 |
-| `init` | Terraform 초기화 (`SVC=pve` 기본) |
-| `plan` | Terraform 플랜 생성 (`-out=tfplan`) |
-| `apply` | **수동 apply는 비활성화** — CI/CD를 통해 배포 |
-| `verify` | Terraform 검증 |
-| `lint` | Terraform lint |
-| `lint-go` | Go 코드 lint |
-| `fmt` | 포맷팅 (`terraform fmt`) |
-| `validate` | Terraform validate |
-| `drift-check` | 실제 인프라와 상태 간 드리프트 점검 |
-| `backup` | 상태 백업 |
-| `test` | 전체 테스트 실행 |
-| `test-unit` | 단위 테스트 |
-| `test-integration` | 통합 테스트 |
-| `test-workspace` | 워크스페이스 테스트 |
-| `docs` | 문서 생성/동기화 |
-| `pre-commit-install` | pre-commit 훅 설치 |
-| `pre-commit-run` | pre-commit 훅 실행 |
-| `setup` | 개발 환경 셋업 |
-
-### 사용 예시
-
-```bash
-# 단축 별칭 사용
-make plan SVC=elk
-make plan SVC=mcphub
-make plan SVC=cloudflare
-
-# 전체 경로 직접 사용
-make plan SVC=105-elk/terraform
-make plan SVC=112-mcphub
-
-# 사용 가능한 워크스페이스 확인 (잘못된 SVC 지정 시 출력됨)
-make help
-```
+| 타깃 | 설명 |
+| ---- | ---- |
+| `make plan SVC=<svc>` | Terraform plan (`-out=tfplan`) |
+| `make apply SVC=<svc>` | **비활성화** — CI/CD로만 적용 |
+| `make init SVC=<svc>` | Terraform 초기화 |
+| `make verify SVC=<svc>` | `terraform verify` |
+| `make validate SVC=<svc>` | `terraform validate` |
+| `make fmt SVC=<svc>` | `terraform fmt -recursive` |
+| `make lint SVC=<svc>` | `tflint` + 사용자 정의 검사 |
+| `make lint-go` | Go 코드 린트 (해당 도구 있을 때) |
+| `make backup` | `.tfstate` 백업 |
+| `make drift-check SVC=<svc>` | 실제 인프라와 상태 비교 |
+| `make test` | 전체 테스트 실행 |
+| `make test-unit` | `terraform test` 유닛 테스트 |
+| `make test-integration` | 통합 테스트 |
+| `make test-workspace` | 워크스페이스 계약 테스트 |
+| `make docs` | 문서 생성/동기화 |
+| `make pre-commit-install` | pre-commit 훅 설치 |
+| `make pre-commit-run` | pre-commit 훅 수동 실행 |
+| `make setup` | 로컬 개발 환경 1회 셋업 |
+| `make help` | 사용 가능한 타깃 목록 |
 
 ## 9. 기여 가이드
 
-1. **브랜치 생성**: `02_issue-to-branch.yml`이 이슈에서 브랜치를 자동 생성합니다.
-2. **커밋 규칙**: Conventional Commits를 따릅니다.
-3. **PR 검사**: 다음이 자동으로 실행됩니다.
-   - `10_pr-review.yml` — PR-Agent 자동 리뷰
-   - `11_security-pr-review.yml` — 보안 리뷰
-   - `ci.yml` — lint/validate/plan
-   - Gitleaks, CodeQL, Dependency Review, OpenSSF Scorecard
-4. **자동 병합**: 조건 충족 시 `13_pr-auto-merge.yml`이 자동 병합합니다.
-5. **자동 수정**: 리뷰 지적은 `14_bot-auto-fix.yml`이 자동 패치를 제안합니다.
-6. **정리**: 병합 후 `15_merged-pr-cleanup.yml`이 브랜치/리소스를 정리합니다.
+1. 이슈를 먼저 생성하거나 기존 이슈를 할당받습니다 (`91_issue-classification.yml`이 자동 라벨링).
+2. `02_issue-to-branch.yml`이 추천하는 브랜치 이름 규칙을 따릅니다.
+3. `CODE_STYLE.md`의 명명/변수/템플릿 규약을 준수합니다.
+4. `DEPENDENCY_MAP.md`를 갱신하여 모듈 의존성 변경을 반영합니다.
+5. `make fmt validate lint test-unit`을 모두 통과시킵니다.
+6. PR을 열고 `10_pr-review.yml`, `11_security-pr-review.yml`의 자동 리뷰를 확인합니다.
+7. 봇 제안을 수용할지 결정하고, `14_bot-auto-fix.yml`이 안전 패치를 자동 적용할 수도 있습니다.
+8. 모든 체크가 통과하면 `13_pr-auto-merge.yml`이 자동 병합합니다.
 
-자세한 절차는 [`CONTRIBUTING.md`](./CONTRIBUTING.md), [`CODE_STYLE.md`](./CODE_STYLE.md), [`ARCHITECTURE.md`](./ARCHITECTURE.md)를 참조하세요.
+자세한 절차는 `CONTRIBUTING.md`를 참고하세요.
 
-### 코드 오너십
+## 10. 라이선스 & 참조
 
-- [`OWNERS`](./OWNERS) 및 [`OWNERS_ALIASES`](./OWNERS_ALIASES) 파일 참조
-- 리뷰어 지정은 CODEOWNERS 규칙을 따릅니다
-
-## 10. 외부 링크
-
-- 공개 엔드포인트: `https://cliproxy.jclee.me/v1`
-- 봇 대시보드: `https://bot.jclee.me`
-- PR 리뷰 도구: [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)
+- **License**: MIT — `LICENSE` 파일 참고
+- **PR Review Tool**: [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent)
+- **Public Endpoint**: `https://cliproxy.jclee.me/v1`
+- **Bot Host**: `https://bot.jclee.me`
+- **상위 문서**: `ARCHITECTURE.md`, `DEPENDENCY_MAP.md`, `CODE_STYLE.md`, `CONTRIBUTING.md`
 
 ---
 
@@ -407,232 +270,125 @@ make help
 
 ## 1. Overview
 
-This repository is an **Infrastructure-as-Code monorepo** that manages the `jclee.me` homelab and related external services. It provisions the Proxmox LXC/VM fleet, networking, monitoring, and external services through Terraform workspaces, with 1Password secret injection and GitHub Actions CI/CD.
+This repository is an **Infrastructure-as-Code monorepo** that provisions the `jclee.me` homelab and related external services. It manages a Proxmox LXC/VM fleet, networking, monitoring, and external services through Terraform workspaces, with secrets injected from 1Password and full CI/CD via GitHub Actions.
 
 - **Domain**: `jclee.me`
+- **Subnet**: `<homelab-host>/24` (internal LXC/VM)
 - **Terraform**: `1.10.5` (`>= 1.7, < 2.0`)
 - **Public Endpoint**: `https://cliproxy.jclee.me/v1`
-- **Repository Layout**: flat `NNN-SVC` convention (e.g. `100-pve`, `105-elk`, `300-cloudflare`)
-  - `1-255` = internal infrastructure (Proxmox LXC/VM)
-  - `300+` = external services (Cloudflare, AWS, etc.)
-- **Core Directories**: `100-pve` (central orchestrator), per-service workspaces, `modules/`, `templates/`, `.github/workflows/`
-
-This README centralizes the automation inventory, repository structure, local development workflow, command reference, and contribution guide.
+- **Workspace Convention**: flat `NNN-SVC`
+  - `1-255` = internal infrastructure (Proxmox LXC/VM, e.g. `<homelab-host>`)
+  - `300+` = external services (Cloudflare, GitHub, Slack, etc.)
+  - `400+` = public cloud (GCP, etc.)
+- **Central Orchestrator**: `100-pve` — the single source of truth (SSOT) for every LXC/VM lifecycle.
 
 ## 2. Features
 
 ### 2.1 Infrastructure as Code
-- Terraform workspaces per service (`100-pve`, `105-elk`, `112-mcphub`, `300-cloudflare`, etc.)
-- Flat `NNN-SVC` directory convention with `Makefile` short aliases (`pve`, `elk`, `mcphub`, `cloudflare`, …)
-- `templates/*.tftpl` → `configs/` render pipeline (via `config-renderer` module)
-- Local state backend, `.tfstate` committed to git, CI concurrency groups serialize applies
+- Per-service Terraform workspaces (e.g. `105-elk/terraform/`, `112-mcphub/`, `300-cloudflare/`).
+- Flat `NNN-SVC` directory convention with short aliases in the `Makefile` (`pve`, `elk`, `mcphub`, `cloudflare`, etc.).
+- `templates/*.tftpl` → rendered config pipeline powered by the `config-renderer` module.
+- Local state backend, `.tfstate` committed to git, GitHub Actions concurrency groups serialize `apply`.
+- Unit / integration / workspace tests via `terraform test`.
 
 ### 2.2 GitHub Automation
-- **16 GitHub Actions workflows** covering PR checks, reviews, security scanning, auto-merge, doc sync, release publishing, and CI auto-heal
-- PR-Agent (`qodo-ai/pr-agent`) automated PR reviews
-- Dependabot and general PR auto-merge
-- Gitleaks, CodeQL, Dependency Review, OpenSSF Scorecard for supply-chain security
-- README auto-generation, release notes/publishing, downstream health checks
+- **16 GitHub Actions workflows** covering PR inspection, review, security analysis, auto-merge, documentation sync, release publishing, and CI auto-heal.
+- Automated PR review powered by [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) (`10_pr-review.yml`).
+- Dependabot PR auto-merge (`12_dependabot-auto-merge.yml`) and general PR auto-merge (`13_pr-auto-merge.yml`).
+- Supply-chain security: Gitleaks, CodeQL, Dependency Review, OpenSSF Scorecard.
+- Auto-generated READMEs, release notes, releases, and downstream health checks.
 
 ### 2.3 Security and Compliance
-- 1Password `homelab` vault secret injection (`modules/shared/onepassword-secrets`)
-- Gitleaks for hardcoded-secret prevention
-- CodeQL static analysis, Dependency Review
-- OpenSSF Scorecard supply-chain checks
-- Cloudflare Access and Identity Provider configuration management
+- 1Password `homelab` vault secrets injected through `modules/shared/onepassword-secrets`.
+- Workspace-level `onepassword.tf` mapping (e.g. `300-cloudflare/onepassword.tf`).
+- No plaintext secrets in git — Gitleaks pre-commit hook blocks leaks.
+- Least-privilege `permissions:` blocks in every workflow.
 
-### 2.4 Observability
-- ELK stack (Elasticsearch + Logstash + Kibana) for log collection/search
-- Filebeat (node agent) + Logstash (pipeline) + ILM policy + Watcher setup
-- `105-elk/templates/logstash.conf.tftpl` pipeline template
-- ILM policy management utilities (Go, stdlib-only)
-
-### 2.5 MCP Hub
-- MCP (Multi-Cloud Proxy) hub container builds (`Dockerfile.playwright`, `Dockerfile.proxmox`, `Dockerfile.dev-browser`)
-- `validate_mcps.py` validates `mcp_servers.json` schema
-- 1Password Connect integration (`op-mcp-server/`)
-- n8n license patches (`patches/n8n/`)
+### 2.4 Documentation
+- Per-workspace `AGENTS.md` and `README.md` keep context local.
+- Root docs: `ARCHITECTURE.md`, `CODE_STYLE.md`, `CONTRIBUTING.md`, `DEPENDENCY_MAP.md`, `OWNERS`, `OWNERS_ALIASES`.
+- Auto-generated changelog on release (`24_release-notes.yml`, `25_release-publish.yml`).
 
 ## 3. Architecture
 
-The diagram below shows the flow from User/AI Agent through GitHub → CI → Terraform → Proxmox fleet → ELK / Cloudflare / MCP Hub.
-
 ```mermaid
 flowchart LR
-  Dev["User / AI Agent"]
-  Repo["GitHub Monorepo<br/>Terraform + Templates"]
-  CI["GitHub Actions<br/>16 Workflows"]
-  TF["Terraform Workspaces"]
-  PVE["100-pve<br/>Central Orchestrator"]
-  DNS_ws["103-coredns<br/>Templates + Compose"]
-  ELK_ws["105-elk<br/>ELK Stack"]
-  MCP_ws["112-mcphub<br/>MCP Hub"]
-  CF_ws["300-cloudflare<br/>DNS / Access / IdP"]
-  Fleet["Proxmox LXC / VM Fleet<br/>&lt;homelab-host&gt; / &lt;homelab-elk&gt;"]
-  OP["1Password<br/>homelab vault"]
-  CDN["Cloudflare<br/>DNS / Access / Tunnel"]
-  PRReview["qodo-ai/pr-agent<br/>PR Review"]
-  Public["https://cliproxy.jclee.me/v1"]
+    Agent["User / AI Agent"]
+    Repo["Terraform Monorepo<br/>jclee.me"]
+    CI["GitHub Actions Runner<br/>LXC 101-runner"]
+    TF["Terraform Workspaces<br/>NNN-SVC"]
+    PVE["100-pve<br/>Central Orchestrator<br/>SSOT: hosts.tf"]
+    Fleet["Proxmox LXC / VM Fleet<br/>1-255 prefix"]
+    OP["1Password<br/>homelab vault"]
+    CF["300-cloudflare<br/>DNS / Access / Tunnel"]
+    Traefik["102-traefik<br/>Ingress"]
+    ELK["105-elk<br/>Logs and Search"]
+    MCP["112-mcphub<br/>MCP Aggregation"]
+    Proxy["CLIProxyAPI<br/>https://cliproxy.jclee.me/v1"]
+    Bots["301-github<br/>Repo Management"]
 
-  Dev --> Repo
-  Repo --> CI
-  CI --> TF
-  TF --> PVE
-  TF --> DNS_ws
-  TF --> ELK_ws
-  TF --> MCP_ws
-  TF --> CF_ws
-  PVE --> Fleet
-  TF --> OP
-  Fleet --> ELK_ws
-  CF_ws --> CDN
-  Repo --> PRReview
-  Public --> MCP_ws
+    Agent --> Repo
+    Repo --> CI
+    CI --> TF
+    TF --> PVE
+    PVE --> Fleet
+    TF --> OP
+    TF --> CF
+    TF --> Bots
+    Fleet --> ELK
+    Fleet --> Traefik
+    Fleet --> MCP
+    CF --> Proxy
+    Traefik --> Proxy
+    Bots -.audits.-> Repo
 ```
 
-### Workspace Tiers
+**Key flows**
 
-| Tier | Directory | Role |
-| --- | --- | --- |
-| 0 (Core) | `100-pve` | Central orchestrator managing all LXC/VM lifecycle |
-| 1 (Infra) | `103-coredns`, `105-elk`, `112-mcphub` | Consume `remote_state` from `100-pve` |
-| External | `300-cloudflare` | No Proxmox dependency — DNS / Access / IdP / Logpush |
-| Template-only | (none in this slice) | No `.tf` files; `100-pve` renders templates only |
+1. `100-pve/envs/prod/hosts.tf` defines every LXC/VM IP, VMID, role, and port — the SSOT.
+2. The `100-pve` module graph pulls secrets via `onepassword_secrets` and renders `templates/*.tftpl` through `config-renderer`.
+3. Rendered configs are SSH-deployed to `/opt/{service}/` on each LXC/VM.
+4. External workspaces (`300-cloudflare`, `301-github`, `320-slack`, `400-gcp`) apply independently — they have no Proxmox dependency.
 
-### Config Pipeline
+## 4. Repository Structure
 
-```text
-hosts.tf (SSoT) → module.hosts → onepassword_secrets + config_renderer
-  → templatefile(.tftpl) → configs/ → SSH deploy to /opt/{service}/
-```
-
-## 4. Automation Inventory
-
-### 4.1 GitHub Actions Workflows (16)
-
-| File | Category | Purpose |
-| --- | --- | --- |
-| `01_branch-to-branch.yml` | Issue→Branch | Link branches to issues automatically |
-| `02_issue-to-branch.yml` | Issue→Branch | Create working branches from issues |
-| `10_pr-review.yml` | PR Review | Automated PR review via `qodo-ai/pr-agent` |
-| `11_security-pr-review.yml` | PR Review (Security) | Security-focused PR review |
-| `12_dependabot-auto-merge.yml` | Auto-Merge | Auto-merge Dependabot PRs |
-| `13_pr-auto-merge.yml` | Auto-Merge | Auto-merge qualifying PRs |
-| `14_bot-auto-fix.yml` | Auto-Fix | Auto-patch review findings |
-| `15_merged-pr-cleanup.yml` | Cleanup | Clean up branches/resources after merge |
-| `19_issue-backfill.yml` | Issue Ops | Backfill missing issue metadata |
-| `24_release-notes.yml` | Release | Auto-generate release notes |
-| `25_release-publish.yml` | Release | Publish GitHub Releases |
-| `29_downstream-health-check.yml` | Health | Downstream service health checks |
-| `37_ci-failure-issues.yml` | CI Ops | Open issues for CI failures |
-| `60_ci-auto-heal.yml` | CI Auto-Heal | Auto-recover known CI failure patterns |
-| `91_issue-classification.yml` | Issue Ops | Auto-classify / label issues |
-| `ci.yml` | CI | Main CI (lint, validate, plan) |
-
-> All workflow file names use the actual on-disk names, including the numeric prefix.
-
-### 4.2 Operational Tools
-
-| Kind | Count | Notes |
-| --- | --- | --- |
-| Go operational scripts | 0 | Not present in current tree (future `scripts/` must remain stdlib-only) |
-| Python utilities | 1 | `112-mcphub/validate_mcps.py` — `mcp_servers.json` schema validator |
-| Terraform modules | 2 categories | `modules/proxmox/{lxc,vm,lxc-config,vm-config,config-renderer}`, `modules/shared/onepassword-secrets` |
-
-## 5. Repository Structure
-
-The actual top-level layout of the current repository:
+Actual top-level layout at the snapshot (some workspaces abbreviated).
 
 ```text
-terraform/
-├── AGENTS.md                       # Project knowledge base for AI agents
-├── ARCHITECTURE.md                 # Full architecture reference
-├── CODE_STYLE.md                   # Naming / file / variable / template conventions
-├── CONTRIBUTING.md                 # Contribution procedure
-├── DEPENDENCY_MAP.md               # Module dependency graph + template inventory
-├── LICENSE                         # MIT License
-├── Makefile                        # Flat NNN-SVC convention + alias map
-├── OWNERS                          # Code ownership
-├── OWNERS_ALIASES                  # Owner aliases
-├── README.md                       # This document
-├── build.env                       # Build environment variables
-│
-├── 103-coredns/                    # CoreDNS configuration templates
+.
+├── AGENTS.md                     # AI agent knowledge base
+├── ARCHITECTURE.md               # Full architecture reference
+├── CODE_STYLE.md                 # Naming / file / variable / template conventions
+├── CONTRIBUTING.md               # Contribution procedure
+├── DEPENDENCY_MAP.md             # Module dependency graph + template inventory
+├── LICENSE                       # MIT
+├── Makefile                      # Workspace aliases + Terraform targets
+├── OWNERS                        # Code ownership
+├── OWNERS_ALIASES                # Team aliases
+├── README.md                     # This document
+├── build.env                     # Build environment variables
+├── 103-coredns/                  # Tier 1: CoreDNS (template-only)
 │   ├── AGENTS.md
 │   ├── README.md
-│   └── templates/
-│       ├── AGENTS.md
-│       ├── Corefile.tftpl
-│       ├── docker-compose.yml.tftpl
-│       └── filebeat.yml.tftpl
-│
-├── 105-elk/                        # ELK stack + Terraform workspace
+│   └── templates/                # Corefile, docker-compose, filebeat
+├── 105-elk/                      # Tier 1: ELK stack
 │   ├── AGENTS.md
 │   ├── docker-compose.yml
 │   ├── ilm-policy.json
-│   ├── scripts/                    # ILM/Watcher setup Go utilities
-│   │   ├── remove-promtail
-│   │   ├── remove-promtail.go
-│   │   ├── setup-ilm.go
-│   │   └── setup-watcher.go
-│   ├── config/                     # Rendered / example configs
-│   │   ├── AGENTS.md
-│   │   ├── Dockerfile.logstash
-│   │   ├── filebeat.yml
-│   │   ├── ilm-policy.json
-│   │   ├── logstash.conf
-│   │   └── logstash.yml
-│   ├── templates/                  # *.tftpl sources
-│   │   ├── AGENTS.md
-│   │   ├── Dockerfile.logstash.tftpl
-│   │   ├── docker-compose.yml.tftpl
-│   │   ├── filebeat.yml.tftpl
-│   │   ├── ilm-policy.json.tftpl
-│   │   ├── logstash.conf.tftpl
-│   │   ├── logstash.yml.tftpl
-│   │   └── setup-ilm.sh.tftpl
-│   └── terraform/                  # Terraform workspace (ALIAS_elk)
-│       ├── AGENTS.md
-│       ├── README.md
-│       ├── checks.tf
-│       ├── main.tf
-│       ├── onepassword.tf
-│       ├── outputs.tf
-│       ├── providers.tf
-│       ├── validation.tf
-│       ├── variables.tf
-│       └── versions.tf
-│
-├── 112-mcphub/                     # MCP Hub (Multi-Cloud Proxy)
+│   ├── config/                   # Rendered configs (read-only)
+│   ├── scripts/                  # Go operational tooling (setup-ilm, setup-watcher, remove-promtail)
+│   ├── templates/                # tftpl sources
+│   └── terraform/                # Terraform workspace (checks/main/outputs/providers/variables/versions/onepassword/validation)
+├── 112-mcphub/                   # Tier 1: MCP Hub aggregation
 │   ├── AGENTS.md
-│   ├── Dockerfile.dev-browser
-│   ├── Dockerfile.playwright
-│   ├── Dockerfile.proxmox
-│   ├── README.md
+│   ├── Dockerfile.{dev-browser,playwright,proxmox}
 │   ├── mcp_servers.json
 │   ├── validate_mcps.py
-│   ├── patches/n8n/
-│   │   ├── license-state.js
-│   │   └── license.js
-│   ├── op-mcp-server/              # 1Password MCP server
-│   │   ├── AGENTS.md
-│   │   ├── index.mjs
-│   │   ├── package-lock.json
-│   │   └── package.json
-│   ├── config/
-│   │   ├── AGENTS.md
-│   │   ├── entrypoint-patch.go
-│   │   ├── filebeat.yml
-│   │   ├── patch-placeholder.cjs
-│   │   └── patch-sdk-schema.cjs
-│   └── templates/
-│       ├── AGENTS.md
-│       ├── docker-compose-op-connect.yml.tftpl
-│       ├── docker-compose.yml.tftpl
-│       ├── filebeat.yml.tftpl
-│       └── mcp_settings.json.tftpl
-│
-└── 300-cloudflare/                 # Cloudflare DNS / Access / IdP / Logpush
+│   ├── patches/                  # n8n license patches
+│   ├── op-mcp-server/            # Node.js 1Password MCP server
+│   ├── config/                   # Entrypoint patch, SDK schema patch, filebeat
+│   └── templates/                # docker-compose, filebeat, mcp_settings, 1Password Connect
+└── 300-cloudflare/               # External: DNS / Access / Tunnel / Logpush
     ├── AGENTS.md
     ├── README.md
     ├── access.tf
@@ -643,156 +399,112 @@ terraform/
     ├── logpush.tf
     ├── main.tf
     ├── onepassword.tf
-    ├── outputs-homelab.tf
-    ├── outputs-jclee.tf
-    ├── outputs-synology.tf
-    └── outputs.tf
+    └── outputs-{homelab,jclee,synology}.tf
 ```
 
-> The `Makefile` declares additional workspace aliases (`jclee`, `pve`, `runner`, `traefik`, `supabase`, `archon`, `n8n`, `oc`, `synology`, `youtube`, `github`, `safetywallet`, `slack`, `gcp`). Only a subset of these is committed in the current slice; the rest belong to the broader monorepo.
+> Note: only the directories visible at the snapshot are shown above. The monorepo contains additional workspaces such as `100-pve`, `102-traefik`, `301-github`, and `400-gcp`, all reachable via the `ALIAS_*` map in the `Makefile`.
 
-### Where to Look
+## 5. Automation Inventory
 
-| Task | Location |
-| --- | --- |
-| Add new LXC/VM | `100-pve/locals.tf` (sizing) + `envs/prod/hosts.tf` (host entry) |
-| Modify service config | `{NNN}-{svc}/templates/*.tftpl` → rendered by `100-pve` |
-| Add/rotate secret | `modules/shared/onepassword-secrets/main.tf` + 1Password vault |
-| New Traefik route | `102-traefik/templates/*.yml.tftpl` |
-| ELK pipeline | `105-elk/templates/logstash.conf.tftpl` |
-| Cloudflare DNS / tunnel | `300-cloudflare/main.tf` |
-| MCP server config | `112-mcphub/mcp_servers.json` (validate via `validate_mcps.py`) |
-| CI/CD workflows | `.github/workflows/` |
-| Architecture decisions | `docs/adr/` (append-only, supersede with new ADR) |
+### 5.1 GitHub Actions Workflows (16)
+
+| # | File | Category | Purpose |
+| - | ---- | -------- | ------- |
+| 01 | `01_branch-to-pr.yml` | Branch | Branch → PR automation |
+| 02 | `02_issue-to-branch.yml` | Issue | Issue → branch auto-creation |
+| 03 | `10_pr-review.yml` | PR Review | Automated review via [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) |
+| 04 | `11_security-pr-review.yml` | PR Review | Security-focused PR review |
+| 05 | `12_dependabot-auto-merge.yml` | Auto-merge | Dependabot PR auto-merge |
+| 06 | `13_pr-auto-merge.yml` | Auto-merge | General PR auto-merge (when conditions match) |
+| 07 | `14_bot-auto-fix.yml` | Auto-fix | Apply safe bot suggestions |
+| 08 | `15_merged-pr-cleanup.yml` | Cleanup | Clean up merged PR branches |
+| 09 | `19_issue-backfill.yml` | Issue | Backfill missing issues |
+| 10 | `24_release-notes.yml` | Release | Auto-generate release notes |
+| 11 | `25_release-publish.yml` | Release | Publish GitHub Release |
+| 12 | `29_downstream-health-check.yml` | Health | Downstream service health check |
+| 13 | `37_ci-failure-issues.yml` | CI Auto-heal | CI failure → issue creation |
+| 14 | `60_ci-auto-heal.yml` | CI Auto-heal | CI auto-recovery |
+| 15 | `91_issue-classification.yml` | Issue | Auto-classify and label issues |
+| 16 | `ci.yml` | CI | Main CI pipeline |
+
+### 5.2 Go Automation Tools (0)
+
+There are no root-level Go automation tools. Domain-specific helpers live under each workspace's `scripts/` directory (e.g. `105-elk/scripts/setup-ilm.go`, `105-elk/scripts/setup-watcher.go`, `105-elk/scripts/remove-promtail.go` — all stdlib-only).
 
 ## 6. Quick Start
 
 ### 6.1 Prerequisites
+- Terraform `>= 1.7, < 2.0` (validated on `1.10.5`)
+- GNU Make
+- GitHub CLI (`gh`) — for verifying PR/issue automation
+- 1Password CLI (`op`) — when handling secrets locally
+- Proxmox API token and access to the `homelab` vault in 1Password
 
-- Terraform `1.10.5` (`>= 1.7, < 2.0`)
-- 1Password CLI + access to the `homelab` vault
-- Proxmox API token (as a secret)
-- Git, Make, OpenTofu-compatible tooling
-
-### 6.2 First Use
+### 6.2 Clone & Initialize
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone <repo-url> terraform
 cd terraform
-
-# List available targets
-make help
-
-# Initialize the default workspace (pve)
-make init SVC=pve
-
-# Generate a plan (apply runs only via CI/CD)
-make plan SVC=pve
+make init SVC=pve          # Initialize 100-pve
+make plan SVC=pve          # Preview changes
 ```
 
-## 7. Local Development
+Manual `apply` is **disabled**. All changes flow through CI/CD after pushing to `master`.
 
-### 7.1 Flat NNN-SVC Convention
+## 7. Local Development Workflow
 
-- Directory names follow `NNN-{service}` (e.g. `100-pve`, `105-elk`, `300-cloudflare`)
-- `1-255` = internal infrastructure, `300+` = external services
-- `Makefile` `ALIAS_` map provides short aliases (`pve`, `elk`, `mcphub`, `cloudflare`, …)
-- If no alias is defined, `SVC` is used as the directory path directly
+1. **Pick a workspace** via the `SVC` variable
+   - Full path: `SVC=105-elk/terraform`
+   - Short alias: `SVC=elk`, `SVC=cloudflare`, `SVC=mcphub`
+2. **Format & lint**: `make fmt SVC=<svc>`, `make lint SVC=<svc>`
+3. **Validate**: `make validate SVC=<svc>`
+4. **Plan**: `make plan SVC=<svc>`
+5. **Test**: `make test-unit SVC=<svc>` / `make test-integration SVC=<svc>`
+6. **Pre-commit**: `make pre-commit-install`, then `make pre-commit-run`
+7. **Open PR**: `git push` → open a PR on GitHub → `10_pr-review.yml` auto-reviews
+8. **Auto-merge**: if checks pass, `13_pr-auto-merge.yml` merges, then `15_merged-pr-cleanup.yml` tidies up
 
-### 7.2 Secret Handling
-
-Secrets are injected from the 1Password `homelab` vault via `modules/shared/onepassword-secrets`:
-
-```hcl
-# Example usage
-secrets = module.onepassword_secrets.secrets
-```
-
-### 7.3 Config Rendering
-
-```text
-templates/{svc}/*.tftpl
-  ↓ templatefile()
-configs/{svc}/   (NEVER hand-edit)
-  ↓ SSH deploy
-/opt/{svc}/      (target host)
-```
-
-## 8. Commands Reference
-
-The `Makefile` provides the following targets.
+## 8. Command Reference (Makefile)
 
 | Target | Description |
-| --- | --- |
-| `help` | List available targets with descriptions |
-| `init` | Initialize Terraform (default `SVC=pve`) |
-| `plan` | Create Terraform plan (`-out=tfplan`) |
-| `apply` | **Manual apply is disabled** — deploy via CI/CD |
-| `verify` | Terraform verification |
-| `lint` | Terraform lint |
-| `lint-go` | Go lint |
-| `fmt` | Formatting (`terraform fmt`) |
-| `validate` | Terraform validate |
-| `drift-check` | Compare real infra vs state for drift |
-| `backup` | State backup |
-| `test` | Run all tests |
-| `test-unit` | Unit tests |
-| `test-integration` | Integration tests |
-| `test-workspace` | Workspace tests |
-| `docs` | Generate / sync documentation |
-| `pre-commit-install` | Install pre-commit hooks |
-| `pre-commit-run` | Run pre-commit hooks |
-| `setup` | Bootstrap developer environment |
+| ------ | ----------- |
+| `make plan SVC=<svc>` | Terraform plan (`-out=tfplan`) |
+| `make apply SVC=<svc>` | **Disabled** — apply via CI/CD only |
+| `make init SVC=<svc>` | Terraform init |
+| `make verify SVC=<svc>` | `terraform verify` |
+| `make validate SVC=<svc>` | `terraform validate` |
+| `make fmt SVC=<svc>` | `terraform fmt -recursive` |
+| `make lint SVC=<svc>` | `tflint` + custom checks |
+| `make lint-go` | Lint Go code (when present) |
+| `make backup` | Backup `.tfstate` |
+| `make drift-check SVC=<svc>` | Compare live infra with state |
+| `make test` | Run all tests |
+| `make test-unit` | `terraform test` unit tests |
+| `make test-integration` | Integration tests |
+| `make test-workspace` | Workspace contract tests |
+| `make docs` | Generate / sync docs |
+| `make pre-commit-install` | Install pre-commit hooks |
+| `make pre-commit-run` | Run pre-commit hooks manually |
+| `make setup` | One-time local dev environment setup |
+| `make help` | List available targets |
 
-### Usage Examples
+## 9. Contributing
 
-```bash
-# Short aliases
-make plan SVC=elk
-make plan SVC=mcphub
-make plan SVC=cloudflare
+1. Open or claim an issue first — `91_issue-classification.yml` auto-labels it.
+2. Follow the branch naming convention recommended by `02_issue-to-branch.yml`.
+3. Follow the conventions in `CODE_STYLE.md` (naming, variables, templates).
+4. Update `DEPENDENCY_MAP.md` whenever module dependencies change.
+5. Pass `make fmt validate lint test-unit` locally.
+6. Open the PR — `10_pr-review.yml` and `11_security-pr-review.yml` will review.
+7. `14_bot-auto-fix.yml` may apply safe patches automatically.
+8. When all checks pass, `13_pr-auto-merge.yml` merges the PR.
 
-# Full paths
-make plan SVC=105-elk/terraform
-make plan SVC=112-mcphub
+See `CONTRIBUTING.md` for the full procedure.
 
-# Discover available workspaces (printed on invalid SVC)
-make help
-```
+## 10. License & References
 
-## 9. Contribution Guide
-
-1. **Create a branch**: `02_issue-to-branch.yml` auto-creates branches from issues.
-2. **Commit conventions**: Follow Conventional Commits.
-3. **PR checks** (run automatically):
-   - `10_pr-review.yml` — PR-Agent automated review
-   - `11_security-pr-review.yml` — security review
-   - `ci.yml` — lint / validate / plan
-   - Gitleaks, CodeQL, Dependency Review, OpenSSF Scorecard
-4. **Auto-merge**: `13_pr-auto-merge.yml` merges qualifying PRs.
-5. **Auto-fix**: `14_bot-auto-fix.yml` proposes automated patches for review findings.
-6. **Cleanup**: `15_merged-pr-cleanup.yml` cleans up after merge.
-
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md), [`CODE_STYLE.md`](./CODE_STYLE.md), and [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full procedures.
-
-### Code Ownership
-
-- See [`OWNERS`](./OWNERS) and [`OWNERS_ALIASES`](./OWNERS_ALIASES)
-- Reviewer assignment follows the CODEOWNERS rules
-
-## 10. External Links
-
-- Public endpoint: `https://cliproxy.jclee.me/v1`
-- Bot dashboard: `https://bot.jclee.me`
-- PR review tool: [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)
-
----
-
-## License
-
-This project is licensed under the MIT License. See [`LICENSE`](./LICENSE).
-
----
-
-<sub>README generated by <strong>gpt-5.5</strong> with fallback to <strong>minimax-m3</strong> via <code>https://cliproxy.jclee.me/v1</code>.</sub>
+- **License**: MIT — see `LICENSE`
+- **PR Review Tool**: [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent)
+- **Public Endpoint**: `https://cliproxy.jclee.me/v1`
+- **Bot Host**: `https://bot.jclee.me`
+- **Companion Docs**: `ARCHITECTURE.md`, `DEPENDENCY_MAP.md`, `CODE_STYLE.md`, `CONTRIBUTING.md`
