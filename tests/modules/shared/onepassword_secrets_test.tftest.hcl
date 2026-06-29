@@ -65,25 +65,9 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.this["n8n"]
-    values = {
-      title       = "n8n"
-      section_map = {}
-    }
-  }
-
-  override_data {
     target = data.onepassword_item.this["mcphub"]
     values = {
       title       = "mcphub"
-      section_map = {}
-    }
-  }
-
-  override_data {
-    target = data.onepassword_item.this["slack"]
-    values = {
-      title       = "slack"
       section_map = {}
     }
   }
@@ -145,16 +129,6 @@ run "test_secrets_default_to_empty_string" {
     vault_name = "homelab"
   }
 
-  # --- Grafana (2 keys) ---
-  assert {
-    condition     = output.secrets.grafana_admin_password == ""
-    error_message = "grafana_admin_password should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.grafana_service_account_token == ""
-    error_message = "grafana_service_account_token should default to empty string"
-  }
-
   # --- Proxmox (2 keys) ---
   assert {
     condition     = output.secrets.proxmox_api_token_value == ""
@@ -180,42 +154,6 @@ run "test_secrets_default_to_empty_string" {
   }
 
 
-  # --- Supabase (6 keys) ---
-  assert {
-    condition     = output.secrets.supabase_service_key == ""
-    error_message = "supabase_service_key should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.supabase_anon_key == ""
-    error_message = "supabase_anon_key should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.supabase_service_role_key == ""
-    error_message = "supabase_service_role_key should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.supabase_db_password == ""
-    error_message = "supabase_db_password should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.supabase_jwt_secret == ""
-    error_message = "supabase_jwt_secret should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.supabase_dashboard_password == ""
-    error_message = "supabase_dashboard_password should default to empty string"
-  }
-
-  # --- Archon (2 keys) ---
-  assert {
-    condition     = output.secrets.archon_anthropic_key == ""
-    error_message = "archon_anthropic_key should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.openai_api_key == ""
-    error_message = "openai_api_key should default to empty string"
-  }
-
   # --- Cloudflare (4 keys) ---
   assert {
     condition     = output.secrets.cloudflare_api_key == ""
@@ -238,17 +176,7 @@ run "test_secrets_default_to_empty_string" {
     error_message = "google_oauth_client_secret should default to empty string"
   }
 
-  # --- n8n (2 keys) ---
-  assert {
-    condition     = output.secrets.n8n_api_key == ""
-    error_message = "n8n_api_key should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.n8n_github_token == ""
-    error_message = "n8n_github_token should default to empty string"
-  }
-
-  # --- MCPHub (5 keys) ---
+  # --- MCPHub (4 keys) ---
   assert {
     condition     = output.secrets.mcphub_proxmox_token_name == ""
     error_message = "mcphub_proxmox_token_name should default to empty string"
@@ -262,30 +190,8 @@ run "test_secrets_default_to_empty_string" {
     error_message = "mcphub_admin_password should default to empty string"
   }
   assert {
-    condition     = output.secrets.mcphub_n8n_mcp_api_key == ""
-    error_message = "mcphub_n8n_mcp_api_key should default to empty string"
-  }
-  assert {
     condition     = output.secrets.mcphub_op_service_account_token == ""
     error_message = "mcphub_op_service_account_token should default to empty string"
-  }
-
-  # --- Slack (4 keys) ---
-  assert {
-    condition     = output.secrets.slack_mcp_xoxp_token == ""
-    error_message = "slack_mcp_xoxp_token should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.slack_mcp_xoxb_token == ""
-    error_message = "slack_mcp_xoxb_token should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.slack_bot_token == ""
-    error_message = "slack_bot_token should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.slack_webhook_url == ""
-    error_message = "slack_webhook_url should default to empty string"
   }
 
   # --- ELK (2 keys) ---
@@ -329,7 +235,7 @@ run "test_secrets_default_to_empty_string" {
   }
 }
 
-# All 14 metadata keys default to "" when section_map is empty (try() fallback)
+# All metadata keys default to "" when section_map is empty (try() fallback)
 run "test_metadata_default_to_empty_string" {
   command = plan
 
@@ -339,16 +245,6 @@ run "test_metadata_default_to_empty_string" {
 
   variables {
     vault_name = "homelab"
-  }
-
-  # --- Supabase (2 keys) ---
-  assert {
-    condition     = output.metadata.supabase_url == ""
-    error_message = "supabase_url should default to empty string"
-  }
-  assert {
-    condition     = output.metadata.supabase_dashboard_username == ""
-    error_message = "supabase_dashboard_username should default to empty string"
   }
 
   # --- Cloudflare (3 keys) ---
@@ -363,12 +259,6 @@ run "test_metadata_default_to_empty_string" {
   assert {
     condition     = output.metadata.cloudflare_zone_id == ""
     error_message = "cloudflare_zone_id should default to empty string"
-  }
-
-  # --- n8n (1 key) ---
-  assert {
-    condition     = output.metadata.n8n_webhook_url == ""
-    error_message = "n8n_webhook_url should default to empty string"
   }
 
   # --- YouTube (2 keys) ---
@@ -408,20 +298,8 @@ run "test_connection_info_default_to_empty_string" {
     error_message = "proxmox_endpoint should default to empty string"
   }
   assert {
-    condition     = output.connection_info.slack_webhook_url == ""
-    error_message = "slack_webhook_url should default to empty string"
-  }
-  assert {
-    condition     = output.connection_info.supabase_url == ""
-    error_message = "supabase_url should default to empty string"
-  }
-  assert {
     condition     = output.connection_info.cloudflare_account_id == ""
     error_message = "cloudflare_account_id should default to empty string"
-  }
-  assert {
-    condition     = output.connection_info.n8n_webhook_url == ""
-    error_message = "n8n_webhook_url should default to empty string"
   }
   assert {
     condition     = output.connection_info.gcp_region == ""
@@ -441,14 +319,12 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 42
-    error_message = "Secrets output should contain exactly 43 keys, got ${nonsensitive(length(output.secrets))}"
-
-
+    condition     = length(output.secrets) == 26
+    error_message = "Secrets output should contain exactly 26 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
-# Verify metadata output contains exactly 14 keys
+# Verify metadata output contains exactly 11 keys
 run "test_metadata_key_count" {
   command = plan
 
@@ -461,8 +337,8 @@ run "test_metadata_key_count" {
   }
 
   assert {
-    condition     = length(output.metadata) == 14
-    error_message = "Metadata output should contain exactly 14 keys, got ${length(output.metadata)}"
+    condition     = length(output.metadata) == 11
+    error_message = "Metadata output should contain exactly 11 keys, got ${length(output.metadata)}"
   }
 }
 
@@ -478,8 +354,8 @@ run "test_connection_info_key_count" {
   }
 
   assert {
-    condition     = length(output.connection_info) == 16
-    error_message = "connection_info output should contain exactly 16 keys, got ${length(output.connection_info)}"
+    condition     = length(output.connection_info) == 12
+    error_message = "connection_info output should contain exactly 12 keys, got ${length(output.connection_info)}"
   }
 }
 
@@ -493,16 +369,6 @@ run "test_all_secret_key_names_exist" {
 
   variables {
     vault_name = "homelab"
-  }
-
-  # Grafana
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "grafana_admin_password")
-    error_message = "Missing secret key: grafana_admin_password"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "grafana_service_account_token")
-    error_message = "Missing secret key: grafana_service_account_token"
   }
 
   # Proxmox
@@ -529,42 +395,6 @@ run "test_all_secret_key_names_exist" {
     error_message = "Missing secret key: telegram_bot_token"
   }
 
-  # Supabase
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "supabase_service_key")
-    error_message = "Missing secret key: supabase_service_key"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "supabase_anon_key")
-    error_message = "Missing secret key: supabase_anon_key"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "supabase_service_role_key")
-    error_message = "Missing secret key: supabase_service_role_key"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "supabase_db_password")
-    error_message = "Missing secret key: supabase_db_password"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "supabase_jwt_secret")
-    error_message = "Missing secret key: supabase_jwt_secret"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "supabase_dashboard_password")
-    error_message = "Missing secret key: supabase_dashboard_password"
-  }
-
-  # Archon
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "archon_anthropic_key")
-    error_message = "Missing secret key: archon_anthropic_key"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "openai_api_key")
-    error_message = "Missing secret key: openai_api_key"
-  }
-
   # Cloudflare
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "cloudflare_api_key")
@@ -587,16 +417,6 @@ run "test_all_secret_key_names_exist" {
     error_message = "Missing secret key: google_oauth_client_secret"
   }
 
-  # n8n
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "n8n_api_key")
-    error_message = "Missing secret key: n8n_api_key"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "n8n_github_token")
-    error_message = "Missing secret key: n8n_github_token"
-  }
-
   # MCPHub
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "mcphub_proxmox_token_name")
@@ -611,30 +431,8 @@ run "test_all_secret_key_names_exist" {
     error_message = "Missing secret key: mcphub_admin_password"
   }
   assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "mcphub_n8n_mcp_api_key")
-    error_message = "Missing secret key: mcphub_n8n_mcp_api_key"
-  }
-  assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "mcphub_op_service_account_token")
     error_message = "Missing secret key: mcphub_op_service_account_token"
-  }
-
-  # Slack
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "slack_mcp_xoxp_token")
-    error_message = "Missing secret key: slack_mcp_xoxp_token"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "slack_mcp_xoxb_token")
-    error_message = "Missing secret key: slack_mcp_xoxb_token"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "slack_bot_token")
-    error_message = "Missing secret key: slack_bot_token"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "slack_webhook_url")
-    error_message = "Missing secret key: slack_webhook_url"
   }
 
   # ELK
@@ -708,14 +506,6 @@ run "test_all_connection_info_key_names_exist" {
     error_message = "Missing connection_info key: proxmox_endpoint"
   }
   assert {
-    condition     = contains(keys(output.connection_info), "slack_webhook_url")
-    error_message = "Missing connection_info key: slack_webhook_url"
-  }
-  assert {
-    condition     = contains(keys(output.connection_info), "supabase_url")
-    error_message = "Missing connection_info key: supabase_url"
-  }
-  assert {
     condition     = contains(keys(output.connection_info), "cloudflare_email")
     error_message = "Missing connection_info key: cloudflare_email"
   }
@@ -726,10 +516,6 @@ run "test_all_connection_info_key_names_exist" {
   assert {
     condition     = contains(keys(output.connection_info), "cloudflare_zone_id")
     error_message = "Missing connection_info key: cloudflare_zone_id"
-  }
-  assert {
-    condition     = contains(keys(output.connection_info), "n8n_webhook_url")
-    error_message = "Missing connection_info key: n8n_webhook_url"
   }
 }
 
@@ -745,16 +531,6 @@ run "test_all_metadata_key_names_exist" {
     vault_name = "homelab"
   }
 
-  # Supabase
-  assert {
-    condition     = contains(keys(output.metadata), "supabase_url")
-    error_message = "Missing metadata key: supabase_url"
-  }
-  assert {
-    condition     = contains(keys(output.metadata), "supabase_dashboard_username")
-    error_message = "Missing metadata key: supabase_dashboard_username"
-  }
-
   # Cloudflare
   assert {
     condition     = contains(keys(output.metadata), "cloudflare_email")
@@ -767,12 +543,6 @@ run "test_all_metadata_key_names_exist" {
   assert {
     condition     = contains(keys(output.metadata), "cloudflare_zone_id")
     error_message = "Missing metadata key: cloudflare_zone_id"
-  }
-
-  # n8n
-  assert {
-    condition     = contains(keys(output.metadata), "n8n_webhook_url")
-    error_message = "Missing metadata key: n8n_webhook_url"
   }
 
   # PBS
@@ -843,11 +613,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 72
-    error_message = "Total keys (secrets + metadata + connection_info) should equal 72"
-
-
-
-
+    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 49
+    error_message = "Total keys (secrets + metadata + connection_info) should equal 49"
   }
 }

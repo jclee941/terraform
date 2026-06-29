@@ -28,7 +28,6 @@
 | ----------------- | --------------------- | ------------------ | ------------------------------ |
 | **101-runner**    | GitHub Actions runner | filebeat.yml.tftpl | 100-pve/module.config_renderer |
 | **103-coredns**   | DNS resolver          | 3x .tftpl          | 100-pve/module.config_renderer |
-| **110-n8n**       | Workflow automation   | 3x .tftpl          | 100-pve/module.config_renderer |
 | **112-mcphub**    | MCP server hub        | 5x .tftpl          | 100-pve/module.config_renderer |
 | **220-youtube**   | YouTube VM            | 3x .tftpl          | 100-pve/module.config_renderer |
 
@@ -37,10 +36,8 @@
 | Workspace           | Status    | Notes                        |
 | ------------------- | --------- | ---------------------------- |
 | **80-jclee**        | Reserved  | Workstation documentation    |
-| **114-cliproxy**    | Reserved  | Placeholder                  |
 | **200-oc**          | Reserved  | OpenCode workspace docs      |
 | **310-safetywallet**| Reserved  | Placeholder                  |
-| **320-slack**       | Reserved  | Placeholder                  |
 | **400-gcp**         | Reserved  | Placeholder                  |
 
 ---
@@ -109,7 +106,6 @@ flowchart LR
 |                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-102-traefik/filebeat.yml            |
 |                                | mcphub.yml.tftpl              | Traefik route       | config-renderer   | configs/rendered/traefik/mcphub.yml             |
 |                                | middlewares.yml.tftpl         | Traefik middlewares | config-renderer   | configs/rendered/traefik/middlewares.yml        |
-|                                | n8n.yml.tftpl                 | Traefik route       | config-renderer   | configs/rendered/traefik/n8n.yml                |
 |                                | nas.yml.tftpl                 | Traefik route       | config-renderer   | configs/rendered/traefik/nas.yml                |
 |                                | registry.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/registry.yml           |
 |                                | traefik-elk.yml.tftpl         | Traefik route       | config-renderer   | configs/rendered/traefik/traefik-elk.yml        |
@@ -123,9 +119,6 @@ flowchart LR
 |                                | logstash.conf.tftpl           | Logstash pipeline   | config-renderer   | configs/lxc-105-elk/logstash.conf               |
 |                                | logstash.yml.tftpl            | Logstash config     | config-renderer   | configs/lxc-105-elk/logstash.yml                |
 |                                | setup-ilm.sh.tftpl            | ILM setup script    | config-renderer   | configs/lxc-105-elk/setup-ilm.sh                |
-| **110-n8n**                    | docker-compose.yml.tftpl      | n8n stack           | config-renderer   | configs/lxc-110-n8n/docker-compose.yml          |
-|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-110-n8n/filebeat.yml                |
-|                                | n8n.env.tftpl                 | n8n env vars        | config-renderer   | configs/lxc-110-n8n/n8n.env                     |
 | **112-mcphub**                 | .env.tftpl                    | Env vars            | config-renderer   | configs/vm-112-mcphub/.env                      |
 |                                | docker-compose.yml.tftpl      | MCPHub stack        | config-renderer   | configs/vm-112-mcphub/docker-compose.yml        |
 |                                | docker-compose-op-connect.yml.tftpl | 1Password Connect | config-renderer   | configs/vm-112-mcphub/docker-compose-op-connect.yml |
@@ -139,7 +132,7 @@ flowchart LR
 | **modules/proxmox/lxc-config** | cloud-init-lxc.yaml.tftpl     | Cloud-init (LXC)    | lxc-config module | (inline in LXC resource)                        |
 |                                | lxc-systemd.service.tftpl     | Systemd service     | lxc-config module | (inline in LXC resource)                        |
 
-**Total:** 34 `.tftpl` files across 8 service workspaces and 2 module template directories.
+**Total:** 30 `.tftpl` files across 6 service workspaces and 2 module template directories.
 
 ### Template Variables (from 100-pve/main.tf)
 

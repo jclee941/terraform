@@ -54,11 +54,6 @@ run "all_item_titles" {
   }
 
   assert {
-    condition     = data.onepassword_item.n8n.title == "n8n"
-    error_message = "n8n item title should be 'n8n'."
-  }
-
-  assert {
     condition     = data.onepassword_item.supabase.title == "supabase"
     error_message = "Supabase item title should be 'supabase'."
   }
@@ -85,8 +80,4 @@ run "all_item_titles" {
     error_message = "Archon item title should be 'archon'."
   }
 
-  assert {
-    condition     = data.onepassword_item.slack.title == "slack"
-    error_message = "Slack item title should be 'slack'."
-  }
 }

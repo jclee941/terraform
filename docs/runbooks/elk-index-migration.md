@@ -63,7 +63,7 @@ These are legacy indices from a previous config iteration.
 STALE_SERVICES="logs-analytics logs-auth logs-blackbox-exporter logs-ceph logs-db \
 logs-docker logs-elasticsearch logs-grafana logs-kibana logs-kong logs-logstash \
 logs-logstash-exporter logs-mcphub logs-mcp-playwright logs-mcp-proxmox logs-meta \
-logs-n8n logs-opencode logs-prometheus logs-proxmox logs-realtime logs-redis \
+logs-opencode logs-prometheus logs-proxmox logs-realtime logs-redis \
 logs-studio logs-supavisor logs-system logs-tempo logs-unknown logs-vault \
 logs-vector logs-web logs-worker"
 

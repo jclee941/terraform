@@ -21,11 +21,8 @@ onepassword-secrets/
 
 ## CONSUMERS
 - Called by `100-pve/secrets.tf` via `module.onepassword_secrets`.
-- Called by `104-grafana/terraform/onepassword.tf` via `module.onepassword_secrets`.
 - Called by `105-elk/terraform/onepassword.tf` via `module.onepassword_secrets`.
 - Called by `300-cloudflare/onepassword.tf` via `module.onepassword_secrets`.
-- Called by `301-github/onepassword.tf` via `module.onepassword_secrets`.
-- Called by `320-slack/onepassword.tf` via `module.onepassword_secrets`.
 
 ## WHERE TO LOOK
 | Task | File | Notes |

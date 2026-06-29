@@ -28,9 +28,6 @@ SECRET_PATTERNS = [
     re.compile(r"eyJ[A-Za-z0-9_-]{10,}"),  # JWT tokens
     re.compile(r"sk-[A-Za-z0-9]{20,}"),  # API keys
     re.compile(r"ghp_[A-Za-z0-9]{20,}"),  # GitHub PATs
-    re.compile(r"xoxb-[A-Za-z0-9-]{20,}"),  # Slack bot tokens
-    re.compile(r"xoxp-[A-Za-z0-9-]{20,}"),  # Slack user tokens
-    re.compile(r"xoxe\.xoxp-[A-Za-z0-9-]{20,}"),  # Slack rotatable tokens
 ]
 
 

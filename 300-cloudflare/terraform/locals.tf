@@ -21,7 +21,6 @@ locals {
     es           = { subdomain = "es" }
     mcphub       = { subdomain = "mcphub" }
     nas          = { subdomain = "nas" }
-    n8n          = { subdomain = "n8n" }
     opencode-api = { subdomain = "opencode-api" }
     registry     = { subdomain = "registry" }
   }

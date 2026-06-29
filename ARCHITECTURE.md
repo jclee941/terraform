@@ -42,22 +42,23 @@ terraform/
 ├── 102-traefik/                  # Tier 1: Reverse proxy config
 ├── 103-coredns/                  # Template-only: Split DNS
 ├── 105-elk/                      # Tier 1: Log aggregation (ES + Logstash + Kibana)
-├── 107-supabase/                 # Template-only: Backend-as-a-Service
-├── 108-archon/                   # Tier 1: AI knowledge management
-├── 110-n8n/                      # Template-only: n8n workflow automation
 ├── 112-mcphub/                   # Template-only: MCP Hub + 1Password Connect
 ├── 200-oc/                       # Template-only: OpenCode dev environment
-├── 215-synology/                 # Template-only: NAS inventory
+├── 215-synology/                 # Flat Terraform workspace: Synology NAS inventory
 ├── 220-youtube/                  # Template-only: YouTube automation VM
 ├── 300-cloudflare/               # Independent: DNS, tunnels, Access, Workers, R2
-├── 301-github/                   # Independent: GitHub repo/ruleset management
 ├── 310-safetywallet/             # Template-only
-├── 320-slack/                    # Independent: Slack integration
 ├── 400-gcp/                      # Independent: Google Cloud Platform
 ├── modules/
+│   ├── cloudflare/
+│   │   └── tunnel/               # Reusable Cloudflare tunnel module
+│   ├── elasticstack/
+│   │   ├── ilm_policy/           # Elasticsearch ILM helper
+│   │   └── index_template/       # Elasticsearch index template helper
 │   ├── proxmox/
 │   │   ├── lxc/                  # LXC container provisioning
 │   │   ├── vm/                   # QEMU VM provisioning
+│   │   ├── firewall/             # Proxmox firewall resources
 │   │   ├── lxc-config/           # LXC config rendering (systemd templates)
 │   │   ├── vm-config/            # VM cloud-init + systemd rendering
 │   │   └── config-renderer/      # Central template → config pipeline
@@ -66,7 +67,7 @@ terraform/
 ├── tests/
 │   ├── modules/                  # Unit tests (proxmox, shared)
 │   ├── integration/              # Cross-module integration tests
-| `tests/workspaces/{pve,cloudflare,elk,slack}/` | `make test-workspace` |
+│   └── workspaces/               # Workspace validation tests
 ├── scripts/                      # Operational tooling (Go)
 ├── docs/                         # Architecture docs, ADRs, runbooks
 ├── .github/workflows/            # CI/CD workflows
@@ -87,9 +88,9 @@ terraform/
 | Tier | Workspaces | Role | Apply Order |
 | ---- | ---------- | ---- | ----------- |
 | 0 (core) | `100-pve` | Central orchestrator. Provisions 7 LXC + 3 VM. | First |
-| 1 (infra) | `102-traefik`, `105-elk`, `108-archon` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
-| Independent | `300-cloudflare`, `301-github`, `320-slack`, `400-gcp` | No Proxmox dependency. | Third (parallel) |
-| Template-only | 10 workspaces | Config templates + docker-compose only, no `.tf` files. | N/A |
+| 1 (infra) | `102-traefik`, `105-elk` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
+| Independent | `300-cloudflare`, `400-gcp` | No Proxmox dependency. | Third (parallel) |
+| Template/config-only | `101-runner`, `103-coredns`, `112-mcphub`, `200-oc`, `220-youtube`, `310-safetywallet` | Config templates + docker-compose only, no workspace-local `.tf` files. | N/A |
 
 ## Service Inventory
 
@@ -100,9 +101,7 @@ terraform/
 | 102 | traefik | .102 | LXC | Reverse proxy (ingress) |
 | 103 | coredns | .103 | LXC | Split DNS |
 | 105 | elk | .105 | LXC | ELK Stack |
-| 110 | n8n | .110 | LXC | Workflow automation |
 | 112 | mcphub | .112 | VM | MCP Hub + 1Password Connect |
-| 114 | cliproxy | .114 | LXC | Squid proxy |
 | 200 | oc | .200 | VM | OpenCode dev environment (RTX 5070 Ti GPU passthrough) |
 | 215 | synology | .215 | Physical | NAS storage |
 | 220 | youtube | .220 | VM | YouTube automation |
@@ -122,9 +121,6 @@ flowchart TB
   subgraph Homelab["Homelab 192.168.50.0/24"]
     Traefik --> CoreDNS["CoreDNS\nLXC 103"]
     Traefik --> ELK["ELK\nLXC 105"]
-    Traefik --> Supabase["Supabase\nLXC 107"]
-    Traefik --> Archon["Archon\nLXC 108"]
-    Traefik --> N8N["n8n\nLXC 110"]
     Traefik --> MCPHub["MCPHub\nVM 112"]
     Traefik --> OC["OpenCode\nVM 200"]
     Traefik --> Synology["Synology\nNAS 215"]
@@ -163,21 +159,16 @@ graph TD
   PVE["100-pve\nTier 0 core"] --> Tier1["Tier 1 parallel"]
   Tier1 --> Traefik["102-traefik"]
   Tier1 --> ELK["105-elk"]
-  Tier1 --> Archon["108-archon"]
 
   PVE --> Template["Template-only rendered by 100-pve"]
   Template --> Runner["101-runner"]
   Template --> CoreDNS["103-coredns"]
-  Template --> Supabase["107-supabase"]
-  Template --> N8N["110-n8n"]
   Template --> MCPHub["112-mcphub"]
   Template --> OC["200-oc"]
   Template --> Synology["215-synology"]
   Template --> YouTube["220-youtube"]
 
   Independent["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
-  Independent --> GitHub["301-github"]
-  Independent --> Slack["320-slack"]
   Independent --> GCP["400-gcp"]
 ```
 
@@ -203,9 +194,23 @@ flowchart LR
 | ------ | ------- | ------------ |
 | `lxc/` | LXC container provisioning | `proxmox_virtual_environment_lxc` |
 | `vm/` | QEMU VM provisioning | `proxmox_virtual_environment_vm` |
+| `firewall/` | Proxmox firewall resources | `proxmox_virtual_environment_firewall_*` |
 | `lxc-config/` | LXC systemd config rendering | `templatefile()` |
 | `vm-config/` | VM cloud-init + systemd rendering | `templatefile()` |
 | `config-renderer/` | Central template pipeline | `templatefile()` + `local_file` |
+
+### `modules/cloudflare/`
+
+| Module | Purpose | Key Resource |
+| ------ | ------- | ------------ |
+| `tunnel/` | Cloudflare tunnel + optional ingress config | `cloudflare_zero_trust_tunnel_cloudflared` |
+
+### `modules/elasticstack/`
+
+| Module | Purpose | Key Resource |
+| ------ | ------- | ------------ |
+| `ilm_policy/` | Elasticsearch lifecycle policy | `elasticstack_elasticsearch_index_lifecycle` |
+| `index_template/` | Elasticsearch index template | `elasticstack_elasticsearch_index_template` |
 
 ### `modules/shared/`
 
@@ -243,7 +248,7 @@ go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
 | ----- | -------- | ------- |
 | Unit (modules) | `tests/modules/{proxmox,shared}/` | `make test-unit` |
 | Integration | `tests/integration/` | `make test-integration` |
-| Workspace validation | `tests/workspaces/{pve,cloudflare,elk,slack}/` | `make test-workspace` |
+| Workspace validation | `tests/workspaces/{pve,cloudflare,elk}/` | `make test-workspace` |
 | All | — | `make test` |
 
 ## Key References

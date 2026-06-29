@@ -77,10 +77,3 @@ output "host_inventory" {
   description = "Host inventory map (ip, ports, vmid) for consumption by app workspaces via remote_state"
   value       = module.hosts.hosts
 }
-
-output "service_urls" {
-  description = "Derived service URLs for consumption by app workspaces via remote_state"
-  value = {
-    n8n_url = "https://mcphub.jclee.me"
-  }
-}

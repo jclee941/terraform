@@ -140,8 +140,6 @@ func main() {
 		{"money", filepath.Join(devDir, "money", ".env")},
 		{"resume", filepath.Join(devDir, "resume", ".env")},
 		{"safework", filepath.Join(devDir, "safework", "workers", ".env")},
-		{"slack", filepath.Join(devDir, "slack", ".env")},
-		{"slack-bot", filepath.Join(devDir, "slack", "typescript", "slack-bot", ".env")},
 		{"proxmox-tf", filepath.Join(devDir, "proxmox", "terraform", "terraform.tfvars")},
 		{"blacklist", filepath.Join(devDir, "blacklist", ".env")},
 		{"blacklist-agent", filepath.Join(devDir, "blacklist", "agent", ".env")},

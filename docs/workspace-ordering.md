@@ -21,7 +21,6 @@ graph TD
 
   External["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
   External --> GitHub["301-github"]
-  External --> Slack["320-slack"]
   External --> GCP["400-gcp"]
 ```
 
@@ -53,7 +52,6 @@ Grafana is managed through the current template/config pipeline rather than as a
 | `300-cloudflare` | `cloudflare-plan.yml` / `cloudflare-apply.yml` | `300-cloudflare/**` |
 | `301-github` | `github-plan.yml` / `github-apply.yml` | `301-github/**` |
 | `310-safetywallet` | `safetywallet-plan.yml` / `safetywallet-apply.yml` (GitLab CI) | `310-safetywallet/**` |
-| `320-slack` | `slack-plan.yml` / `slack-apply.yml` | `320-slack/**` |
 | `400-gcp` | `gcp-plan.yml` / `gcp-apply.yml` | `400-gcp/**` |
 ## CI/CD Notes
 

@@ -176,7 +176,6 @@ func TestHostInventoryStructure(t *testing.T) {
 		"supabase",
 		"archon",
 		"coredns",
-		"n8n",
 		"mcphub",
 	}
 

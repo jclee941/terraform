@@ -129,7 +129,6 @@ run "full_pipeline_traefik_route" {
           roles = ["mcp-hub", "ai", "mcp", "gateway", "automation"]
           ports = {
             web        = 3000
-            n8n        = 5678
             vault      = 8200
             proxmox    = 8055
             playwright = 8056

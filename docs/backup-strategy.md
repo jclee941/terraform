@@ -17,7 +17,7 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 | 105  | elk       | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch               |
 | 107  | supabase  | LXC  | 02:00 UTC daily | Supabase BaaS (PostgreSQL, Auth, Storage) |
 | 108  | archon    | LXC  | 02:00 UTC daily | AI Knowledge Management (Archon)          |
-| 112  | mcphub    | VM   | 03:00 UTC daily | MCP Hub + n8n automation                  |
+| 112  | mcphub    | VM   | 03:00 UTC daily | MCP Hub + 1Password Connect               |
 
 ### What's NOT Backed Up (Non-Critical)
 
@@ -377,7 +377,7 @@ When storage reaches 80%:
 - [ ] **Offsite replication**: Sync backups to offsite storage (e.g., S3-compatible) daily
 - [ ] **Backup encryption**: Add `--encrypt key.pem` for sensitive containers
 - [ ] **Selective backup**: Exclude large volumes (e.g., Elasticsearch indices) for faster backups
-- [ ] **Backup testing**: Automated monthly restore-to-test VMID via n8n workflow
+- [ ] **Backup testing**: Automated monthly restore-to-test VMID via CI workflow
 - [ ] **Backup metrics**: Export backup duration/size to Prometheus for trending
 
 ## References

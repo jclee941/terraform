@@ -33,15 +33,6 @@ locals {
     #   }
     # }
 
-    cliproxy = {
-      vmid  = 114
-      ip    = "192.168.50.114"
-      roles = ["proxy", "squid"]
-      ports = {
-        proxy = 3128
-      }
-    }
-
     runner = {
       vmid  = 101
       ip    = "192.168.50.101"
@@ -51,7 +42,7 @@ locals {
 
     # Note: runner (101) is active - LXC container for GitHub Actions CI (migrated from HDD to SSD 2026-03-28)
     # Removed: vault (was 101->repurposed), terraform (103),
-    # minio_cache (109), n8n (110), swagger (was 112->repurposed), github_runner (113->repurposed to 101)
+    # minio_cache (109), swagger (was 112->repurposed), github_runner (113->repurposed to 101)
     # Removed: mcpdog (111) - migrated to mcphub (112)
 
     traefik = {
@@ -88,18 +79,6 @@ locals {
         logstash_api        = 9600
         logstash_prometheus = 9198
         logstash_http       = 8080
-      }
-    }
-
-    n8n = {
-      vmid  = 110
-      ip    = "192.168.50.110"
-      roles = ["automation", "workflow"]
-      ports = {
-        n8n               = 5678
-        postgres          = 5432
-        cadvisor          = 8888
-        postgres_exporter = 9187
       }
     }
 

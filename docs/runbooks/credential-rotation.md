@@ -4,7 +4,6 @@ Scheduled and reactive rotation procedures for homelab service credentials.
 
 ## Symptoms
 - Authentication failures in service logs
-- n8n workflows failing with 401/403
 - MCP connections dropping
 - `onepassword-test.yml` or `mcp-health-check.yml` reporting auth failures
 
@@ -15,10 +14,8 @@ Scheduled and reactive rotation procedures for homelab service credentials.
 | 1Password SA Token | GitHub secret + MCPHub `.env` | 90 days / on failure | CI + MCPHub |
 | Cloudflare API Token | GitHub secret | 90 days / on failure | Cloudflare CI |
 | GitHub PAT | GitHub secret + 1Password | 90 days / on failure | CI cross-repo |
-| n8n MCP API Key | `/opt/mcphub/.env` on VM 112 | 2026-05-11 | MCPHub |
 | GitHub Runner Token | `/opt/runner/.env` on LXC 101 | 30 days | GitHub Actions |
 | Synology credentials | 1Password synology item | On failure | Synology NAS |
-| Slack bot/app tokens | 1Password slack item | On failure | Slack |
 | YouTube OAuth tokens | 1Password youtube item | On failure | YouTube |
 | CF Access service token | access.tf (time_rotating) | 60 days | Cloudflare Access |
 
@@ -82,25 +79,6 @@ go run scripts/sync-vault-secrets.go --force
 
 ---
 
-## n8n MCP API Key
-
-**Scope:** MCPHub API authentication
-**Expiry:** 2026-05-11
-
-```bash
-# 1. Generate new key in MCPHub UI (mcphub.jclee.me)
-#    Login: admin → Settings → API Keys → Create
-# 2. Update on VM 112
-pct exec 112 -- vim /opt/mcphub/.env  # Update MCP_API_KEY=<new-key>
-# 3. Restart services
-pct exec 112 -- docker compose -f /opt/mcphub/docker-compose.yml restart
-pct exec 112 -- docker compose -f /opt/n8n/docker-compose.yml restart
-# 4. Verify
-curl -s -H "Authorization: Bearer <new-key>" http://192.168.50.112:3000/api/health
-```
-
----
-
 ## GitHub Actions Runner Token
 
 **Scope:** Self-hosted runner on LXC 101
@@ -130,22 +108,6 @@ pct exec 101 -- bash -c '
 # 2. Update any services using Synology credentials
 # 3. Verify
 curl -u <user>:<pass> https://<synology-ip>/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=<user>&passwd=<pass>
-```
-
----
-
-## Slack Bot/App Tokens
-
-**Scope:** Slack API access for 320-slack workspace
-
-```bash
-# 1. Get token from 1Password
-#    op://homelab/slack/bot_token
-#    op://homelab/slack/app_token
-# 2. Update GitHub secret
-gh secret set SLACK_BOT_TOKEN
-gh secret set SLACK_APP_TOKEN
-# 3. Re-run slack-apply workflow
 ```
 
 ---
@@ -192,6 +154,4 @@ go run scripts/setup-github-secrets.go --audit
 
 - Set calendar reminders 2 weeks before expiry.
 - Monitor auth failures in Grafana/ELK dashboards.
-- n8n MCP API key expiry: **2026-05-11** — rotate before then.
-
 **Cross-reference:** `docs/secret-management.md` for full secret architecture.

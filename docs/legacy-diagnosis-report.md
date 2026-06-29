@@ -37,7 +37,7 @@ The real debt is **structural inconsistency, copy-paste duplication, and a few c
 
 ### MEDIUM
 
-- **M1 — 100-pve root migration debris.** `100-pve/` root holds stale `terraform.tfstate.backup` (832 KB), `tfplan`, `tfplan-n8n`, `.terraform/`, `terraform.tfvars` while live code/state is in `100-pve/terraform/`. Incomplete root→subdir migration.
+- **M1 — 100-pve root migration debris.** `100-pve/` root holds stale `terraform.tfstate.backup` (832 KB), `tfplan`, `.terraform/`, `terraform.tfvars` while live code/state is in `100-pve/terraform/`. Incomplete root→subdir migration.
 - **M2 — Child modules lack `versions.tf`.** All `modules/proxmox/*` + `modules/shared/*` inline `required_version`/`required_providers` in `main.tf` (CODE_STYLE.md:45 wants a separate `versions.tf`). Child modules use `~>` where HashiCorp recommends `>=` for reusables.
 - **M3 — Port variables typed as `string`.** `215-synology/variables.tf:69,75,104` (`portainer_https_port`, `portainer_edge_port`, `registry_port`).
 - **M4 — Fragile `count`.** `215-synology/main.tf:150` uses `count = length(minio_iam_user.console_admin)`; should mirror the upstream condition.
@@ -73,7 +73,7 @@ Executed as the R2-R12 refactor commits plus follow-up hardening/verification/re
 | R4 | DONE | `98f6c43` | 20 cloudflare root symlinks removed; nested convention. |
 | R5 | DONE | `d31fc15` | fmt/lint scan real `.tf` dirs (`TF_WORKSPACE_DIRS`); fixed broken `XY\|lint` target; aliases repointed. |
 | R5b | DONE | `4c4dd40` | Repointed stale workspace-test module sources (pve 22, cloudflare 18) to nested `terraform/`. |
-| R6 | DONE | (no commit) | Removed `100-pve/{terraform.tfstate.backup,tfplan,tfplan-n8n,.terraform}` (all git-untracked, so nothing to commit). |
+| R6 | DONE | (no commit) | Removed `100-pve/{terraform.tfstate.backup,tfplan,.terraform}` (all git-untracked, so nothing to commit). |
 | R7 | DROPPED | — | Collided with in-flight onepassword cleanup; user agreed to skip. |
 | R8 | DONE | `92a0a1c` | `modules/proxmox/firewall` + 4 `moved{}` blocks. |
 | R9 | DONE | `fe7e685` | `modules/cloudflare/tunnel` for_each + 8 `moved{}` blocks. |

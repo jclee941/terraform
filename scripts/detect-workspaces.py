@@ -41,7 +41,6 @@ TEMPLATE_WORKSPACES = [
     "101-runner",
     "103-coredns",
     "107-supabase",
-    "110-n8n",
     "112-mcphub",
     "200-oc",
     "220-youtube",

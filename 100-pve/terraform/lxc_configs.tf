@@ -68,10 +68,6 @@ module "lxc_config" {
           path    = "/etc/traefik/dynamic/mcphub.yml"
           content = module.config_renderer.rendered_configs.traefik_mcphub
         }
-        "n8n.yml" = {
-          path    = "/etc/traefik/dynamic/n8n.yml"
-          content = module.config_renderer.rendered_configs.traefik_n8n
-        }
         "nas.yml" = {
           path    = "/etc/traefik/dynamic/nas.yml"
           content = module.config_renderer.rendered_configs.traefik_nas
@@ -113,31 +109,6 @@ module "lxc_config" {
       }
     }
 
-    n8n = {
-      vmid           = module.hosts.hosts.n8n.vmid
-      hostname       = "n8n"
-      ip_address     = module.hosts.hosts.n8n.ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      cloud_init = {
-        packages = ["curl", "jq", "ca-certificates"]
-        runcmd   = ["systemctl enable filebeat || true"]
-      }
-
-      docker_compose = {
-        path    = "/opt/n8n/docker-compose.yml"
-        content = module.config_renderer.rendered_configs.n8n_docker_compose
-      }
-
-      config_files = {
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.n8n_filebeat
-        }
-      }
-    }
-
     coredns = {
       vmid           = module.hosts.hosts.coredns.vmid
       hostname       = "coredns"
@@ -165,21 +136,6 @@ module "lxc_config" {
           content = module.config_renderer.rendered_configs.coredns_filebeat
         }
       }
-    }
-
-    cliproxy = {
-      vmid           = module.hosts.hosts["cliproxy"].vmid
-      hostname       = "cliproxy"
-      ip_address     = module.hosts.hosts["cliproxy"].ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = false
-
-      cloud_init = {
-        packages = ["curl", "squid"]
-        runcmd   = ["systemctl enable squid || true"]
-      }
-
-      config_files = {}
     }
   }
 }

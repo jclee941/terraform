@@ -11,7 +11,7 @@
 locals {
   backup_jobs_cfg = <<-EOT
     vzdump: lxc-daily
-    \tcomment Daily LXC backups - critical infra (traefik, coredns, runner, cliproxy)
+    \tcomment Daily LXC backups - critical infra (traefik, coredns, runner)
     \tschedule 02:00
     \tcompress zstd
     \tenabled 1
@@ -20,10 +20,10 @@ locals {
     \tmode snapshot
     \tprune-backups keep-last=7,keep-weekly=4,keep-monthly=3
     \tstorage pbs
-    \tvmid 101,102,103,114
+    \tvmid 101,102,103
 
     vzdump: lxc-weekly
-    \tcomment Weekly LXC backups - heavy workloads (elk, n8n)
+    \tcomment Weekly LXC backups - heavy workloads (elk)
     \tschedule sun 03:00
     \tcompress zstd
     \tenabled 1
@@ -32,7 +32,7 @@ locals {
     \tmode snapshot
     \tprune-backups keep-last=4,keep-weekly=2,keep-monthly=2
     \tstorage pbs
-    \tvmid 105,110
+    \tvmid 105
 
     vzdump: vm-daily
     \tcomment Daily VM backups (mcphub, oc, youtube)

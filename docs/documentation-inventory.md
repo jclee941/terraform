@@ -142,7 +142,6 @@ Approximately 72 `AGENTS.md` files are auto-synced from `qws941/.github`. These 
 | `modules/shared/AGENTS.md` | 1 | `synced-do-not-edit` | Do not hand-edit. |
 | `modules/shared/onepassword-secrets/AGENTS.md` | 1 | `synced-do-not-edit` | Do not hand-edit. |
 | `scripts/AGENTS.md` | 1 | `synced-do-not-edit` | Do not hand-edit. |
-| `scripts/n8n-workflows/AGENTS.md` | 1 | `synced-do-not-edit` | Do not hand-edit. |
 | `tests/AGENTS.md` | 1 | `synced-do-not-edit` | Do not hand-edit. |
 | `tests/*/AGENTS.md` | 2 | `synced-do-not-edit` | Do not hand-edit. |
 | `tests/workspaces/AGENTS.md` | 1 | `synced-do-not-edit` | Do not hand-edit. |
@@ -168,7 +167,6 @@ Approximately 72 `AGENTS.md` files are auto-synced from `qws941/.github`. These 
 |------|------|--------|------------|--------|
 | `215-synology/syslog-config.md` | Service config | `active` | Storage | Hand-written. Keep current. |
 | `300-cloudflare/docs/requirements.md` | Requirements | `active` | Cloudflare | Hand-written. Keep current. |
-| `scripts/n8n-workflows/N8N-AUDIT.md` | Audit log | `active` | n8n | Hand-written. Append new audit entries. |
 
 ---
 

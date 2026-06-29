@@ -1,8 +1,8 @@
 # AGENTS: 400-gcp — Google Cloud Platform (PLANNED)
 
-> **Status**: PLANNED — NOT YET IMPLEMENTED  
-> **Tier**: Independent (400s cloud)  
-> **Apply Order**: Any — parallel with 300-cloudflare, 301-github, 320-slack
+> **Status**: PLANNED — NOT YET IMPLEMENTED
+> **Tier**: Independent (400s cloud)
+> **Apply Order**: Any — parallel with 300-cloudflare
 
 ## OVERVIEW
 

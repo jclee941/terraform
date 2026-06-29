@@ -12,6 +12,7 @@ Unified IaC pipeline for Proxmox resource lifecycle. Abstracted layer between gl
 modules/proxmox/
 ├── lxc/              # PCT container provisioning primitives
 ├── vm/               # QEMU VM provisioning primitives
+├── firewall/         # Proxmox firewall resources/rules
 ├── lxc-config/       # LXC config deployment/render wiring
 ├── vm-config/        # VM config deployment/render wiring
 ├── config-renderer/  # Shared .tftpl render pipeline
@@ -20,7 +21,7 @@ modules/proxmox/
 ## WHERE TO LOOK (Config Flow)
 1. **Source:** `100-pve/envs/prod/hosts.tf` defines IDs, IPs, and service metadata (SSoT).
 2. **Templating:** `config-renderer/main.tf` + `config-renderer/variables.tf` render `.tftpl` with `hosts` map + inline vars.
-3. **Provisioning:** `lxc/main.tf` and `vm/main.tf` manage `proxmox_virtual_environment_*` resources.
+3. **Provisioning:** `lxc/main.tf` and `vm/main.tf` manage guest resources; `firewall/main.tf` manages Proxmox firewall resources.
 4. **Config deploy:** `lxc-config/main.tf` and `vm-config/main.tf` push rendered artifacts to guests.
 5. **Parent/sibling refs:** See `../AGENTS.md` for module governance and `../../100-pve/AGENTS.md` for workspace orchestration.
 

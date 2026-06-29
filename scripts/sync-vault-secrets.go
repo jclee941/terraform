@@ -48,9 +48,7 @@ var opSecrets = []opSecret{
 	{"GH_PAT", "op://homelab/github/secrets/personal_access_token", "P2", "GitHub PAT for workflow automation"},
 }
 
-var derivedSecrets = []derivedSecret{
-	{"TF_VAR_N8N_WEBHOOK_URL", "http://192.168.50.112:5678/webhook", "P1", "n8n webhook base URL"},
-}
+var derivedSecrets = []derivedSecret{}
 
 var manualSecretsList = []manualSecret{
 	{"TF_API_TOKEN", "P0", "Terraform Cloud (skip if not using TFC)"},
@@ -76,7 +74,6 @@ Environment:
   op://homelab/cloudflare/secrets  → Account ID
   op://homelab/grafana/secrets     → Service account token
   op://homelab/github/secrets      → Personal access token
-  op://homelab/n8n/secrets         → Webhook config
   op://homelab/supabase/secrets    → URL and service key
 `, repo)
 }

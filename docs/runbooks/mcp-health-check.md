@@ -28,7 +28,6 @@ All MCP servers are **STDIO child processes** inside the MCPHub container — th
 | **archon**  | **streamable-http** | ✅ Connected (native HTTP) | [Archon](#archon-streamable-http)       |
 | proxmox     | sse                 | ✅ Connected               | —                                       |
 | playwright  | sse                 | ✅ Connected               | —                                       |
-| **n8n**     | **streamable-http** | ✅ Connected               | —                                       |
 | supabase    | stdio               | ⏳ Pending (new)           | —                                       |
 
 ## Diagnosis

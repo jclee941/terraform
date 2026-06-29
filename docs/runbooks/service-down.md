@@ -86,16 +86,15 @@ pct exec 105 -- docker compose -f /opt/elk/docker-compose.yml restart
 pct exec 105 -- curl -s localhost:9200/_cluster/health | jq .status
 ```
 
-**MCPHub (112)** — MCP Hub + n8n:
+**MCPHub (112)** — MCP Hub + 1Password Connect:
 
 ```bash
 ssh root@192.168.50.112
 docker compose -f /opt/mcphub/docker-compose.yml restart
-docker compose -f /opt/n8n/docker-compose.yml restart
 ```
 
 ## Prevention
 
 - Grafana alerts monitor all services via blackbox exporter
 - Check the Grafana alerting template/config source for alert configuration
-- Alerts route to Slack (critical/warning) and alert-log-fallback (info)
+- Alerts route to Grafana log fallback.

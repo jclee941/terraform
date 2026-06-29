@@ -21,8 +21,8 @@ override_module {
   outputs = {
     secrets = {                                                    # pragma: allowlist secret
       mcphub_admin_password           = "mock-secret"              # pragma: allowlist secret
-      mcphub_n8n_mcp_api_key          = "mock-secret"              # pragma: allowlist secret
       mcphub_op_service_account_token = "mock-secret"              # pragma: allowlist secret
+      mcphub_op_connect_token         = "mock-secret"              # pragma: allowlist secret
       mcphub_proxmox_token_name       = "mock-user@pam!mock-token" # pragma: allowlist secret
       mcphub_proxmox_token_value      = "mock-secret"              # pragma: allowlist secret
       elk_elastic_password            = "mock-secret"              # pragma: allowlist secret
@@ -30,8 +30,6 @@ override_module {
       github_personal_access_token    = "mock-secret"              # pragma: allowlist secret
       openai_api_key                  = "mock-secret"              # pragma: allowlist secret
       proxmox_ssh_private_key         = "mock-secret"              # pragma: allowlist secret
-      slack_mcp_xoxb_token            = "mock-secret"              # pragma: allowlist secret
-      slack_mcp_xoxp_token            = "mock-secret"              # pragma: allowlist secret
       supabase_anon_key               = "mock-secret"              # pragma: allowlist secret
       supabase_dashboard_password     = "mock-secret"              # pragma: allowlist secret
       supabase_db_password            = "mock-secret"              # pragma: allowlist secret
@@ -52,17 +50,11 @@ override_module {
       supabase_service_key         = "mock-secret"  # pragma: allowlist secret
       archon_anthropic_key         = "mock-secret"  # pragma: allowlist secret
       cloudflare_api_key           = "mock-secret"  # pragma: allowlist secret
-      n8n_api_key                  = "mock-secret"  # pragma: allowlist secret
-      n8n_github_token             = "mock-secret"  # pragma: allowlist secret
       cloudflare_api_token         = "mock-secret"  # pragma: allowlist secret
-      n8n_postgres_password        = "mock-secret"  # pragma: allowlist secret
-      n8n_encryption_key           = "mock-secret"  # pragma: allowlist secret
       traefik_htpasswd_hash        = "mock-secret"  # pragma: allowlist secret
-      slack_webhook_url            = "mock-secret"  # pragma: allowlist secret
       cloudflare_tunnel_token      = "mock-secret"  # pragma: allowlist secret
       google_oauth_client_id       = "mock-secret"  # pragma: allowlist secret
       google_oauth_client_secret   = "mock-secret"  # pragma: allowlist secret
-      slack_bot_token              = "mock-secret"  # pragma: allowlist secret
       pbs_password                 = "mock-secret"  # pragma: allowlist secret
       registry_minio_user          = "test-mc-user" # pragma: allowlist secret
       registry_minio_password      = "test-mc-pass" # pragma: allowlist secret
@@ -78,7 +70,6 @@ override_module {
       cloudflare_email            = "test@example.com"
       cloudflare_account_id       = "abcdef0123456789abcdef0123456789"
       cloudflare_zone_id          = "1234567890abcdef1234567890abcdef"
-      n8n_webhook_url             = "https://hooks.n8n.test/example"
       pbs_server                  = "192.168.50.200"
       pbs_datastore               = "backup"
       pbs_username                = "backup@pbs"

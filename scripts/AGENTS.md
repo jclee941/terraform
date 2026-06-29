@@ -10,7 +10,7 @@ Operational automation scripts for the `proxmox` infrastructure. Includes produc
 scripts/
 ├── create-pr.go                  # PR automation wrapper (gh cli + custom logic)
 ├── scaffold-workspace.go         # Scaffold new NNN-service workspace directories
-├── production-verification.go    # Live health check suite (Prometheus, Grafana, N8N, ELK)
+├── production-verification.go    # Live health check suite (Prometheus, Grafana, ELK)
 ├── setup-backups.go              # Backup configuration (Restic/Borg) (Go)
 ├── setup-filebeat.go             # Local filebeat setup tool (Go, root-only)
 ├── install-filebeat.sh           # Remote execution payload for TF provisioners (SCP'd to hosts)
@@ -18,8 +18,6 @@ scripts/
 ├── setup-github-secrets.go       # GitHub secrets provisioning (Go)
 ├── setup-local-env.go            # Local dev environment setup (Go)
 ├── backup-tfstate.go              # Terraform state backup (Go)
-└── n8n-workflows/                # JSON workflow definitions (source of truth)
-    └── ...                       # Exported workflows
 ```
 
 ## CONVENTIONS
@@ -38,7 +36,6 @@ scripts/
 | Restore Backups    | `setup-backups.go`                        | Restic/Borg config                               |
 | Deploy Filebeat    | `install-filebeat.sh`                     | Remote payload, SCP'd by TF provisioners         |
 | Sync Vault         | `sync-vault-secrets.go`                   | `go run scripts/sync-vault-secrets.go --audit`   |
-| Manage n8n flows   | `n8n-workflows/AGENTS.md`                 | Workflow JSON SSoT and sync rules                |
 | Scaffold Workspace | `scaffold-workspace.go`                   | `go run scripts/scaffold-workspace.go 113 redis` |
 
 ## ANTI-PATTERNS

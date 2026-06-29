@@ -25,7 +25,6 @@ The following services are accessible via the Cloudflare Tunnel with this token:
 | MCPHub | `mcphub.jclee.me` | 192.168.50.112:3000 |
 | Archon | `archon.jclee.me` | 192.168.50.108:80 |
 | Kibana | `kibana.jclee.me` | 192.168.50.105:5601 |
-| n8n | `n8n.jclee.me` | 192.168.50.112:5678 |
 | Supabase | `supabase.jclee.me` | 192.168.50.107:8000 |
 
 ## Rotation Procedure (Zero Downtime)
@@ -144,7 +143,7 @@ curl -s -w "%{http_code}" \
 ## Security Notes
 
 - **Never commit tokens to code** - use GitHub Secrets only
-- **Never share tokens via Slack/email** - use secure transfer methods
+- **Never share tokens via chat/email** - use secure transfer methods
 - **Rotate immediately** if a token is compromised
 - **Audit token usage** in Cloudflare Zero Trust → Logs → Access
 

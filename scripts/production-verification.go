@@ -139,7 +139,6 @@ func main() {
 	grafanaToken := os.Getenv("GRAFANA_TOKEN")
 	promHost := envOrDefault("PROM_HOST", "192.168.50.104")
 	grafanaHost := envOrDefault("GRAFANA_HOST", "192.168.50.104")
-	// n8nHost := envOrDefault("N8N_HOST", "192.168.50.112")
 	psqlHost := envOrDefault("PSQL_HOST", "192.168.50.100")
 	elkHost := envOrDefault("ELK_HOST", "192.168.50.105")
 	elasticsearchPassword := os.Getenv("ELASTICSEARCH_PASSWORD")
@@ -206,24 +205,8 @@ func main() {
 		testResult(2, fmt.Sprintf("Grafana HTTP (expecting 200, got %s)", status), status == "200")
 	}()
 
-	// ── Test 3: N8N webhooks responding ──
-	fmt.Println("Test 3: Checking N8N webhook endpoints...")
-	// WEBHOOKS=() # Temporary disable: workflows not currently deployed with these paths
-	fmt.Println("  (Skipping N8N checks - workflows pending deployment)")
-	// webhooks := []string{"tier1-recovery", "tier2-memory-restart", "tier3-db-pool-reset", "tier4-cache-recovery"}
-	// webhookPass := 0
-	// for _, webhook := range webhooks {
-	//     url := fmt.Sprintf("http://%s:5678/webhook/%s", n8nHost, webhook)
-	//     status := httpStatusCode(url) // would need POST
-	//     if status == "200" || status == "201" || status == "500" {
-	//         webhookPass++
-	//     }
-	// }
-	// testResult(3, fmt.Sprintf("N8N webhooks (%d/4 responding)", webhookPass), webhookPass == 4)
-	testResult(3, "N8N webhooks (Skipped)", true)
-
-	// ── Test 4: Load test (100 requests) ──
-	fmt.Println("Test 4: Running load test (100 requests)...")
+	// ── Test 3: Load test (100 requests) ──
+	fmt.Println("Test 3: Running load test (100 requests)...")
 	func() {
 		successCount := 0
 		url := fmt.Sprintf("http://%s:3000/api/health", grafanaHost)
@@ -233,26 +216,26 @@ func main() {
 			}
 		}
 		fmt.Printf("  Load test: %d/100 successful\n", successCount)
-		testResult(4, "Load test success rate", successCount >= 95)
+		testResult(3, "Load test success rate", successCount >= 95)
 	}()
 
-	// ── Test 5: PostgreSQL connection ──
-	fmt.Println("Test 5: Checking PostgreSQL connection...")
+	// ── Test 4: PostgreSQL connection ──
+	fmt.Println("Test 4: Checking PostgreSQL connection...")
 	func() {
 		_, err := exec.LookPath("psql")
 		if err != nil {
 			fmt.Println("  (Skipping - psql client not installed)")
-			testResult(5, "PostgreSQL connection (Skipped)", true)
+			testResult(4, "PostgreSQL connection (Skipped)", true)
 			return
 		}
 		cmd := exec.Command("psql", "-h", psqlHost, "-U", "postgres", "-d", "postgres", "-c", "SELECT 1")
 		out, err := cmd.CombinedOutput()
 		rowFound := strings.Contains(string(out), "1 row")
-		testResult(5, "PostgreSQL connection", err == nil && rowFound)
+		testResult(4, "PostgreSQL connection", err == nil && rowFound)
 	}()
 
-	// ── Test 6: Alert rules count ──
-	fmt.Println("Test 6: Checking alert rules...")
+	// ── Test 5: Alert rules count ──
+	fmt.Println("Test 5: Checking alert rules...")
 	if grafanaToken != "" {
 		func() {
 			headers := map[string]string{"Authorization": "Bearer " + grafanaToken}
@@ -261,7 +244,7 @@ func main() {
 			err := getJSON(fmt.Sprintf("http://%s:3000/api/ruler/grafana/rules", grafanaHost), headers, &rulerResp)
 			if err != nil {
 				fmt.Println("  Alert rules: 0 found")
-				testResult(6, "Alert rules (expecting ≥14)", false)
+				testResult(5, "Alert rules (expecting ≥14)", false)
 				return
 			}
 			// Count all rules across all namespaces
@@ -277,34 +260,34 @@ func main() {
 				}
 			}
 			fmt.Printf("  Alert rules: %d found\n", alertCount)
-			testResult(6, "Alert rules (expecting ≥14)", alertCount >= 14)
+			testResult(5, "Alert rules (expecting ≥14)", alertCount >= 14)
 		}()
 	} else {
 		fmt.Println("  (Skipping - No Token)")
-		testResult(6, "Alert rules (Skipped)", true)
+		testResult(5, "Alert rules (Skipped)", true)
 	}
 
-	// ── Test 7: Contact points ──
-	fmt.Println("Test 7: Checking contact points...")
+	// ── Test 6: Contact points ──
+	fmt.Println("Test 6: Checking contact points...")
 	if grafanaToken != "" {
 		func() {
 			headers := map[string]string{"Authorization": "Bearer " + grafanaToken}
 			var contactPoints []json.RawMessage
 			err := getJSON(fmt.Sprintf("http://%s:3000/api/v1/provisioning/contact-points", grafanaHost), headers, &contactPoints)
 			if err != nil {
-				testResult(7, "Contact points (expecting ≥2)", false)
+				testResult(6, "Contact points (expecting ≥1)", false)
 				return
 			}
 			contactCount := len(contactPoints)
 			fmt.Printf("  Contact points: %d found\n", contactCount)
-			testResult(7, "Contact points (expecting ≥2)", contactCount >= 2)
+			testResult(6, "Contact points (expecting ≥1)", contactCount >= 1)
 		}()
 	} else {
-		testResult(7, "Contact points (Skipped)", true)
+		testResult(6, "Contact points (Skipped)", true)
 	}
 
-	// ── Test 8: Prometheus metrics ──
-	fmt.Println("Test 8: Checking metrics in Prometheus...")
+	// ── Test 7: Prometheus metrics ──
+	fmt.Println("Test 7: Checking metrics in Prometheus...")
 	func() {
 		var data struct {
 			Data struct {
@@ -317,11 +300,11 @@ func main() {
 			return
 		}
 		metrics := len(data.Data.Result)
-		testResult(8, "Prometheus metrics", metrics > 0)
+		testResult(7, "Prometheus metrics", metrics > 0)
 	}()
 
-	// ── Test 9: SLA Dashboard exists ──
-	fmt.Println("Test 9: Checking SLA Dashboard...")
+	// ── Test 8: SLA Dashboard exists ──
+	fmt.Println("Test 8: Checking SLA Dashboard...")
 	dashboardCount := 0
 	var dashboardUID string
 	if grafanaToken != "" {
@@ -332,26 +315,26 @@ func main() {
 			}
 			err := getJSON(fmt.Sprintf("http://%s:3000/api/search?query=homelab-overview", grafanaHost), headers, &searchResults)
 			if err != nil {
-				testResult(9, "homelab dashboard exists", false)
+				testResult(8, "homelab dashboard exists", false)
 				return
 			}
 			dashboardCount = len(searchResults)
 			if dashboardCount > 0 {
 				dashboardUID = searchResults[0].UID
 			}
-			testResult(9, "homelab dashboard exists", dashboardCount > 0)
+			testResult(8, "homelab dashboard exists", dashboardCount > 0)
 		}()
 	} else {
-		testResult(9, "homelab dashboard exists (Skipped)", true)
+		testResult(8, "homelab dashboard exists (Skipped)", true)
 		dashboardCount = 0
 	}
 
-	// ── Test 10: Dashboard panels count ──
-	fmt.Println("Test 10: Checking SLA Dashboard panels...")
+	// ── Test 9: Dashboard panels count ──
+	fmt.Println("Test 9: Checking SLA Dashboard panels...")
 	if grafanaToken != "" && dashboardCount > 0 {
 		func() {
 			if dashboardUID == "" {
-				testResult(10, "Dashboard panels", false)
+				testResult(9, "Dashboard panels", false)
 				return
 			}
 			headers := map[string]string{"Authorization": "Bearer " + grafanaToken}
@@ -362,36 +345,19 @@ func main() {
 			}
 			err := getJSON(fmt.Sprintf("http://%s:3000/api/dashboards/uid/%s", grafanaHost, dashboardUID), headers, &dashResp)
 			if err != nil {
-				testResult(10, "Dashboard panels", false)
+				testResult(9, "Dashboard panels", false)
 				return
 			}
 			panelCount := len(dashResp.Dashboard.Panels)
 			fmt.Printf("  homelab dashboard panels: %d\n", panelCount)
-			testResult(10, "Dashboard panels (expecting >0)", panelCount > 0)
+			testResult(9, "Dashboard panels (expecting >0)", panelCount > 0)
 		}()
 	} else {
-		testResult(10, "Dashboard panels (Skipped)", true)
+		testResult(9, "Dashboard panels (Skipped)", true)
 	}
 
-	// ── Test 11: N8N metrics exporter (Disabled) ──
-	// echo "Test 11: Checking N8N metrics exporter..."
-	// EXPORTER_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://192.168.50.112:5679/metrics 2>/dev/null || echo "000")
-	// test_result 11 "N8N metrics exporter (port 5679)" $([ "$EXPORTER_STATUS" = "200" ] && echo 0 || echo 1)
-
-	// ── Test 12: Metrics exporter returns recovery metrics (Disabled) ──
-	// echo "Test 12: Checking recovery metrics..."
-	// RECOVERY_METRICS=$(curl -s http://192.168.50.112:5679/metrics 2>/dev/null | grep -c "mcp_recovery_" || echo 0)
-	// echo "  Recovery metrics found: $RECOVERY_METRICS"
-	// test_result 12 "Recovery metrics exported" $([ "$RECOVERY_METRICS" -gt 0 ] && echo 0 || echo 1)
-
-	// ── Test 13: Recent data in dashboard (Disabled) ──
-	// echo "Test 13: Checking recent data points..."
-	// RECENT_DATA=$(curl -s "http://192.168.50.104:9090/api/v1/query?query=mcp_recovery_success_rate" | jq '.data.result | length' 2>/dev/null || echo 0)
-	// echo "  Recent data points: $RECENT_DATA"
-	// test_result 13 "Recent metrics data" $([ $RECENT_DATA -gt 0 ] && echo 0 || echo 1)
-
-	// ── Test 14: ELK Elasticsearch Cluster Health ──
-	fmt.Println("Test 14: Checking Elasticsearch health...")
+	// ── Test 10: ELK Elasticsearch Cluster Health ──
+	fmt.Println("Test 10: Checking Elasticsearch health...")
 	if elasticsearchPassword != "" {
 		func() {
 			var health struct {
@@ -400,49 +366,49 @@ func main() {
 			err := getJSONBasicAuth(fmt.Sprintf("http://%s:9200/_cluster/health", elkHost), "elastic", elasticsearchPassword, &health)
 			if err != nil {
 				fmt.Println("  Elasticsearch status: down")
-				testResult(14, "Elasticsearch health", false)
+				testResult(10, "Elasticsearch health", false)
 				return
 			}
 			fmt.Printf("  Elasticsearch status: %s\n", health.Status)
-			testResult(14, "Elasticsearch health", health.Status == "green" || health.Status == "yellow")
+			testResult(10, "Elasticsearch health", health.Status == "green" || health.Status == "yellow")
 		}()
 	} else {
 		fmt.Println("  (Skipping - ELASTICSEARCH_PASSWORD not set)")
-		testResult(14, "Elasticsearch health (Skipped)", true)
+		testResult(10, "Elasticsearch health (Skipped)", true)
 	}
 
-	// ── Test 15: Logstash Monitoring API responding ──
-	fmt.Println("Test 15: Checking Logstash monitoring API...")
+	// ── Test 11: Logstash Monitoring API responding ──
+	fmt.Println("Test 11: Checking Logstash monitoring API...")
 	func() {
 		status := httpStatusCode(fmt.Sprintf("http://%s:9600/", elkHost))
-		testResult(15, fmt.Sprintf("Logstash monitoring API (expecting 200, got %s)", status), status == "200")
+		testResult(11, fmt.Sprintf("Logstash monitoring API (expecting 200, got %s)", status), status == "200")
 	}()
 
-	// ── Test 16: Logstash Prometheus Exporter ──
-	fmt.Println("Test 16: Checking Logstash Prometheus Exporter...")
+	// ── Test 12: Logstash Prometheus Exporter ──
+	fmt.Println("Test 12: Checking Logstash Prometheus Exporter...")
 	func() {
 		status := httpStatusCode(fmt.Sprintf("http://%s:9198/metrics", elkHost))
-		testResult(16, fmt.Sprintf("Logstash Exporter (expecting 200, got %s)", status), status == "200")
+		testResult(12, fmt.Sprintf("Logstash Exporter (expecting 200, got %s)", status), status == "200")
 	}()
 
-	// ── Test 17: Filebeat/Logs reaching ES (Check if indices exist) ──
-	fmt.Println("Test 17: Checking if Elasticsearch indices exist...")
+	// ── Test 13: Filebeat/Logs reaching ES (Check if indices exist) ──
+	fmt.Println("Test 13: Checking if Elasticsearch indices exist...")
 	if elasticsearchPassword != "" {
 		func() {
 			var indices []json.RawMessage
 			err := getJSONBasicAuth(fmt.Sprintf("http://%s:9200/_cat/indices?format=json", elkHost), "elastic", elasticsearchPassword, &indices)
 			if err != nil {
 				fmt.Println("  Indices found: 0")
-				testResult(17, "Elasticsearch Indices (>0)", false)
+				testResult(13, "Elasticsearch Indices (>0)", false)
 				return
 			}
 			indexCount := len(indices)
 			fmt.Printf("  Indices found: %d\n", indexCount)
-			testResult(17, "Elasticsearch Indices (>0)", indexCount > 0)
+			testResult(13, "Elasticsearch Indices (>0)", indexCount > 0)
 		}()
 	} else {
 		fmt.Println("  (Skipping - ELASTICSEARCH_PASSWORD not set)")
-		testResult(17, "Elasticsearch Indices (Skipped)", true)
+		testResult(13, "Elasticsearch Indices (Skipped)", true)
 	}
 
 	// ── Summary ──

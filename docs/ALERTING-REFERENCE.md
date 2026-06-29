@@ -11,8 +11,7 @@ Hosts (100, 101, 102, 103, 104, 105, 112)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
-                       ├─ slack-alerts → Slack (critical + warning)
-                       └─ alert-log-fallback (info + default)
+                       └─ alert-log-fallback (all severities)
 ```
 
 ## Data Flow
@@ -82,14 +81,13 @@ Config: Grafana alerting templates/config rendered through the `100-pve` pipelin
 | Contact Point            | Target                                                          |
 | ------------------------ | --------------------------------------------------------------- |
 | `alert-log-fallback`     | Grafana log (default fallback)                                  |
-| `slack-alerts`           | Slack incoming webhook (conditional on webhook URL)              |
 
 **Routing policies:**
 
 | Severity | Contact Point           | Group Wait | Repeat Interval |
 | -------- | ----------------------- | ---------- | --------------- |
-| critical | slack-alerts            | 10s        | 1h              |
-| warning  | slack-alerts            | 1m         | 4h              |
+| critical | alert-log-fallback      | 10s        | 1h              |
+| warning  | alert-log-fallback      | 1m         | 4h              |
 | info     | alert-log-fallback      | 2m         | 12h             |
 
 **Alert rules (10 total, 3 groups):**
@@ -136,12 +134,10 @@ Config: Grafana alerting templates/config rendered through the `100-pve` pipelin
 | Logstash template | `105-elk/templates/logstash.conf.tftpl`             |
 | Logstash config   | `105-elk/config/logstash.yml`                       |
 | Grafana alerts    | Template/config pipeline rendered by `100-pve`      |
-| n8n workflows     | `scripts/n8n-workflows/`                            |
 
 ## Known Issues
 
 
 ## Deprecated
 
-- `112-mcphub/n8n-workflows/elk-error-pipeline.json` — superseded by `scripts/n8n-workflows/error-to-github-issue.json`
 - ElastAlert2 — removed. All threshold alerting migrated to Grafana alert rules (10 rules, 3 groups).

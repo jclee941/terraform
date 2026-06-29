@@ -29,10 +29,7 @@ locals {
     "elk",
     "github",
     "mcphub",
-    "n8n",
-
     "proxmox",
-    "slack",
     "telegram",
     "traefik",
   ])

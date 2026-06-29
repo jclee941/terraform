@@ -1,7 +1,7 @@
 # AGENTS: tests/workspaces - Workspace Validation Tests
 
 ## OVERVIEW
-Workspace-level variable validation tests for standalone stacks (`100-pve`, `102-traefik`, `108-archon`, `300-cloudflare`, `320-slack`) using mock providers, remote state overrides, and negative assertions.
+Workspace-level variable validation tests for standalone stacks (`100-pve`, `102-traefik`, `108-archon`, `300-cloudflare`) using mock providers, remote state overrides, and negative assertions.
 
 ## STRUCTURE
 ```text
@@ -12,7 +12,6 @@ tests/workspaces/
 ├── grafana/                    # Grafana workspace validation tests
 ├── ollama/                     # Ollama workspace remote-state + output tests
 ├── pve/                        # Proxmox workspace validation tests
-├── slack/                      # Slack workspace validation tests
 ├── traefik/                    # Traefik workspace remote-state tests
 ```
 
@@ -21,7 +20,6 @@ tests/workspaces/
 |------|------|-------|
 | Cloudflare workspace validation | `cloudflare/cloudflare_test.tftest.hcl` | Input format/range checks with `expect_failures`. |
 | PVE workspace validation | `pve/pve_test.tftest.hcl` | Endpoint/token/node/network/VMID range/SSH key validation with `override_module` for secrets. |
-| Slack workspace validation | `slack/slack_test.tftest.hcl` | Bot token format validation with `expect_failures`. |
 | ELK workspace validation | `elk/elk_test.tftest.hcl` | Data view and index pattern validation with mock ES provider. |
 | Grafana workspace validation | `grafana/grafana_test.tftest.hcl` | Dashboard and alert rule plan validation with mock Grafana provider. |
 | Traefik workspace validation | `traefik/traefik_test.tftest.hcl` | Remote-state consumption plan test (no providers). |
@@ -42,5 +40,4 @@ tests/workspaces/
 make test-workspace
 cd tests/workspaces/pve && terraform init -backend=false && terraform test
 cd tests/workspaces/cloudflare && terraform test -filter=cloudflare_test.tftest.hcl
-cd tests/workspaces/slack && terraform test -filter=slack_test.tftest.hcl
 ```

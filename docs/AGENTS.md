@@ -28,7 +28,7 @@ docs/
 | **Backups**                | `backup-strategy.md`           | 3-2-1 strategy details                                   |
 | **Secrets**                | `secret-management.md`         | 1Password integration and secret lifecycle                   |
 | **Service Numbering**      | `workspace-ordering.md`        | VMID/directory numbering rationale                       |
-| **Alerts**                 | `ALERTING-REFERENCE.md`        | Rule definitions, thresholds, n8n bridge routing         |
+| **Alerts**                 | `ALERTING-REFERENCE.md`        | Rule definitions, thresholds, contact routing            |
 
 ## CONVENTIONS
 

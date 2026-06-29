@@ -193,8 +193,6 @@ func validateCloudflare(vals map[string]string) (bool, string) {
 	return false, fmt.Sprintf("HTTP %d — %s", status, truncate(string(body), 80))
 }
 
-
-
 func validateELK(vals map[string]string) (bool, string) {
 	clientID := vals["cf_access_client_id"]
 	clientSecret := vals["cf_access_client_secret"]
@@ -223,7 +221,6 @@ func validateELK(vals map[string]string) (bool, string) {
 	}
 	return false, fmt.Sprintf("HTTP %d", status)
 }
-
 
 func validateGoogleGemini(vals map[string]string) (bool, string) {
 	status, _, err := httpGet(
@@ -258,25 +255,6 @@ func validateGrafana(vals map[string]string) (bool, string) {
 	return false, fmt.Sprintf("HTTP %d", status)
 }
 
-func validateN8N(vals map[string]string) (bool, string) {
-	status, body, err := httpGet("http://192.168.50.112:5678/api/v1/workflows?limit=1", map[string]string{
-		"X-N8N-API-KEY": vals["api_key"],
-	})
-	if err != nil {
-		return false, fmt.Sprintf("connection: %v", err)
-	}
-	if status == 200 {
-		var data struct {
-			Count int `json:"count"`
-		}
-		if json.Unmarshal(body, &data) == nil {
-			return true, fmt.Sprintf("workflows=%d", data.Count)
-		}
-		return true, "authenticated"
-	}
-	return false, fmt.Sprintf("HTTP %d", status)
-}
-
 func validateProxmox(vals map[string]string) (bool, string) {
 	status, body, err := httpGet("https://192.168.50.100:8006/api2/json/version", map[string]string{
 		"Authorization": "PVEAPIToken=" + vals["api_token_value"],
@@ -294,34 +272,6 @@ func validateProxmox(vals map[string]string) (bool, string) {
 			return true, fmt.Sprintf("pve=%s", data.Data.Version)
 		}
 		return true, "authenticated"
-	}
-	return false, fmt.Sprintf("HTTP %d", status)
-}
-
-func validateSlack(vals map[string]string) (bool, string) {
-	token := vals["opencode_bot_token"]
-	if token == "" {
-		return false, "bot token missing"
-	}
-	status, body, err := httpPost("https://slack.com/api/auth.test", map[string]string{
-		"Authorization": "Bearer " + token,
-	})
-	if err != nil {
-		return false, fmt.Sprintf("connection: %v", err)
-	}
-	if status == 200 {
-		var data struct {
-			OK    bool   `json:"ok"`
-			Team  string `json:"team"`
-			User  string `json:"user"`
-			Error string `json:"error"`
-		}
-		if json.Unmarshal(body, &data) == nil {
-			if data.OK {
-				return true, fmt.Sprintf("bot=%s team=%s", data.User, data.Team)
-			}
-			return false, data.Error
-		}
 	}
 	return false, fmt.Sprintf("HTTP %d", status)
 }
@@ -395,29 +345,12 @@ var services = []serviceCheck{
 		validate: validateGrafana,
 	},
 	{
-		name: "n8n",
-		fields: []fieldSpec{
-			{"api_key", "op://homelab/n8n/secrets/api_key"},
-		},
-		validate: validateN8N,
-	},
-	{
 		name: "proxmox",
 		fields: []fieldSpec{
 			{"api_token_value", "op://homelab/proxmox/secrets/api_token_value"},
 			{"ssh_private_key", "op://homelab/proxmox/secrets/ssh_private_key"},
 		},
 		validate: validateProxmox,
-	},
-	{
-		name: "slack",
-		fields: []fieldSpec{
-			{"opencode_bot_token", "op://homelab/slack/opencode_bot_token"},
-			{"opencode_user_token", "op://homelab/slack/opencode_user_token"},
-			{"opencode_app_token", "op://homelab/slack/opencode_app_token"},
-			{"slack_mcp_xoxp_token", "op://homelab/slack/secrets/slack_mcp_xoxp_token"},
-		},
-		validate: validateSlack,
 	},
 	{
 		name: "supabase",

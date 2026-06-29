@@ -7,12 +7,10 @@
 locals {
   # ── Guest registry ─────────────────────────────────────────────────────────
   firewall_guests = {
-    cliproxy    = "container"
     runner      = "container"
     traefik     = "container"
     coredns     = "container"
     elk         = "container"
-    n8n         = "container"
     mcphub      = "vm"
     "jclee-dev" = "vm"
     youtube     = "vm"
@@ -32,7 +30,6 @@ locals {
     logstash_prometheus = "Logstash Prometheus exporter"
     logstash_tcp        = "Logstash TCP input"
     mcp                 = "MCP"
-    n8n                 = "n8n"
     prometheus          = "Prometheus"
     rdp                 = "RDP"
     realtime            = "Realtime"
@@ -50,9 +47,6 @@ locals {
     }
     elk = {
       exclude = ["es_transport", "logstash_api", "logstash_http"]
-    }
-    n8n = {
-      exclude = ["postgres"]
     }
     mcphub = {
       exclude = ["proxmox", "playwright", "op_connect"]

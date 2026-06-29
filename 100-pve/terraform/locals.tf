@@ -23,15 +23,7 @@ locals {
     local.proxmox_api_token_from_1password :
     trimspace(var.proxmox_api_token)
   )
-  tunnel_token_from_1password = trimspace(try(
-    module.onepassword_secrets.secrets["cloudflare_tunnel_token"],
-    ""
-  ))
-  effective_homelab_tunnel_token = (
-    local.tunnel_token_from_1password != "" ?
-    local.tunnel_token_from_1password :
-    trimspace(var.homelab_tunnel_token)
-  )
+  effective_homelab_tunnel_token = trimspace(var.homelab_tunnel_token)
 
   infrastructure_nodes = [
     for name, host in module.hosts.hosts : {
@@ -71,14 +63,11 @@ locals {
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
   # Strategy: Match live Proxmox allocation for active containers.
-  # Total dedicated: 28160 MB (27.5 GB) + swap: 10752 MB (10.5 GB) = 38912 MB effective
   container_sizing = {
-    runner   = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitHub Actions CI Runner - Docker executor (3GB RAM)", mount_points = [{ volume = "/mnt/runner-cache", path = "/srv/runner/cache" }] }
-    traefik  = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    elk      = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk" }] }
-    coredns  = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
-    n8n      = { memory = 2048, swap = 512, cores = 2, disk_size = 64, description = "n8n Workflow Automation + PostgreSQL" }
-    cliproxy = { memory = 8192, swap = 1024, cores = 2, disk_size = 40, description = "Squid Forward Proxy" }
+    runner  = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitHub Actions CI Runner - Docker executor (3GB RAM)", mount_points = [{ volume = "/mnt/runner-cache", path = "/srv/runner/cache" }] }
+    traefik = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
+    elk     = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk" }] }
+    coredns = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -179,17 +168,11 @@ locals {
     "elk_kibana_password",
     "github_personal_access_token",
     "mcphub_admin_password",
-    "mcphub_n8n_mcp_api_key",
     "mcphub_op_connect_token",
     "mcphub_op_service_account_token",
     "mcphub_proxmox_token_name",
     "mcphub_proxmox_token_value",
-    "n8n_api_key",
-    "n8n_encryption_key",
-    "n8n_github_token",
-    "n8n_postgres_password",
     "proxmox_ssh_private_key",
-    "slack_bot_token",
     "telegram_bot_token",
     "traefik_htpasswd_hash",
   ]
@@ -226,7 +209,6 @@ locals {
     } }
     "102-traefik" = { prefix = "traefik", files = {
       mcphub      = "mcphub.yml.tftpl"
-      n8n         = "n8n.yml.tftpl"
       nas         = "nas.yml.tftpl"
       registry    = "registry.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"
@@ -246,11 +228,6 @@ locals {
       ilm_policy          = "ilm-policy.json.tftpl"
       setup_ilm           = "setup-ilm.sh.tftpl"
       dockerfile_logstash = "Dockerfile.logstash.tftpl"
-    } }
-    "110-n8n" = { prefix = "n8n", files = {
-      filebeat       = "filebeat.yml.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      env            = "n8n.env.tftpl"
     } }
     "112-mcphub" = { prefix = "mcphub", files = {
       filebeat           = "filebeat.yml.tftpl"

@@ -30,7 +30,6 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 | Sidecar Dockerfiles   | `Dockerfile.proxmox`, `Dockerfile.playwright` | Build definitions                                |
 | 1Password MCP sidecar | `op-mcp-server/`                              | Node.js (`index.mjs` + `package.json`)           |
 | Sidecar Dockerfiles   | `Dockerfile.proxmox`, `Dockerfile.playwright` | Build definitions                                |
-| n8n workflows         | `n8n-workflows/`                              | Exported workflows — must match runtime          |
 
 ## CONVENTIONS
 
@@ -47,7 +46,6 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 - Never mutate running containers via ad-hoc `docker exec` config changes.
 - Never inject plaintext tokens/keys in catalog, templates, or workflow JSON.
 - Never mutate running containers via ad-hoc `docker exec` config changes.
-- Never add n8n runtime workflows without exporting committed JSON counterparts.
 
 ## COMMANDS
 

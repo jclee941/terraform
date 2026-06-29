@@ -12,7 +12,7 @@
 | 102 | Traefik | LXC | High — routing configs |
 | 104 | Grafana | LXC | High — dashboards + Prometheus data |
 | 105 | ELK | LXC | High — log pipeline configs |
-| 112 | MCPHub | VM | High — MCP configs + n8n workflows |
+| 112 | MCPHub | VM | High — MCP configs + 1Password Connect |
 
 ## Diagnosis
 

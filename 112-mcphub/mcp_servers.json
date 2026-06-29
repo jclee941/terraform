@@ -139,14 +139,6 @@
       },
       "description": "1Password vault and secret management"
     },
-    "n8n": {
-      "location": "hub",
-      "transport": "streamable-http",
-      "url": "https://n8n.jclee.me/mcp-server/http",
-      "port": 8081,
-      "disabled": false,
-      "description": "n8n workflow automation via native MCP server"
-    },
     "dev-browser": {
       "location": "hub",
       "transport": "sse",

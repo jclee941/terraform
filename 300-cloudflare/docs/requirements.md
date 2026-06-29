@@ -30,7 +30,6 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 | infrastructure | 8 | CF API, Proxmox, Vault token/addr |
 | security | 2 | FortiAnalyzer |
 | monitoring | 1 | ELK |
-| messaging | 2 | Slack webhook/token |
 | database | 2 | PostgreSQL |
 | app_security | 5 | Flask, JWT, HMAC, encryption key |
 | threat_intel | 4 | Regtech, Secudium, CF threat ingest |

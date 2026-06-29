@@ -6,9 +6,6 @@ locals {
   # GitHub
   github_personal_access_token = try(data.onepassword_item.this["github"].section_map["API Keys"].field_map["personal_access_token"].value, try(data.onepassword_item.this["github"].credential, ""))
 
-
-
-
   cloudflare_api_key         = try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["global_api_key"].value, try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["api_key"].value, ""))
   cloudflare_api_token       = try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["api_token"].value, try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["api_key"].value, ""))
   cloudflare_tunnel_token    = try(data.onepassword_item.this["cloudflare"].section_map["API Keys"].field_map["tunnel_token"].value, "")
@@ -18,26 +15,14 @@ locals {
   cloudflare_account_id      = try(data.onepassword_item.this["cloudflare"].section_map["Account"].field_map["account_id"].value, "")
   cloudflare_zone_id         = try(data.onepassword_item.this["cloudflare"].section_map["Account"].field_map["zone_id"].value, "")
 
-  n8n_api_key           = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["api_key"].value, "")
-  n8n_github_token      = try(data.onepassword_item.this["n8n"].section_map["API Keys"].field_map["github_token"].value, "")
-  n8n_webhook_url       = try(data.onepassword_item.this["n8n"].section_map["Connection"].field_map["webhook_url"].value, "")
-  n8n_postgres_password = try(data.onepassword_item.this["n8n"].section_map["Database"].field_map["postgres_password"].value, "")
-  n8n_encryption_key    = try(data.onepassword_item.this["n8n"].section_map["Secrets"].field_map["encryption_key"].value, "")
-
   mcphub_proxmox_token_name       = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_name"].value, "")
   mcphub_proxmox_token_value      = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_value"].value, "")
   mcphub_admin_password           = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["admin_password"].value, "")
-  mcphub_n8n_mcp_api_key          = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["n8n_mcp_api_key"].value, "")
   mcphub_op_service_account_token = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_service_account_token"].value, "")
   mcphub_op_connect_token = try(
     data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_connect_token"].value,
     try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_service_account_token"].value, "")
   )
-
-  slack_mcp_xoxp_token = try(data.onepassword_item.this["slack"].section_map["MCP Tokens"].field_map["xoxp_token"].value, "")
-  slack_mcp_xoxb_token = try(data.onepassword_item.this["slack"].section_map["MCP Tokens"].field_map["xoxb_token"].value, try(data.onepassword_item.this["slack"].section_map["OpenCode Tokens"].field_map["bot_token"].value, ""))
-  slack_bot_token      = try(data.onepassword_item.this["slack"].section_map["OpenCode Tokens"].field_map["bot_token"].value, "")
-  slack_webhook_url    = try(data.onepassword_item.this["slack"].section_map["Connection"].field_map["webhook_url"].value, "")
 
   elk_elastic_password = try(data.onepassword_item.this["elk"].section_map["Passwords"].field_map["elastic_password"].value, "")
   elk_kibana_password  = try(data.onepassword_item.this["elk"].section_map["Passwords"].field_map["kibana_password"].value, "")
@@ -63,7 +48,6 @@ locals {
   gcp_project_id  = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["Connection"].field_map["project_id"].value, "") : ""
   gcp_region      = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["Connection"].field_map["region"].value, "") : ""
 
-  # AI & Media Integrations for n8n
   telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
 
   # Docker Registry (MinIO backend)
@@ -72,7 +56,7 @@ locals {
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (37 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (26 keys)"
   sensitive   = true
   value = {
     # Proxmox
@@ -82,8 +66,6 @@ output "secrets" {
     # GitHub
     github_personal_access_token = local.github_personal_access_token
 
-
-
     # Cloudflare
     cloudflare_api_key         = local.cloudflare_api_key
     cloudflare_api_token       = local.cloudflare_api_token
@@ -91,25 +73,12 @@ output "secrets" {
     google_oauth_client_id     = local.google_oauth_client_id
     google_oauth_client_secret = local.google_oauth_client_secret
 
-    # n8n
-    n8n_api_key           = local.n8n_api_key
-    n8n_github_token      = local.n8n_github_token
-    n8n_postgres_password = local.n8n_postgres_password
-    n8n_encryption_key    = local.n8n_encryption_key
-
     # MCPHub (MCPHub-specific secrets only)
     mcphub_proxmox_token_name       = local.mcphub_proxmox_token_name
     mcphub_proxmox_token_value      = local.mcphub_proxmox_token_value
     mcphub_admin_password           = local.mcphub_admin_password
-    mcphub_n8n_mcp_api_key          = local.mcphub_n8n_mcp_api_key
     mcphub_op_service_account_token = local.mcphub_op_service_account_token
     mcphub_op_connect_token         = local.mcphub_op_connect_token
-
-    # Slack (dedicated 1Password item — separated from mcphub)
-    slack_mcp_xoxp_token = local.slack_mcp_xoxp_token
-    slack_mcp_xoxb_token = local.slack_mcp_xoxb_token
-    slack_bot_token      = local.slack_bot_token
-    slack_webhook_url    = local.slack_webhook_url
 
     # ELK / Elasticsearch
     elk_elastic_password = local.elk_elastic_password
@@ -133,7 +102,6 @@ output "secrets" {
     # GCP (Google Cloud Platform)
     gcp_credentials = local.gcp_credentials
 
-    # AI & Media Integrations for n8n
     telegram_bot_token = local.telegram_bot_token
 
     # Docker Registry (MinIO backend)
@@ -143,7 +111,7 @@ output "secrets" {
 }
 
 output "metadata" {
-  description = "Non-secret configuration metadata: usernames, URLs, IDs (14 keys)"
+  description = "Non-secret configuration metadata: usernames, URLs, IDs (11 keys)"
   sensitive   = false
   value = {
 
@@ -151,9 +119,6 @@ output "metadata" {
     cloudflare_email      = local.cloudflare_email
     cloudflare_account_id = local.cloudflare_account_id
     cloudflare_zone_id    = local.cloudflare_zone_id
-
-    # n8n
-    n8n_webhook_url = local.n8n_webhook_url
 
     # PBS (Proxmox Backup Server)
     pbs_server      = local.pbs_server
@@ -172,15 +137,13 @@ output "metadata" {
 }
 
 output "connection_info" {
-  description = "Non-secret connection details and routing metadata (16 keys)"
+  description = "Non-secret connection details and routing metadata (12 keys)"
   sensitive   = false
   value = {
     proxmox_endpoint          = local.proxmox_endpoint
-    slack_webhook_url         = local.slack_webhook_url
     cloudflare_email          = local.cloudflare_email
     cloudflare_account_id     = local.cloudflare_account_id
     cloudflare_zone_id        = local.cloudflare_zone_id
-    n8n_webhook_url           = local.n8n_webhook_url
     pbs_server                = local.pbs_server
     pbs_datastore             = local.pbs_datastore
     pbs_username              = local.pbs_username

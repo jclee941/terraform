@@ -18,7 +18,6 @@ make plan SVC=elk
 make plan SVC=archon
 make plan SVC=cloudflare
 make plan SVC=github
-make plan SVC=slack
 make plan SVC=gcp
 ```
 

@@ -7,14 +7,16 @@ Shared test workspace for Terraform-native test execution (`.tftest.hcl`) across
 ```
 tests/
 ├── modules/proxmox/      # Module unit tests + fixtures
+├── modules/shared/       # Shared module contract tests
 ├── integration/          # Cross-module pipeline tests
 └── workspaces/           # Workspace-level variable validation tests
     ├── archon/          # Archon workspace remote-state tests
     ├── cloudflare/      # Cloudflare workspace validation
     ├── elk/             # ELK workspace validation
-    ├── grafana/         # Grafana workspace validation
+    ├── gcp/             # GCP workspace validation
     ├── pve/             # PVE workspace validation
-    ├── slack/           # Slack workspace validation
+    ├── safetywallet/    # SafetyWallet workspace validation
+    ├── synology/        # Synology workspace validation
     └── traefik/         # Traefik workspace remote-state tests
 ```
 
@@ -26,7 +28,7 @@ tests/
 | Shared module tests | `tests/modules/shared/AGENTS.md` | onepassword-secrets mock-provider contracts. |
 | Pipeline integration checks | `tests/integration/AGENTS.md` | Config renderer and hosts-map end-to-end strategy. |
 | Workspace validation checks | `tests/workspaces/AGENTS.md` | Standalone workspace variable-validation strategy. |
-| Specific workspace tests | `tests/workspaces/{archon,cloudflare,elk,grafana,pve,slack,traefik}/` | Per-workspace `*_test.tftest.hcl` + mock `main.tf`. |
+| Specific workspace tests | `tests/workspaces/{archon,cloudflare,elk,gcp,pve,safetywallet,synology,traefik}/` | Per-workspace `*.tftest.hcl` + mock `main.tf`. |
 
 ## CONVENTIONS
 - Use native `terraform test`; avoid custom runners.

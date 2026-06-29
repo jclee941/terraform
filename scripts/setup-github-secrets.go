@@ -92,7 +92,6 @@ func main() {
 		{"TF_VAR_PROXMOX_INSECURE", "P0", "tfvars:100-pve:proxmox_insecure"},
 
 		{"TF_VAR_GRAFANA_AUTH", "P1", "op:op://homelab/grafana/secrets/service_account_token"},
-		{"TF_VAR_N8N_WEBHOOK_URL", "P1", "derived:http://192.168.50.112:5678/webhook"},
 		{"TF_VAR_SUPABASE_URL", "P1", "op:op://homelab/supabase/secrets/url"},
 		{"TF_VAR_CLOUDFLARE_ACCOUNT_ID", "P1", "tfvars:300-cloudflare:cloudflare_account_id"},
 		{"TF_VAR_CLOUDFLARE_ZONE_ID", "P1", "tfvars:300-cloudflare:cloudflare_zone_id"},

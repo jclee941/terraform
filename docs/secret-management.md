@@ -33,7 +33,7 @@ flowchart LR
 
 ## 1Password Item Inventory
 
-The shared module (`modules/shared/onepassword-secrets/`) manages 15 items:
+The shared module (`modules/shared/onepassword-secrets/`) manages core homelab and optional service items:
 
 | Item         | Description          | Key Secrets                                                                                                                  |
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -44,19 +44,17 @@ The shared module (`modules/shared/onepassword-secrets/`) manages 15 items:
 | `supabase`   | Self-hosted Supabase | `postgres_password`, `jwt_secret`, `anon_key`, `service_role_key`, `dashboard_password`                                      |
 | `archon`     | Archon MCP           | `openai_api_key`                                                                                                             |
 | `cloudflare` | CF account           | `account_id`, `zone_id`, `api_token`                                                                                         |
-| `n8n`        | n8n automation       | `encryption_key`, `webhook_url`                                                                                              |
-| `mcphub`     | MCPHub service       | `admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `es_password`, `proxmox_token`, `slack_tokens` |
+| `mcphub`     | MCPHub service       | `admin_password`, `op_token`, `github_pat`, `es_password`, `proxmox_token` |
 | `elk`        | ELK stack            | `elastic_password`, `kibana_password`                                                                                        |
 | `synology`   | Synology NAS         | `username`, `password`                                                                                                       |
-| `slack`      | Slack workspace      | `bot_token`, `app_token`                                                                                                     |
 | `youtube`    | YouTube API          | `client_id`, `client_secret`, `access_token`, `refresh_token`                                                               |
 | `telegram`   | Telegram Bot API     | `bot_token`                                                                                                                 |
 | `pbs`        | Proxmox Backup       | `username`, `password` (optional, gated by `enable_pbs`)                                                                     |
 
 **Module outputs:**
 
-- 42 secret keys (sensitive=true, not printed in Terraform output)
-- 13 metadata keys (sensitive=false)
+- 23 secret keys (sensitive=true, not printed in Terraform output)
+- 11 metadata keys (sensitive=false)
 
 **Access pattern:**
 
@@ -76,8 +74,6 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
 | 215-synology          | ✅                       | `synology_username`, `synology_password`           |
 | 300-cloudflare        | ✅                       | `cloudflare_account_id`, `zone_id`, `github_token` |
-| 301-github            | ✅                       | `github_personal_access_token`                     |
-| 320-slack             | ✅                       | `slack_bot_token`                                  |
 | 102-traefik           | ❌                       | —                                                  |
 | 108-archon            | ❌                       | —                                                  |
 
@@ -94,20 +90,7 @@ Per-host `.env` secrets deployed via config-renderer templates:
 | 105-elk       | `elastic_password`, `kibana_password` (in docker-compose env vars)                                                                         |
 | 107-supabase  | `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `DASHBOARD_PASSWORD`                                                    |
 | 108-archon    | `OPENAI_API_KEY`                                                                                                                           |
-| 112-mcphub    | 10+ secrets (`admin_password`, `n8n_api_key`, `op_token`, `github_pat`, `es_password`, `proxmox_token`, `slack_tokens`) |
-| 110-n8n       | `api_key`, `github_token`, `slack_bot_token`, `supabase_service_role_key`, `telegram_bot_token`, `youtube_google_*` |
-
-### n8n native credential provider mapping
-
-`110-n8n/templates/n8n.env.tftpl` renders 1Password-backed values so workflows can use n8n's native env expression path (`{{ $env.VAR_NAME }}`) without embedding secrets in workflow JSON.
-
-| Provider (n8n credential/use case) | Env var in n8n | 1Password source key |
-| --- | --- | --- |
-| GitHub API | `GITHUB_TOKEN` | `n8n_github_token` |
-| Slack API | `SLACK_BOT_TOKEN` | `slack_bot_token` |
-| Supabase API | `SUPABASE_SERVICE_ROLE_KEY` | `supabase_service_role_key` |
-| YouTube OAuth/API | `YOUTUBE_GOOGLE_CLIENT_ID`, `YOUTUBE_GOOGLE_CLIENT_SECRET`, `YOUTUBE_GOOGLE_REFRESH_TOKEN` | `youtube_google_*` |
-| Telegram Bot | `TELEGRAM_BOT_TOKEN` | `telegram_bot_token` |
+| 112-mcphub    | MCPHub admin, 1Password Connect, Proxmox token, GitHub PAT, Elasticsearch password |
 
 ## Provider Authentication
 
