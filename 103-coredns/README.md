@@ -6,14 +6,15 @@ Split DNS resolver for the `jclee.me` homelab. Resolves internal domain names to
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Client["Homelab client"] --> CoreDNS["CoreDNS\nLXC 103"]
-  CoreDNS --> Internal["Internal jclee.me records\n192.168.50.0/24"]
-  CoreDNS --> Upstream["Upstream DNS resolver"]
-  Internal --> Service["Local service endpoint"]
-  Upstream --> Internet["External DNS answer"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Homelab client (Client) -> CoreDNS\nLXC 103 (CoreDNS)
+- CoreDNS\nLXC 103 (CoreDNS) -> Internal jclee.me records\n192.168.50.0/24 (Internal)
+- CoreDNS\nLXC 103 (CoreDNS) -> Upstream DNS resolver (Upstream)
+- Internal jclee.me records\n192.168.50.0/24 (Internal) -> Local service endpoint (Service)
+- Upstream DNS resolver (Upstream) -> External DNS answer (Internet)
+
 
 ## Source of Truth
 

@@ -6,14 +6,15 @@ MCPHub aggregates and proxies Model Context Protocol (MCP) servers for the `jcle
 
 ## Architecture
 
-```mermaid
-flowchart TD
-  Clients["MCP clients"] --> Hub["MCPHub\nVM 112"]
-  Hub --> OnePassword["1Password Connect\nPort 8090"]
-  Hub --> Tools["MCP server catalog"]
-  Hub --> Docker["Docker Compose services"]
-  Tools --> External["External APIs and local services"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- MCP clients (Clients) -> MCPHub\nVM 112 (Hub)
+- MCPHub\nVM 112 (Hub) -> 1Password Connect\nPort 8090 (OnePassword)
+- MCPHub\nVM 112 (Hub) -> MCP server catalog (Tools)
+- MCPHub\nVM 112 (Hub) -> Docker Compose services (Docker)
+- MCP server catalog (Tools) -> External APIs and local services (External)
+
 
 ## Source of Truth
 

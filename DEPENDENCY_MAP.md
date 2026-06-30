@@ -47,24 +47,24 @@
 
 ## MODULE DEPENDENCY GRAPH
 
-```mermaid
-graph TD
-  Main["100-pve/main.tf"] --> Hosts["100-pve/envs/prod/hosts.tf"]
-  Main --> LXC["modules/proxmox/lxc"]
-  Main --> VM["modules/proxmox/vm"]
-  Main --> LXCConfig["modules/proxmox/lxc-config"]
-  Main --> VMConfig["modules/proxmox/vm-config"]
-  Main --> Renderer["modules/proxmox/config-renderer"]
-  Main --> Secrets["modules/shared/onepassword-secrets"]
+#### Diagram summary 1
 
-  Hosts --> Renderer
-  Secrets --> Renderer
-  Renderer --> Rendered["100-pve/configs/"]
-  LXC --> Proxmox["Proxmox LXC Resources"]
-  VM --> ProxmoxVM["Proxmox VM Resources"]
-  LXCConfig --> LXCGuest["LXC Guest Config"]
-  VMConfig --> VMGuest["VM Cloud-Init / Systemd"]
-```
+- Type: flowchart
+- 100-pve/main.tf (Main) -> 100-pve/envs/prod/hosts.tf (Hosts)
+- 100-pve/main.tf (Main) -> modules/proxmox/lxc (LXC)
+- 100-pve/main.tf (Main) -> modules/proxmox/vm (VM)
+- 100-pve/main.tf (Main) -> modules/proxmox/lxc-config (LXCConfig)
+- 100-pve/main.tf (Main) -> modules/proxmox/vm-config (VMConfig)
+- 100-pve/main.tf (Main) -> modules/proxmox/config-renderer (Renderer)
+- 100-pve/main.tf (Main) -> modules/shared/onepassword-secrets (Secrets)
+- 100-pve/envs/prod/hosts.tf (Hosts) -> modules/proxmox/config-renderer (Renderer)
+- modules/shared/onepassword-secrets (Secrets) -> modules/proxmox/config-renderer (Renderer)
+- modules/proxmox/config-renderer (Renderer) -> 100-pve/configs/ (Rendered)
+- modules/proxmox/lxc (LXC) -> Proxmox LXC Resources (Proxmox)
+- modules/proxmox/vm (VM) -> Proxmox VM Resources (ProxmoxVM)
+- modules/proxmox/lxc-config (LXCConfig) -> LXC Guest Config (LXCGuest)
+- modules/proxmox/vm-config (VMConfig) -> VM Cloud-Init / Systemd (VMGuest)
+
 
 ### CORE MODULES (modules/proxmox/)
 
@@ -86,15 +86,16 @@ graph TD
 
 ## TEMPLATE RENDERING PIPELINE
 
-```mermaid
-flowchart LR
-  Templates["Service templates\n{NNN}-{svc}/templates/*.tftpl"] --> Renderer["config-renderer module"]
-  Hosts["module.hosts.hosts"] --> Renderer
-  Secrets["module.onepassword_secrets.secrets"] --> Renderer
-  Renderer --> Outputs["100-pve/configs/\nGenerated files"]
-  Outputs --> Deploy["SSH / provisioner deploy"]
-  Deploy --> Runtime["/opt/{service}/\nRuntime config"]
-```
+#### Diagram summary 2
+
+- Type: flowchart
+- Service templates\n{NNN}-{svc}/templates/.tftpl (Templates) -> config-renderer module (Renderer)
+- module.hosts.hosts (Hosts) -> config-renderer module (Renderer)
+- module.onepasswordsecrets.secrets (Secrets) -> config-renderer module (Renderer)
+- config-renderer module (Renderer) -> 100-pve/configs/\nGenerated files (Outputs)
+- 100-pve/configs/\nGenerated files (Outputs) -> SSH / provisioner deploy (Deploy)
+- SSH / provisioner deploy (Deploy) -> /opt/{service}/\nRuntime config (Runtime)
+
 
 ---
 
@@ -168,22 +169,20 @@ template_vars = {
 
 ### Provider Dependency Graph
 
-```mermaid
-graph LR
-  PVE["100-pve"] --> Proxmox["bpg/proxmox"]
-  PVE --> OnePassword["1Password/onepassword"]
+#### Diagram summary 3
 
-  ELK["105-elk"] --> Elastic["elastic/elasticstack"]
-  ELK --> OnePassword
+- Type: flowchart
+- 100-pve (PVE) -> bpg/proxmox (Proxmox)
+- 100-pve (PVE) -> 1Password/onepassword (OnePassword)
+- 105-elk (ELK) -> elastic/elasticstack (Elastic)
+- 105-elk (ELK) -> 1Password/onepassword (OnePassword)
+- 215-synology (Synology) -> synology-community/synology (SynologyProvider)
+- 215-synology (Synology) -> 1Password/onepassword (OnePassword)
+- 300-cloudflare (Cloudflare) -> cloudflare/cloudflare (CFProvider)
+- 300-cloudflare (Cloudflare) -> hashicorp/random (Random)
+- 300-cloudflare (Cloudflare) -> hashicorp/time (Time)
+- 300-cloudflare (Cloudflare) -> 1Password/onepassword (OnePassword)
 
-  Synology["215-synology"] --> SynologyProvider["synology-community/synology"]
-  Synology --> OnePassword
-
-  Cloudflare["300-cloudflare"] --> CFProvider["cloudflare/cloudflare"]
-  Cloudflare --> Random["hashicorp/random"]
-  Cloudflare --> Time["hashicorp/time"]
-  Cloudflare --> OnePassword
-```
 
 ### By Workspace
 
@@ -251,22 +250,22 @@ export CLOUDFLARE_API_TOKEN="..."
 
 ### Entrypoint Decision Tree
 
-```mermaid
-flowchart TD
-  Need["What do you need to change?"] --> Host["Add or modify LXC/VM"]
-  Need --> Route["Add or modify ingress route"]
-  Need --> Logs["Change ELK pipeline"]
-  Need --> DNS["Change Cloudflare DNS / Access"]
-  Need --> Module["Change reusable module"]
-  Need --> Secret["Add or rotate secret"]
+#### Diagram summary 4
 
-  Host --> PVE["Edit 100-pve/locals.tf and 100-pve/envs/prod/hosts.tf"]
-  Route --> Traefik["Edit 102-traefik/templates/*.yml.tftpl"]
-  Logs --> ELK["Edit 105-elk/templates/logstash.conf.tftpl"]
-  DNS --> CF["Edit 300-cloudflare/*.tf"]
-  Module --> Modules["Edit modules/proxmox/ or modules/shared/"]
-  Secret --> Secrets["Edit modules/shared/onepassword-secrets and 1Password vault"]
-```
+- Type: flowchart
+- What do you need to change? (Need) -> Add or modify LXC/VM (Host)
+- What do you need to change? (Need) -> Add or modify ingress route (Route)
+- What do you need to change? (Need) -> Change ELK pipeline (Logs)
+- What do you need to change? (Need) -> Change Cloudflare DNS / Access (DNS)
+- What do you need to change? (Need) -> Change reusable module (Module)
+- What do you need to change? (Need) -> Add or rotate secret (Secret)
+- Add or modify LXC/VM (Host) -> Edit 100-pve/locals.tf and 100-pve/envs/prod/hosts.tf (PVE)
+- Add or modify ingress route (Route) -> Edit 102-traefik/templates/.yml.tftpl (Traefik)
+- Change ELK pipeline (Logs) -> Edit 105-elk/templates/logstash.conf.tftpl (ELK)
+- Change Cloudflare DNS / Access (DNS) -> Edit 300-cloudflare/.tf (CF)
+- Change reusable module (Module) -> Edit modules/proxmox/ or modules/shared/ (Modules)
+- Add or rotate secret (Secret) -> Edit modules/shared/onepassword-secrets and 1Password vault (Secrets)
+
 
 ### For Module Development
 

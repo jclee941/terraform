@@ -6,19 +6,20 @@ Central Terraform workspace orchestrating all Proxmox infrastructure for the `jc
 
 ## Architecture
 
-```mermaid
-flowchart TD
-  Hosts["envs/prod/hosts.tf\nHost inventory"] --> Main["100-pve/main.tf"]
-  Locals["100-pve/locals.tf\nSizing and service maps"] --> Main
-  Secrets["1Password secrets module"] --> Main
-  Main --> LXC["LXC module"]
-  Main --> VM["VM module"]
-  Main --> Renderer["Config renderer"]
-  Renderer --> Configs["configs/\nGenerated outputs"]
-  LXC --> Proxmox["Proxmox API"]
-  VM --> Proxmox
-  Configs --> Runtime["Service runtime config"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- envs/prod/hosts.tf\nHost inventory (Hosts) -> 100-pve/main.tf (Main)
+- 100-pve/locals.tf\nSizing and service maps (Locals) -> 100-pve/main.tf (Main)
+- 1Password secrets module (Secrets) -> 100-pve/main.tf (Main)
+- 100-pve/main.tf (Main) -> LXC module (LXC)
+- 100-pve/main.tf (Main) -> VM module (VM)
+- 100-pve/main.tf (Main) -> Config renderer (Renderer)
+- Config renderer (Renderer) -> configs/\nGenerated outputs (Configs)
+- LXC module (LXC) -> Proxmox API (Proxmox)
+- VM module (VM) -> Proxmox API (Proxmox)
+- configs/\nGenerated outputs (Configs) -> Service runtime config (Runtime)
+
 
 ## Source of Truth
 

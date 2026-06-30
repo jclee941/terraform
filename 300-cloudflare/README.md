@@ -6,22 +6,21 @@ Terraform and script-based central secret management system for the `jclee.me` h
 
 ## Architecture
 
-```mermaid
-flowchart TD
-  Inventory["inventory/secrets.yaml\nMetadata only"] --> Terraform["Terraform"]
-  OnePassword["1Password homelab vault"] --> Terraform
+#### Diagram summary 1
 
-  Terraform --> DNS["Cloudflare DNS"]
-  Terraform --> Access["Cloudflare Access"]
-  Terraform --> Tunnel["Cloudflare Tunnels"]
-  Terraform --> CFSecrets["Cloudflare Secrets Store"]
-  Terraform --> GHSecrets["GitHub Actions Secrets"]
+- Type: flowchart
+- inventory/secrets.yaml\nMetadata only (Inventory) -> Terraform
+- 1Password homelab vault (OnePassword) -> Terraform
+- Terraform -> Cloudflare DNS (DNS)
+- Terraform -> Cloudflare Access (Access)
+- Terraform -> Cloudflare Tunnels (Tunnel)
+- Terraform -> Cloudflare Secrets Store (CFSecrets)
+- Terraform -> GitHub Actions Secrets (GHSecrets)
+- Cloudflare Tunnels (Tunnel) -> Traefik ingress (Traefik)
+- Cloudflare Access (Access) -> Protected homelab services (Services)
+- Cloudflare Secrets Store (CFSecrets) -> Cloudflare Workers runtime (Workers)
+- GitHub Actions Secrets (GHSecrets) -> GitHub Actions CI/CD (CI)
 
-  Tunnel --> Traefik["Traefik ingress"]
-  Access --> Services["Protected homelab services"]
-  CFSecrets --> Workers["Cloudflare Workers runtime"]
-  GHSecrets --> CI["GitHub Actions CI/CD"]
-```
 
 ## Source of Truth
 

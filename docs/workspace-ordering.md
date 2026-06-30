@@ -9,21 +9,20 @@ app workspaces.
 
 ## Dependency Graph
 
-```mermaid
-graph TD
-  PVE["100-pve\nProvision fleet and render configs"] --> Infra["Tier 1 infra workspaces"]
-  Infra --> Traefik["102-traefik"]
-  Infra --> ELK["105-elk"]
-  Infra --> Archon["108-archon"]
+#### Diagram summary 1
 
-  PVE --> Templates["Template-only services\nRendered by 100-pve"]
-  Templates --> Runtime["Runtime deploy to LXC/VM"]
+- Type: flowchart
+- 100-pve\nProvision fleet and render configs (PVE) -> Tier 1 infra workspaces (Infra)
+- Tier 1 infra workspaces (Infra) -> 102-traefik (Traefik)
+- Tier 1 infra workspaces (Infra) -> 105-elk (ELK)
+- Tier 1 infra workspaces (Infra) -> 108-archon (Archon)
+- 100-pve\nProvision fleet and render configs (PVE) -> Template-only services\nRendered by 100-pve (Templates)
+- Template-only services\nRendered by 100-pve (Templates) -> Runtime deploy to LXC/VM (Runtime)
+- Independent external workspaces (External) -> 300-cloudflare (Cloudflare)
+- Independent external workspaces (External) -> 301-github (GitHub)
+- Independent external workspaces (External) -> 320-slack (Slack)
+- Independent external workspaces (External) -> 400-gcp (GCP)
 
-  External["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
-  External --> GitHub["301-github"]
-  External --> Slack["320-slack"]
-  External --> GCP["400-gcp"]
-```
 
 ## Apply Order
 

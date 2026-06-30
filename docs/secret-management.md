@@ -21,15 +21,16 @@ go run scripts/setup-github-secrets.go --audit
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Vault["1Password vault\nhomelab"] --> Module["onepassword-secrets module"]
-  Module --> Terraform["Terraform workspaces"]
-  Terraform --> Templates["templatefile() rendering"]
-  Templates --> Runtime["Runtime .env / config files"]
-  Terraform --> GH["GitHub Actions secrets sync"]
-  GH --> CI["CI/CD workflows"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- 1Password vault\nhomelab (Vault) -> onepassword-secrets module (Module)
+- onepassword-secrets module (Module) -> Terraform workspaces (Terraform)
+- Terraform workspaces (Terraform) -> templatefile() rendering (Templates)
+- templatefile() rendering (Templates) -> Runtime .env / config files (Runtime)
+- Terraform workspaces (Terraform) -> GitHub Actions secrets sync (GH)
+- GitHub Actions secrets sync (GH) -> CI/CD workflows (CI)
+
 
 ## 1Password Item Inventory
 

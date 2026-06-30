@@ -17,25 +17,25 @@
 - `gh` CLI authenticated (for GitHub operations)
 ## Standard Deployment Flow
 
-```mermaid
-sequenceDiagram
-  participant Dev as Developer
-  participant PR as Pull Request
-  participant CI as GitHub Actions
-  participant TF as Terraform
-  participant PVE as Proxmox / External Provider
+#### Diagram summary 1
 
-  Dev->>PR: Open change
-  PR->>CI: Trigger plan workflow
-  CI->>TF: terraform init / validate / plan
-  TF-->>CI: Plan result
-  CI-->>PR: Status check
-  Dev->>PR: Merge after review
-  PR->>CI: Trigger apply workflow
-  CI->>TF: terraform apply
-  TF->>PVE: Reconcile infrastructure
-  PVE-->>CI: Apply result
-```
+- Type: sequence
+- Participant: Dev as Developer
+- Participant: PR as Pull Request
+- Participant: CI as GitHub Actions
+- Participant: TF as Terraform
+- Participant: PVE as Proxmox / External Provider
+- Dev -> PR: Open change
+- PR -> CI: Trigger plan workflow
+- CI -> TF: terraform init / validate / plan
+- TF -> CI: Plan result
+- CI -> PR: Status check
+- Dev -> PR: Merge after review
+- PR -> CI: Trigger apply workflow
+- CI -> TF: terraform apply
+- TF -> PVE: Reconcile infrastructure
+- PVE -> CI: Apply result
+
 
 ### 1. Edit Configuration
 

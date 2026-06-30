@@ -13,19 +13,20 @@ Homelab infrastructure-as-code monorepo. Provisions Proxmox LXC/VM fleet, networ
 - **21 workspaces**: numeric prefix (`80` physical, `100s` Proxmox infra, `200s` VMs, `300s` external, `400s` cloud)
 - **6 modules**: `modules/proxmox/{lxc,vm,lxc-config,vm-config,config-renderer}`, `modules/shared/onepassword-secrets`
 
-```mermaid
-flowchart LR
-  Agent["User / AI Agent"] --> Repo["Terraform Repo"]
-  Repo --> CI["GitHub Actions Runner\nLXC 101"]
-  CI --> TF["Terraform Workspaces"]
-  TF --> PVE["100-pve\nCentral Orchestrator"]
-  PVE --> Fleet["Proxmox LXC / VM Fleet"]
-  TF --> OP["1Password\nhomelab vault"]
-  TF --> CF["Cloudflare\nDNS / Access / Tunnel"]
-  Fleet --> ELK["ELK\nLogs and Search"]
-  CF --> Traefik["Traefik\nIngress LXC 102"]
-  Traefik --> Fleet
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- User / AI Agent (Agent) -> Terraform Repo (Repo)
+- Terraform Repo (Repo) -> GitHub Actions Runner\nLXC 101 (CI)
+- GitHub Actions Runner\nLXC 101 (CI) -> Terraform Workspaces (TF)
+- Terraform Workspaces (TF) -> 100-pve\nCentral Orchestrator (PVE)
+- 100-pve\nCentral Orchestrator (PVE) -> Proxmox LXC / VM Fleet (Fleet)
+- Terraform Workspaces (TF) -> 1Password\nhomelab vault (OP)
+- Terraform Workspaces (TF) -> Cloudflare\nDNS / Access / Tunnel (CF)
+- Proxmox LXC / VM Fleet (Fleet) -> ELK\nLogs and Search (ELK)
+- Cloudflare\nDNS / Access / Tunnel (CF) -> Traefik\nIngress LXC 102 (Traefik)
+- Traefik\nIngress LXC 102 (Traefik) -> Proxmox LXC / VM Fleet (Fleet)
+
 ## STRUCTURE
 
 ```text

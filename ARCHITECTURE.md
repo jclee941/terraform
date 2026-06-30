@@ -103,88 +103,83 @@ terraform/
 
 ### Service Topology
 
-```mermaid
-flowchart TB
-  Internet["Internet"] --> CFDNS["Cloudflare DNS"]
-  CFDNS --> CFAccess["Cloudflare Access"]
-  CFAccess --> CFTunnel["Cloudflare Tunnel"]
-  CFTunnel --> Traefik["Traefik\nLXC 102"]
+#### Diagram summary 1
 
-  subgraph Homelab["Homelab 192.168.50.0/24"]
-    Traefik --> CoreDNS["CoreDNS\nLXC 103"]
-    Traefik --> ELK["ELK\nLXC 105"]
-    Traefik --> Supabase["Supabase\nLXC 107"]
-    Traefik --> Archon["Archon\nLXC 108"]
-    Traefik --> N8N["n8n\nLXC 110"]
-    Traefik --> MCPHub["MCPHub\nVM 112"]
-    Traefik --> OC["OpenCode\nVM 200"]
-    Traefik --> Synology["Synology\nNAS 215"]
-    Traefik --> YouTube["YouTube\nVM 220"]
-  end
+- Type: flowchart
+- Internet -> Cloudflare DNS (CFDNS)
+- Cloudflare DNS (CFDNS) -> Cloudflare Access (CFAccess)
+- Cloudflare Access (CFAccess) -> Cloudflare Tunnel (CFTunnel)
+- Cloudflare Tunnel (CFTunnel) -> Traefik\nLXC 102 (Traefik)
+- Traefik\nLXC 102 (Traefik) -> CoreDNS\nLXC 103 (CoreDNS)
+- Traefik\nLXC 102 (Traefik) -> ELK\nLXC 105 (ELK)
+- Traefik\nLXC 102 (Traefik) -> Supabase\nLXC 107 (Supabase)
+- Traefik\nLXC 102 (Traefik) -> Archon\nLXC 108 (Archon)
+- Traefik\nLXC 102 (Traefik) -> n8n\nLXC 110 (N8N)
+- Traefik\nLXC 102 (Traefik) -> MCPHub\nVM 112 (MCPHub)
+- Traefik\nLXC 102 (Traefik) -> OpenCode\nVM 200 (OC)
+- Traefik\nLXC 102 (Traefik) -> Synology\nNAS 215 (Synology)
+- Traefik\nLXC 102 (Traefik) -> YouTube\nVM 220 (YouTube)
+- Proxmox Host\n100 (PVE) -> Homelab 192.168.50.0/24 (Homelab)
 
-  PVE["Proxmox Host\n100"] --> Homelab
-```
 
 ### Terraform Control Flow
 
-```mermaid
-flowchart LR
-  Hosts["100-pve/envs/prod/hosts.tf\nHost SSoT"] --> HostModule["module.hosts"]
-  HostModule --> LXC["modules/proxmox/lxc"]
-  HostModule --> VM["modules/proxmox/vm"]
-  HostModule --> LXCConfig["modules/proxmox/lxc-config"]
-  HostModule --> VMConfig["modules/proxmox/vm-config"]
+#### Diagram summary 2
 
-  OP["modules/shared/onepassword-secrets"] --> Renderer["modules/proxmox/config-renderer"]
-  HostModule --> Renderer
-  Renderer --> Configs["100-pve/configs/\nGenerated outputs"]
+- Type: flowchart
+- 100-pve/envs/prod/hosts.tf\nHost SSoT (Hosts) -> module.hosts (HostModule)
+- module.hosts (HostModule) -> modules/proxmox/lxc (LXC)
+- module.hosts (HostModule) -> modules/proxmox/vm (VM)
+- module.hosts (HostModule) -> modules/proxmox/lxc-config (LXCConfig)
+- module.hosts (HostModule) -> modules/proxmox/vm-config (VMConfig)
+- modules/shared/onepassword-secrets (OP) -> modules/proxmox/config-renderer (Renderer)
+- module.hosts (HostModule) -> modules/proxmox/config-renderer (Renderer)
+- modules/proxmox/config-renderer (Renderer) -> 100-pve/configs/\nGenerated outputs (Configs)
+- modules/proxmox/lxc (LXC) -> Proxmox API (PVEAPI)
+- modules/proxmox/vm (VM) -> Proxmox API (PVEAPI)
+- modules/proxmox/lxc-config (LXCConfig) -> SSH deploy (SSH)
+- modules/proxmox/vm-config (VMConfig) -> SSH deploy (SSH)
+- 100-pve/configs/\nGenerated outputs (Configs) -> SSH deploy (SSH)
+- SSH deploy (SSH) -> /opt/{service}/ on LXC/VM (Targets)
 
-  LXC --> PVEAPI["Proxmox API"]
-  VM --> PVEAPI
-  LXCConfig --> SSH["SSH deploy"]
-  VMConfig --> SSH
-  Configs --> SSH
-  SSH --> Targets["/opt/{service}/ on LXC/VM"]
-```
 
 ### Workspace Apply Order
 
-```mermaid
-graph TD
-  PVE["100-pve\nTier 0 core"] --> Tier1["Tier 1 parallel"]
-  Tier1 --> Traefik["102-traefik"]
-  Tier1 --> ELK["105-elk"]
-  Tier1 --> Archon["108-archon"]
+#### Diagram summary 3
 
-  PVE --> Template["Template-only rendered by 100-pve"]
-  Template --> Runner["101-runner"]
-  Template --> CoreDNS["103-coredns"]
-  Template --> Supabase["107-supabase"]
-  Template --> N8N["110-n8n"]
-  Template --> MCPHub["112-mcphub"]
-  Template --> OC["200-oc"]
-  Template --> Synology["215-synology"]
-  Template --> YouTube["220-youtube"]
+- Type: flowchart
+- 100-pve\nTier 0 core (PVE) -> Tier 1 parallel (Tier1)
+- Tier 1 parallel (Tier1) -> 102-traefik (Traefik)
+- Tier 1 parallel (Tier1) -> 105-elk (ELK)
+- Tier 1 parallel (Tier1) -> 108-archon (Archon)
+- 100-pve\nTier 0 core (PVE) -> Template-only rendered by 100-pve (Template)
+- Template-only rendered by 100-pve (Template) -> 101-runner (Runner)
+- Template-only rendered by 100-pve (Template) -> 103-coredns (CoreDNS)
+- Template-only rendered by 100-pve (Template) -> 107-supabase (Supabase)
+- Template-only rendered by 100-pve (Template) -> 110-n8n (N8N)
+- Template-only rendered by 100-pve (Template) -> 112-mcphub (MCPHub)
+- Template-only rendered by 100-pve (Template) -> 200-oc (OC)
+- Template-only rendered by 100-pve (Template) -> 215-synology (Synology)
+- Template-only rendered by 100-pve (Template) -> 220-youtube (YouTube)
+- Independent external workspaces (Independent) -> 300-cloudflare (Cloudflare)
+- Independent external workspaces (Independent) -> 301-github (GitHub)
+- Independent external workspaces (Independent) -> 320-slack (Slack)
+- Independent external workspaces (Independent) -> 400-gcp (GCP)
 
-  Independent["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
-  Independent --> GitHub["301-github"]
-  Independent --> Slack["320-slack"]
-  Independent --> GCP["400-gcp"]
-```
 
 ### Observability Flow
 
-```mermaid
-flowchart LR
-  Services["LXC / VM Services"] --> Filebeat["Filebeat Agents"]
-  PVEHost["Proxmox Host"] --> Filebeat
-  Cloudflare["Cloudflare Logpush"] --> Logpush["HTTPS Logpush Ingest"]
+#### Diagram summary 4
 
-  Filebeat --> Logstash["Logstash\n105:5044"]
-  Logpush --> Logstash
-  Logstash --> Elasticsearch["Elasticsearch\n105:9200"]
-  Elasticsearch --> Kibana["Kibana\n105"]
-```
+- Type: flowchart
+- LXC / VM Services (Services) -> Filebeat Agents (Filebeat)
+- Proxmox Host (PVEHost) -> Filebeat Agents (Filebeat)
+- Cloudflare Logpush (Cloudflare) -> HTTPS Logpush Ingest (Logpush)
+- Filebeat Agents (Filebeat) -> Logstash\n105:5044 (Logstash)
+- HTTPS Logpush Ingest (Logpush) -> Logstash\n105:5044 (Logstash)
+- Logstash\n105:5044 (Logstash) -> Elasticsearch\n105:9200 (Elasticsearch)
+- Elasticsearch\n105:9200 (Elasticsearch) -> Kibana\n105 (Kibana)
+
 
 ## Module Architecture
 

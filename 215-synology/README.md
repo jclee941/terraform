@@ -6,13 +6,14 @@ Synology NAS providing network-attached storage for the homelab. Managed via the
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Internet["Internet"] --> Cloudflare["Cloudflare Tunnel"]
-  Cloudflare --> Traefik["Traefik"]
-  Traefik --> DSM["Synology DSM\n192.168.50.215"]
-  DSM --> Services["Container Manager\nMinIO / Registry"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Internet -> Cloudflare Tunnel (Cloudflare)
+- Cloudflare Tunnel (Cloudflare) -> Traefik
+- Traefik -> Synology DSM\n192.168.50.215 (DSM)
+- Synology DSM\n192.168.50.215 (DSM) -> Container Manager\nMinIO / Registry (Services)
+
 
 ## Source of Truth
 

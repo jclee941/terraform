@@ -6,14 +6,15 @@ Nested `elasticstack` provider workspace managing ILM policies, index templates,
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Filebeat["Filebeat agents"] --> Logstash["Logstash"]
-  Cloudflare["Cloudflare Logpush"] --> Logstash
-  Logstash --> Elasticsearch["Elasticsearch"]
-  Elasticsearch --> Kibana["Kibana"]
-  Terraform["Terraform elasticstack provider"] --> Elasticsearch
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Filebeat agents (Filebeat) -> Logstash
+- Cloudflare Logpush (Cloudflare) -> Logstash
+- Logstash -> Elasticsearch
+- Elasticsearch -> Kibana
+- Terraform elasticstack provider (Terraform) -> Elasticsearch
+
 
 ## Source of Truth
 

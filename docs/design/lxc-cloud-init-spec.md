@@ -15,18 +15,18 @@ This document specifies the technical implementation of cloud-init support for L
 
 ## Architecture
 
-```mermaid
-flowchart TB
-  Config["100-pve/lxc_configs.tf\ncloud_init blocks"] --> Module["modules/proxmox/lxc-config"]
-  Module --> Template["templates/cloud-init-lxc.yaml.tftpl"]
-  Template --> Rendered["Rendered cloud-init YAML"]
-  Rendered --> SSH["SSH deploy"]
-  SSH --> Target["Target LXC Container"]
+#### Diagram summary 1
 
-  Target --> CloudCfg["/etc/cloud/cloud.cfg.d/99-terraform.cfg"]
-  Target --> Hash["/var/lib/cloud/.terraform-init-hash"]
-  Target --> Done["/var/lib/cloud/.terraform-init-done"]
-```
+- Type: flowchart
+- 100-pve/lxcconfigs.tf\ncloudinit blocks (Config) -> modules/proxmox/lxc-config (Module)
+- modules/proxmox/lxc-config (Module) -> templates/cloud-init-lxc.yaml.tftpl (Template)
+- templates/cloud-init-lxc.yaml.tftpl (Template) -> Rendered cloud-init YAML (Rendered)
+- Rendered cloud-init YAML (Rendered) -> SSH deploy (SSH)
+- SSH deploy (SSH) -> Target LXC Container (Target)
+- Target LXC Container (Target) -> /etc/cloud/cloud.cfg.d/99-terraform.cfg (CloudCfg)
+- Target LXC Container (Target) -> /var/lib/cloud/.terraform-init-hash (Hash)
+- Target LXC Container (Target) -> /var/lib/cloud/.terraform-init-done (Done)
+
 
 ## Data Structures
 
@@ -217,28 +217,25 @@ resource "null_resource" "lxc_cloud_init" {
 
 ### Apply and Reapply Flow
 
-```mermaid
-sequenceDiagram
-  participant TF as Terraform
-  participant Module as lxc-config module
-  participant LXC as Target LXC
-  participant Apt as apt/systemd/files
+#### Diagram summary 2
 
-  TF->>Module: Evaluate cloud_init input
-  Module->>Module: Render YAML and compute hash
-  Module->>LXC: Read existing sentinel/hash
-  alt Hash unchanged
-    LXC-->>Module: Same hash
-    Module-->>TF: Skip apply
-  else Hash changed or missing
-    Module->>LXC: Upload 99-terraform.cfg
-    Module->>Apt: Install packages
-    Module->>LXC: Write files
-    Module->>LXC: Run commands
-    Module->>LXC: Write hash and done sentinel
-    Module-->>TF: Apply complete
-  end
-```
+- Type: sequence
+- Participant: TF as Terraform
+- participant -> config
+- Participant: LXC as Target LXC
+- Participant: Apt as apt/systemd/files
+- TF -> Module: Evaluate cloudinit input
+- Module -> Module: Render YAML and compute hash
+- Module -> LXC: Read existing sentinel/hash
+- LXC -> Module: Same hash
+- Module -> TF: Skip apply
+- Module -> LXC: Upload 99-terraform.cfg
+- Module -> Apt: Install packages
+- Module -> LXC: Write files
+- Module -> LXC: Run commands
+- Module -> LXC: Write hash and done sentinel
+- Module -> TF: Apply complete
+
 
 ## Container Migration
 
@@ -273,22 +270,21 @@ module "lxc_config" {
 
 ### Idempotency State
 
-```mermaid
-stateDiagram-v2
-  [*] --> NoSentinel
-  NoSentinel --> Apply: first run
-  Apply --> Completed: success
-  Apply --> Failed: error
+#### Diagram summary 3
 
-  Completed --> Skip: same hash
-  Completed --> Reapply: hash changed
-  Reapply --> Completed: success
-  Reapply --> Failed: error
+- Type: state
+- [] -> NoSentinel
+- NoSentinel -> Apply:
+- Apply -> Completed:
+- Apply -> Failed:
+- Completed -> Skip:
+- Completed -> Reapply:
+- Reapply -> Completed:
+- Reapply -> Failed:
+- Failed -> ManualRollback:
+- ManualRollback -> Apply
+- Skip -> []
 
-  Failed --> ManualRollback: clear sentinel or restore config
-  ManualRollback --> Apply
-  Skip --> [*]
-```
 ## QA Checklist
 
 Before marking cloud-init deployment as verified for a container:
