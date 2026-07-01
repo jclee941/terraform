@@ -6,13 +6,14 @@ OpenCode development VM on Proxmox. Terraform-provisioned via `100-pve/terraform
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Internet["Internet"] --> Cloudflare["Cloudflare Tunnel"]
-  Cloudflare --> Access["Cloudflare Access\nZero Trust"]
-  Access --> OC["OpenCode VM\n192.168.50.200"]
-  OC --> Services["OpenCode runtime\nSSH / RDP"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Internet -> Cloudflare Tunnel (Cloudflare)
+- Cloudflare Tunnel (Cloudflare) -> Cloudflare Access\nZero Trust (Access)
+- Cloudflare Access\nZero Trust (Access) -> OpenCode VM\n192.168.50.200 (OC)
+- OpenCode VM\n192.168.50.200 (OC) -> OpenCode runtime\nSSH / RDP (Services)
+
 
 ## Source of Truth
 

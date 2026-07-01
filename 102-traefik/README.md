@@ -6,14 +6,15 @@ High-performance reverse proxy and load balancer. Serves as the single entry poi
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Internet["Internet"] --> Cloudflare["Cloudflare Tunnel"]
-  Cloudflare --> Traefik["Traefik\nLXC 102"]
-  Traefik --> Routes["Dynamic route templates"]
-  Routes --> Services["Internal LXC / VM services"]
-  Services --> Health["Service health endpoints"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Internet -> Cloudflare Tunnel (Cloudflare)
+- Cloudflare Tunnel (Cloudflare) -> Traefik\nLXC 102 (Traefik)
+- Traefik\nLXC 102 (Traefik) -> Dynamic route templates (Routes)
+- Dynamic route templates (Routes) -> Internal LXC / VM services (Services)
+- Internal LXC / VM services (Services) -> Service health endpoints (Health)
+
 
 ## Source of Truth
 

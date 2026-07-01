@@ -39,8 +39,12 @@ jobs:
       (github.event.action == 'labeled' && github.event.label.name == 'in-progress') ||
       (github.event.action == 'assigned' && github.event.assignee.login != 'jclee-bot')
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -127,3 +131,6 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
             --body "Branch \`$BRANCH\` created. Push commits to that branch and a draft PR will open automatically." \
             || echo "::warning::comment failed; non-fatal"
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/notify-on-failure

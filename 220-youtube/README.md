@@ -6,12 +6,13 @@ A dedicated ephemeral virtual machine for YouTube media workloads. Designed to b
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Internet["Internet"] --> WARP["Cloudflare WARP"]
-  WARP --> VM["YouTube VM\n192.168.50.220"]
-  VM --> Media["Media processing\nStreaming workloads"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Internet -> Cloudflare WARP (WARP)
+- Cloudflare WARP (WARP) -> YouTube VM\n192.168.50.220 (VM)
+- YouTube VM\n192.168.50.220 (VM) -> Media processing\nStreaming workloads (Media)
+
 
 ## Source of Truth
 

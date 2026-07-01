@@ -38,6 +38,10 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event.action == 'closed' && github.event.pull_request.merged == true)
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - name: Gather PR data
         id: pr
         env:
@@ -168,3 +172,11 @@ jobs:
               echo "::warning::failed to delete branch $HEAD_REF: $(cat /tmp/del_err)"
             fi
           fi
+      - name: Checkout (for composite action resolution)
+        if: failure()
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/notify-on-failure

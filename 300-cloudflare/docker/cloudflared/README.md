@@ -6,13 +6,14 @@ Runs `cloudflared` as a Docker container on the Synology NAS to establish a secu
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Internet["Internet"] --> CF["Cloudflare Edge"]
-  CF --> Tunnel["Cloudflare Tunnel"]
-  Tunnel --> Container["cloudflared container"]
-  Container --> DSM["Synology DSM API\nlocalhost:5001"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Internet -> Cloudflare Edge (CF)
+- Cloudflare Edge (CF) -> Cloudflare Tunnel (Tunnel)
+- Cloudflare Tunnel (Tunnel) -> cloudflared container (Container)
+- cloudflared container (Container) -> Synology DSM API\nlocalhost:5001 (DSM)
+
 
 ## Source of Truth
 

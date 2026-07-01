@@ -18,15 +18,16 @@ ADR numbers 005 through 013 are absent in this repository. Treat those gaps as i
 
 ## Lifecycle
 
-```mermaid
-stateDiagram-v2
-  [*] --> Proposed
-  Proposed --> Accepted: approved and merged
-  Accepted --> Superseded: newer ADR replaces decision
-  Accepted --> Deprecated: decision no longer applies
-  Superseded --> [*]
-  Deprecated --> [*]
-```
+#### Diagram summary 1
+
+- Type: state
+- [] -> Proposed
+- Proposed -> Accepted:
+- Accepted -> Superseded:
+- Accepted -> Deprecated:
+- Superseded -> []
+- Deprecated -> []
+
 
 ## Maintenance Rules
 

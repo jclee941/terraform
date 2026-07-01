@@ -6,11 +6,12 @@ SafetyWallet external service directory. Connected to the homelab via a dedicate
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Internet["Internet"] --> CF["Cloudflare Tunnel\n310-safetywallet"]
-  CF --> Service["SafetyWallet service"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Internet -> Cloudflare Tunnel\n310-safetywallet (CF)
+- Cloudflare Tunnel\n310-safetywallet (CF) -> SafetyWallet service (Service)
+
 
 ## Source of Truth
 

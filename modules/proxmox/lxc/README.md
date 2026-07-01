@@ -6,13 +6,14 @@ for VMID ranges, memory minimums, and hostname format.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  Inputs["Input variables"] --> Module["Terraform module"]
-  Module --> Resources["Managed resources or rendered templates"]
-  Resources --> Outputs["Output values"]
-  Outputs --> Consumers["Workspace consumers"]
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Input variables (Inputs) -> Terraform module (Module)
+- Terraform module (Module) -> Managed resources or rendered templates (Resources)
+- Managed resources or rendered templates (Resources) -> Output values (Outputs)
+- Output values (Outputs) -> Workspace consumers (Consumers)
+
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

@@ -6,15 +6,16 @@ LXC container (VMID 101) running multiple GitHub Actions self-hosted runner inst
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  PR["Pull Request"] --> Actions["GitHub Actions"]
-  Actions --> Runner["Self-hosted runner\nLXC 101"]
-  Runner --> Tests["Terraform tests\nLint\nPlan"]
-  Runner --> Homelab["Homelab services\nProxmox / ELK / Cloudflare"]
-  Merge["Merge to master"] --> Apply["CI apply workflow"]
-  Apply --> Runner
-```
+#### Diagram summary 1
+
+- Type: flowchart
+- Pull Request (PR) -> GitHub Actions (Actions)
+- GitHub Actions (Actions) -> Self-hosted runner\nLXC 101 (Runner)
+- Self-hosted runner\nLXC 101 (Runner) -> Terraform tests\nLint\nPlan (Tests)
+- Self-hosted runner\nLXC 101 (Runner) -> Homelab services\nProxmox / ELK / Cloudflare (Homelab)
+- Merge to master (Merge) -> CI apply workflow (Apply)
+- CI apply workflow (Apply) -> Self-hosted runner\nLXC 101 (Runner)
+
 
 ## Source of Truth
 
