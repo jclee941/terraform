@@ -10,7 +10,6 @@
 | VMID | Service | Type | Priority |
 |------|---------|------|----------|
 | 102 | Traefik | LXC | High — routing configs |
-| 104 | Grafana | LXC | High — dashboards + Prometheus data |
 | 105 | ELK | LXC | High — log pipeline configs |
 | 112 | MCPHub | VM | High — MCP configs + 1Password Connect |
 
@@ -79,7 +78,7 @@ pct exec {VMID} -- journalctl -n 50 --no-pager
 
 ## Prevention
 - Scheduled vzdump backups configured via Proxmox UI
-- Grafana alert rules managed through the template/config pipeline
+- Alert rules managed through the template/config pipeline
 - Retention policy: keep-daily=7, keep-weekly=4, keep-monthly=3
-- Grafana alert for backup failures
+- Alert for backup failures
 - Test restores quarterly to verify backup integrity

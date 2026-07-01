@@ -20,9 +20,9 @@ onepassword-secrets/
 | output | `metadata` | - | - | Non-sensitive usernames/URLs/IDs map for config wiring. |
 
 ## CONSUMERS
-- Called by `100-pve/secrets.tf` via `module.onepassword_secrets`.
+- Called by `100-pve/terraform/secrets.tf` via `module.onepassword_secrets`.
 - Called by `105-elk/terraform/onepassword.tf` via `module.onepassword_secrets`.
-- Called by `300-cloudflare/onepassword.tf` via `module.onepassword_secrets`.
+- Called by `300-cloudflare/terraform/onepassword.tf` via `module.onepassword_secrets`.
 
 ## WHERE TO LOOK
 | Task | File | Notes |

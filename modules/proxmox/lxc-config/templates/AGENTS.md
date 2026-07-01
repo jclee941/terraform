@@ -24,3 +24,8 @@ templates/
 ## ANTI-PATTERNS
 - NEVER hardcode service IPs
 - NEVER commit secrets in templates
+
+## NOTES
+- Keep template inputs explicit in `variables.tf`.
+- Rendered paths must match the container filesystem layout.
+- Use `100-pve/terraform/lxc_configs.tf` as the consumer contract.

@@ -47,13 +47,10 @@ func TestValidateDocsStaleDriftDetectionRef(t *testing.T) {
 	}
 }
 
-// TestRemovedWorkspaceReference tests that references to 104-grafana
-// workspace (which was removed) are detected.
-func TestValidateDocsRemovedWorkspaceReference(t *testing.T) {
+func TestValidateDocsLegacyGeneratedConfigPath(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Create a doc that references 104-grafana
-	docContent := "## Test Doc\nThe Grafana workspace 104-grafana has been migrated.\nSee 104-grafana/terraform/main.tf for details.\n"
+	docContent := "## Test Doc\nRendered output lives in " + "100-pve" + "/configs/rendered.\n"
 	docPath := filepath.Join(tmpDir, "test.md")
 	if err := os.WriteFile(docPath, []byte(docContent), 0644); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
@@ -65,17 +62,43 @@ func TestValidateDocsRemovedWorkspaceReference(t *testing.T) {
 		t.Fatalf("validateFile failed: %v", err)
 	}
 
-	// Should have one issue about removed workspace reference
 	found := false
 	for _, issue := range issues {
-		if issue.typeName == "removed-workspace-ref" {
+		if issue.typeName == "legacy-generated-config-path" {
 			found = true
 			break
 		}
 	}
 
 	if !found {
-		t.Errorf("expected to find removed-workspace-ref issue, got: %v", issues)
+		t.Errorf("expected to find legacy-generated-config-path issue, got: %v", issues)
+	}
+}
+
+func TestValidateDocsRetiredMonitoringEndpoint(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	docContent := "## Test Doc\nQuery " + "192.168.50." + "104:9090/api/v1/targets.\n"
+	docPath := filepath.Join(tmpDir, "test.md")
+	if err := os.WriteFile(docPath, []byte(docContent), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	issues, err := validateFile(docPath, tmpDir, false)
+	if err != nil {
+		t.Fatalf("validateFile failed: %v", err)
+	}
+
+	found := false
+	for _, issue := range issues {
+		if issue.typeName == "retired-monitoring-endpoint" {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		t.Errorf("expected to find retired-monitoring-endpoint issue, got: %v", issues)
 	}
 }
 
@@ -300,13 +323,13 @@ func TestValidateDocsCollectMarkdownFilesExclude(t *testing.T) {
 
 	// Create markdown files in various locations
 	files := map[string]string{
-		filepath.Join(tmpDir, "README.md"):                             "root readme",
-		filepath.Join(tmpDir, ".terraform", "module.md"):              "should be skipped",
-		filepath.Join(tmpDir, ".git", "docs.md"):                     "should be skipped",
-		filepath.Join(tmpDir, "docs", "archive", "old.md"):           "should be skipped",
-		filepath.Join(tmpDir, "docs", "current.md"):                  "should be included",
-		filepath.Join(tmpDir, "subdir", "AGENTS.md"):                 "should be skipped (sync-controlled)",
-		filepath.Join(tmpDir, "AGENTS.md"):                            "should be included (root)",
+		filepath.Join(tmpDir, "README.md"):                 "root readme",
+		filepath.Join(tmpDir, ".terraform", "module.md"):   "should be skipped",
+		filepath.Join(tmpDir, ".git", "docs.md"):           "should be skipped",
+		filepath.Join(tmpDir, "docs", "archive", "old.md"): "should be skipped",
+		filepath.Join(tmpDir, "docs", "current.md"):        "should be included",
+		filepath.Join(tmpDir, "subdir", "AGENTS.md"):       "should be skipped (sync-controlled)",
+		filepath.Join(tmpDir, "AGENTS.md"):                 "should be included (root)",
 	}
 
 	for path, content := range files {

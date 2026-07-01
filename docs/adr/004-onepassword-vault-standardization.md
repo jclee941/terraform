@@ -9,11 +9,11 @@ An audit of the homelab 1Password vault (22 items) revealed structural inconsist
 
 1. **Silent data access bugs** — 3 items (ssh_key, n8n, mcphub) store secrets in unnamed sections while module code reads `.password` (root field), which returns empty strings. These secrets silently fail at runtime.
 2. **Phantom output references** — `outputs.tf` references 3 fields (`tunnel_token`, `google_oauth_client_id`, `google_oauth_client_secret`) in the cloudflare item that do not exist in the vault, producing empty strings.
-3. **No naming convention** — Item names mix lowercase (`grafana`) and titlecase (`Runway`, `Google`). Section names vary between use-case (`Bot`, `MCP Tokens`), generic (`Secrets`, `Passwords`), and unnamed.
+3. **No naming convention** — Item names mix lowercase service ids and titlecase provider names. Section names vary between use-case (`Bot`, `MCP Tokens`), generic (`Secrets`, `Passwords`), and unnamed.
 4. **Category misuse** — Items like `heygen` and `Runway` use PASSWORD category when API_CREDENTIAL is correct.
 5. **Monolithic items** — The `Google` item conflates GCP, YouTube, and Vertex AI credentials in a freeform `notes` field with no structured sections.
 6. **Duplicate items** — Two `slack` items exist; one is YouTube-specific with tag `youtube` but same name.
-7. **Placeholder values** — 7 secrets across 3 items (archon, exa, splunk) contain literal `placeholder` strings that pass Terraform validation but fail at runtime.
+7. **Placeholder values** — 7 secrets across retired optional items contain literal `placeholder` strings that pass Terraform validation but fail at runtime.
 8. **Inconsistent workspace patterns** — File naming (`secrets.tf` vs `onepassword.tf`), check blocks (only 100-pve), and comment styles vary across 8 consumer workspaces.
 
 ## Decision
@@ -21,7 +21,7 @@ An audit of the homelab 1Password vault (22 items) revealed structural inconsist
 ### Item Naming Convention
 
 - All item names MUST be lowercase kebab-case (`[a-z0-9-]+`).
-- Item name = service identity (e.g., `grafana`, `slack-mcp`, `slack-youtube`).
+- Item name = service identity (e.g., `elk`, `slack-mcp`, `slack-youtube`).
 - Disambiguate by function, not by vault tag (rename duplicate `slack` → `slack-youtube`).
 - Split monolithic items by provider: `Google` → `gcp` + `youtube`.
 
@@ -62,8 +62,8 @@ The `.password` root field access pattern is **prohibited** for new items. Exist
 | Runway | Rename → `runway`, change category → API_CREDENTIAL | Fix naming + category |
 | Google | Split → `gcp` (structured sections) + `youtube` (structured sections) | Decouple providers |
 | slack (duplicate) | Rename → `slack-youtube` | Disambiguate |
-| splunk | Mark as deprecated or populate with real values | Resolve placeholder |
-| archon | Populate with real API keys or remove from required list | Resolve placeholder |
+| retired log collector | Mark as deprecated or remove from required list | Resolve placeholder |
+| retired knowledge service | Remove from required list | Resolve placeholder |
 | exa | Populate with real credential or remove from required list | Resolve placeholder |
 
 ### Module Code Fixes

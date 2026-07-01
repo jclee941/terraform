@@ -21,11 +21,8 @@ The following services are accessible via the Cloudflare Tunnel with this token:
 | Service | Subdomain | Backend |
 |---------|-----------|---------|
 | Traefik API | `traefik-api.jclee.me` | 192.168.50.102:8080 |
-| Grafana | `grafana.jclee.me` | 192.168.50.104:3000 |
 | MCPHub | `mcphub.jclee.me` | 192.168.50.112:3000 |
-| Archon | `archon.jclee.me` | 192.168.50.108:80 |
 | Kibana | `kibana.jclee.me` | 192.168.50.105:5601 |
-| Supabase | `supabase.jclee.me` | 192.168.50.107:8000 |
 
 ## Rotation Procedure (Zero Downtime)
 
@@ -125,7 +122,7 @@ Set the following reminders:
 curl -s -w "%{http_code}" \
   -H "CF-Access-Client-Id: YOUR_CLIENT_ID" \
   -H "CF-Access-Client-Secret: YOUR_CLIENT_SECRET" \
-  https://grafana.jclee.me/api/health
+  https://kibana.jclee.me/api/status
 ```
 
 ### Token Not Appearing in Policy Dropdown

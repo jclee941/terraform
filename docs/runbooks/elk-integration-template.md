@@ -5,7 +5,7 @@ Use this template when onboarding a new service into the ELK pipeline.
 ## Scope
 
 - In scope: Filebeat tagging, Logstash parsing/routing, Elasticsearch index and ILM validation, Kibana discoverability.
-- Out of scope: Manual edits in rendered configs under `100-pve/configs/**` and ad-hoc changes in Kibana Console.
+- Out of scope: Manual edits in rendered configs under `100-pve/terraform/configs/**` and ad-hoc changes in Kibana Console.
 
 ## Inputs and Constraints
 

@@ -3,7 +3,7 @@
 ## Symptoms
 
 - Service unreachable (HTTP 502/503 from Traefik)
-- Grafana alert: `ServiceDown` or `ContainerHighCPU`
+- Alert or health-check failure for an active service
 - Health endpoint returns error or timeout
 
 ## Quick Reference
@@ -11,7 +11,6 @@
 | VMID | Service   | Type | Health Check                                         |
 | ---- | --------- | ---- | ---------------------------------------------------- |
 | 102  | Traefik   | LXC  | `curl -s http://192.168.50.102:8080/ping`            |
-| 104  | Grafana   | LXC  | `curl -s http://192.168.50.104:3000/api/health`      |
 | 105  | ELK       | LXC  | `curl -s http://192.168.50.105:9200/_cluster/health` |
 | 112  | MCPHub    | VM   | `curl -s http://192.168.50.112:3000/`                |
 
@@ -71,13 +70,6 @@ pct exec 102 -- systemctl restart docker
 pct exec 102 -- docker logs traefik --tail 20
 ```
 
-**Grafana (104)** — Prometheus + Grafana:
-
-```bash
-pct exec 104 -- docker compose -f /opt/grafana/docker-compose.yml restart
-pct exec 104 -- docker compose -f /opt/grafana/docker-compose.yml ps
-```
-
 **ELK (105)** — Elasticsearch + Logstash + Kibana:
 
 ```bash
@@ -95,6 +87,5 @@ docker compose -f /opt/mcphub/docker-compose.yml restart
 
 ## Prevention
 
-- Grafana alerts monitor all services via blackbox exporter
-- Check the Grafana alerting template/config source for alert configuration
-- Alerts route to Grafana log fallback.
+- Active service alerts and health checks should route through the current monitoring pipeline.
+- Check the alerting template/config source for alert configuration.

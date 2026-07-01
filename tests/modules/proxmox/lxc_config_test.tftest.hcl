@@ -69,10 +69,10 @@ run "test_multiple_containers" {
         }
         deploy = false
       }
-      grafana = {
-        vmid       = 104
-        hostname   = "grafana"
-        ip_address = "192.168.50.104"
+      coredns = {
+        vmid       = 103
+        hostname   = "coredns"
+        ip_address = "192.168.50.103"
         deploy     = false
       }
     }
@@ -84,13 +84,13 @@ run "test_multiple_containers" {
     condition = (
       length(keys(output.lxc_configs)) == 2 &&
       contains(keys(output.lxc_configs), "traefik") &&
-      contains(keys(output.lxc_configs), "grafana") &&
+      contains(keys(output.lxc_configs), "coredns") &&
       try(output.lxc_configs.traefik.vmid, 0) == 102 &&
       try(output.lxc_configs.traefik.hostname, "") == "traefik" &&
       try(output.lxc_configs.traefik.ip_address, "") == "192.168.50.102" &&
-      try(output.lxc_configs.grafana.vmid, 0) == 104 &&
-      try(output.lxc_configs.grafana.hostname, "") == "grafana" &&
-      try(output.lxc_configs.grafana.ip_address, "") == "192.168.50.104" &&
+      try(output.lxc_configs.coredns.vmid, 0) == 103 &&
+      try(output.lxc_configs.coredns.hostname, "") == "coredns" &&
+      try(output.lxc_configs.coredns.ip_address, "") == "192.168.50.103" &&
       output.service_count == 1
     )
     error_message = "multiple containers should both appear in lxc_configs with correct vm metadata"
@@ -118,18 +118,18 @@ run "test_service_count" {
         }
         deploy = false
       }
-      grafana = {
-        vmid       = 104
-        hostname   = "grafana"
-        ip_address = "192.168.50.104"
+      coredns = {
+        vmid       = 103
+        hostname   = "coredns"
+        ip_address = "192.168.50.103"
         systemd_services = {
-          prometheus-agent = {
-            description = "Prometheus agent"
-            exec_start  = "/usr/local/bin/prom-agent"
+          coredns = {
+            description = "CoreDNS service"
+            exec_start  = "/usr/local/bin/coredns"
           }
-          node-exporter = {
-            description = "Node exporter"
-            exec_start  = "/usr/local/bin/node-exporter"
+          dns-health = {
+            description = "DNS health probe"
+            exec_start  = "/usr/local/bin/dns-health"
           }
         }
         deploy = false
@@ -155,7 +155,7 @@ run "test_service_count" {
     condition = (
       output.service_count == 4 &&
       length(try(output.lxc_configs.runner.systemd_services, [])) == 1 &&
-      length(try(output.lxc_configs.grafana.systemd_services, [])) == 2 &&
+      length(try(output.lxc_configs.coredns.systemd_services, [])) == 2 &&
       length(try(output.lxc_configs.elk.systemd_services, [])) == 1
     )
     error_message = "service_count should equal total services across all containers"
@@ -214,13 +214,13 @@ run "test_docker_compose_output" {
 
   variables {
     lxc_containers = {
-      archon = {
-        vmid       = 108
-        hostname   = "archon"
-        ip_address = "192.168.50.108"
+      mcphub = {
+        vmid       = 112
+        hostname   = "mcphub"
+        ip_address = "192.168.50.112"
         docker_compose = {
-          path    = "/opt/archon/docker-compose.yml"
-          content = "services:\n  app:\n    image: ghcr.io/jclee/archon:latest"
+          path    = "/opt/mcphub/docker-compose.yml"
+          content = "services:\n  app:\n    image: ghcr.io/jclee/mcphub:latest"
         }
         deploy = false
       }
@@ -231,11 +231,11 @@ run "test_docker_compose_output" {
 
   assert {
     condition = (
-      try(output.lxc_configs.archon.vmid, 0) == 108 &&
-      try(output.lxc_configs.archon.hostname, "") == "archon" &&
-      try(output.lxc_configs.archon.ip_address, "") == "192.168.50.108" &&
-      try(output.lxc_configs.archon.docker_compose, null) != null &&
-      endswith(try(output.lxc_configs.archon.docker_compose, ""), "/configs/lxc-108-archon/docker-compose.yml")
+      try(output.lxc_configs.mcphub.vmid, 0) == 112 &&
+      try(output.lxc_configs.mcphub.hostname, "") == "mcphub" &&
+      try(output.lxc_configs.mcphub.ip_address, "") == "192.168.50.112" &&
+      try(output.lxc_configs.mcphub.docker_compose, null) != null &&
+      endswith(try(output.lxc_configs.mcphub.docker_compose, ""), "/configs/lxc-112-mcphub/docker-compose.yml")
     )
     error_message = "docker_compose output should include generated docker-compose path"
   }
@@ -250,10 +250,10 @@ run "test_container_without_services" {
 
   variables {
     lxc_containers = {
-      supabase = {
-        vmid       = 107
-        hostname   = "supabase"
-        ip_address = "192.168.50.107"
+      coredns = {
+        vmid       = 103
+        hostname   = "coredns"
+        ip_address = "192.168.50.103"
         deploy     = false
       }
     }
@@ -263,11 +263,11 @@ run "test_container_without_services" {
 
   assert {
     condition = (
-      try(output.lxc_configs.supabase.vmid, 0) == 107 &&
-      try(output.lxc_configs.supabase.hostname, "") == "supabase" &&
-      try(output.lxc_configs.supabase.ip_address, "") == "192.168.50.107" &&
-      length(try(output.lxc_configs.supabase.systemd_services, [])) == 0 &&
-      length(try(output.lxc_configs.supabase.config_files, [])) == 0 &&
+      try(output.lxc_configs.coredns.vmid, 0) == 103 &&
+      try(output.lxc_configs.coredns.hostname, "") == "coredns" &&
+      try(output.lxc_configs.coredns.ip_address, "") == "192.168.50.103" &&
+      length(try(output.lxc_configs.coredns.systemd_services, [])) == 0 &&
+      length(try(output.lxc_configs.coredns.config_files, [])) == 0 &&
       output.service_count == 0
     )
     error_message = "container without services should have empty systemd_services list and service_count=0"

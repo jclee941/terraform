@@ -33,7 +33,7 @@ curl -s -u elastic:$ELASTIC_PASSWORD \
   'localhost:9200/_cat/indices/logs-*?v&s=index:desc&h=index,docs.count,store.size' \
   | head -20
 
-# Expected: new indices like logs-grafana-2026.02.23, logs-system-2026.02.23
+# Expected: new indices like logs-elk-2026.02.23, logs-system-2026.02.23
 # Should NOT see new logs-2026.02.23 (date-only)
 ```
 
@@ -61,7 +61,7 @@ These are legacy indices from a previous config iteration.
 ```bash
 # List service-only indices (no date suffix)
 STALE_SERVICES="logs-analytics logs-auth logs-blackbox-exporter logs-ceph logs-db \
-logs-docker logs-elasticsearch logs-grafana logs-kibana logs-kong logs-logstash \
+logs-docker logs-elasticsearch logs-kibana logs-kong logs-logstash \
 logs-logstash-exporter logs-mcphub logs-mcp-playwright logs-mcp-proxmox logs-meta \
 logs-opencode logs-prometheus logs-proxmox logs-realtime logs-redis \
 logs-studio logs-supavisor logs-system logs-tempo logs-unknown logs-vault \
@@ -90,9 +90,9 @@ curl -s -u elastic:$ELASTIC_PASSWORD 'localhost:9200/_ilm/policy/homelab-logs-*'
 
 # Verify a critical service index has the correct policy
 curl -s -u elastic:$ELASTIC_PASSWORD \
-  'localhost:9200/logs-grafana-*/_settings' \
+  'localhost:9200/logs-elk-*/_settings' \
   | python3 -c "import sys,json; d=json.loads(sys.stdin.read()); [print(f'{k}: {v[\"settings\"][\"index\"].get(\"lifecycle\",{}).get(\"name\",\"NONE\")}') for k,v in d.items()]"
-# Expected: homelab-logs-critical-90d (grafana is in critical tier)
+# Expected: homelab-logs-critical-90d
 ```
 
 ## 6. Update Filebeat (All Hosts)
@@ -100,7 +100,7 @@ curl -s -u elastic:$ELASTIC_PASSWORD \
 If filebeat config drift was also fixed:
 
 ```bash
-# From each LXC host (101, 104, 105, 106, 107, 108, 112) and VM 220
+# From each managed log-shipping host (101, 102, 103, 105, 112, 220)
 # Copy updated filebeat.yml and restart
 sudo systemctl restart filebeat
 sudo systemctl status filebeat
@@ -121,6 +121,7 @@ docker compose -f /opt/elk/docker-compose.yml restart logstash
 
 | Template                | Pattern                                                   | ILM Policy                  | Retention |
 | ----------------------- | --------------------------------------------------------- | --------------------------- | --------- |
-| `logs-critical` (p300)  | `logs-archon-*,logs-elk-*,logs-supabase-*,logs-grafana-*` | `homelab-logs-critical-90d` | 90 days   |
-| `logs-ephemeral` (p250) | `logs-unknown-*,logs-debug-*,logs-runner-*`               | `homelab-logs-ephemeral-7d` | 7 days    |
-| `logs-template` (p200)  | `logs-*`                                                  | `homelab-logs-30d`          | 30 days   |
+| `logs-critical` (p300)  | `logs-elk-*,logs-pve-*`                       | `homelab-logs-critical-90d` | 90 days   |
+| `logs-ephemeral` (p250) | `logs-github-runner-*,logs-youtube-*`         | `homelab-logs-ephemeral-7d` | 7 days    |
+| `logs-cloudflare-workers` (p225) | `logs-cloudflare-workers-*`       | `homelab-logs-30d`          | 30 days   |
+| `logs-template` (p200)  | `logs-*`                                      | `homelab-logs-30d`          | 30 days   |

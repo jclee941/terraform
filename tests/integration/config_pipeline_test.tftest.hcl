@@ -102,27 +102,6 @@ run "full_pipeline_traefik_route" {
           }
         }
 
-        grafana = {
-          vmid  = 104
-          ip    = "192.168.50.104"
-          roles = ["observability", "monitoring"]
-          ports = {
-            grafana    = 3000
-            prometheus = 9090
-          }
-        }
-
-        supabase = {
-          vmid  = 107
-          ip    = "192.168.50.107"
-          roles = ["database", "backend"]
-          ports = {
-            api      = 8000
-            studio   = 3000
-            postgres = 5432
-          }
-        }
-
         mcphub = {
           vmid  = 112
           ip    = "192.168.50.112"

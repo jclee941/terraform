@@ -3,7 +3,7 @@
 ## Symptoms
 
 - Services failing with "No space left on device"
-- Grafana alert: `DiskSpaceWarning` or `DiskSpaceCritical`
+- Disk usage alert or health-check failure
 - Container/VM unresponsive or read-only filesystem
 
 ## Diagnosis
@@ -94,5 +94,5 @@ ssh root@192.168.50.{IP} -- bash -c '
 
 - Elasticsearch ILM policy should auto-delete indices >30 days
 - Docker log rotation: configure `max-size: 10m` and `max-file: 3` in daemon.json
-- Grafana alert at 80% disk usage threshold
+- Disk usage alert at 80% threshold
 - Review `105-elk/config/` for index lifecycle settings

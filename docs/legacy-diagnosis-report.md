@@ -37,7 +37,7 @@ The real debt is **structural inconsistency, copy-paste duplication, and a few c
 
 ### MEDIUM
 
-- **M1 — 100-pve root migration debris.** `100-pve/` root holds stale `terraform.tfstate.backup` (832 KB), `tfplan`, `.terraform/`, `terraform.tfvars` while live code/state is in `100-pve/terraform/`. Incomplete root→subdir migration.
+- **M1 — 100-pve root migration debris (resolved).** Root-level local state and variable debris was moved out of the worktree; live code/state remains under `100-pve/terraform/`.
 - **M2 — Child modules lack `versions.tf`.** All `modules/proxmox/*` + `modules/shared/*` inline `required_version`/`required_providers` in `main.tf` (CODE_STYLE.md:45 wants a separate `versions.tf`). Child modules use `~>` where HashiCorp recommends `>=` for reusables.
 - **M3 — Port variables typed as `string`.** `215-synology/variables.tf:69,75,104` (`portainer_https_port`, `portainer_edge_port`, `registry_port`).
 - **M4 — Fragile `count`.** `215-synology/main.tf:150` uses `count = length(minio_iam_user.console_admin)`; should mirror the upstream condition.
@@ -86,5 +86,5 @@ Executed as the R2-R12 refactor commits plus follow-up hardening/verification/re
 - **State-move safety is NOT plan-verified.** No provider credentials locally and `apply` is CI-only, so `terraform plan` was not run against real state for R8/R9/R11. The `moved{}` blocks were hand-mapped from the pre-refactor resource addresses and validated structurally (`terraform validate` + plan-level module tftests). Claim should read "moved blocks written and structurally correct", NOT "proven no destroy/recreate". **A real `terraform plan` in CI must confirm no destroy/recreate before merge.**
 - **ELK `moved{}` count vs live state:** current `terraform state list` for 105-elk holds only 3 ILM + 3 index_template resources; `logs_cloudflare_workers` is in config but not yet in state. Its `moved{}` block is harmless (Terraform ignores a `from` that isn't in state) but means the "7 resources moved" claim is config-level, not state-level.
 - **pve workspace `terraform test` is not fully green:** remaining `check`-block failures (`mcphub_*` secrets) stem from the in-flight onepassword cleanup (uncommitted, out of scope), not from this refactor. New R3/R10 run blocks pass.
-- **`make lint-docs` fails on a pre-existing `removed-workspace-ref` (104-grafana)** in auto-synced agent notepads/AGENTS.md — pre-existing, left untouched.
+- **`make lint-docs` previously failed on a pre-existing removed-workspace reference** in auto-synced agent notepads/AGENTS.md.
 - **In-flight onepassword work preserved:** none of the refactor commits touched `100-pve/terraform/locals.tf`, `300-cloudflare/terraform/{onepassword,identity-provider,variables}.tf`, `modules/shared/onepassword-secrets/outputs.tf`, or `tests/modules/shared/onepassword_secrets_test.tftest.hcl`. Those remain unstaged in the working tree.

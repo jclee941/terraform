@@ -142,7 +142,7 @@ flowchart LR
 
   OP["modules/shared/onepassword-secrets"] --> Renderer["modules/proxmox/config-renderer"]
   HostModule --> Renderer
-  Renderer --> Configs["100-pve/configs/\nGenerated outputs"]
+  Renderer --> Configs["100-pve/terraform/configs/\nGenerated outputs"]
 
   LXC --> PVEAPI["Proxmox API"]
   VM --> PVEAPI

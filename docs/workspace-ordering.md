@@ -14,13 +14,11 @@ graph TD
   PVE["100-pve\nProvision fleet and render configs"] --> Infra["Tier 1 infra workspaces"]
   Infra --> Traefik["102-traefik"]
   Infra --> ELK["105-elk"]
-  Infra --> Archon["108-archon"]
 
   PVE --> Templates["Template-only services\nRendered by 100-pve"]
   Templates --> Runtime["Runtime deploy to LXC/VM"]
 
   External["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
-  External --> GitHub["301-github"]
   External --> GCP["400-gcp"]
 ```
 
@@ -41,16 +39,14 @@ They are independent of each other and can run in parallel.
 |-----------|-------------|-------------|
 | `102-traefik/terraform` | `traefik-plan.yml` / `traefik-apply.yml` | `102-traefik/**` |
 | `105-elk/terraform` | `elk-plan.yml` / `elk-apply.yml` | `105-elk/**` |
-| `108-archon/terraform` | `archon-plan.yml` / `archon-apply.yml` | `108-archon/**` |
 
-Grafana is managed through the current template/config pipeline rather than as a standalone Terraform workspace.
+Removed app workspaces are represented only by placeholder tests until they return.
 
 ### Tier Independent — External Providers
 
 | Workspace | CI Workflow | Triggers On |
 |-----------|-------------|-------------|
 | `300-cloudflare` | `cloudflare-plan.yml` / `cloudflare-apply.yml` | `300-cloudflare/**` |
-| `301-github` | `github-plan.yml` / `github-apply.yml` | `301-github/**` |
 | `310-safetywallet` | `safetywallet-plan.yml` / `safetywallet-apply.yml` (GitLab CI) | `310-safetywallet/**` |
 | `400-gcp` | `gcp-plan.yml` / `gcp-apply.yml` | `400-gcp/**` |
 ## CI/CD Notes
@@ -74,11 +70,10 @@ Grafana is managed through the current template/config pipeline rather than as a
 When changing `100-pve` outputs consumed by downstream workspaces:
 
 ```bash
-# 1. Apply infrastructure first
-make plan SVC=100-pve && make apply SVC=100-pve
+# 1. Plan infrastructure first, then apply through CI/CD
+make plan SVC=pve
 
-# 2. Apply dependent workspaces (can be parallel)
-make plan SVC=traefik && make apply SVC=traefik
-make plan SVC=elk && make apply SVC=elk
-make plan SVC=archon && make apply SVC=archon
+# 2. Plan dependent workspaces
+make plan SVC=traefik
+make plan SVC=elk
 ```

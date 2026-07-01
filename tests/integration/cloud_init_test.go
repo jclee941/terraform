@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"gopkg.in/yaml.v3"
 )
 
 // TestCloudInitRendering validates that cloud-init templates render correctly
@@ -125,6 +126,48 @@ final_message: "Cloud-init completed for test-host"
 	}
 }
 
+func TestELKDockerComposeTemplateRendersValidYAML(t *testing.T) {
+	templatePath := "../../105-elk/templates/docker-compose.yml.tftpl"
+	content, err := os.ReadFile(templatePath)
+	if err != nil {
+		t.Fatalf("failed to read ELK compose template: %v", err)
+	}
+
+	rendered := string(content)
+	replacements := map[string]string{
+		"${elk_version}":                   "9.0.0",
+		"${elk_elastic_password}":          "mock-secret",
+		"${elk_kibana_password}":           "mock-secret",
+		"${es_heap}":                       "2g",
+		"${logstash_heap}":                 "1g",
+		"${hosts.elk.ports.elasticsearch}": "9200",
+		"${hosts.elk.ports.logstash_beat}": "5044",
+		"${hosts.elk.ports.logstash_tcp}":  "5000",
+		"${hosts.elk.ports.logstash_http}": "8080",
+		"${hosts.elk.ports.kibana}":        "5601",
+		"$$${ELASTIC_PASSWORD}":            "$${ELASTIC_PASSWORD}",
+		"$$${ELASTIC_CURL_AUTH}":           "$${ELASTIC_CURL_AUTH}",
+		"$$KIBANA_PASSWORD":                "$KIBANA_PASSWORD",
+	}
+	for old, newValue := range replacements {
+		rendered = strings.ReplaceAll(rendered, old, newValue)
+	}
+	if !strings.Contains(rendered, "$${ELASTIC_PASSWORD}") || !strings.Contains(rendered, "$${ELASTIC_CURL_AUTH}") {
+		t.Fatal("rendered ELK compose template must escape container env references for Docker Compose")
+	}
+	if strings.Contains(rendered, "elastic:${ELASTIC_PASSWORD}") || strings.Contains(rendered, "--user \"${ELASTIC_CURL_AUTH}\"") {
+		t.Fatal("rendered ELK compose template must not leave host-interpolated credential references")
+	}
+
+	var compose map[string]interface{}
+	if err := yaml.Unmarshal([]byte(rendered), &compose); err != nil {
+		t.Fatalf("rendered ELK compose template must be valid YAML: %v", err)
+	}
+	if _, ok := compose["services"]; !ok {
+		t.Fatal("rendered ELK compose template must include services")
+	}
+}
+
 // TestLXCConfigGeneration validates LXC config generation
 func TestLXCConfigGeneration(t *testing.T) {
 	// Verify lxc-config module exists
@@ -170,13 +213,13 @@ func TestHostInventoryStructure(t *testing.T) {
 	// Validate required hosts exist
 	contentStr := string(content)
 	requiredHosts := []string{
+		"runner",
 		"traefik",
-		"grafana",
 		"elk",
-		"supabase",
-		"archon",
 		"coredns",
 		"mcphub",
+		"synology",
+		"youtube",
 	}
 
 	for _, host := range requiredHosts {

@@ -236,25 +236,6 @@ func validateGoogleGemini(vals map[string]string) (bool, string) {
 	return false, fmt.Sprintf("HTTP %d", status)
 }
 
-func validateGrafana(vals map[string]string) (bool, string) {
-	status, body, err := httpGet("http://192.168.50.108:3000/api/org", map[string]string{
-		"Authorization": "Bearer " + vals["service_account_token"],
-	})
-	if err != nil {
-		return false, fmt.Sprintf("connection: %v", err)
-	}
-	if status == 200 {
-		var data struct {
-			Name string `json:"name"`
-		}
-		if json.Unmarshal(body, &data) == nil && data.Name != "" {
-			return true, fmt.Sprintf("org=%s", data.Name)
-		}
-		return true, "authenticated"
-	}
-	return false, fmt.Sprintf("HTTP %d", status)
-}
-
 func validateProxmox(vals map[string]string) (bool, string) {
 	status, body, err := httpGet("https://192.168.50.100:8006/api2/json/version", map[string]string{
 		"Authorization": "PVEAPIToken=" + vals["api_token_value"],
@@ -271,24 +252,6 @@ func validateProxmox(vals map[string]string) (bool, string) {
 		if json.Unmarshal(body, &data) == nil && data.Data.Version != "" {
 			return true, fmt.Sprintf("pve=%s", data.Data.Version)
 		}
-		return true, "authenticated"
-	}
-	return false, fmt.Sprintf("HTTP %d", status)
-}
-
-func validateSupabase(vals map[string]string) (bool, string) {
-	url := strings.TrimRight(vals["url"], "/")
-	if url == "" {
-		return false, "url missing"
-	}
-	status, _, err := httpGet(url+"/rest/v1/", map[string]string{
-		"apikey":        vals["anon_key"],
-		"Authorization": "Bearer " + vals["service_key"],
-	})
-	if err != nil {
-		return false, fmt.Sprintf("connection: %v", err)
-	}
-	if status == 200 {
 		return true, "authenticated"
 	}
 	return false, fmt.Sprintf("HTTP %d", status)
@@ -337,30 +300,12 @@ var services = []serviceCheck{
 		validate: validateGoogleGemini,
 	},
 	{
-		name: "grafana",
-		fields: []fieldSpec{
-			{"service_account_token", "op://homelab/grafana/secrets/service_account_token"},
-			{"admin_password", "op://homelab/grafana/secrets/admin_password"},
-		},
-		validate: validateGrafana,
-	},
-	{
 		name: "proxmox",
 		fields: []fieldSpec{
 			{"api_token_value", "op://homelab/proxmox/secrets/api_token_value"},
 			{"ssh_private_key", "op://homelab/proxmox/secrets/ssh_private_key"},
 		},
 		validate: validateProxmox,
-	},
-	{
-		name: "supabase",
-		fields: []fieldSpec{
-			{"url", "op://homelab/supabase/secrets/url"},
-			{"anon_key", "op://homelab/supabase/secrets/anon_key"},
-			{"service_key", "op://homelab/supabase/secrets/service_key"},
-			{"db_password", "op://homelab/supabase/secrets/db_password"},
-		},
-		validate: validateSupabase,
 	},
 	// --- Presence-check only (no public API) ---
 	{
@@ -374,22 +319,6 @@ var services = []serviceCheck{
 		fields: []fieldSpec{
 			{"username", "op://homelab/safetywallet/username"},
 			{"password", "op://homelab/safetywallet/password"},
-		},
-	},
-	// --- Known placeholder services ---
-	{
-		name: "archon",
-		fields: []fieldSpec{
-			{"anthropic_api_key", "op://homelab/archon/secrets/anthropic_api_key"},
-			{"openai_api_key", "op://homelab/archon/secrets/openai_api_key"},
-		},
-	},
-
-	{
-		name: "splunk",
-		fields: []fieldSpec{
-			{"username", "op://homelab/splunk/secrets/username"},
-			{"host", "op://homelab/splunk/secrets/host"},
 		},
 	},
 }

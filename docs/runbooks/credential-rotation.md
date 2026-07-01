@@ -153,5 +153,5 @@ go run scripts/setup-github-secrets.go --audit
 ## Prevention
 
 - Set calendar reminders 2 weeks before expiry.
-- Monitor auth failures in Grafana/ELK dashboards.
+- Monitor auth failures in ELK dashboards and the current alerting pipeline.
 **Cross-reference:** `docs/secret-management.md` for full secret architecture.

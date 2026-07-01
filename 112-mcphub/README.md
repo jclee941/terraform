@@ -37,6 +37,6 @@ docker compose -f /opt/mcphub/docker-compose.yml logs -f
 
 ## Safety Notes
 
-- Managed by Terraform via `100-pve/main.tf`. Do not mutate via UI.
+- Managed by Terraform via `100-pve/terraform/main.tf`. Do not mutate via UI.
 - Catalog changes require updating `mcp_servers.json` and re-running Terraform.
 - Secrets stay as `${ENV_VAR}` placeholders in templates. Never inject plaintext tokens.

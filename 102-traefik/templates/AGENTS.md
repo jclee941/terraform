@@ -6,11 +6,14 @@ Dynamic routing templates for Traefik. Rendered per-service into YAML route defi
 ## STRUCTURE
 ```
 templates/
-├── dashboard.yml.tftpl    # Traefik dashboard route (restricted)
-├── grafana.yml.tftpl      # Grafana route
-├── elk.yml.tftpl          # Kibana route
-├── mcphub.yml.tftpl       # MCPHub route
-└── *.yml.tftpl            # Service-specific routes
+├── cloudflared-docker-compose.yml.tftpl # Tunnel connector compose
+├── filebeat.yml.tftpl                   # Log shipping config
+├── mcphub.yml.tftpl                     # MCPHub route
+├── middlewares.yml.tftpl                # Shared middleware definitions
+├── minio.yml.tftpl                      # Registry/MinIO route
+├── nas.yml.tftpl                        # Synology DSM route
+├── registry.yml.tftpl                   # Registry route
+└── traefik-elk.yml.tftpl                # ELK/Kibana/ES routes
 ```
 
 ## WHERE TO LOOK
@@ -18,14 +21,14 @@ templates/
 | Task | Location | Notes |
 |------|----------|-------|
 | Route definition | `{service}.yml.tftpl` | Router, service, middleware chain |
-| Middleware | inline or `config/middleware/` | Rate limit, auth, stripPrefix |
-| Service target | `http://IP:port` | Use `module.hosts.hosts[name].ip` |
+| Middleware | `middlewares.yml.tftpl` | Rate limit, auth, headers, chain definitions. |
+| Service target | Template variables | Use host map inputs, never literal backend IPs. |
 | TLS cert | `tls: {}` or `certResolver` | Let's Encrypt or internal |
 
 ## CONVENTIONS
-- One file per service route
-- Router name: `{service}-{protocol}` (e.g., `grafana-https`)
-- Service name: `{service}-svc`
+- One file per route family or shared middleware set.
+- Router name: `{service}-{protocol}` where practical.
+- Service name: `{service}-svc` where practical.
 - Use `Host(`subdomain.jclee.me`)` for routing rules
 
 ## ANTI-PATTERNS

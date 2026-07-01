@@ -41,7 +41,7 @@ module "lxc_config" {
         packages = ["curl", "jq", "ca-certificates"]
         runcmd = [
           "mkdir -p /etc/traefik/dynamic",
-          "rm -f /etc/traefik/dynamic/gitlab.yml /etc/traefik/dynamic/gitlab-http.yml /etc/traefik/dynamic/archon.yml /etc/traefik/dynamic/supabase.yml /etc/traefik/dynamic/glitchtip.yml /etc/traefik/dynamic/bot.yml /etc/traefik/dynamic/opencode.yml /etc/traefik/dynamic/code.yml /etc/traefik/dynamic/vault.yml",
+          "rm -f /etc/traefik/dynamic/gitlab.yml /etc/traefik/dynamic/gitlab-http.yml /etc/traefik/dynamic/glitchtip.yml /etc/traefik/dynamic/bot.yml /etc/traefik/dynamic/opencode.yml /etc/traefik/dynamic/code.yml /etc/traefik/dynamic/vault.yml /etc/traefik/dynamic/archon.yml /etc/traefik/dynamic/supabase.yml /etc/traefik/dynamic/grafana.yml",
           "systemctl enable filebeat || true",
           "systemctl reload traefik || systemctl restart traefik || true",
         ]

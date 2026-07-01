@@ -1,113 +1,64 @@
 # AGENTS: 101-runner
 
-> **Host**: LXC 101 | **IP**: 192.168.50.101 | **Status**: template-only | **Updated**: 2026-04-08
+> **Host**: LXC 101 | **IP**: 192.168.50.101 | **Status**: template-only
 
 ## OVERVIEW
-
-Dedicated GitHub Actions self-hosted runner infrastructure for the `qws941` user. Runs multiple runner instances per repository (default: 2) for parallel CI/CD execution. Each instance registers independently via per-repo tokens since `qws941` is a User account (not Organization). Provides direct access to homelab services (Proxmox, ELK) for integration testing and automated deployments. Includes Terraform and Bazel for infrastructure CI/CD.
-
-**Resources (as of 2026-04-08):**
-- Memory: **3072 MB (3 GB)** - increased from 768MB for Docker-in-Docker performance
-- Swap: 1536 MB
-- Cores: 2
-- Disk: 32 GB
-- NFS Cache: `/srv/runner/cache` (Synology NAS via NFS v4.1)
+GitHub Actions self-hosted runner assets for the `qws941` user. Terraform owns the LXC lifecycle from `100-pve/terraform`; this directory owns runner bootstrap, registration scripts, and Filebeat source config.
 
 ## STRUCTURE
-
 ```
 101-runner/
-├── README.md                   # Hardware/Setup documentation
-├── README.md                   # Hardware/Setup documentation
+├── README.md              # Hardware/setup notes
 ├── config/
-│   └── filebeat.yml           # Log forwarding to ELK (105)
+│   └── filebeat.yml       # Static reference Filebeat config
 ├── templates/
-│   └── filebeat.yml.tftpl     # Templated filebeat config
-└── scripts/                   # Runner lifecycle management (Go)
-    ├── setup-runner.go              # Dependency bootstrap, Docker, Terraform, Bazel
-    ├── register-all-repos.go        # Multi-instance bulk registration
-    ├── register-repo.go             # Single repo registration
-    ├── unregister-all.go            # Safe cleanup with backward compat
-```
-
-## MULTI-INSTANCE MODEL
-
-| Component | Convention |
-|-----------|------------|
-| Runner name | `homelab-101-{N}` |
-| Directory | `/home/runner/runners/instance-{N}/{repo}/` |
-| Systemd service | `github-runner-{N}-{repo}.service` |
-| Instance count | `RUNNER_COUNT` env var (default: 2) |
-| Labels | `self-hosted,linux,x64,homelab` |
-
-## NFS CACHE ARCHITECTURE
-
-```
-Synology NAS (192.168.50.215)
-  └── /volume1/runner-cache (NFS Export)
-       ↓ NFS v4.1
-Proxmox Host (192.168.50.100)
-  └── /mnt/runner-cache (Host Mount)
-       ↓ Bind Mount
-LXC 101 (runner)
-  └── /srv/runner/cache (Container Path)
-       ↓ Volume Mount
-GitHub Actions Runner Docker executor jobs
+│   └── filebeat.yml.tftpl # Rendered Filebeat template
+└── scripts/               # Runner lifecycle tools (Go + wrappers)
 ```
 
 ## WHERE TO LOOK
-
 | Task | File | Notes |
 |------|------|-------|
-| **Add new repo** | `scripts/register-all-repos.go` | Auto-discovers all repos via API |
-| **Add single repo** | `scripts/register-repo.go` | `go run scripts/register-repo.go <name> [instance]` |
-| **Troubleshoot logs**| `config/filebeat.yml` | Verified against Logstash:5044 |
-| **Base dependencies**| `scripts/setup-runner.go` | Python, Docker, Terraform, Bazel |
-| **Service Control** | `README.md` | `systemctl status github-runner-{N}-{repo}` |
-| **Safe cleanup** | `scripts/unregister-all.go` | Token revocation + multi-instance + legacy cleanup |
+| Add all repos | `scripts/register-all-repos.go` | API discovery, default 2 runner instances per repo. |
+| Add one repo | `scripts/register-repo.go` | `go run scripts/register-repo.go <repo> [instance]`. |
+| Bootstrap host | `scripts/setup-runner.go` | Installs Docker, Terraform, Bazel, and runner deps. |
+| Safe cleanup | `scripts/unregister-all.go` | Token revocation plus legacy service cleanup. |
+| Log shipping | `templates/filebeat.yml.tftpl` | Rendered by `100-pve/terraform` into the LXC. |
+| Runtime notes | `README.md` | Systemd service and NFS cache operations. |
+
+## RUNNER MODEL
+| Component | Convention |
+|-----------|------------|
+| Runner name | `homelab-101-{N}` |
+| Work dir | `/home/runner/runners/instance-{N}/{repo}/` |
+| Systemd unit | `github-runner-{N}-{repo}.service` |
+| Instance count | `RUNNER_COUNT` env var, default `2` |
+| Labels | `self-hosted,linux,x64,homelab` |
 
 ## CONVENTIONS
-
-- **Governance**: Managed by Terraform (`module.lxc["runner"]`). VMID 101 is fixed.
-- **Isolation**: Each instance×repo gets a dedicated systemd service and working directory.
-- **Labels**: Jobs MUST use `runs-on: [self-hosted, homelab]` to target this runner.
-- **Networking**: Unprivileged LXC with `nesting=1` enabled for Docker-in-Docker support.
-- **Naming**: Follows `{VMID}-{HOSTNAME}` (101-runner) for Proxmox and GitHub identifiers.
-- **Script Safety**: Keep scripts repeatable and safe for reruns during recovery.
-- **Scaling**: Increase `RUNNER_COUNT` to add more parallel capacity per repo.
-- **Cache Usage**: Docker executor configured to use `/srv/runner/cache` for build cache.
+- VMID 101 is fixed and managed by `module.lxc["runner"]`.
+- Jobs target this host with `runs-on: [self-hosted, homelab]`.
+- NFS cache path is `/srv/runner/cache`, mounted from Synology via the PVE host.
+- Each instance and repository has isolated service state and working directories.
+- Keep scripts repeatable; registration and cleanup are normal recovery operations.
 
 ## ANTI-PATTERNS
-
-- **NO manual config** inside LXC. Use scripts or Terraform remote-exec.
-- **NO shared state** between repos. Each runner instance is independent.
-- **NO plaintext tokens**. Use environment variables or 1Password integration.
-- **NO direct SSH**. Use `ssh root@pve 'pct exec 101 -- bash'` from PVE host.
-- **NO persistent storage** in work dirs. Cleaned by `unregister-all.go`.
-- **NO remote registration**. Do not run registration scripts from non-runner hosts.
+- Do not manually mutate persistent config inside the LXC; use Terraform or scripts.
+- Do not share runner work directories across repos or instances.
+- Do not commit registration tokens or place them in templates.
+- Do not run registration scripts from arbitrary remote hosts.
+- Do not store durable build artifacts in runner work directories.
 
 ## COMMANDS
-
 ```bash
-# Setup runner (deps + register)
 go run scripts/setup-runner.go
-
-# Register all repos (default 2 instances)
-GITHUB_TOKEN="ghp_xxx" GITHUB_USER="qws941" \
-  go run scripts/register-all-repos.go
-
-# Check runner status
+GITHUB_TOKEN="$GITHUB_TOKEN" GITHUB_USER="qws941" go run scripts/register-all-repos.go
 systemctl status github-runner-1-terraform
 journalctl -u github-runner-2-terraform -f
-
-# Verify NFS cache mount
 pct exec 101 -- df -h /srv/runner/cache
-pct exec 101 -- ls -la /srv/runner/cache
 ```
 
 ## NOTES
-
-- Memory increased to 3GB (2026-04-08) for improved Docker-in-Docker performance.
-- NFS cache reduces build times by persisting Docker layers across jobs.
-- Registry routing available at `registry.jclee.me` for private Docker registry.
-- Filebeat logs forwarded to ELK (Logstash on 192.168.50.105:5044).
+- Resource sizing lives in `100-pve/terraform/locals.tf`, not here.
+- Filebeat forwards runner logs to Logstash on host 105.
+- Registry routing is available at `registry.jclee.me` for private images.

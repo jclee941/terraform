@@ -25,3 +25,9 @@ pve/
 ## ANTI-PATTERNS
 - NEVER run real applies in tests
 - NEVER test against production state
+
+## COMMANDS
+```bash
+terraform -chdir=tests/workspaces/pve test
+make test-workspace SVC=pve
+```

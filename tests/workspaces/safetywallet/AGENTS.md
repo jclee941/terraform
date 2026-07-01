@@ -25,3 +25,9 @@ safetywallet/
 ## ANTI-PATTERNS
 - NEVER use production credentials
 - NEVER make real API calls
+
+## COMMANDS
+```bash
+terraform -chdir=tests/workspaces/safetywallet test
+make test-workspace SVC=safetywallet
+```

@@ -43,8 +43,6 @@ type manualSecret struct {
 }
 
 var opSecrets = []opSecret{
-	{"TF_VAR_GRAFANA_AUTH", "op://homelab/grafana/secrets/service_account_token", "P1", "Grafana service account token"},
-	{"TF_VAR_SUPABASE_URL", "op://homelab/supabase/secrets/url", "P1", "Supabase project URL"},
 	{"GH_PAT", "op://homelab/github/secrets/personal_access_token", "P2", "GitHub PAT for workflow automation"},
 }
 
@@ -67,15 +65,13 @@ Options:
   --force        Overwrite existing secrets (for rotation)
   -h, --help     Show this help
 
-Environment:
-  OP_SERVICE_ACCOUNT_TOKEN  1Password service account token (required)
+	Environment:
+	  OP_SERVICE_ACCOUNT_TOKEN  1Password service account token (required)
 
-1Password Paths:
-  op://homelab/cloudflare/secrets  → Account ID
-  op://homelab/grafana/secrets     → Service account token
-  op://homelab/github/secrets      → Personal access token
-  op://homelab/supabase/secrets    → URL and service key
-`, repo)
+	1Password Paths:
+	  op://homelab/cloudflare/secrets  → Account ID
+	  op://homelab/github/secrets      → Personal access token
+	`, repo)
 }
 
 func maskValue(v string) string {

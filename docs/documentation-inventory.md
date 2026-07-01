@@ -62,7 +62,7 @@ Source of truth for all documentation in the Terraform homelab repository.
 | `docs/runbooks/service-deployment.md` | Deployment | `active` | Operations | Update when CI/CD workflow changes. |
 | `docs/runbooks/service-down.md` | Incident response | `active` | Operations | Update after post-mortems. |
 | `docs/runbooks/state-locking.md` | Troubleshooting | `active` | Terraform | Update when backend or state setup changes. |
-| `docs/runbooks/supabase-health-check.md` | Health check | `active` | Supabase | Update when Supabase version or endpoints change. |
+| `docs/archive/supabase-health-check.md` | Health check | `archived` | Supabase | Retained for restoration reference only. |
 | `docs/runbooks/terraform-state-rollback.md` | Incident response | `active` | Terraform | Update when state backup procedure changes. |
 | `docs/runbooks/troubleshooting.md` | General guide | `active` | Operations | Update as new failure modes are discovered. |
 
@@ -113,7 +113,6 @@ Source of truth for all documentation in the Terraform homelab repository.
 | `tests/integration/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
 | `tests/workspaces/pve/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
 | `tests/workspaces/traefik/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
-| `tests/workspaces/archon/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
 | `tests/workspaces/elk/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
 | `tests/workspaces/cloudflare/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
 
@@ -196,7 +195,7 @@ All `AGENTS.md` files outside the repository root are auto-synced from `qws941/.
 
 ### Do Not Hand-Edit
 
-- `100-pve/configs/` and any `configs/` directory under modules: These are Terraform-rendered outputs. Regenerate via `terraform apply` in the `100-pve` workspace.
+- `100-pve/terraform/configs/` and any `configs/` directory under modules: These are Terraform-rendered outputs. Regenerate via `terraform apply` in the `100-pve` workspace.
 - `AGENTS.md` files in subdirectories: These are synced from `qws941/.github`.
 - Content between `<!-- BEGIN_TF_DOCS -->` and `<!-- END_TF_DOCS -->` markers in README files.
 

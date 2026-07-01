@@ -1,32 +1,33 @@
 # AGENTS: 105-elk/config — ELK Stack Configuration
 
 ## OVERVIEW
-Configuration files for ELK stack (LXC 105): Elasticsearch, Logstash, Kibana.
+Rendered/reference configuration files for ELK stack (LXC 105). Source edits usually belong in `../templates/`.
 
 ## STRUCTURE
 ```
 config/
-├── elasticsearch.yml      # ES cluster config
-├── logstash.conf          # Logstash pipeline
-├── kibana.yml             # Kibana server config
-└── filebeat/              # Reference Filebeat configs
+├── Dockerfile.logstash    # Rendered custom Logstash image
+├── filebeat.yml           # Rendered Filebeat config
+├── ilm-policy.json        # Rendered ILM policy
+├── logstash.conf          # Rendered Logstash pipeline
+└── logstash.yml           # Rendered Logstash settings
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| ES cluster | `elasticsearch.yml` | Single node, 192.168.50.105 |
-| Logstash pipeline | `logstash.conf` | Beats input → filter → ES output |
-| Kibana server | `kibana.yml` | ES connection, server.host |
-| ILM policies | `elasticsearch.yml` | Index lifecycle management |
+| Logstash pipeline | `logstash.conf` | Beats/HTTP inputs, filters, ES output. |
+| Logstash settings | `logstash.yml` | Runtime settings. |
+| ILM policy | `ilm-policy.json` | Index lifecycle policy. |
+| Source templates | `../templates/AGENTS.md` | Edit templates, then render. |
 
 ## CONVENTIONS
-- Single-node cluster for homelab scale
-- Logstash listens on 5044 (Beats), 9600 (API)
-- Kibana behind Traefik at elk.jclee.me
+- Treat files here as rendered/reference unless a runbook explicitly says otherwise.
+- Logstash listens on 5044 (Beats), 8080 (HTTP ingest), and 9600 (API/exporter path).
+- Kibana/Elasticsearch external access is through Traefik routes.
 
 ## ANTI-PATTERNS
 - NEVER expose ES port 9200 publicly
-- NEVER use default elastic/changeme credentials
+- NEVER put credentials in rendered configs.
 - NEVER let indices grow unbounded — use ILM

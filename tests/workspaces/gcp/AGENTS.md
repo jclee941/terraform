@@ -25,3 +25,9 @@ gcp/
 ## ANTI-PATTERNS
 - NEVER create real GCP resources in tests
 - NEVER use production service accounts
+
+## COMMANDS
+```bash
+terraform -chdir=tests/workspaces/gcp test
+make test-workspace SVC=gcp
+```

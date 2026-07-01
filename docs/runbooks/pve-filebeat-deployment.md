@@ -3,7 +3,7 @@
 ## Scope
 
 - In scope: Install Filebeat 8.12.0 on PVE bare-metal host (192.168.50.100), deploy config, verify ELK ingestion.
-- Out of scope: Terraform-managed LXC/VM hosts (use `setup_filebeat = true` in `100-pve/main.tf`).
+- Out of scope: Terraform-managed LXC/VM hosts (use `setup_filebeat = true` in `100-pve/terraform/main.tf`).
 
 ## Inputs and Constraints
 

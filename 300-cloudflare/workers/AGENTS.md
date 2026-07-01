@@ -16,13 +16,13 @@ Boundary guidance for Cloudflare Worker implementations under `300-cloudflare/wo
 |------|----------|-------|
 | Worker runtime behavior | `synology-proxy/src/` | Request handling, middleware, cache, and client logic. |
 | Worker scripts and tooling | `synology-proxy/package.json` | `dev`, `test`, `build`, `deploy`, `type-check`. |
-| Worker deployment config | `synology-proxy/wrangler.jsonc` | Route, compatibility date, bindings, and env config. |
-| Worker tests | `synology-proxy/test/` | Vitest suites and request/response assertions. |
+| Worker deployment config | `synology-proxy/wrangler.toml` | Compatibility date, bindings, and env config. |
+| Worker tests | `synology-proxy/src/__tests__/` | Vitest suites and request/response assertions. |
 | Worker-specific conventions | `synology-proxy/AGENTS.md` | Most specific rules for current worker. |
-| issue-form runtime behavior | `issue-form/src/` | Request handling, middleware, GitHub client, and form rendering. |
+| issue-form runtime behavior | `issue-form/src/` | Request handling, middleware, GitHub client, form rendering, and ELK webhook. |
 | issue-form scripts and tooling | `issue-form/package.json` | `dev`, `test`, `build`, `deploy`, `type-check`. |
 | issue-form deployment config | `issue-form/wrangler.toml` | Compatibility date, bindings, and env config. |
-| issue-form tests | `issue-form/test/` | Vitest suites. |
+| issue-form tests | `issue-form/src/__tests__/` | Vitest suites. |
 | issue-form conventions | `issue-form/AGENTS.md` | Most specific rules for issue-form worker. |
 | Parent workspace policy | `../AGENTS.md` | Cloudflare workspace-level Terraform + worker constraints. |
 | Secret automation scripts | `../scripts/AGENTS.md` | Script-side secret/binding generation and sync workflow. |

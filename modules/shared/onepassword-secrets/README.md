@@ -25,10 +25,9 @@ Preferred item structure uses semantic section names with spaces:
 **Account**, **MCP Tokens**, **OpenCode Tokens**, **Keys**, **Login**, **OAuth**, **Passwords**, and **Secrets**.
 
 ```
-Item: "grafana"  (category: password)
+Item: "traefik"  (category: password)
   +-- Section: "Credentials"
-      |-- Field: "admin_password"        (CONCEALED)
-      +-- Field: "service_account_token" (CONCEALED)
+      +-- Field: "htpasswd_hash" (CONCEALED)
 ```
 
 For API_CREDENTIAL items such as `github`, the module also supports top-level

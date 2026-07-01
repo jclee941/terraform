@@ -25,3 +25,9 @@ synology/
 ## ANTI-PATTERNS
 - NEVER modify production NAS in tests
 - NEVER test destructive operations
+
+## COMMANDS
+```bash
+terraform -chdir=tests/workspaces/synology test
+make test-workspace SVC=synology
+```

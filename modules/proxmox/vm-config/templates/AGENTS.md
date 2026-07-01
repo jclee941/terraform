@@ -26,3 +26,8 @@ templates/
 - NEVER commit SSH private keys
 - NEVER use weak default passwords
 - NEVER skip cloud-init package updates
+
+## NOTES
+- Rendered units should stay deterministic for Terraform plan diffs.
+- Prefer module variables over embedded service-specific constants.
+- Keep guest boot actions minimal; long-running services belong in systemd.

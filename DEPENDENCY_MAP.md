@@ -46,7 +46,7 @@
 
 ```mermaid
 graph TD
-  Main["100-pve/main.tf"] --> Hosts["100-pve/envs/prod/hosts.tf"]
+  Main["100-pve/terraform/main.tf"] --> Hosts["100-pve/envs/prod/hosts.tf"]
   Main --> LXC["modules/proxmox/lxc"]
   Main --> VM["modules/proxmox/vm"]
   Main --> LXCConfig["modules/proxmox/lxc-config"]
@@ -56,7 +56,7 @@ graph TD
 
   Hosts --> Renderer
   Secrets --> Renderer
-  Renderer --> Rendered["100-pve/configs/"]
+  Renderer --> Rendered["100-pve/terraform/configs/"]
   LXC --> Proxmox["Proxmox LXC Resources"]
   VM --> ProxmoxVM["Proxmox VM Resources"]
   LXCConfig --> LXCGuest["LXC Guest Config"]
@@ -88,7 +88,7 @@ flowchart LR
   Templates["Service templates\n{NNN}-{svc}/templates/*.tftpl"] --> Renderer["config-renderer module"]
   Hosts["module.hosts.hosts"] --> Renderer
   Secrets["module.onepassword_secrets.secrets"] --> Renderer
-  Renderer --> Outputs["100-pve/configs/\nGenerated files"]
+  Renderer --> Outputs["100-pve/terraform/configs/\nGenerated files"]
   Outputs --> Deploy["SSH / provisioner deploy"]
   Deploy --> Runtime["/opt/{service}/\nRuntime config"]
 ```
@@ -134,7 +134,7 @@ flowchart LR
 
 **Total:** 30 `.tftpl` files across 6 service workspaces and 2 module template directories.
 
-### Template Variables (from 100-pve/main.tf)
+### Template Variables (from 100-pve/terraform/main.tf)
 
 ```hcl
 template_vars = {
@@ -229,11 +229,11 @@ export CLOUDFLARE_API_TOKEN="..."
 
 ### For New Contributors
 
-1. **Understanding Infrastructure**: Start at `/home/jclee/dev/terraform/100-pve/main.tf` (77 lines)
+1. **Understanding Infrastructure**: Start at `/home/jclee/dev/terraform/100-pve/terraform/main.tf`
 2. **Host Inventory**: Read `/home/jclee/dev/terraform/100-pve/envs/prod/hosts.tf` (SSoT)
 3. **Module Behavior**: Read `/home/jclee/dev/terraform/modules/proxmox/AGENTS.md`
 4. **Service Config**: Check `/home/jclee/dev/terraform/{NNN}-{svc}/templates/` for template logic
-5. **Rendered Outputs**: Never edit `/home/jclee/dev/terraform/100-pve/configs/` (auto-generated)
+5. **Rendered Outputs**: Never edit `/home/jclee/dev/terraform/100-pve/terraform/configs/` (auto-generated)
 
 ### For Workspace-Specific Work
 
@@ -272,7 +272,7 @@ flowchart TD
 
 ## CRITICAL RULES
 
-1. **NEVER hand-edit** `/home/jclee/dev/terraform/100-pve/configs/` — regenerate via `terraform apply`
+1. **NEVER hand-edit** `/home/jclee/dev/terraform/100-pve/terraform/configs/` — regenerate via `terraform apply`
 2. **ALWAYS use** `module.hosts.hosts[name].ip` for IPs (never hardcode)
 3. **ALWAYS validate** with `terraform plan` before `terraform apply`
 4. **ALWAYS source** templates from workspace `templates/` directories

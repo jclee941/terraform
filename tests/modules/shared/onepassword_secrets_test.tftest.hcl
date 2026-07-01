@@ -13,9 +13,9 @@ mock_provider "onepassword" {
   }
 
   override_data {
-    target = data.onepassword_item.this["grafana"]
+    target = data.onepassword_item.this["traefik"]
     values = {
-      title       = "grafana"
+      title       = "traefik"
       section_map = {}
     }
   }
@@ -37,25 +37,6 @@ mock_provider "onepassword" {
       section_map = {}
     }
   }
-
-
-
-  override_data {
-    target = data.onepassword_item.this["supabase"]
-    values = {
-      title       = "supabase"
-      section_map = {}
-    }
-  }
-
-  override_data {
-    target = data.onepassword_item.this["archon"]
-    values = {
-      title       = "archon"
-      section_map = {}
-    }
-  }
-
   override_data {
     target = data.onepassword_item.this["cloudflare"]
     values = {

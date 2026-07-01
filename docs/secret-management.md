@@ -37,12 +37,9 @@ The shared module (`modules/shared/onepassword-secrets/`) manages core homelab a
 
 | Item         | Description          | Key Secrets                                                                                                                  |
 | ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `grafana`    | Observability stack  | `service_account_token`, `admin_password`                                                                                    |
 | `proxmox`    | Hypervisor API       | `api_token_id`, `api_token_secret`                                                                                           |
 | `github`     | GitHub PAT           | `personal_access_token`                                                                                                      |
 
-| `supabase`   | Self-hosted Supabase | `postgres_password`, `jwt_secret`, `anon_key`, `service_role_key`, `dashboard_password`                                      |
-| `archon`     | Archon MCP           | `openai_api_key`                                                                                                             |
 | `cloudflare` | CF account           | `account_id`, `zone_id`, `api_token`                                                                                         |
 | `mcphub`     | MCPHub service       | `admin_password`, `op_token`, `github_pat`, `es_password`, `proxmox_token` |
 | `elk`        | ELK stack            | `elastic_password`, `kibana_password`                                                                                        |
@@ -60,10 +57,10 @@ The shared module (`modules/shared/onepassword-secrets/`) manages core homelab a
 
 ```hcl
 # Simplified (preferred)
-module.secrets.secrets["grafana_service_account_token"]
+module.secrets.secrets["elk_elastic_password"]
 
 # Verbose with fallback
-try(module.secrets.secrets["grafana_service_account_token"], section_map["secrets"].field_map["service_account_token"].value, "")
+try(module.secrets.secrets["elk_elastic_password"], section_map["Passwords"].field_map["elastic_password"].value, "")
 ```
 
 ## Workspace Integration
@@ -73,11 +70,8 @@ try(module.secrets.secrets["grafana_service_account_token"], section_map["secret
 | 100-pve               | via versions.tf provider | `proxmox_api_token`, all template secrets          |
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
 | 215-synology          | ✅                       | `synology_username`, `synology_password`           |
-| 300-cloudflare        | ✅                       | `cloudflare_account_id`, `zone_id`, `github_token` |
+| 300-cloudflare        | ✅                       | Cloudflare account/zone IDs, API token/key fallback, Google OAuth |
 | 102-traefik           | ❌                       | —                                                  |
-| 108-archon            | ❌                       | —                                                  |
-
-Grafana secrets are consumed by the template/config pipeline, not by a standalone Grafana Terraform workspace.
 
 ## Runtime Secret Distribution
 
@@ -86,10 +80,7 @@ Per-host `.env` secrets deployed via config-renderer templates:
 | Host          | Secrets                                                                                                                                    |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | 102-traefik   | `homelab_tunnel_token` (via cloudflared compose)                                                                                           |
-| Grafana runtime | `GRAFANA_ADMIN_PASSWORD`                                                                                                                 |
 | 105-elk       | `elastic_password`, `kibana_password` (in docker-compose env vars)                                                                         |
-| 107-supabase  | `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `DASHBOARD_PASSWORD`                                                    |
-| 108-archon    | `OPENAI_API_KEY`                                                                                                                           |
 | 112-mcphub    | MCPHub admin, 1Password Connect, Proxmox token, GitHub PAT, Elasticsearch password |
 
 ## Provider Authentication
@@ -117,7 +108,7 @@ module "secrets" {
   op_service_account_token = var.op_service_account_token
 }
 
-# Access: module.secrets.secrets["grafana_admin_password"]
+# Access: module.secrets.secrets["elk_elastic_password"]
 ```
 
 ## Secret Inventory (GitHub Actions)
@@ -126,20 +117,18 @@ module "secrets" {
 
 | Secret                | 1Password Reference                                  | Field                   | Priority |
 | --------------------- | ---------------------------------------------------- | ----------------------- | -------- |
-| `TF_VAR_GRAFANA_AUTH` | `op://homelab/grafana/secrets/service_account_token` | `service_account_token` | P1       |
-| `TF_VAR_SUPABASE_URL` | `op://homelab/supabase/secrets/url`                  | `url`                   | P1       |
 | `GH_PAT`              | `op://homelab/github/secrets/personal_access_token`  | `personal_access_token` | P2       |
 
 ### From local `.tfvars` (via `setup-github-secrets.go`)
 
 | Secret                         | Source File                       | Variable                | Priority |
 | ------------------------------ | --------------------------------- | ----------------------- | -------- |
-| `TF_VAR_PROXMOX_ENDPOINT`      | `100-pve/terraform.tfvars`        | `proxmox_endpoint`      | P0       |
-| `TF_VAR_PROXMOX_API_TOKEN`    | `100-pve/terraform.tfvars`        | `proxmox_api_token`     | P0       |
-| `TF_VAR_PROXMOX_INSECURE`     | `100-pve/terraform.tfvars`        | `proxmox_insecure`      | P0       |
-| `TF_VAR_CLOUDFLARE_ACCOUNT_ID`| `300-cloudflare/terraform.tfvars` | `cloudflare_account_id` | P1       |
-| `TF_VAR_CLOUDFLARE_ZONE_ID`   | `300-cloudflare/terraform.tfvars` | `cloudflare_zone_id`    | P1       |
-| `TF_VAR_SYNOLOGY_DOMAIN`      | `300-cloudflare/terraform.tfvars` | `synology_domain`       | P1       |
+| `TF_VAR_PROXMOX_ENDPOINT`      | `100-pve/terraform/terraform.tfvars`        | `proxmox_endpoint`      | P0       |
+| `TF_VAR_PROXMOX_API_TOKEN`    | `100-pve/terraform/terraform.tfvars`        | `proxmox_api_token`     | P0       |
+| `TF_VAR_PROXMOX_INSECURE`     | `100-pve/terraform/terraform.tfvars`        | `proxmox_insecure`      | P0       |
+| `TF_VAR_CLOUDFLARE_ACCOUNT_ID`| `300-cloudflare/terraform/terraform.tfvars` | `cloudflare_account_id` | P1       |
+| `TF_VAR_CLOUDFLARE_ZONE_ID`   | `300-cloudflare/terraform/terraform.tfvars` | `cloudflare_zone_id`    | P1       |
+| `TF_VAR_SYNOLOGY_DOMAIN`      | `300-cloudflare/terraform/terraform.tfvars` | `synology_domain`       | P1       |
 | `CLOUDFLARE_API_TOKEN`        | env / CF dashboard                | —                       | P2       |
 
 Note: `PROXMOX_ENDPOINT` was renamed to `TF_VAR_PROXMOX_ENDPOINT` and all workflow references now use the canonical `TF_VAR_*` secret name.

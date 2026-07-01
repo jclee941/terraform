@@ -51,7 +51,7 @@ locals {
   telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
 
   # Docker Registry (MinIO backend)
-  registry_minio_user     = var.enable_registry ? try(data.onepassword_item.this["registry"].username, try(data.onepassword_item.this["registry"].credential, "minioadmin")) : "minioadmin"
+  registry_minio_user     = var.enable_registry ? try(data.onepassword_item.this["registry"].username, try(data.onepassword_item.this["registry"].credential, "")) : ""
   registry_minio_password = var.enable_registry ? try(data.onepassword_item.this["registry"].password, "") : ""
 }
 

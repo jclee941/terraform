@@ -16,8 +16,8 @@ flowchart LR
 ## Source of Truth
 
 - **Host inventory**: `100-pve/envs/prod/hosts.tf`
-- **VM definition**: `100-pve/main.tf` → `vm_definitions.youtube`
-- **Cloud-init**: `cloud-init/youtube-user-data.yaml`
+- **VM definition**: `100-pve/terraform/locals.tf` → `vm_definitions.youtube`
+- **Cloud-init**: `100-pve/terraform/vm_configs.tf`
 
 ## Operations
 

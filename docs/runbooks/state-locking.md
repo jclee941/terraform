@@ -8,11 +8,10 @@ All workspaces use local backend (state files stored alongside each workspace):
 
 | Workspace | State File |
 |-----------|------------|
-| 100-pve | `100-pve/terraform.tfstate` |
+| 100-pve | `100-pve/terraform/terraform.tfstate` |
 | 102-traefik | `102-traefik/terraform/terraform.tfstate` |
 | 105-elk | `105-elk/terraform/terraform.tfstate` |
-| 108-archon | `108-archon/terraform/terraform.tfstate` |
-| 300-cloudflare | `300-cloudflare/terraform.tfstate` |
+| 300-cloudflare | `300-cloudflare/terraform/terraform.tfstate` |
 
 Init: `terraform init` (no `-backend-config` needed).
 

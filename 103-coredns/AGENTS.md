@@ -13,7 +13,7 @@ Split DNS resolver on LXC 103 (192.168.50.103, 256MB RAM, 1 core, 4GB disk). Cor
 | CoreDNS config   | `templates/Corefile.tftpl`           | Zone definitions and upstream forwarders |
 | Docker compose   | `templates/docker-compose.yml.tftpl` | Container runtime config                 |
 | Filebeat config  | `templates/filebeat.yml.tftpl`       | Log collection agent                     |
-| Rendered outputs | `100-pve/configs/rendered/coredns/`  | Generated — do not edit                  |
+| Rendered outputs | `100-pve/terraform/configs/rendered/coredns/` | Generated — do not edit |
 
 ## STRUCTURE
 
@@ -36,7 +36,7 @@ Split DNS resolver on LXC 103 (192.168.50.103, 256MB RAM, 1 core, 4GB disk). Cor
 
 ## ANTI-PATTERNS
 
-- Never manually edit rendered configs under `100-pve/configs/rendered/coredns/`.
+- Never manually edit rendered configs under `100-pve/terraform/configs/rendered/coredns/`.
 - Never point external DNS clients at this resolver (internal-only).
 
 ## NOTES

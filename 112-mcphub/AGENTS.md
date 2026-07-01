@@ -9,13 +9,13 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 ## ARCHITECTURE
 
 - **SSoT Catalog:** `mcp_servers.json` is the canonical MCP server registry.
-- **Consumers:** `100-pve/main.tf` parses the catalog for Terraform rendering. `mcp-health-check.yml` validates port reachability.
+- **Consumers:** `100-pve/terraform` parses the catalog for Terraform rendering. `docs/runbooks/mcp-health-check.md` documents health triage.
 - **Runtime Split:** Catalog defines 12 active servers (8 `stdio`, 2 `sse`, 2 `streamable-http`). Docker sidecars (`Dockerfile.proxmox`, `Dockerfile.playwright`) are infra assets, not catalog entries.
 
 ## GENERATED VS SOURCE
 
 - **Source-editable:** `mcp_servers.json`, `templates/*.tftpl`, `Dockerfile.*`, `validate_mcps.py`, `op-mcp-server/`.
-- **Generated/reference-only:** rendered files under service `tf-configs/` and deployment outputs under `100-pve/configs/`; `config/filebeat.yml` is reference-only.
+- **Generated/reference-only:** deployment outputs under `100-pve/terraform/configs/rendered/mcphub/`; `config/filebeat.yml` is reference-only.
 - **Edit Rule:** change templates/catalog, then re-render through Terraform workflows.
 
 ## WHERE TO LOOK
@@ -28,23 +28,18 @@ MCP service catalog and gateway scope for VM 112. Primary ownership is server ca
 | Runtime template      | `templates/docker-compose.yml.tftpl`          | mcphub + sidecar containers                      |
 | 1Password MCP sidecar | `op-mcp-server/`                              | Node.js (`index.mjs` + `package.json`)           |
 | Sidecar Dockerfiles   | `Dockerfile.proxmox`, `Dockerfile.playwright` | Build definitions                                |
-| 1Password MCP sidecar | `op-mcp-server/`                              | Node.js (`index.mjs` + `package.json`)           |
-| Sidecar Dockerfiles   | `Dockerfile.proxmox`, `Dockerfile.playwright` | Build definitions                                |
 
 ## CONVENTIONS
 
 - Modify MCP inventory in `mcp_servers.json` only; do not split server truth across files.
 - Keep secrets as `${ENV_VAR}` placeholders in catalog/templates.
 - Keep port assignments unique for hub transports; validate with `python3 validate_mcps.py`.
-- Treat the Archon MCP endpoint as catalog data, not inline Terraform literals.
 - Secrets from 1Password (`homelab/mcphub`) via `onepassword-secrets` module. 10 keys including proxmox tokens, admin password, API keys, 1Password Connect token, and proxy credentials.
 
 ## ANTI-PATTERNS
 
-- Never hand-edit rendered deployment outputs (`tf-configs/`, `100-pve/configs/...`).
+- Never hand-edit rendered deployment outputs (`100-pve/terraform/configs/rendered/mcphub/...`).
 - Never inject plaintext tokens/keys in catalog or templates.
-- Never mutate running containers via ad-hoc `docker exec` config changes.
-- Never inject plaintext tokens/keys in catalog, templates, or workflow JSON.
 - Never mutate running containers via ad-hoc `docker exec` config changes.
 
 ## COMMANDS

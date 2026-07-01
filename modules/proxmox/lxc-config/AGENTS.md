@@ -24,7 +24,7 @@ lxc-config/
 | output | `service_count` | - | - | Total managed systemd service count. |
 
 ## CONSUMERS
-- Called by `100-pve/lxc_configs.tf` via `module.lxc_config`.
+- Called by `100-pve/terraform/lxc_configs.tf` via `module.lxc_config`.
 
 ## WHERE TO LOOK
 | Task                      | File           | Notes                                                                                |

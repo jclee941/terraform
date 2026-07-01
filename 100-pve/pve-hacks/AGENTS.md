@@ -25,3 +25,8 @@ pve-hacks/
 - NEVER use hacks as permanent solutions
 - NEVER skip documenting the workaround
 - NEVER apply without peer review
+
+## NOTES
+- Keep scripts idempotent where possible and explain manual rollback.
+- Prefer a follow-up Terraform change once the emergency is resolved.
+- Do not add generated outputs or host-local artifacts here.

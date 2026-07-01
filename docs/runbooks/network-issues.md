@@ -55,20 +55,19 @@ ssh pve
 cat /etc/resolv.conf
 
 # Test DNS from container
-pct exec {VMID} -- nslookup grafana.jclee.me
+pct exec {VMID} -- nslookup kibana.jclee.me
 ```
 
 ### 4. Service Endpoint Testing
 
 ```bash
 # Test each service endpoint through Traefik
-curl -v https://grafana.jclee.me/api/health
 curl -v https://elk.jclee.me
 curl -v https://mcphub.jclee.me
 
 # Test direct (bypass Traefik)
-curl -s http://192.168.50.104:3000/api/health  # Grafana direct
 curl -s http://192.168.50.105:9200              # Elasticsearch direct
+curl -s http://192.168.50.112:3000/health       # MCPHub direct
 ```
 
 ## Resolution
@@ -110,4 +109,4 @@ pct exec 102 -- docker restart traefik
 - Traefik routing configs managed by Terraform — do NOT edit manually on LXC 102
 - All routing files in `102-traefik/config/` (service-specific `*.yml` files)
 - DNS records managed in Cloudflare
-- Monitor with blackbox exporter in Grafana (SLA dashboard)
+- Monitor direct and Traefik-routed health checks from the current alerting pipeline.

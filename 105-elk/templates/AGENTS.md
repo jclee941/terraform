@@ -6,10 +6,13 @@ Terraform templates for ELK stack configuration. Rendered into Logstash pipeline
 ## STRUCTURE
 ```
 templates/
-├── logstash.conf.tftpl    # Main Logstash pipeline
-├── elasticsearch.yml.tftpl # Elasticsearch settings
-├── kibana.yml.tftpl       # Kibana settings
-└── pipelines/             # Additional pipeline definitions
+├── Dockerfile.logstash.tftpl # Custom Logstash image
+├── docker-compose.yml.tftpl  # Stack deployment
+├── filebeat.yml.tftpl        # Log forwarding config
+├── ilm-policy.json.tftpl     # ILM bootstrap policy
+├── logstash.conf.tftpl       # Main Logstash pipeline
+├── logstash.yml.tftpl        # Logstash settings
+└── setup-ilm.sh.tftpl        # ILM bootstrap script
 ```
 
 ## WHERE TO LOOK
@@ -17,14 +20,15 @@ templates/
 | Task | Location | Notes |
 |------|----------|-------|
 | Logstash pipeline | `logstash.conf.tftpl` | beats → filter → elasticsearch |
-| ES settings | `elasticsearch.yml.tftpl` | cluster.name, network.host |
-| Kibana settings | `kibana.yml.tftpl` | elasticsearch.hosts, server.host |
+| Stack compose | `docker-compose.yml.tftpl` | Elasticsearch, Kibana, Logstash, exporter wiring. |
+| Logstash settings | `logstash.yml.tftpl` | Pipeline and monitoring settings. |
+| ILM setup | `ilm-policy.json.tftpl`, `setup-ilm.sh.tftpl` | Index lifecycle bootstrap. |
 | Grok patterns | `logstash.conf.tftpl` | Custom patterns for services |
 
 ## CONVENTIONS
 - Use `beats { port => 5044 }` for Filebeat input
-- ES output: `hosts => ["localhost:9200"]`
-- Index naming: `%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}`
+- Keep Elasticsearch auth assumptions aligned with `105-elk/terraform/onepassword.tf`.
+- Keep Cloudflare Worker traces routed to `logs-cloudflare-workers-*`.
 
 ## ANTI-PATTERNS
 - NEVER use `stdout { codec => rubydebug }` in production

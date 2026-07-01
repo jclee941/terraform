@@ -26,7 +26,7 @@ run "test_single_template_rendering" {
 
   assert {
     condition = trimspace(output.rendered_configs["test_config"]) == trimspace(<<-EOT
-      # Test config for elasticsearch
+      service: elasticsearch
       host: 192.168.50.105
       port: 9200
       enabled: true
@@ -46,9 +46,9 @@ run "test_multiple_templates" {
 
   variables {
     template_vars = {
-      service_name = "grafana"
-      host_ip      = "192.168.50.104"
-      port         = 3000
+      service_name = "elk"
+      host_ip      = "192.168.50.105"
+      port         = 9200
       enabled      = true
     }
 
@@ -73,9 +73,9 @@ run "test_multiple_templates" {
 
   assert {
     condition = trimspace(output.rendered_configs["primary_config"]) == trimspace(<<-EOT
-      # Test config for grafana
-      host: 192.168.50.104
-      port: 3000
+      service: elk
+      host: 192.168.50.105
+      port: 9200
       enabled: true
     EOT
     )
@@ -84,9 +84,9 @@ run "test_multiple_templates" {
 
   assert {
     condition = trimspace(output.rendered_configs["secondary_config"]) == trimspace(<<-EOT
-      # Test config for grafana
-      host: 192.168.50.104
-      port: 3000
+      service: elk
+      host: 192.168.50.105
+      port: 9200
       enabled: true
     EOT
     )
@@ -191,7 +191,7 @@ run "test_template_var_injection" {
 
   assert {
     condition = alltrue([
-      strcontains(output.rendered_configs["injection_config"], "# Test config for mcphub"),
+      strcontains(output.rendered_configs["injection_config"], "service: mcphub"),
       strcontains(output.rendered_configs["injection_config"], "host: 192.168.50.112"),
       strcontains(output.rendered_configs["injection_config"], "port: 5678"),
       strcontains(output.rendered_configs["injection_config"], "enabled: false"),

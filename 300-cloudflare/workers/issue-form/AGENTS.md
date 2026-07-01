@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Hono-based Cloudflare Worker serving a Korean-language GitHub issue submission form. Renders an inline HTML form at `/` and creates issues in `qws941/terraform` via the GitHub API.
+Hono-based Cloudflare Worker serving a Korean-language GitHub issue submission form and ELK alert webhook. Renders an inline HTML form at `/`, creates issues in `qws941/terraform`, and accepts `POST /api/webhook/elk`.
 
 ## STRUCTURE
 
@@ -15,12 +15,13 @@ issue-form/
 │   ├── routes/
 │   │   ├── form.ts           # GET / — inline HTML form (dark theme, Pretendard font)
 │   │   ├── issues.ts         # POST /api/issues — validate + create GitHub issue
-│   │   └── health.ts         # GET /health — service status
+│   │   ├── health.ts         # GET /health — service status
+│   │   └── webhook.ts        # POST /api/webhook/elk — ELK alert issue creation
 │   ├── github/
 │   │   └── client.ts         # GitHubClient: issue creation, error mapping, rate-limit handling
 │   └── middleware/
 │       └── error-handler.ts  # AppError hierarchy + JSON error responses
-├── test/
+├── src/__tests__/
 ├── package.json
 ├── tsconfig.json
 ├── vitest.config.ts
@@ -33,10 +34,11 @@ issue-form/
 |------|----------|
 | Route registration + middleware | `src/app.ts` |
 | Issue creation logic + label mapping | `src/routes/issues.ts` |
+| ELK webhook issue creation | `src/routes/webhook.ts` |
 | HTML form template + client-side JS | `src/routes/form.ts` |
 | GitHub API interaction + auth errors | `src/github/client.ts` |
 | Error classes (Validation/NotFound/Auth/ExternalService) | `src/middleware/error-handler.ts` |
-| Worker bindings (GITHUB_TOKEN secret, vars) | `wrangler.toml` + `src/env.ts` |
+| Worker bindings (GITHUB_TOKEN, WEBHOOK_SECRET, vars) | `wrangler.toml` + `src/env.ts` |
 | Parent workspace policy | `../../AGENTS.md` |
 
 ## CONVENTIONS
@@ -46,6 +48,7 @@ issue-form/
 - Validation in route handler: title max 256 chars, description max 65536 chars.
 - Error responses: JSON `{success: false, error: {message, code, statusCode, details}, timestamp, requestId}`.
 - `GITHUB_TOKEN` stored as Wrangler secret, never in `wrangler.toml`.
+- `WEBHOOK_SECRET` gates `/api/webhook/elk`; keep it as a Wrangler secret.
 - `workers_dev = true` — currently served on `*.workers.dev`, no custom route.
 
 ## ANTI-PATTERNS

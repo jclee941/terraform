@@ -26,6 +26,7 @@ modules/
 - Keep module interfaces explicit in `variables.tf` and `outputs.tf` with descriptions.
 - Keep module contracts stable; evolve by additive variables before breaking changes.
 - Keep provider-specific module families under their own provider directory once there is more than one module or a distinct lifecycle.
+- Cloudflare currently has one reusable module (`tunnel/`), but it still gets its own child scope because the provider lifecycle differs from Proxmox/shared modules.
 
 ## ANTI-PATTERNS
 - Do not hardcode environment-specific IPs or secrets in modules.

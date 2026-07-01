@@ -15,7 +15,7 @@ Nested Traefik provider workspace. Today it is a remote-state shim that exposes 
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|
-| Infra remote-state contract | `versions.tf` | Reads `../../100-pve/terraform.tfstate` with empty defaults for CI. |
+| Infra remote-state contract | `versions.tf` | Reads `../../100-pve/terraform/terraform.tfstate` with empty defaults for CI. |
 | Host inventory mapping | `main.tf` | Builds `local.hosts` from `host_inventory`. |
 | Downstream host outputs | `outputs.tf` | Exports `container_ip` and `container_id` from `local.hosts.traefik`. |
 | Workspace tests | `../../tests/workspaces/traefik/traefik_test.tftest.hcl` | Verifies canonical remote-state shape and empty fallback behavior. |

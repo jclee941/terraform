@@ -8,7 +8,7 @@ Central Terraform workspace orchestrating all Proxmox infrastructure for the `jc
 
 ```mermaid
 flowchart TD
-  Hosts["envs/prod/hosts.tf\nHost inventory"] --> Main["100-pve/main.tf"]
+  Hosts["envs/prod/hosts.tf\nHost inventory"] --> Main["100-pve/terraform/main.tf"]
   Locals["100-pve/locals.tf\nSizing and service maps"] --> Main
   Secrets["1Password secrets module"] --> Main
   Main --> LXC["LXC module"]

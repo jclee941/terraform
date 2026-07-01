@@ -8,18 +8,18 @@
 
 ## Current Alerting Setup
 
-| Component        | Location                                  | Rules                   |
-| ---------------- | ----------------------------------------- | ----------------------- |
-| Grafana Alerting | Template/config pipeline rendered by `100-pve` | 14 rules, 3 groups      |
-| Contact Points   | alert-log-fallback                         | Routes to Grafana logs  |
+| Component      | Location                                  | Rules                   |
+| -------------- | ----------------------------------------- | ----------------------- |
+| Alerting rules | Template/config pipeline rendered by `100-pve` | Current service health and log rules |
+| Notifications  | alert-log-fallback                         | Routes to local alert logs |
 
 Alert groups: `homelab-logs`, `mcp-alerts`, `infrastructure-health`
 
-## Adding a Grafana Alert Rule
+## Adding an Alert Rule
 
 ### 1. Define the Rule
 
-Edit the Grafana alerting template/config source used by the `100-pve` config-renderer pipeline and add under the appropriate group:
+Edit the alerting template/config source used by the `100-pve` config-renderer pipeline and add under the appropriate group:
 
 ```yaml
 - uid: new-rule-uid
@@ -57,11 +57,10 @@ Edit the Grafana alerting template/config source used by the `100-pve` config-re
 ### 2. Deploy
 
 ```bash
-# Apply via Grafana provisioning
-pct exec 104 -- docker compose -f /opt/grafana/docker-compose.yml restart grafana
+# Apply via alerting runtime provisioning
 
 # Verify rule appears
-curl -s http://192.168.50.104:3000/api/v1/provisioning/alert-rules \
+curl -s http://<alerting-runtime>/api/v1/provisioning/alert-rules \
   -H "Authorization: Bearer <api-key>" | jq '.[].title'
 ```
 
@@ -73,9 +72,8 @@ pct exec 105 -- curl -s -X POST "localhost:9200/logs-test-$(date +%Y.%m.%d)/_doc
   -H 'Content-Type: application/json' \
   -d '{"message": "test error", "level": "error", "service": "test"}'
 
-# 2. Check: Verify alert fires in Grafana
-curl -s http://192.168.50.104:3000/api/v1/provisioning/alert-rules \
-  # 3. Verify: Check Grafana alert logs for notification
+# 2. Check: Verify alert fires in the alerting runtime
+# 3. Verify: Check alert logs for notification
 
 # 4. Verify: GitHub Issue created
 gh issue list --repo qws941/terraform --label automated
@@ -86,5 +84,5 @@ gh issue list --repo qws941/terraform --label automated
 - Every new service must have corresponding alerting rule
 - Review `alerting.yaml` quarterly for stale/missing rules
 - Document alert thresholds in service's AGENTS.md
-- Test alert pipeline after any Grafana/ELK config changes
+- Test alert pipeline after any alerting or ELK config changes
 - Verify PR automation workflows trigger correctly on new PRs

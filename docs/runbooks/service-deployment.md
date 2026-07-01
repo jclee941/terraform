@@ -41,7 +41,7 @@ sequenceDiagram
 
 ```bash
 # Edit the relevant service config
-vim 100-pve/main.tf                    # Infrastructure changes
+vim 100-pve/terraform/main.tf          # Infrastructure changes
 vim NNN-service/templates/*.tftpl      # Service config templates
 vim 100-pve/envs/prod/hosts.tf         # IP/port changes (SSoT)
 ```
@@ -70,7 +70,7 @@ CI automatically runs:
 
 Push to `master` triggers the corresponding apply workflow:
 - `terraform-apply.yml` for 100-pve (core infrastructure)
-- `{svc}-apply.yml` for service-specific workspaces (archon, cloudflare, elk, github, traefik)
+- `{svc}-apply.yml` for service-specific workspaces such as cloudflare, elk, and traefik
 - `worker-deploy.yml` for Cloudflare Workers
 
 Each apply workflow includes:
@@ -109,7 +109,7 @@ Never run `terraform apply` locally against production.
 
 ## Adding a New Service
 1. Create directory: `mkdir NNN-service`
-3. Add to `100-pve/main.tf` as a module call
+3. Add to `100-pve/terraform/main.tf` as a module call
 4. Add host entry to `100-pve/envs/prod/hosts.tf`
 5. Create templates in `NNN-service/templates/`
 6. Create PR → CI runs plan → merge to master → CI applies
@@ -123,13 +123,12 @@ Never run `terraform apply` locally against production.
 | Workspace | Plan Workflow | Apply Workflow | Trigger Paths |
 |-----------|--------------|----------------|---------------|
 | 100-pve | terraform-plan.yml | terraform-apply.yml | 100-pve/**, modules/** |
-| Archon | archon-plan.yml | archon-apply.yml | 108-archon/** |
 | Cloudflare | cloudflare-plan.yml | cloudflare-apply.yml | 300-cloudflare/** |
 | ELK | elk-plan.yml | elk-apply.yml | 105-elk/** |
 | Traefik | traefik-plan.yml | traefik-apply.yml | 102-traefik/** |
 | CF Worker | — | worker-deploy.yml | 300-cloudflare/workers/** |
 
-Services without dedicated workspaces (101-runner, Grafana, 107-supabase, 112-mcphub, 215-synology, 220-youtube) are managed through the 100-pve orchestrator and template/config pipeline.
+Services without dedicated Terraform roots are managed through the 100-pve orchestrator and template/config pipeline.
 
 ## Post-Deploy Checklist
 

@@ -41,9 +41,6 @@ module "config_renderer" {
       ilm_critical_delete_after   = "90d"
       ilm_ephemeral_delete_after  = "7d"
 
-      prometheus_datasource_uid = "prometheus"
-      sla_target_percentage     = "99.9"
-
       mcp_catalog_json           = jsonencode(local.mcp_catalog)
       mcp_hub_servers_json       = jsonencode(local.mcp_hub_servers)
       mcp_hub_stdio_json         = jsonencode(local.mcp_hub_stdio_servers)

@@ -24,3 +24,8 @@ config/
 - NEVER commit registration tokens — use 1Password.
 - NEVER use privileged containers in production.
 - NEVER hardcode URLs — use `module.hosts` references.
+
+## NOTES
+- This is static source config; rendered output belongs under the `100-pve` Terraform root.
+- Keep log paths aligned with the runner image and ELK Filebeat expectations.
+- Prefer changing the template when runtime interpolation is required.

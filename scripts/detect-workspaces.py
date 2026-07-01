@@ -28,9 +28,7 @@ from typing import List, Set
 WORKSPACE_MAP = {
     "100-pve": ["100-pve/", "modules/"],
     "102-traefik": ["102-traefik/"],
-    "104-grafana": ["104-grafana/"],
     "105-elk": ["105-elk/"],
-    "108-archon": ["108-archon/"],
     "215-synology": ["215-synology/"],
     "300-cloudflare": ["300-cloudflare/"],
     "310-safetywallet": ["310-safetywallet/"],
@@ -40,7 +38,6 @@ WORKSPACE_MAP = {
 TEMPLATE_WORKSPACES = [
     "101-runner",
     "103-coredns",
-    "107-supabase",
     "112-mcphub",
     "200-oc",
     "220-youtube",

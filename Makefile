@@ -98,7 +98,7 @@ security: lint-tflint ## Run security scan (tflint + checkov) locally
 	@echo '==> Running Checkov...'
 	@command -v checkov >/dev/null 2>&1 || { echo "checkov not installed. Install: pip install checkov"; exit 1; }
 	@checkov --directory . --framework terraform --quiet --compact \
-		--skip-path .archive --skip-path data --skip-path tests --skip-path 100-pve/configs \
+		--skip-path .archive --skip-path data --skip-path tests --skip-path 100-pve/terraform/configs \
 		--skip-check CKV_TF_1 || true
 
 ## Testing

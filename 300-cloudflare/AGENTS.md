@@ -2,17 +2,17 @@
 
 ## OVERVIEW
 
-Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets Store + GitHub Actions for 12+ sibling projects), Zero Trust Access (12 HTTP services + 5 TCP tunnels + M2M service token), Cloudflare tunnels, DNS, Logpush, R2 storage, WAF, and a Synology FileStation proxy Worker.
+Cloudflare infrastructure hub: 33 secret metadata entries, Cloudflare tunnels, DNS, Logpush, R2 storage, WAF, and two Cloudflare Workers (`synology-proxy`, `issue-form`). Cloudflare Access policy resources have been removed; `access.tf` is a tombstone.
 
 ## STRUCTURE
 
 ```
 300-cloudflare/
 ├── AGENTS.md                # This file
-├── *.tf                     # Terraform workspace (18 TF files, incl. logpush.tf, waf.tf, onepassword.tf, validation.tf)
-├── terraform.tfvars.example # Variable template (NO secrets)
+├── terraform/               # Terraform workspace (DNS, tunnels, workers, Logpush, R2, WAF)
 ├── workers/
-│   └── synology-proxy/      # Hono Worker: Synology FileStation proxy + R2 cache
+│   ├── synology-proxy/      # Hono Worker: Synology FileStation proxy + R2 cache
+│   └── issue-form/          # Hono Worker: issue form + ELK webhook
 ├── scripts/
 │   ├── collect.go           # Harvest .env/.tfvars from sibling projects
 │   ├── audit.go             # Drift detection: inventory vs actual
@@ -30,20 +30,20 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 
 | Task                      | Location                                                            | Notes                                                                                                                   |
 | ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Add/modify a secret**   | `inventory/secrets.yaml` then `*.tf`                                | YAML defines targets, TF applies                                                                                        |
-| **Secret target logic**   | `locals.tf`                                                         | YAML parsing + target classification                                                                                    |
-| **DNS records**           | `dns.tf`                                                            | CNAME records for homelab + TCP + logstash-ingest subdomains                                                            |
-| **Tunnel config**         | `tunnel.tf` + `docker/cloudflared/`                                 | 3 tunnels: synology (direct) + homelab (Traefik + TCP + logstash-ingest) + jclee (workstation)                          |
-| **Access policies**       | `access.tf`                                                         | CF Access: 12 HTTP (24h), 5 TCP (720h), 1 M2M service token (logstash)                                                  |
-| **TCP tunnels (SSH/RDP)** | `locals.tf` → `tcp_services` + `tunnel.tf` + `dns.tf` + `access.tf` | synology-ssh (:22), rdp (:3389), oc-rdp (:3389), jclee-ssh (:22), youtube-ssh (:22) — bypass Traefik                    |
-| **Logpush**               | `logpush.tf` + `access.tf`                                          | Worker trace events → Logstash HTTP ingest via M2M service token                                                        |
-| **WAF rules**             | `waf.tf`                                                            | Web Application Firewall custom rulesets                                                                                |
-| **R2 storage**            | `r2.tf`                                                             | `synology-cache` bucket (APAC, 7d TTL)                                                                                  |
-| **GitHub secrets**        | `github-secrets.tf`                                                 | Cross-repo GitHub Actions secrets                                                                                       |
-| **Worker**                | `workers/synology-proxy/`                                           | Hono TS app with FileStation proxy                                                                                      |
-| **1Password secrets**     | `onepassword.tf` + `validation.tf`                                  | Structured secret lookup via `modules/shared/onepassword-secrets`.                                                      |
-| **Homelab service map**   | `locals.tf` → `homelab_services`                                    | HTTP services via Traefik (elk, kibana, es, mcphub, nas, opencode-api, registry) |
-| **CI**                    | Migrated from `.github/workflows/ci.yml`                            | 2 jobs: worker + terraform                                                                                              |
+| **Add/modify a secret**   | `inventory/secrets.yaml` then `terraform/*.tf`                      | YAML defines metadata; Terraform/scripts target stores.                                                                 |
+| **Secret target logic**   | `terraform/locals.tf`                                               | YAML parsing + target classification.                                                                                   |
+| **DNS records**           | `terraform/dns.tf`                                                  | CNAME records for homelab, TCP, and logstash-ingest subdomains.                                                         |
+| **Tunnel config**         | `terraform/tunnel.tf` + `docker/cloudflared/`                       | Tunnels: synology direct, homelab/Traefik+TCP+logstash, jclee workstation.                                               |
+| **Access tombstone**      | `terraform/access.tf`                                               | Access resources removed; do not document new policy here without recreating resources.                                  |
+| **TCP tunnels (SSH/RDP)** | `terraform/locals.tf` → `tcp_services` + `terraform/tunnel.tf` + `terraform/dns.tf` | synology-ssh, rdp, oc-rdp, jclee-ssh, youtube-ssh, ssh; bypass Traefik. |
+| **Logpush**               | `terraform/logpush.tf`                                              | Worker trace events → HTTPS `logstash-ingest.jclee.me` → Logstash HTTP ingest.                                          |
+| **WAF rules**             | `terraform/waf.tf`                                                  | Web Application Firewall custom rulesets.                                                                               |
+| **R2 storage**            | `terraform/r2.tf`                                                   | `synology-cache` bucket (APAC, 7d TTL).                                                                                 |
+| **Secret scripts**        | `scripts/AGENTS.md`                                                 | Go CLIs for collect/audit/sync/bindings.                                                                                |
+| **Workers**               | `workers/AGENTS.md`                                                 | Hono TS apps with separate configs/tests.                                                                               |
+| **1Password secrets**     | `terraform/onepassword.tf` + `terraform/validation.tf`              | Structured lookup via `modules/shared/onepassword-secrets`.                                                             |
+| **Homelab service map**   | `terraform/locals.tf` → `homelab_services`                          | 7 HTTP CNAMEs via Traefik: elk, kibana, es, mcphub, nas, opencode-api, registry. |
+| **CI**                    | `.github/workflows/`                                                | Repo-level workflows; worker deploys stay CI-gated.                                                                     |
 
 ## CONVENTIONS
 
@@ -53,13 +53,13 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 - **Secret values**: NEVER in code/git. Only in `.tfvars` (gitignored) or env vars.
 - **inventory/secrets.yaml**: Metadata only (name, targets[], description). No values.
 - **Scripts**: Assume `~/dev/` sibling project layout for cross-project harvesting.
-- **Tunnel architecture**: 3 tunnels — `synology` (direct to NAS, HTTP origin), `homelab`/`traefik` (HTTP via Traefik + TCP direct + logstash-ingest), and `jclee` (physical PC, host ID 80).
-- **Access tiers**: HTTP services get 24h sessions with email auth. TCP services (SSH/RDP) get 720h sessions. M2M (Logpush→Logstash) uses service token with `non_identity` policy.
+- **Tunnel architecture**: `synology` direct to NAS, `homelab`/Traefik for HTTP+TCP+logstash-ingest, and `jclee` for the physical PC.
+- **Access status**: Cloudflare Access is currently removed. Do not assume email-auth or M2M policy resources exist.
 
 ## ANTI-PATTERNS
 
 - **NEVER** commit `.tfvars`, `.env`, or `data/` output files.
-- **NEVER** commit `.tfstate` files. Backend is local (state tracked in git for CI reliability).
+- **NEVER** commit `.tfstate` files. Backend is local; state stays untracked.
 - `collect.go` output files contain `# DO NOT COMMIT` header — respect it.
 - CF Secrets Store sync (`enable_cf_store_sync`) is beta — don't enable without testing.
 - Worker route (`enable_worker_route`) requires Worker deployed via wrangler first.
@@ -67,14 +67,14 @@ Cloudflare infrastructure hub: secrets management (50+ secrets across CF Secrets
 ## COMMANDS
 
 ```bash
-terraform init && terraform plan                                # TF workspace (apply via CI only)
+terraform -chdir=terraform init && terraform -chdir=terraform plan # TF workspace (apply via CI only)
 cd workers/synology-proxy && npm run dev               # Worker dev
 cd workers/synology-proxy && npm test                            # Worker test (deploy via CI only)
-./scripts/audit.go && ./scripts/sync.go             # Secret harvest + drift
+go run ./scripts/audit.go && go run ./scripts/sync.go             # Secret audit + sync
 ```
 
 ## NOTES
 - R2 bucket `synology-cache`: APAC region, 7-day TTL. Worker uses SID-based Synology FileStation auth (50min session cache).
-- `audit.go` scans 12 hardcoded project dirs — update when adding projects.
-- Logpush pipeline: CF Worker traces → `logpush.tf` job → HTTPS `logstash-ingest.jclee.me` → CF tunnel → Logstash `:8080` → `logs-cloudflare-workers-*`. M2M service token 8760h (1yr), rotated via `access.tf`.
+- `audit.go` scans hardcoded sibling project dirs — update when adding projects.
+- Logpush pipeline: CF Worker traces → `logpush.tf` job → HTTPS `logstash-ingest.jclee.me` → CF tunnel → Logstash `:8080` → `logs-cloudflare-workers-*`.
 - TCP tunnels bypass Traefik; connect directly to origin IPs via variables (`var.jclee_ip`, `var.jclee_dev_ip`, `var.synology_nas_ip`, `var.youtube_ip`). Migrated from `~/dev/cloudflare/` (2026-02-13).

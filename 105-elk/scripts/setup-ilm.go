@@ -44,8 +44,9 @@ func main() {
 
 	// --- Index Templates ---
 	createIndexTemplate(esHost, esUser, esPass, "logs-template", []string{"logs-*"}, "homelab-logs-30d", 200)
-	createIndexTemplate(esHost, esUser, esPass, "logs-critical", []string{"logs-archon-*", "logs-elk-*", "logs-supabase-*", "logs-grafana-*"}, "homelab-logs-critical-90d", 300)
-	createIndexTemplate(esHost, esUser, esPass, "logs-ephemeral", []string{"logs-unknown-*", "logs-debug-*", "logs-runner-*"}, "homelab-logs-ephemeral-7d", 250)
+	createIndexTemplate(esHost, esUser, esPass, "logs-critical", []string{"logs-elk-*", "logs-pve-*"}, "homelab-logs-critical-90d", 300)
+	createIndexTemplate(esHost, esUser, esPass, "logs-ephemeral", []string{"logs-github-runner-*", "logs-youtube-*"}, "homelab-logs-ephemeral-7d", 250)
+	createIndexTemplate(esHost, esUser, esPass, "logs-cloudflare-workers", []string{"logs-cloudflare-workers-*"}, "homelab-logs-30d", 225)
 
 	// --- Verify ---
 	fmt.Println("=== Verification ===")
@@ -58,7 +59,7 @@ func main() {
 
 	fmt.Println("=== ILM Setup Complete ===")
 	fmt.Println("Policies: homelab-logs-30d, homelab-logs-critical-90d, homelab-logs-ephemeral-7d")
-	fmt.Println("Templates: logs-template (p200), logs-critical (p300), logs-ephemeral (p250)")
+	fmt.Println("Templates: logs-template (p200), logs-critical (p300), logs-ephemeral (p250), logs-cloudflare-workers (p225)")
 	fmt.Println("Index pattern: logs-{service}-YYYY.MM.dd")
 }
 

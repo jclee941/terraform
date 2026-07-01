@@ -34,7 +34,7 @@ Nested elasticstack provider workspace. Manages ILM policies, index templates, K
 ## ANTI-PATTERNS
 
 - Do not create Kibana spaces, data views, or ILM policies manually when Terraform owns them.
-- Do not rename `log_services` keys without updating Logstash routing, Grafana dashboards, and tests.
+- Do not rename `log_services` keys without updating Logstash routing, alerting consumers, and tests.
 - Do not hardcode provider credentials or disable auth expectations in this workspace.
 
 ## COMMANDS

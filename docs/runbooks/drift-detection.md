@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Detect Terraform drift between committed local state and live infrastructure before it accumulates into unsafe apply plans.
+Detect Terraform drift between local backend state and live infrastructure before it accumulates into unsafe apply plans.
 
 ## Schedule
 
@@ -15,9 +15,7 @@ The repository convention documents scheduled drift detection on GitHub Actions 
 make plan SVC=pve
 make plan SVC=traefik
 make plan SVC=elk
-make plan SVC=archon
 make plan SVC=cloudflare
-make plan SVC=github
 make plan SVC=gcp
 ```
 

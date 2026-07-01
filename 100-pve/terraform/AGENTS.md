@@ -1,7 +1,7 @@
 # AGENTS: 100-pve/terraform — Core Infrastructure Definitions
 
 ## OVERVIEW
-Terraform configuration workspace containing the complete infrastructure-as-code definitions for the homelab. Orchestrates 8 LXC containers (101-108) and 4 VMs via modular composition.
+Terraform configuration workspace containing the complete infrastructure-as-code definitions for the homelab. Orchestrates four LXC containers and three VMs via modular composition.
 
 ## STRUCTURE
 ```
@@ -23,21 +23,21 @@ terraform/
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Container provisioning | `main.tf` → `module.lxc` | Calls `../modules/proxmox/lxc` for each guest |
-| VM provisioning | `main.tf` → `module.vm` | Calls `../modules/proxmox/vm` for mcphub (112) |
+| Container provisioning | `main.tf` → `module.lxc` | Calls `../../modules/proxmox/lxc` for `local.containers`. |
+| VM provisioning | `main.tf` → `module.vm` | Calls `../../modules/proxmox/vm` for `local.vm_definitions`. |
 | Host inventory | `locals.tf` → `module.hosts` | Imports from `../envs/prod/hosts.tf` |
-| Memory sizing | `locals.tf` → `container_sizing` | Budget: 20 GB + 9.75 GB swap |
+| Memory sizing | `locals.tf` → `container_sizing` | Active LXC sizing map. |
 | Filebeat setup | `lxc_configs.tf`, `vm_configs.tf` | `setup_filebeat` provisioner blocks |
 | Config rendering | `secrets.tf` → `module.config_renderer` | Template → file conversion |
 
 ## CONVENTIONS
 - Use `module.hosts.hosts[name].ip` for all IP references
 - Container sizing defined in `locals.tf` `container_sizing` map
-- Use relative paths: `../modules/...`, `../{NNN}-{svc}/templates/`
+- Use relative paths from this nested root: `../../modules/...`, `../../{NNN}-{svc}/templates/`
 - All guests get Filebeat via `setup_filebeat` provisioner
 
 ## ANTI-PATTERNS
-- NEVER hand-edit files in `configs/` — regenerate via `terraform apply`
+- NEVER hand-edit files in `configs/` — regenerate via Terraform workflows
 - NEVER hardcode IPs in `.tf` files — use `module.hosts`
 - NEVER use `count` or `for_each` for heterogeneous resources
 
@@ -45,14 +45,13 @@ terraform/
 ```bash
 terraform init              # Initialize providers
 terraform plan              # Preview changes
-terraform apply             # Apply changes (CI only — local disabled)
 terraform validate          # Syntax validation
 terraform fmt -recursive    # Format all files
-terraform fmt -recursive    # Format all files
+# apply via CI/CD only; local make apply is disabled
 ```
 
 ## NOTES
 
 - Memory budget: GitHub Actions Runner (LXC 101) is 3072MB / 1536MB swap.
-- Total dedicated memory: 20 GB + 9.75 GB swap = 29.75 GB effective.
+- VM memory is defined in `local.vm_definitions`; do not duplicate budget totals here.
 - NFS cache mount configured for LXC 101 at `/srv/runner/cache`.

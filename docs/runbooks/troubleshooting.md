@@ -87,10 +87,6 @@ ssh root@192.168.50.215 'docker restart cloudflared'
 
 ## Log Access
 
-### Grafana (Dashboards)
-- URL: http://192.168.50.104:3000
-- External: https://grafana.jclee.me
-
 ### Elasticsearch (Raw Logs)
 ```bash
 # Recent errors
@@ -103,13 +99,11 @@ curl -s 'http://192.168.50.105:9200/logs-*/_search' \
 - URL: http://192.168.50.105:5601
 - External: https://elk.jclee.me
 
-## Prometheus Targets Down
+## Logstash Metrics Exporter Down
 
 ```bash
-# Check Prometheus targets
-curl -s http://192.168.50.104:9090/api/v1/targets | jq '.data.activeTargets[] | select(.health!="up")'
-# Check node_exporter on specific host
-curl -s http://192.168.50.NNN:9100/metrics | head
+curl -s http://192.168.50.105:9198/metrics | head
+curl -s http://192.168.50.105:9600/ | jq
 ```
 
 ## Common Issues
@@ -119,5 +113,5 @@ curl -s http://192.168.50.NNN:9100/metrics | head
 | LXC won't start | Disk full on PVE | `df -h` on PVE, clean up |
 | Docker containers restarting | OOM | Increase memory in main.tf |
 | TF plan shows unexpected changes | Manual edits | `terraform refresh`, revert manual changes |
-| Logs not appearing in Grafana | Logstash down | Restart Logstash on 105 |
+| Logs not appearing in Kibana | Logstash down | Restart Logstash on 105 |
 | External access broken | CF tunnel down | Restart cloudflared on 215 |

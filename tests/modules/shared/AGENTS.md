@@ -19,7 +19,7 @@ tests/modules/shared/
 
 ## CONVENTIONS
 - Use `terraform test` with fully mocked provider responses; no live 1Password dependency.
-- Keep override data explicit per item (grafana, proxmox, github, cloudflare, etc.).
+- Keep override data explicit per item (elk, proxmox, github, cloudflare, etc.).
 - Add both positive and failure-oriented assertions when module behavior changes.
 - Keep test names scoped to module contracts, not environment runtime behavior.
 

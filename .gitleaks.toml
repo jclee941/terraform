@@ -1,29 +1,11 @@
-# Gitleaks configuration for jclee941/terraform
-# This repo contains infrastructure-as-code configs which naturally include
-# environment variables, API endpoints, and placeholder credentials in:
-#   - docker-compose.yml files
-#   - terraform config files (.tf, .tfvars, .tftest.hcl)
-#   - cloud-init YAML files
-#   - rendered configuration directories
-#   - detect-secrets baseline files
-# Recommendation: migrate actual secrets to a secrets manager (1Password, Vault, etc.)
-
 [extend]
 useDefault = true
 
 [allowlist]
 paths = [
-  '''\.secrets\.baseline$''',
-  '''docker-compose\.yml$''',
-  '''docker-compose\.yaml$''',
-  '''\.tftest\.hcl$''',
-  '''\.tfvars$''',
-  '''\.tfvars\.example$''',
-  '''cloud-init\.yaml$''',
-  '''cloud-init\.yml$''',
-  '''logstash\.conf$''',
-  '''n8n\.env$''',
-  '''grafana-datasources\.yml$''',
-  '''rendered\/''',
-  '''configs\/''',
+  '''(^|/)\.terraform/''',
+  '''(^|/)\.omo/''',
+  '''(^|/)\.secrets\.baseline$''',
+  '''(^|/)tests/''',
+  '''(^|/)modules/shared/onepassword-secrets/onepassword_secrets_test\.tftest\.hcl$''',
 ]

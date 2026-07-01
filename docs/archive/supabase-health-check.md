@@ -146,4 +146,4 @@ curl -s http://192.168.50.107:4000/socket
 
 - Supabase Docker Compose: `/opt/supabase/docker-compose.yml` (inside LXC 107)
 - Supabase documentation: https://supabase.com/docs
-- Infrastructure code: `107-supabase/` in this repository
+- Infrastructure code: restore a dedicated Supabase workspace before using this runbook for IaC changes.

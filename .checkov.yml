@@ -8,7 +8,7 @@ skip-path:
   - .archive
   - data
   - tests
-  - 100-pve/configs
+  - 100-pve/terraform/configs
 
 skip-check:
   - CKV_TF_1  # Skip hardcoded secret check (requires secrets manager integration)

@@ -25,3 +25,9 @@ elk/
 ## ANTI-PATTERNS
 - NEVER use real logs with PII in tests
 - NEVER test against production ES
+
+## COMMANDS
+```bash
+terraform -chdir=tests/workspaces/elk test
+make test-workspace SVC=elk
+```

@@ -71,7 +71,7 @@ make setup                # load 1Password credentials locally
 ## Safety Notes
 
 - **Local `make apply` is disabled.** All deployments go through GitHub Actions CI/CD.
-- **`100-pve/configs/` outputs are generated.** Never hand-edit. Regenerate via `terraform apply` in 100-pve.
+- **`100-pve/terraform/configs/` outputs are generated.** Never hand-edit. Regenerate via `terraform apply` in 100-pve.
 - **Never hardcode IPs.** Use `module.hosts.hosts[name].ip` or variables.
 - **Never commit secrets.** `.tfvars`, `.env`, and API keys are excluded by `.gitignore`.
 

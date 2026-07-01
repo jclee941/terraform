@@ -15,18 +15,18 @@
 2. **1Password Connect** (112:8090) — Secret provider for all workspaces
 3. **Traefik** (102) — Routing for all services
 4. **ELK** (105) — Logging pipeline
-5. **Monitoring services** — Grafana/alerting runtime managed by templates
+5. **Monitoring services** — alerting runtime managed by templates
 6. **Runner** (101) — CI/CD
-7. **Remaining services** — Supabase, Archon, MCPHub
+7. **Remaining services** — MCPHub and other active inventory entries
 
 ## Backup Strategy
 
 | Component | Method | Location | Frequency |
 |-----------|--------|----------|-----------|
-| Terraform state | Git (committed) | GitHub repo | Every change |
+| Terraform state | Local backend backups | Workspace `terraform/` directories and external backups | Before/after apply |
 | Elasticsearch | Snapshot API | Local filesystem | Daily |
 | Proxmox VMs/LXCs | vzdump | Synology NAS (215) | Weekly |
-| Cloudflare config | Terraform state | Git | Every change |
+| Cloudflare config | Terraform state backups | Local backend and external backups | Before/after apply |
 | Docker volumes | Volume backup scripts | Local + NAS | Daily |
 
 ## Recovery Procedures
@@ -43,8 +43,8 @@ pct start 105  # elk
 
 ### Terraform State Recovery
 ```bash
-# State is in git — just re-init
-cd 100-pve && terraform init
+# Restore the latest known-good local backend state backup first, then re-init
+cd 100-pve/terraform && terraform init
 terraform plan  # verify state matches reality
 ```
 
@@ -58,36 +58,16 @@ curl -s localhost:9200/_snapshot/backup/_all | jq '.snapshots[-1].snapshot'
 curl -X POST localhost:9200/_snapshot/backup/latest/_restore
 ```
 
-### Supabase Recovery (LXC 107)
-```bash
-ssh root@192.168.50.100
-pct start 107
-pct exec 107 -- bash -c "cd /opt/supabase && docker compose up -d"
-# Wait for all 13 services to become healthy
-pct exec 107 -- bash -c "cd /opt/supabase && docker compose ps"
-# Verify PostgREST
-curl -s http://192.168.50.107:8000/rest/v1/ | head -5
-```
-
-### Archon Recovery (LXC 108)
-```bash
-ssh root@192.168.50.100
-pct start 108
-pct exec 108 -- bash -c "cd /opt/archon && docker compose up -d"
-# Verify UI
-curl -s -o /dev/null -w "%{http_code}" http://192.168.50.108:3737
-# Archon depends on Supabase DB — ensure LXC 107 is up first
-```
-
 ### Full Rebuild (Nuclear Option)
 ```bash
 # 1. Fresh PVE install
 # 2. Clone terraform repo
 git clone git@github.com:qws941/terraform.git
 cd terraform
-# 3. Init + apply
-cd 100-pve && terraform init && terraform apply
-# 4. Deploy configs
+# 3. Validate locally, then trigger CI/CD apply
+terraform -chdir=100-pve/terraform init -backend=false
+terraform -chdir=100-pve/terraform validate
+# 4. Deploy configs through GitHub Actions apply workflow
 # 5. Restore data from backups
 ```
 

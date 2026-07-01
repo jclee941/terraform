@@ -6,8 +6,10 @@ Parent scope for Terraform-native module tests. Owns the boundary between reusab
 ## STRUCTURE
 ```text
 tests/modules/
-├── proxmox/   # Proxmox module unit and rendering tests
-├── shared/    # Shared-module contract tests
+├── proxmox/      # Proxmox module unit and rendering tests
+├── shared/       # Shared-module contract tests
+├── cloudflare/   # Cloudflare tunnel module tests
+└── elasticstack/ # ELK ILM/index template module tests
 ```
 
 ## WHERE TO LOOK
@@ -15,6 +17,8 @@ tests/modules/
 |------|----------|-------|
 | Proxmox module tests | `proxmox/AGENTS.md` | LXC, VM, config-renderer, and config-deploy test suites. |
 | Shared module tests | `shared/AGENTS.md` | onepassword-secrets provider-mock contracts. |
+| Cloudflare module tests | `cloudflare/` | Tunnel module contract checks. |
+| Elasticstack module tests | `elasticstack/` | ILM policy and index template checks. |
 | Cross-module integration | `../integration/AGENTS.md` | Use when behavior spans more than one module family. |
 | Workspace validation | `../workspaces/AGENTS.md` | Use for root workspace inputs and remote-state contracts. |
 
@@ -34,4 +38,6 @@ tests/modules/
 make test-unit
 cd tests/modules/proxmox && terraform init -backend=false && terraform test
 cd tests/modules/shared && terraform init -backend=false && terraform test
+cd tests/modules/cloudflare && terraform init -backend=false && terraform test
+cd tests/modules/elasticstack && terraform init -backend=false && terraform test
 ```

@@ -1,8 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -11,13 +7,13 @@
 
 ## Providers
 
-## Providers
-
 | Name | Version |
 |------|---------|
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
-## Resources
+## Modules
+
+No modules.
 
 ## Resources
 
@@ -27,11 +23,7 @@
 
 ## Inputs
 
-## Inputs
-
 No inputs.
-
-## Outputs
 
 ## Outputs
 
@@ -39,5 +31,4 @@ No inputs.
 |------|-------------|
 | <a name="output_container_id"></a> [container\_id](#output\_container\_id) | Traefik container VMID |
 | <a name="output_container_ip"></a> [container\_ip](#output\_container\_ip) | Traefik container IP address |
-
 <!-- END_TF_DOCS -->

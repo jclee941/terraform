@@ -25,3 +25,9 @@ cloudflare/
 ## ANTI-PATTERNS
 - NEVER make real DNS changes in tests
 - NEVER deploy Workers to production
+
+## COMMANDS
+```bash
+terraform -chdir=tests/workspaces/cloudflare test
+make test-workspace SVC=cloudflare
+```

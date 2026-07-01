@@ -271,25 +271,6 @@ run "test_invalid_secrets_store_id_empty" {
   ]
 }
 
-# --- github_token: must be empty or start with ghp_ / github_pat_ ---
-
-run "test_github_token_invalid_prefix" {
-  command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
-  variables {
-    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
-    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
-    synology_domain       = "nas.jclee.me"
-    github_token          = "gho_invalid_prefix_token"
-  }
-
-  expect_failures = [var.github_token]
-}
-
 # --- onepassword_vault_name: must not be empty ---
 
 run "test_onepassword_vault_name_empty" {

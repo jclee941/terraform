@@ -2,7 +2,7 @@
 
 ## Overview
 
-OpenCode development VM on Proxmox. Terraform-provisioned via `100-pve/main.tf` as `jclee-dev`. Hosts the OpenCode agent runtime and development tooling.
+OpenCode development VM on Proxmox. Terraform-provisioned via `100-pve/terraform/main.tf` as `jclee-dev`. Hosts the OpenCode agent runtime and development tooling.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ flowchart LR
 ## Source of Truth
 
 - **Host inventory**: `100-pve/envs/prod/hosts.tf` → `hosts.jclee-dev`
-- **VM definition**: `100-pve/main.tf` → `vm_definitions`
+- **VM definition**: `100-pve/terraform/locals.tf` → `vm_definitions`
 - **Cloudflare tunnels**: `300-cloudflare/locals.tf` → `tcp_services`
 
 ## Operations

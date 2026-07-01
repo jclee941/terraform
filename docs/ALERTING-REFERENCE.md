@@ -7,7 +7,7 @@ Complete reference for the homelab error handling and alerting pipeline.
 ## Architecture
 
 ```
-Hosts (100, 101, 102, 103, 104, 105, 112)
+Hosts (100, 101, 102, 103, 105, 112, 200, 220)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
@@ -26,7 +26,6 @@ Each host runs a Filebeat config deployed via Terraform (`lxc-config`/`vm-config
 | runner    | 101  | system, github-runner                | true              |
 | traefik   | 102  | system, traefik, traefik-access      | true              |
 | coredns   | 103  | Docker autodiscover, system          | true              |
-| grafana   | 104  | system, grafana                      | true              |
 | elk       | 105  | system, elk-docker, mcp              | true              |
 | mcphub    | 112  | mcphub (Docker JSON), system         | true              |
 
@@ -42,7 +41,7 @@ Template: `105-elk/templates/logstash.conf.tftpl`
 | ---------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `error_classification` | Error category         | CRITICAL_FAILURE, RESOURCE_EXHAUSTION, CONNECTIVITY_FAILURE, GATEWAY_ERROR, AUTH_FAILURE, DATA_ERROR, APPLICATION_ERROR, DEPRECATION, WARNING |
 | `error_severity`       | Severity level         | critical, high, medium, low                                                                                                                   |
-| `service`              | Source service name    | mcphub, grafana, traefik, system, etc.                                                                                                        |
+| `service`              | Source service name    | mcphub, elk, traefik, system, etc.                                                                                                            |
 | `level`                | Log level (normalized) | error, warn, info                                                                                                                             |
 | `log_message`          | Parsed log content     | "Connection refused"                                                                                                                          |
 | `error_message`        | Error-specific message | "ECONNREFUSED"                                                                                                                                |
@@ -72,15 +71,15 @@ error_classification:GATEWAY_ERROR                           # Gateway errors
 - DLQ: Failed events written to `/usr/share/logstash/dlq/failed-{date}.json`
 - Native DLQ enabled in `logstash.yml`
 
-### 3. Alerting — Grafana
+### 3. Alerting
 
-Config: Grafana alerting templates/config rendered through the `100-pve` pipeline.
+Config: alerting templates/config rendered through the `100-pve` pipeline.
 
 **Contact points:**
 
 | Contact Point            | Target                                                          |
 | ------------------------ | --------------------------------------------------------------- |
-| `alert-log-fallback`     | Grafana log (default fallback)                                  |
+| `alert-log-fallback`     | Local alert log fallback                                        |
 
 **Routing policies:**
 
@@ -119,7 +118,7 @@ Config: Grafana alerting templates/config rendered through the `100-pve` pipelin
 
 **Query improvements** (2026-02-12): All ES-based rules now use structured Logstash fields (`error_classification`, `error_severity`) instead of raw text matching, eliminating false positives from noise exclusion patterns.
 
-## Datasource UIDs (Grafana)
+## Datasource UIDs
 
 | Datasource    | UID                 |
 | ------------- | ------------------- |
@@ -133,11 +132,11 @@ Config: Grafana alerting templates/config rendered through the `100-pve` pipelin
 | Filebeat configs  | Terraform-deployed via lxc-config/vm-config modules |
 | Logstash template | `105-elk/templates/logstash.conf.tftpl`             |
 | Logstash config   | `105-elk/config/logstash.yml`                       |
-| Grafana alerts    | Template/config pipeline rendered by `100-pve`      |
+| Alert rules       | Template/config pipeline rendered by `100-pve`      |
 
 ## Known Issues
 
 
 ## Deprecated
 
-- ElastAlert2 — removed. All threshold alerting migrated to Grafana alert rules (10 rules, 3 groups).
+- ElastAlert2 — removed. Threshold alerting is handled by the current alerting rule pipeline.

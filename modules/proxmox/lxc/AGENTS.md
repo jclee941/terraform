@@ -28,7 +28,7 @@ lxc/
 See `variables.tf` for full list.
 
 ## CONSUMERS
-- Called by `100-pve/main.tf` via `module.lxc`.
+- Called by `100-pve/terraform/main.tf` via `module.lxc`.
 
 ## WHERE TO LOOK
 | Task | File | Notes |

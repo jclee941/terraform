@@ -82,8 +82,8 @@ func main() {
 	rootDir := resolveRootDir()
 
 	localValues := make(map[string]string)
-	parseTfvars(filepath.Join(rootDir, "100-pve", "terraform.tfvars"), localValues)
-	parseTfvars(filepath.Join(rootDir, "300-cloudflare", "terraform.tfvars"), localValues)
+	parseTfvars(filepath.Join(rootDir, "100-pve", "terraform", "terraform.tfvars"), localValues)
+	parseTfvars(filepath.Join(rootDir, "300-cloudflare", "terraform", "terraform.tfvars"), localValues)
 
 	secrets := []secretEntry{
 		{"TF_API_TOKEN", "P0", "env:TF_API_TOKEN"},
@@ -91,8 +91,6 @@ func main() {
 		{"TF_VAR_PROXMOX_API_TOKEN", "P0", "tfvars:100-pve:proxmox_api_token"},
 		{"TF_VAR_PROXMOX_INSECURE", "P0", "tfvars:100-pve:proxmox_insecure"},
 
-		{"TF_VAR_GRAFANA_AUTH", "P1", "op:op://homelab/grafana/secrets/service_account_token"},
-		{"TF_VAR_SUPABASE_URL", "P1", "op:op://homelab/supabase/secrets/url"},
 		{"TF_VAR_CLOUDFLARE_ACCOUNT_ID", "P1", "tfvars:300-cloudflare:cloudflare_account_id"},
 		{"TF_VAR_CLOUDFLARE_ZONE_ID", "P1", "tfvars:300-cloudflare:cloudflare_zone_id"},
 		{"TF_VAR_SYNOLOGY_DOMAIN", "P1", "tfvars:300-cloudflare:synology_domain"},

@@ -88,8 +88,9 @@ resource "null_resource" "pbs_gc_schedule" {
 
   provisioner "local-exec" {
     command = <<-EOT
+      PBS_CURL_AUTH='root@pam:${module.onepassword_secrets.secrets["pbs_password"]}'
       curl -sk -X PUT \
-        -u 'root@pam:${module.onepassword_secrets.secrets["pbs_password"]}' \
+        --user "$${PBS_CURL_AUTH}" \
         -H 'Content-Type: application/x-www-form-urlencoded' \
         --data-urlencode 'gc-schedule=${self.triggers.schedule}' \
         'https://${module.onepassword_secrets.metadata["pbs_server"]}:8007/api2/json/config/datastore/backups' \
@@ -107,8 +108,9 @@ resource "null_resource" "pbs_prune_job" {
 
   provisioner "local-exec" {
     command = <<-EOT
+      PBS_CURL_AUTH='root@pam:${module.onepassword_secrets.secrets["pbs_password"]}'
       curl -sk -X POST \
-        -u 'root@pam:${module.onepassword_secrets.secrets["pbs_password"]}' \
+        --user "$${PBS_CURL_AUTH}" \
         -H 'Content-Type: application/json' \
         --data '{"id":"prune-backups-daily","store":"backups","schedule":"daily","keep-last":7,"keep-weekly":4,"keep-monthly":3,"comment":"Daily prune: 7d/4w/3m"}' \
         'https://${module.onepassword_secrets.metadata["pbs_server"]}:8007/api2/json/config/prune' \
@@ -126,8 +128,9 @@ resource "null_resource" "pbs_verify_job" {
 
   provisioner "local-exec" {
     command = <<-EOT
+      PBS_CURL_AUTH='root@pam:${module.onepassword_secrets.secrets["pbs_password"]}'
       curl -sk -X POST \
-        -u 'root@pam:${module.onepassword_secrets.secrets["pbs_password"]}' \
+        --user "$${PBS_CURL_AUTH}" \
         -H 'Content-Type: application/json' \
         --data '{"id":"verify-backups-monthly","store":"backups","schedule":"monthly","ignore-verified":true,"outdated-after":30,"comment":"Monthly verify: re-check chunks >30d"}' \
         'https://${module.onepassword_secrets.metadata["pbs_server"]}:8007/api2/json/config/verify' \

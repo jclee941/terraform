@@ -34,50 +34,37 @@ run "all_item_titles" {
   command = plan
 
   assert {
-    condition     = data.onepassword_item.grafana.title == "grafana"
-    error_message = "Grafana item title should be 'grafana'."
-  }
-
-  assert {
-    condition     = data.onepassword_item.elk.title == "elk"
-    error_message = "ELK item title should be 'elk'."
-  }
-
-  assert {
-    condition     = data.onepassword_item.cloudflare.title == "cloudflare"
+    condition     = data.onepassword_item.this["cloudflare"].title == "cloudflare"
     error_message = "Cloudflare item title should be 'cloudflare'."
   }
 
   assert {
-    condition     = data.onepassword_item.mcphub.title == "mcphub"
-    error_message = "MCPHub item title should be 'mcphub'."
+    condition     = data.onepassword_item.this["elk"].title == "elk"
+    error_message = "ELK item title should be 'elk'."
   }
 
   assert {
-    condition     = data.onepassword_item.supabase.title == "supabase"
-    error_message = "Supabase item title should be 'supabase'."
-  }
-
-  assert {
-    condition     = data.onepassword_item.proxmox.title == "proxmox"
-    error_message = "Proxmox item title should be 'proxmox'."
-  }
-
-  assert {
-    condition     = data.onepassword_item.github.title == "github"
+    condition     = data.onepassword_item.this["github"].title == "github"
     error_message = "GitHub item title should be 'github'."
   }
 
   assert {
-    condition     = data.onepassword_item.telegram.title == "telegram"
+    condition     = data.onepassword_item.this["mcphub"].title == "mcphub"
+    error_message = "MCPHub item title should be 'mcphub'."
+  }
+
+  assert {
+    condition     = data.onepassword_item.this["proxmox"].title == "proxmox"
+    error_message = "Proxmox item title should be 'proxmox'."
+  }
+
+  assert {
+    condition     = data.onepassword_item.this["telegram"].title == "telegram"
     error_message = "Telegram item title should be 'telegram'."
   }
 
-
-
   assert {
-    condition     = data.onepassword_item.archon.title == "archon"
-    error_message = "Archon item title should be 'archon'."
+    condition     = data.onepassword_item.this["traefik"].title == "traefik"
+    error_message = "Traefik item title should be 'traefik'."
   }
-
 }

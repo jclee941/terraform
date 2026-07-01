@@ -14,7 +14,7 @@ docs/
 ├── backup-strategy.md            # Restic/Borg backup policies
 ├── secret-management.md          # Secret management strategy and patterns
 ├── workspace-ordering.md         # Service directory numbering conventions
-└── ALERTING-REFERENCE.md         # Explanations of Grafana alert rules
+└── ALERTING-REFERENCE.md         # Alert rule explanations and thresholds
 ```
 
 ## WHERE TO LOOK

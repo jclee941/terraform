@@ -6,11 +6,12 @@ Shared test workspace for Terraform-native test execution (`.tftest.hcl`) across
 ## STRUCTURE
 ```
 tests/
-├── modules/proxmox/      # Module unit tests + fixtures
-├── modules/shared/       # Shared module contract tests
+├── modules/proxmox/      # Proxmox module unit/rendering tests
+├── modules/shared/       # 1Password module contract tests
+├── modules/cloudflare/   # Cloudflare tunnel module tests
+├── modules/elasticstack/ # ILM/index template module tests
 ├── integration/          # Cross-module pipeline tests
 └── workspaces/           # Workspace-level variable validation tests
-    ├── archon/          # Archon workspace remote-state tests
     ├── cloudflare/      # Cloudflare workspace validation
     ├── elk/             # ELK workspace validation
     ├── gcp/             # GCP workspace validation
@@ -23,12 +24,14 @@ tests/
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
-| Module behavior checks | `tests/modules/` | Module test subtrees (proxmox, shared). |
+| Module behavior checks | `tests/modules/` | Module test subtrees (proxmox, shared, cloudflare, elasticstack). |
 | Proxmox module tests | `tests/modules/proxmox/AGENTS.md` | Proxmox module test suites and fixtures. |
 | Shared module tests | `tests/modules/shared/AGENTS.md` | onepassword-secrets mock-provider contracts. |
+| Cloudflare module tests | `tests/modules/cloudflare/` | Tunnel module contract checks. |
+| Elasticstack module tests | `tests/modules/elasticstack/` | ILM policy and index template checks. |
 | Pipeline integration checks | `tests/integration/AGENTS.md` | Config renderer and hosts-map end-to-end strategy. |
 | Workspace validation checks | `tests/workspaces/AGENTS.md` | Standalone workspace variable-validation strategy. |
-| Specific workspace tests | `tests/workspaces/{archon,cloudflare,elk,gcp,pve,safetywallet,synology,traefik}/` | Per-workspace `*.tftest.hcl` + mock `main.tf`. |
+| Specific workspace tests | `tests/workspaces/{cloudflare,elk,gcp,pve,safetywallet,synology,traefik}/` | Per-workspace `*.tftest.hcl` + mock `main.tf`. |
 
 ## CONVENTIONS
 - Use native `terraform test`; avoid custom runners.
@@ -50,3 +53,6 @@ make test-unit
 make test-integration
 terraform test
 ```
+
+## NOTES
+- `make test` currently runs Proxmox/shared module tests plus integration and selected workspace tests; run cloudflare/elasticstack module test directories directly when changing those modules.

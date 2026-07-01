@@ -1,26 +1,31 @@
 # AGENTS: 112-mcphub/config — MCPHub Configuration
 
 ## OVERVIEW
-Configuration for MCPHub (VM 112). MCP server aggregation and management.
+Runtime/reference config helpers for MCPHub (VM 112). Source-of-truth catalog edits belong in `../mcp_servers.json` and templates in `../templates/`.
 
 ## STRUCTURE
 ```
 config/
-├── mcphub.yml             # MCP server registry
-└── servers/               # Per-server configs
+├── filebeat.yml            # Reference/rendered log forwarding config
+├── entrypoint-patch.go     # Patch helper source
+├── entrypoint-patch        # Built helper artifact
+├── patch-placeholder.cjs   # Runtime patch helper
+└── patch-sdk-schema.cjs    # Runtime patch helper
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Server registry | `mcphub.yml` | List of MCP servers and capabilities |
-| Individual configs | `servers/*.yml` | Server-specific settings |
+| MCP server registry | `../mcp_servers.json` | Catalog SSoT. |
+| Runtime templates | `../templates/AGENTS.md` | Generated environment/settings source. |
+| Patch helper source | `entrypoint-patch.go` | Go helper for runtime patching. |
+| Log forwarding | `filebeat.yml` | Reference config for ELK shipping. |
 
 ## CONVENTIONS
-- Use YAML for all configs
-- Server URLs from `module.hosts`
-- Credentials via 1Password
+- Keep catalog data out of this directory.
+- Keep credentials via 1Password/env placeholders.
+- Treat generated/runtime artifacts here as reference unless a runbook says otherwise.
 
 ## ANTI-PATTERNS
 - NEVER commit API keys or tokens

@@ -25,7 +25,7 @@ vm-config/
 | output | `cloud_init_paths` | - | - | Map of VM name to generated cloud-init file path. |
 
 ## CONSUMERS
-- Called by `100-pve/vm_configs.tf` via `module.vm_config`.
+- Called by `100-pve/terraform/vm_configs.tf` via `module.vm_config`.
 
 ## WHERE TO LOOK
 | Task                       | File           | Notes                                                                              |

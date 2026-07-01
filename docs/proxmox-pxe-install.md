@@ -86,7 +86,7 @@ sudo cp /mnt/iso/boot/initrd.img /volume1/tftpboot/proxmox/initrd-original.img
 
 ### 2.2 Create Automated Installation Answer File
 
-See: `../100-pve/configs/proxmox-answer.toml`
+Create the answer file outside the Git working tree, then copy it into the PXE build directory only on the deployment host.
 
 ### 2.3 Build Custom Initrd
 
@@ -128,10 +128,10 @@ menuentry "Proxmox VE 8.2 - Automated Install (pve2)" {
         quiet \
         splash=silent \
         proxmox-start-auto-installer
-    
+
     echo "Loading initrd..."
     initrd /proxmox/initrd.img
-    
+
     echo "Booting..."
 }
 

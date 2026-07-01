@@ -3,9 +3,6 @@ terraform {
 
   backend "local" {}
 
-  # NOTE: LXC lifecycle is owned by 100-pve/main.tf (module "lxc" for_each).
-  # Config deployment is also owned by 100-pve via config-renderer templates.
-  # This workspace is reserved for future Traefik provider resources.
   required_providers {}
 }
 
@@ -13,7 +10,7 @@ data "terraform_remote_state" "infra" {
   backend = "local"
 
   config = {
-    path = "${path.module}/../../100-pve/terraform.tfstate"
+    path = "${path.module}/../../100-pve/terraform/terraform.tfstate"
   }
 
   # Defaults allow CI to plan without the 100-pve state file present.

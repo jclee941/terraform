@@ -24,3 +24,8 @@ config/
 ## ANTI-PATTERNS
 - NEVER use Elasticsearch output directly — use Logstash
 - NEVER ship without log rotation handling
+
+## NOTES
+- This config targets the Proxmox host, not an LXC guest.
+- Guest Filebeat templates belong in the service-specific directories.
+- Keep Logstash host/port changes synchronized with `105-elk`.

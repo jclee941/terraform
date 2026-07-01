@@ -25,3 +25,9 @@ traefik/
 ## ANTI-PATTERNS
 - NEVER test with real certs in CI
 - NEVER expose test services
+
+## COMMANDS
+```bash
+terraform -chdir=tests/workspaces/traefik test
+make test-workspace SVC=traefik
+```

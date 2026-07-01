@@ -21,12 +21,12 @@ docs/runbooks/
 | Service outage response    | `docs/runbooks/service-down.md`, `docs/runbooks/troubleshooting.md` | Ordered triage and recovery flow. |
 | Deployment/maintenance ops | `docs/runbooks/service-deployment.md`, `docs/runbooks/state-locking.md` | Deployment failure and lock recovery steps. |
 | ELK index migration        | `docs/runbooks/elk-index-migration.md`      | Logstash index pattern fix + stale cleanup. |
-| MCP health triage          | `docs/runbooks/mcp-health-check.md`         | Fix procedures for 1P and Supabase. |
+| MCP health triage          | `docs/runbooks/mcp-health-check.md`         | Fix procedures for MCPHub, 1Password, and enabled catalog servers. |
 | Service recovery baseline  | `docs/runbooks/service-down.md`             | Generic service triage/escalation flow. |
 | Deploy troubleshooting     | `docs/runbooks/service-deployment.md`       | Deployment failure checks and rollback checkpoints. |
 | Data/backup recovery       | `docs/runbooks/backup-restore.md`, `docs/runbooks/disaster-recovery.md` | Restore sequence and DR escalation path. |
 | Policy baseline            | `docs/AGENTS.md`                            | Parent docs conventions and constraints.    |
-| Infra context references   | `../../100-pve/AGENTS.md`, `../../104-grafana/AGENTS.md`, `../../105-elk/AGENTS.md` | Use service-specific procedures with matching workspace rules. |
+| Infra context references   | `../../100-pve/AGENTS.md`, `../../105-elk/AGENTS.md`, `../../112-mcphub/AGENTS.md`, `../../300-cloudflare/AGENTS.md` | Use service-specific procedures with matching workspace rules. |
 
 ## CONVENTIONS
 - Keep runbooks command-first and copy/paste safe.

@@ -20,7 +20,7 @@ flowchart LR
 - **Host inventory**: `100-pve/envs/prod/hosts.tf`
 - **Static config template**: `templates/traefik.yml.tftpl`
 - **Dynamic routes**: `templates/*.yml.tftpl`
-- **Rendered outputs**: `100-pve/configs/rendered/traefik/` (generated)
+- **Rendered outputs**: `100-pve/terraform/configs/rendered/traefik/` (generated)
 
 ## Operations
 

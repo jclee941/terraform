@@ -105,18 +105,18 @@ locals {
         opencode = 8090
       }
     }
-    # synology = {
-    #   vmid  = 215
-    #   ip    = "192.168.50.215"
-    #   roles = ["nas", "storage", "registry", "s3"]
-    #   ports = {
-    #     dsm           = 5000
-    #     dsm_https     = 5001
-    #     registry      = 5051
-    #     minio_api     = 9000
-    #     minio_console = 9001
-    #   }
-    # }
+    synology = {
+      vmid  = 215
+      ip    = "192.168.50.215"
+      roles = ["nas", "storage", "registry", "s3"]
+      ports = {
+        dsm           = 5000
+        dsm_https     = 5001
+        registry      = 5051
+        minio_api     = 9000
+        minio_console = 9001
+      }
+    }
     youtube = {
       vmid  = 220
       ip    = "192.168.50.220"

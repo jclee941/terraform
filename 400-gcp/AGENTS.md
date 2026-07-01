@@ -1,67 +1,55 @@
-# AGENTS: 400-gcp — Google Cloud Platform (PLANNED)
+# AGENTS: 400-gcp — Google Cloud Platform Placeholder
 
-> **Status**: PLANNED — NOT YET IMPLEMENTED
-> **Tier**: Independent (400s cloud)
-> **Apply Order**: Any — parallel with 300-cloudflare
+> **Status**: Placeholder only
+> **Tier**: Independent cloud workspace
+> **Apply Order**: Independent; no dependency on Proxmox workspaces
 
 ## OVERVIEW
+Reserved directory for a future GCP Terraform workspace. No GCP Terraform root exists here yet; current repo support is limited to routing metadata and placeholder tests.
 
-Planned Google Cloud Platform workspace for cloud-native resources. This workspace is reserved for future GCP infrastructure but has not been implemented yet.
-
-**Current State**: Directory does not exist. Only Makefile alias and test scaffolding are prepared.
-
-## PLANNED STRUCTURE
-
+## STRUCTURE
 ```
 400-gcp/
-├── main.tf              # GCP provider + resources (GCE, Cloud SQL, GKE, etc.)
-├── variables.tf         # Input variables
-├── outputs.tf           # Outputs
-├── versions.tf          # Provider constraints (google ~> 5.0)
-├── onepassword.tf       # Secret lookup via shared module
-└── AGENTS.md            # This file
+└── AGENTS.md            # Current workspace guidance
 ```
 
-## PREPARED INTEGRATIONS
+## CURRENT SURFACE
+| Component | Location | Status |
+|-----------|----------|--------|
+| Make alias | `Makefile` → `ALIAS_gcp := 400-gcp` | Prepared route only. |
+| Tests | `tests/workspaces/gcp/` | Placeholder Terraform test workspace. |
+| Secrets module | `modules/shared/onepassword-secrets/` | Has GCP enablement inputs for future use. |
+| Terraform root | `400-gcp/*.tf` | Not present. |
+| CI workflow | `.github/workflows/` | No dedicated GCP deployment workflow. |
 
-| Component | Status | Location |
-|-----------|--------|----------|
-| Makefile alias | ✅ Ready | `ALIAS_gcp := 400-gcp` |
-| 1Password secrets | ✅ Prepared | `enable_gcp` variable in onepassword-secrets module |
-| Test scaffolding | ⚠️ Placeholder | `tests/workspaces/gcp/` — minimal stub only |
-| CI pipeline | ❌ Not configured | Would need `.github/workflows/` addition |
+## WHERE TO LOOK
+| Task | Location | Notes |
+|------|----------|-------|
+| Add first GCP resources | `400-gcp/` | Create real Terraform files only from a concrete requirement. |
+| Test placeholder behavior | `tests/workspaces/gcp/` | Keep tests mocked; no live GCP calls. |
+| Secret lookup pattern | `modules/shared/onepassword-secrets/` | Reuse existing 1Password module contract. |
+| Make routing | `Makefile` | Check service alias before adding commands. |
 
-## INTENDED RESOURCES (Inference)
-
-Based on workspace patterns, this would likely provision:
-- GCP Compute Engine instances
-- Cloud SQL databases
-- GKE clusters (if Kubernetes workloads needed)
-- Cloud Storage buckets
-- IAM service accounts and policies
-
-## CONVENTIONS (To Follow)
-
-- Use `google` provider (~> 5.0)
-- Secrets via `module.onepassword_secrets` with `enable_gcp = true`
-- Follow Independent tier patterns from `300-cloudflare/`
-- No Proxmox dependencies — pure cloud resources
+## CONVENTIONS
+- Use a local backend unless a project decision introduces remote state.
+- Keep GCP credentials in 1Password or CI secrets, never tfvars.
+- Keep provider setup explicit: project ID, region, billing assumptions, and APIs.
+- Add tests with the first real Terraform resources; placeholder tests should stay minimal.
+- Document any cross-cloud dependency in the root AGENTS file when it becomes real.
 
 ## ANTI-PATTERNS
+- Do not invent intended GCP products before requirements exist.
+- Do not use default GCP project or ambient user credentials in committed config.
+- Do not wire live GCP APIs into default tests.
+- Do not copy Cloudflare patterns without checking GCP-specific provider behavior.
 
-- **DO NOT** create until infrastructure requirements are defined
-- **NEVER** commit GCP credentials to repository
-- **NEVER** use default GCP project — always specify explicit project ID
+## COMMANDS
+```bash
+make validate SVC=gcp
+make test-workspace SVC=gcp
+terraform -chdir=tests/workspaces/gcp test
+```
 
 ## NOTES
-
-- Referenced in root `AGENTS.md` as part of 400s cloud tier.
-
-## NEXT STEPS TO IMPLEMENT
-
-1. Create `400-gcp/` directory
-2. Add `google` provider to `versions.tf`
-3. Define required GCP resources
-4. Wire up `onepassword-secrets` with `enable_gcp = true`
-5. Add real tests to `tests/workspaces/gcp/`
-6. Configure CI job in `.github/workflows/`.
+- This file is intentionally about current repo state, not a roadmap.
+- When real Terraform files are added, replace this placeholder with resource-specific guidance.

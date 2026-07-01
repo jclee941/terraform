@@ -6,9 +6,9 @@ Static configuration files for Traefik reverse proxy (LXC 102). Complements dyna
 ## STRUCTURE
 ```
 config/
-├── traefik.yml            # Static config: entrypoints, providers, TLS
-├── tls/                   # TLS certificate configs
-└── middleware/            # Global middleware definitions
+├── traefik.yml            # Static config: entrypoints/providers
+├── middlewares.yml        # Static middleware definitions
+└── filebeat.yml           # Log forwarding config
 ```
 
 ## WHERE TO LOOK
@@ -17,8 +17,8 @@ config/
 |------|----------|-------|
 | Entrypoints | `traefik.yml` | HTTP (80), HTTPS (443), Dashboard (8080) |
 | Providers | `traefik.yml` | File provider for dynamic routes |
-| TLS defaults | `tls/` | Default cert resolver, options |
-| Middleware | `middleware/` | Rate limit, auth, headers |
+| Middleware | `middlewares.yml` | Static middleware definitions. |
+| Log forwarding | `filebeat.yml` | Traefik logs to ELK. |
 
 ## CONVENTIONS
 - Static config in `config/`, dynamic routes in `templates/`

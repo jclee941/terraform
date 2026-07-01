@@ -13,17 +13,18 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 
 | VMID | Name      | Type | Backup Schedule | Purpose                                   |
 | ---- | --------- | ---- | --------------- | ----------------------------------------- |
+| 101  | runner    | LXC  | 02:00 UTC daily | GitHub Actions runner state and cache     |
 | 102  | traefik   | LXC  | 02:00 UTC daily | Reverse proxy / edge router               |
+| 103  | coredns   | LXC  | 02:00 UTC daily | Split DNS resolver                        |
 | 105  | elk       | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch               |
-| 107  | supabase  | LXC  | 02:00 UTC daily | Supabase BaaS (PostgreSQL, Auth, Storage) |
-| 108  | archon    | LXC  | 02:00 UTC daily | AI Knowledge Management (Archon)          |
 | 112  | mcphub    | VM   | 03:00 UTC daily | MCP Hub + 1Password Connect               |
+| 200  | jclee-dev | VM   | 03:00 UTC daily | Development workstation                   |
+| 220  | youtube   | VM   | 03:00 UTC daily | Media worker                              |
+| 215  | synology  | NAS  | NAS snapshots   | Shared storage, registry, S3-compatible cache |
 
 ### What's NOT Backed Up (Non-Critical)
 
 - **100-pve**: Proxmox host itself (system-level config)
-- **101-runner**: GitHub Actions runner (ephemeral, re-deployable via Terraform)
-- **220-sandbox**: Sandbox (ephemeral)
 
 ## Backup Storage & Infrastructure
 
@@ -58,14 +59,14 @@ Oldest backup automatically deleted: ~2025-11-11 (90 days old)
 
 ## Backup Execution Details
 
-### LXC Containers (102, 105, 107, 108)
+### LXC Containers (101, 102, 103, 105)
 
 **Schedule**: Daily at **02:00 UTC** (9:00 PM UTC-5)
 **Command**:
 
 ```bash
 pvesh create /cluster/backup \
-  --vmid 102,105,107,108 \
+  --vmid 101,102,103,105 \
   --schedule "0 2 * * *" \
   --storage local \
   --mode snapshot \
@@ -82,14 +83,14 @@ pvesh create /cluster/backup \
 - `--compress zstd`: Modern compression (better than gzip/lzo)
 - Notification to root upon completion/failure
 
-### VM (112-mcphub)
+### VMs (112-mcphub, 200-jclee-dev, 220-youtube)
 
 **Schedule**: Daily at **03:00 UTC** (10:00 PM UTC-5)
 **Command**:
 
 ```bash
 pvesh create /cluster/backup \
-  --vmid 112 \
+  --vmid 112,200,220 \
   --schedule "0 3 * * *" \
   --storage local \
   --mode snapshot \

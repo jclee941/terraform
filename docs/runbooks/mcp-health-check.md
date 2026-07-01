@@ -25,10 +25,9 @@ All MCP servers are **STDIO child processes** inside the MCPHub container — th
 | github      | stdio               | ✅ Connected               | —                                       |
 | git         | stdio               | ✅ Connected               | —                                       |
 | onepassword | stdio               | ✅ Connected               | [1Password](#1password-empty-vault)     |
-| **archon**  | **streamable-http** | ✅ Connected (native HTTP) | [Archon](#archon-streamable-http)       |
 | proxmox     | sse                 | ✅ Connected               | —                                       |
 | playwright  | sse                 | ✅ Connected               | —                                       |
-| supabase    | stdio               | ⏳ Pending (new)           | —                                       |
+| dev-browser | stdio               | ✅ Connected               | —                                       |
 
 ## Diagnosis
 
@@ -61,7 +60,7 @@ docker ps --filter name=mcphub --format 'table {{.Names}}\t{{.Status}}\t{{.Ports
 docker logs mcphub --tail 50
 
 # View logs for a specific server failure
-docker logs mcphub 2>&1 | grep -i "archon\|error\|fail" | tail -20
+docker logs mcphub 2>&1 | grep -i "error\|fail" | tail -20
 ```
 
 ### Validate catalog schema
@@ -77,7 +76,7 @@ Expected: `✅ Catalog valid: 13 servers (hub=13, local=0, external=0)`
 
 ### MCP workspace path visibility check (Git/Kratos path mismatch)
 
-**Symptom:** MCP calls fail with `Directory does not exist` even though the path exists on your local shell.
+**Symptom:** MCP calls fail with a path visibility error even though the path exists on your local shell.
 
 **Root cause:** MCPHub runs in a container and resolves filesystem paths inside container namespace. Host-only paths are not directly visible unless bind-mounted.
 
@@ -193,40 +192,11 @@ gh secret set OP_CONNECT_TOKEN
 gh secret set OP_CONNECT_HOST
 ```
 
-
-### Archon: Streamable HTTP
-
-**Transport:** `streamable-http` (native MCPHub support, no bridge)
-
-Archon runs on LXC 108:8051 using Streamable HTTP transport. MCPHub connects directly via its native `streamable-http` transport type — no `mcp-remote` bridge needed.
-
-**Verify archon server is healthy:**
-
-```bash
-# From any network host
-curl -sf http://192.168.50.108:8051/health | jq .
-# Expected: {"success":true,"status":"ready","uptime_seconds":...}
-```
-
-**Verify MCPHub connection:**
-
-```bash
-curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "archon") | {name, status}'
-# Expected: {"name":"archon","status":"connected"}
-```
-
-**If archon shows disconnected:**
-
-1. Confirm archon server is running: `curl -sf http://192.168.50.108:8051/health`
-2. Check MCPHub logs: `docker logs mcphub 2>&1 | grep -i archon | tail -20`
-3. Verify `mcp_servers.json` has `"transport": "streamable-http"` and `"url": "http://192.168.50.108:8051/mcp"`
-4. Restart MCPHub: `docker restart mcphub && sleep 15`
-5. Re-check: `curl -sf http://192.168.50.112:3000/api/servers | jq '.data[] | select(.name == "archon")'`
 ---
 
 ## Prevention
 
-1. **Scheduled monitoring:** `terraform-drift.yml` runs Mon-Fri 00:00 UTC and catches state drift across all 7 workspaces.
+1. **Scheduled monitoring:** `terraform-drift.yml` runs Mon-Fri 00:00 UTC and catches state drift across the configured workspace matrix.
 2. **Catalog validation:** Run `python3 112-mcphub/validate_mcps.py` before any MCPHub config change.
 3. **Credential rotation:** Follow `docs/runbooks/credential-rotation.md` for scheduled token renewal.
 4. **1Password CI test:** `onepassword-test.yml` runs on PR, `workflow_dispatch`, and after `mcp-health-check.yml` to verify vault connectivity and all 12 expected items.

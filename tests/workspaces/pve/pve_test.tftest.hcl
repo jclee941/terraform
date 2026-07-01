@@ -20,6 +20,8 @@ override_module {
   target = module.onepassword_secrets
   outputs = {
     secrets = {                                                    # pragma: allowlist secret
+      proxmox_api_token_value         = "mock-secret"              # pragma: allowlist secret
+      proxmox_ssh_private_key         = "mock-secret"              # pragma: allowlist secret
       mcphub_admin_password           = "mock-secret"              # pragma: allowlist secret
       mcphub_op_service_account_token = "mock-secret"              # pragma: allowlist secret
       mcphub_op_connect_token         = "mock-secret"              # pragma: allowlist secret
@@ -28,54 +30,32 @@ override_module {
       elk_elastic_password            = "mock-secret"              # pragma: allowlist secret
       elk_kibana_password             = "mock-secret"              # pragma: allowlist secret
       github_personal_access_token    = "mock-secret"              # pragma: allowlist secret
-      openai_api_key                  = "mock-secret"              # pragma: allowlist secret
-      proxmox_ssh_private_key         = "mock-secret"              # pragma: allowlist secret
-      supabase_anon_key               = "mock-secret"              # pragma: allowlist secret
-      supabase_dashboard_password     = "mock-secret"              # pragma: allowlist secret
-      supabase_db_password            = "mock-secret"              # pragma: allowlist secret
-      supabase_jwt_secret             = "mock-secret"              # pragma: allowlist secret
-      supabase_service_role_key       = "mock-secret"              # pragma: allowlist secret
-
-      telegram_bot_token            = "mock-secret" # pragma: allowlist secret
-      grafana_admin_password        = "mock-secret" # pragma: allowlist secret
-      supabase_anon_key             = "mock-secret" # pragma: allowlist secret
-      supabase_dashboard_password   = "mock-secret" # pragma: allowlist secret
-      supabase_db_password          = "mock-secret" # pragma: allowlist secret
-      supabase_jwt_secret           = "mock-secret" # pragma: allowlist secret
-      supabase_service_role_key     = "mock-secret" # pragma: allowlist secret
-      grafana_admin_password        = "mock-secret" # pragma: allowlist secret
-      grafana_service_account_token = "mock-secret" # pragma: allowlist secret
-      proxmox_api_token_value       = "mock-secret" # pragma: allowlist secret
-
-      supabase_service_key         = "mock-secret"  # pragma: allowlist secret
-      archon_anthropic_key         = "mock-secret"  # pragma: allowlist secret
-      cloudflare_api_key           = "mock-secret"  # pragma: allowlist secret
-      cloudflare_api_token         = "mock-secret"  # pragma: allowlist secret
-      traefik_htpasswd_hash        = "mock-secret"  # pragma: allowlist secret
-      cloudflare_tunnel_token      = "mock-secret"  # pragma: allowlist secret
-      google_oauth_client_id       = "mock-secret"  # pragma: allowlist secret
-      google_oauth_client_secret   = "mock-secret"  # pragma: allowlist secret
-      pbs_password                 = "mock-secret"  # pragma: allowlist secret
-      registry_minio_user          = "test-mc-user" # pragma: allowlist secret
-      registry_minio_password      = "test-mc-pass" # pragma: allowlist secret
-      synology_user                = "mock-secret"  # pragma: allowlist secret
-      synology_password            = "mock-secret"  # pragma: allowlist secret
-      youtube_google_client_id     = "mock-secret"  # pragma: allowlist secret
-      youtube_google_client_secret = "mock-secret"  # pragma: allowlist secret
-      youtube_google_refresh_token = "mock-secret"  # pragma: allowlist secret
+      telegram_bot_token              = "mock-secret"              # pragma: allowlist secret
+      cloudflare_api_key              = "mock-secret"              # pragma: allowlist secret
+      cloudflare_api_token            = "mock-secret"              # pragma: allowlist secret
+      traefik_htpasswd_hash           = "mock-secret"              # pragma: allowlist secret
+      cloudflare_tunnel_token         = "mock-secret"              # pragma: allowlist secret
+      google_oauth_client_id          = "mock-secret"              # pragma: allowlist secret
+      google_oauth_client_secret      = "mock-secret"              # pragma: allowlist secret
+      pbs_password                    = "mock-secret"              # pragma: allowlist secret
+      registry_minio_user             = "test-mc-user"             # pragma: allowlist secret
+      registry_minio_password         = "test-mc-pass"             # pragma: allowlist secret
+      synology_user                   = "mock-secret"              # pragma: allowlist secret
+      synology_password               = "mock-secret"              # pragma: allowlist secret
+      youtube_google_client_id        = "mock-secret"              # pragma: allowlist secret
+      youtube_google_client_secret    = "mock-secret"              # pragma: allowlist secret
+      youtube_google_refresh_token    = "mock-secret"              # pragma: allowlist secret
     }
     metadata = {
-      supabase_url                = "https://supabase.jclee.me"
-      supabase_dashboard_username = "admin"
-      cloudflare_email            = "test@example.com"
-      cloudflare_account_id       = "abcdef0123456789abcdef0123456789"
-      cloudflare_zone_id          = "1234567890abcdef1234567890abcdef"
-      pbs_server                  = "192.168.50.200"
-      pbs_datastore               = "backup"
-      pbs_username                = "backup@pbs"
-      pbs_fingerprint             = "aa:bb:cc:dd"
-      youtube_google_project_id   = "mock-project-id"
-      youtube_channel_id          = "mock-channel-id"
+      cloudflare_email          = "test@example.com"
+      cloudflare_account_id     = "abcdef0123456789abcdef0123456789"
+      cloudflare_zone_id        = "1234567890abcdef1234567890abcdef"
+      pbs_server                = "192.168.50.200"
+      pbs_datastore             = "backup"
+      pbs_username              = "backup@pbs"
+      pbs_fingerprint           = "aa:bb:cc:dd"
+      youtube_google_project_id = "mock-project-id"
+      youtube_channel_id        = "mock-channel-id"
     }
   }
 }

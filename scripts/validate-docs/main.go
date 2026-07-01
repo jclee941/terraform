@@ -23,13 +23,14 @@ type fileReport struct {
 }
 
 type summary struct {
-	filesScanned         int
-	filesWithIssues      int
-	brokenLinks          int
-	unpairedMermaid      int
-	nonexistentDriftRef  int
-	removedWorkspaceRef  int
-	bazelGovernance      int
+	filesScanned          int
+	filesWithIssues       int
+	brokenLinks           int
+	unpairedMermaid       int
+	nonexistentDriftRef   int
+	legacyGeneratedPath   int
+	retiredMonitoringRef  int
+	bazelGovernance       int
 	keyDocsMissingMermaid int
 }
 
@@ -47,8 +48,11 @@ var (
 	mermaidFenceEndRe   = regexp.MustCompile("^" + "\x60\x60\x60" + "\\s*$")
 
 	// References to check
-	driftDetectionRe   = regexp.MustCompile(`docs/runbooks/drift-detection\.md`)
-	grafanaWorkspaceRe = regexp.MustCompile(`(?i)104-grafana/`)
+	driftDetectionRe        = regexp.MustCompile(`docs/runbooks/drift-detection\.md`)
+	legacyGeneratedPath     = "100-pve" + "/configs/"
+	legacyGeneratedConfigRe = regexp.MustCompile(regexp.QuoteMeta(legacyGeneratedPath))
+	retiredMonitoringHost   = "192.168.50." + "104:9090"
+	retiredMonitoringRe     = regexp.MustCompile(regexp.QuoteMeta(retiredMonitoringHost))
 
 	// Bazel governance patterns (outside ADR/archive context)
 	bazelGovernanceRe = regexp.MustCompile(`(?i)\b(Bazel|BUILD\.bazel|OWNERS)\b`)
@@ -64,8 +68,9 @@ var (
 
 // Directory names to skip entirely (matches any path component)
 var skipDirNames = map[string]bool{
-	".terraform": true,
-	".git":      true,
+	".terraform":   true,
+	".git":         true,
+	".omo":         true,
 	"node_modules": true,
 }
 
@@ -125,8 +130,10 @@ func main() {
 					sum.unpairedMermaid++
 				case "nonexistent-drift-ref":
 					sum.nonexistentDriftRef++
-				case "removed-workspace-ref":
-					sum.removedWorkspaceRef++
+				case "legacy-generated-config-path":
+					sum.legacyGeneratedPath++
+				case "retired-monitoring-endpoint":
+					sum.retiredMonitoringRef++
 				case "bazel-governance":
 					sum.bazelGovernance++
 				case "key-doc-missing-mermaid":
@@ -319,12 +326,19 @@ func validateFile(filePath string, repoRoot string, checkMermaid bool) ([]issue,
 			})
 		}
 
-		// Check for 104-grafana workspace reference
-		if grafanaWorkspaceRe.MatchString(line) {
+		if legacyGeneratedConfigRe.MatchString(line) {
 			issues = append(issues, issue{
-				typeName: "removed-workspace-ref",
+				typeName: "legacy-generated-config-path",
 				line:     lineNo,
-				message:  "references 104-grafana/ workspace which has been removed",
+				message:  fmt.Sprintf("references legacy %s path; use 100-pve/terraform/configs/", legacyGeneratedPath),
+			})
+		}
+
+		if retiredMonitoringRe.MatchString(line) {
+			issues = append(issues, issue{
+				typeName: "retired-monitoring-endpoint",
+				line:     lineNo,
+				message:  fmt.Sprintf("references retired monitoring endpoint %s", retiredMonitoringHost),
 			})
 		}
 
@@ -411,7 +425,8 @@ func printReport(repoRoot string, reports []fileReport, sum summary, verbose boo
 	fmt.Printf("  broken-link: %d\n", sum.brokenLinks)
 	fmt.Printf("  unpaired-mermaid: %d\n", sum.unpairedMermaid)
 	fmt.Printf("  nonexistent-drift-ref: %d\n", sum.nonexistentDriftRef)
-	fmt.Printf("  removed-workspace-ref: %d\n", sum.removedWorkspaceRef)
+	fmt.Printf("  legacy-generated-config-path: %d\n", sum.legacyGeneratedPath)
+	fmt.Printf("  retired-monitoring-endpoint: %d\n", sum.retiredMonitoringRef)
 	fmt.Printf("  bazel-governance: %d\n", sum.bazelGovernance)
 	fmt.Printf("  key-doc-missing-mermaid: %d\n", sum.keyDocsMissingMermaid)
 }

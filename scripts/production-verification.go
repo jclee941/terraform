@@ -22,8 +22,9 @@ const (
 )
 
 var (
-	passed int32
-	failed int32
+	passed  int32
+	failed  int32
+	skipped int32
 )
 
 func testResult(testNum int, testName string, success bool) {
@@ -34,6 +35,11 @@ func testResult(testNum int, testName string, success bool) {
 		fmt.Printf("%s❌ Test %d FAILED%s: %s\n", red, testNum, nc, testName)
 		atomic.AddInt32(&failed, 1)
 	}
+}
+
+func testSkipped(testNum int, testName string) {
+	fmt.Printf("%s⚠️  Test %d SKIPPED%s: %s\n", yellow, testNum, nc, testName)
+	atomic.AddInt32(&skipped, 1)
 }
 
 func httpGet(url string, headers map[string]string) (*http.Response, error) {
@@ -83,6 +89,10 @@ func httpStatusCodeBasicAuth(url, user, pass string) string {
 	}
 	defer resp.Body.Close()
 	return fmt.Sprintf("%d", resp.StatusCode)
+}
+
+func httpStatusOK(status string) bool {
+	return status == "200"
 }
 
 // getJSON fetches a URL and decodes JSON into the provided interface.
@@ -136,9 +146,7 @@ func envOrDefault(key, defaultVal string) string {
 }
 
 func main() {
-	grafanaToken := os.Getenv("GRAFANA_TOKEN")
-	promHost := envOrDefault("PROM_HOST", "192.168.50.104")
-	grafanaHost := envOrDefault("GRAFANA_HOST", "192.168.50.104")
+	kibanaHost := envOrDefault("KIBANA_HOST", "192.168.50.105")
 	psqlHost := envOrDefault("PSQL_HOST", "192.168.50.100")
 	elkHost := envOrDefault("ELK_HOST", "192.168.50.105")
 	elasticsearchPassword := os.Getenv("ELASTICSEARCH_PASSWORD")
@@ -150,10 +158,11 @@ func main() {
 		sig := <-sigCh
 		p := atomic.LoadInt32(&passed)
 		f := atomic.LoadInt32(&failed)
+		s := atomic.LoadInt32(&skipped)
 		fmt.Println()
 		fmt.Println("====================================")
 		fmt.Printf("INTERRUPTED (signal: %v)\n", sig)
-		fmt.Printf("Completed: %d tests before interruption\n", p+f)
+		fmt.Printf("Completed: %d tests before interruption\n", p+f+s)
 		fmt.Println("====================================")
 		os.Exit(1)
 	}()
@@ -162,56 +171,24 @@ func main() {
 	fmt.Println("====================================")
 	fmt.Println()
 
-	if grafanaToken == "" {
-		fmt.Printf("%s⚠️  WARNING: GRAFANA_TOKEN not set. Skipping authenticated Grafana tests.%s\n", yellow, nc)
-		fmt.Println()
-	}
 	if elasticsearchPassword == "" {
 		fmt.Printf("%s⚠️  WARNING: ELASTICSEARCH_PASSWORD not set. Skipping authenticated ES tests.%s\n", yellow, nc)
 		fmt.Println()
 	}
 
-	// ── Test 1: Prometheus targets UP ──
-	fmt.Println("Test 1: Checking Prometheus targets status...")
+	fmt.Println("Test 1: Checking Kibana HTTP...")
 	func() {
-		var data struct {
-			Data struct {
-				ActiveTargets []struct {
-					Health string `json:"health"`
-				} `json:"activeTargets"`
-			} `json:"data"`
-		}
-		err := getJSON(fmt.Sprintf("http://%s:9090/api/v1/targets", promHost), nil, &data)
-		if err != nil {
-			fmt.Println("  Active targets: 0 / 0 UP")
-			testResult(1, "Prometheus targets", false)
-			return
-		}
-		total := len(data.Data.ActiveTargets)
-		up := 0
-		for _, t := range data.Data.ActiveTargets {
-			if t.Health == "up" {
-				up++
-			}
-		}
-		fmt.Printf("  Active targets: %d / %d UP\n", up, total)
-		testResult(1, "Prometheus targets", up >= 9)
-	}()
-
-	// ── Test 2: Grafana HTTP response ──
-	fmt.Println("Test 2: Checking Grafana HTTP...")
-	func() {
-		status := httpStatusCode(fmt.Sprintf("http://%s:3000/api/health", grafanaHost))
-		testResult(2, fmt.Sprintf("Grafana HTTP (expecting 200, got %s)", status), status == "200")
+		status := httpStatusCode(fmt.Sprintf("http://%s:5601/api/status", kibanaHost))
+		testResult(1, fmt.Sprintf("Kibana HTTP (expecting 200, got %s)", status), httpStatusOK(status))
 	}()
 
 	// ── Test 3: Load test (100 requests) ──
-	fmt.Println("Test 3: Running load test (100 requests)...")
+	fmt.Println("Test 3: Running Kibana load test (100 requests)...")
 	func() {
 		successCount := 0
-		url := fmt.Sprintf("http://%s:3000/api/health", grafanaHost)
+		url := fmt.Sprintf("http://%s:5601/api/status", kibanaHost)
 		for i := 0; i < 100; i++ {
-			if httpStatusCode(url) == "200" {
+			if httpStatusOK(httpStatusCode(url)) {
 				successCount++
 			}
 		}
@@ -225,7 +202,7 @@ func main() {
 		_, err := exec.LookPath("psql")
 		if err != nil {
 			fmt.Println("  (Skipping - psql client not installed)")
-			testResult(4, "PostgreSQL connection (Skipped)", true)
+			testSkipped(4, "PostgreSQL connection")
 			return
 		}
 		cmd := exec.Command("psql", "-h", psqlHost, "-U", "postgres", "-d", "postgres", "-c", "SELECT 1")
@@ -236,114 +213,40 @@ func main() {
 
 	// ── Test 5: Alert rules count ──
 	fmt.Println("Test 5: Checking alert rules...")
-	if grafanaToken != "" {
-		func() {
-			headers := map[string]string{"Authorization": "Bearer " + grafanaToken}
-			// The response is a map of namespace -> []rules
-			var rulerResp map[string]json.RawMessage
-			err := getJSON(fmt.Sprintf("http://%s:3000/api/ruler/grafana/rules", grafanaHost), headers, &rulerResp)
-			if err != nil {
-				fmt.Println("  Alert rules: 0 found")
-				testResult(5, "Alert rules (expecting ≥14)", false)
-				return
-			}
-			// Count all rules across all namespaces
-			alertCount := 0
-			for _, raw := range rulerResp {
-				var groups []struct {
-					Rules []json.RawMessage `json:"rules"`
-				}
-				if json.Unmarshal(raw, &groups) == nil {
-					for _, g := range groups {
-						alertCount += len(g.Rules)
-					}
-				}
-			}
-			fmt.Printf("  Alert rules: %d found\n", alertCount)
-			testResult(5, "Alert rules (expecting ≥14)", alertCount >= 14)
-		}()
-	} else {
-		fmt.Println("  (Skipping - No Token)")
-		testResult(5, "Alert rules (Skipped)", true)
-	}
+	fmt.Println("  (Skipping - alerting runtime not configured in current inventory)")
+	testSkipped(5, "Alert rules")
 
 	// ── Test 6: Contact points ──
 	fmt.Println("Test 6: Checking contact points...")
-	if grafanaToken != "" {
-		func() {
-			headers := map[string]string{"Authorization": "Bearer " + grafanaToken}
-			var contactPoints []json.RawMessage
-			err := getJSON(fmt.Sprintf("http://%s:3000/api/v1/provisioning/contact-points", grafanaHost), headers, &contactPoints)
-			if err != nil {
-				testResult(6, "Contact points (expecting ≥1)", false)
-				return
-			}
-			contactCount := len(contactPoints)
-			fmt.Printf("  Contact points: %d found\n", contactCount)
-			testResult(6, "Contact points (expecting ≥1)", contactCount >= 1)
-		}()
-	} else {
-		testResult(6, "Contact points (Skipped)", true)
-	}
+	testSkipped(6, "Contact points")
 
-	// ── Test 7: Prometheus metrics ──
-	fmt.Println("Test 7: Checking metrics in Prometheus...")
+	fmt.Println("Test 7: Checking Logstash exporter metrics...")
 	func() {
-		var data struct {
-			Data struct {
-				Result []json.RawMessage `json:"result"`
-			} `json:"data"`
-		}
-		err := getJSON(fmt.Sprintf("http://%s:9090/api/v1/query?query=up", promHost), nil, &data)
-		if err != nil {
-			testResult(8, "Prometheus metrics", false)
-			return
-		}
-		metrics := len(data.Data.Result)
-		testResult(7, "Prometheus metrics", metrics > 0)
+		status := httpStatusCode(fmt.Sprintf("http://%s:9198/metrics", elkHost))
+		testResult(7, fmt.Sprintf("Logstash exporter metrics (expecting 200, got %s)", status), status == "200")
 	}()
 
 	// ── Test 8: SLA Dashboard exists ──
 	fmt.Println("Test 8: Checking SLA Dashboard...")
 	dashboardCount := 0
 	var dashboardUID string
-	if grafanaToken != "" {
-		func() {
-			headers := map[string]string{"Authorization": "Bearer " + grafanaToken}
-			var searchResults []struct {
-				UID string `json:"uid"`
-			}
-			err := getJSON(fmt.Sprintf("http://%s:3000/api/search?query=homelab-overview", grafanaHost), headers, &searchResults)
-			if err != nil {
-				testResult(8, "homelab dashboard exists", false)
-				return
-			}
-			dashboardCount = len(searchResults)
-			if dashboardCount > 0 {
-				dashboardUID = searchResults[0].UID
-			}
-			testResult(8, "homelab dashboard exists", dashboardCount > 0)
-		}()
-	} else {
-		testResult(8, "homelab dashboard exists (Skipped)", true)
-		dashboardCount = 0
-	}
+	testSkipped(8, "homelab dashboard exists")
+	dashboardCount = 0
 
 	// ── Test 9: Dashboard panels count ──
 	fmt.Println("Test 9: Checking SLA Dashboard panels...")
-	if grafanaToken != "" && dashboardCount > 0 {
+	if dashboardCount > 0 {
 		func() {
 			if dashboardUID == "" {
 				testResult(9, "Dashboard panels", false)
 				return
 			}
-			headers := map[string]string{"Authorization": "Bearer " + grafanaToken}
 			var dashResp struct {
 				Dashboard struct {
 					Panels []json.RawMessage `json:"panels"`
 				} `json:"dashboard"`
 			}
-			err := getJSON(fmt.Sprintf("http://%s:3000/api/dashboards/uid/%s", grafanaHost, dashboardUID), headers, &dashResp)
+			err := getJSON(fmt.Sprintf("http://%s:5601/api/saved_objects/dashboard/%s", kibanaHost, dashboardUID), nil, &dashResp)
 			if err != nil {
 				testResult(9, "Dashboard panels", false)
 				return
@@ -353,7 +256,7 @@ func main() {
 			testResult(9, "Dashboard panels (expecting >0)", panelCount > 0)
 		}()
 	} else {
-		testResult(9, "Dashboard panels (Skipped)", true)
+		testSkipped(9, "Dashboard panels")
 	}
 
 	// ── Test 10: ELK Elasticsearch Cluster Health ──
@@ -374,7 +277,7 @@ func main() {
 		}()
 	} else {
 		fmt.Println("  (Skipping - ELASTICSEARCH_PASSWORD not set)")
-		testResult(10, "Elasticsearch health (Skipped)", true)
+		testSkipped(10, "Elasticsearch health")
 	}
 
 	// ── Test 11: Logstash Monitoring API responding ──
@@ -384,8 +287,7 @@ func main() {
 		testResult(11, fmt.Sprintf("Logstash monitoring API (expecting 200, got %s)", status), status == "200")
 	}()
 
-	// ── Test 12: Logstash Prometheus Exporter ──
-	fmt.Println("Test 12: Checking Logstash Prometheus Exporter...")
+	fmt.Println("Test 12: Checking Logstash metrics exporter...")
 	func() {
 		status := httpStatusCode(fmt.Sprintf("http://%s:9198/metrics", elkHost))
 		testResult(12, fmt.Sprintf("Logstash Exporter (expecting 200, got %s)", status), status == "200")
@@ -408,13 +310,14 @@ func main() {
 		}()
 	} else {
 		fmt.Println("  (Skipping - ELASTICSEARCH_PASSWORD not set)")
-		testResult(13, "Elasticsearch Indices (Skipped)", true)
+		testSkipped(13, "Elasticsearch Indices")
 	}
 
 	// ── Summary ──
 	p := atomic.LoadInt32(&passed)
 	f := atomic.LoadInt32(&failed)
-	total := p + f
+	s := atomic.LoadInt32(&skipped)
+	total := p + f + s
 
 	fmt.Println()
 	fmt.Println("====================================")
@@ -422,13 +325,17 @@ func main() {
 	fmt.Println("====================================")
 	fmt.Printf("%sPassed: %d / %d%s\n", green, p, total, nc)
 	fmt.Printf("%sFailed: %d / %d%s\n", red, f, total, nc)
+	fmt.Printf("%sSkipped: %d / %d%s\n", yellow, s, total, nc)
 	fmt.Println()
 
-	if f == 0 {
+	if f == 0 && s == 0 {
 		fmt.Printf("%s✅ ALL TESTS PASSED - SYSTEM READY FOR GO-LIVE%s\n", green, nc)
 		os.Exit(0)
-	} else {
-		fmt.Printf("%s⚠️  %d TEST(S) FAILED - CHECK ISSUES BEFORE DEPLOYMENT%s\n", red, f, nc)
+	}
+	if f == 0 {
+		fmt.Printf("%s⚠️  VERIFICATION INCOMPLETE - SKIPPED TESTS REQUIRE FOLLOW-UP%s\n", yellow, nc)
 		os.Exit(1)
 	}
+	fmt.Printf("%s⚠️  %d TEST(S) FAILED - CHECK ISSUES BEFORE DEPLOYMENT%s\n", red, f, nc)
+	os.Exit(1)
 }

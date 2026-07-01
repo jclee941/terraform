@@ -1,17 +1,17 @@
 # AGENTS: tests/workspaces - Workspace Validation Tests
 
 ## OVERVIEW
-Workspace-level variable validation tests for standalone stacks (`100-pve`, `102-traefik`, `108-archon`, `300-cloudflare`) using mock providers, remote state overrides, and negative assertions.
+Workspace-level variable validation tests for standalone stacks using mock providers, remote-state overrides, and negative assertions.
 
 ## STRUCTURE
 ```text
 tests/workspaces/
-├── archon/                     # Archon workspace remote-state tests
 ├── cloudflare/                 # Cloudflare workspace validation tests
 ├── elk/                        # ELK workspace validation tests
-├── grafana/                    # Grafana workspace validation tests
-├── ollama/                     # Ollama workspace remote-state + output tests
+├── gcp/                        # GCP workspace validation tests
 ├── pve/                        # Proxmox workspace validation tests
+├── safetywallet/               # SafetyWallet workspace validation tests
+├── synology/                   # Synology workspace validation tests
 ├── traefik/                    # Traefik workspace remote-state tests
 ```
 
@@ -21,10 +21,10 @@ tests/workspaces/
 | Cloudflare workspace validation | `cloudflare/cloudflare_test.tftest.hcl` | Input format/range checks with `expect_failures`. |
 | PVE workspace validation | `pve/pve_test.tftest.hcl` | Endpoint/token/node/network/VMID range/SSH key validation with `override_module` for secrets. |
 | ELK workspace validation | `elk/elk_test.tftest.hcl` | Data view and index pattern validation with mock ES provider. |
-| Grafana workspace validation | `grafana/grafana_test.tftest.hcl` | Dashboard and alert rule plan validation with mock Grafana provider. |
 | Traefik workspace validation | `traefik/traefik_test.tftest.hcl` | Remote-state consumption plan test (no providers). |
-| Archon workspace validation | `archon/archon_test.tftest.hcl` | Remote-state consumption plan test (no providers). |
-| Ollama workspace validation | `ollama/ollama_test.tftest.hcl` | Remote-state consumption + `host_inventory_loaded` output assertion. |
+| GCP workspace validation | `gcp/main.tftest.hcl` | GCP workspace validation with mocked provider behavior. |
+| SafetyWallet workspace validation | `safetywallet/main.tftest.hcl` | Reserved external-service workspace checks. |
+| Synology workspace validation | `synology/main.tftest.hcl` | Flat workspace validation checks. |
 
 ## CONVENTIONS
 - Keep all tests `plan`-only and provider-mocked.

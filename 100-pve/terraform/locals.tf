@@ -211,6 +211,7 @@ locals {
       mcphub      = "mcphub.yml.tftpl"
       nas         = "nas.yml.tftpl"
       registry    = "registry.yml.tftpl"
+      minio       = "minio.yml.tftpl"
       filebeat    = "filebeat.yml.tftpl"
       cloudflared = "cloudflared-docker-compose.yml.tftpl"
       middlewares = "middlewares.yml.tftpl"
