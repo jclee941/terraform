@@ -56,8 +56,6 @@
 ├── DEPENDENCY_MAP.md
 ├── LICENSE
 ├── Makefile
-├── OWNERS
-├── OWNERS_ALIASES
 ├── README.md
 ├── build.env
 ├── 103-coredns/                # Tier 2 — Template-only split DNS (Corefile, docker-compose, filebeat)
@@ -342,7 +340,7 @@ make setup
 
 | 역할 / Role | 위치 / Location |
 |---|---|
-| 소유자 / Owners | [OWNERS](OWNERS), [OWNERS_ALIASES](OWNERS_ALIASES) |
+| 소유자 / Owner | 저장소 관리자 |
 | 도메인 / Domain | `jclee.me` |
 | CI 정책 / CI policy | `.github/workflows/`, `.github/AGENTS.md` (저장소 내부 문서) |
 | 아키텍처 결정 / ADRs | `docs/adr/` (append-only) |
@@ -358,7 +356,6 @@ make setup
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 기여 절차 |
 | [LICENSE](LICENSE) | 라이선스 전문 |
 | [103-coredns/README.md](103-coredns/README.md) | CoreDNS 템플릿 안내 |
-| [105-elk/README.md](105-elk/README.md) | ELK 스택 안내 |
 | [105-elk/terraform/README.md](105-elk/terraform/README.md) | ELK Terraform 안내 |
 | [112-mcphub/README.md](112-mcphub/README.md) | MCP Hub 안내 |
 | [300-cloudflare/README.md](300-cloudflare/README.md) | Cloudflare 안내 |
