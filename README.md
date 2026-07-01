@@ -16,7 +16,7 @@ A monorepo of self-contained infrastructure-as-code (IaC) workspaces for a perso
 - [Architecture / 아키텍처](#architecture--아키텍처)
 - [Repository Layout / 저장소 구성](#repository-layout--저장소-구성)
 - [Workspaces / 워크스페이스](#workspaces--워크스페이스)
-- [Numbering Convention / 번호 규칙](#numbering--규칙)
+- [Numbering Convention / 번호 규칙](#numbering--번호-규칙)
 - [Workspace Tiers and Apply Order / 워크스페이스 계층과 적용 순서](#workspace-tiers-and-apply-order--워크스페이스-계층과-적용-순서)
 - [Quick Start / 빠른 시작](#quick-start--빠른-시작)
 - [Configuration / 설정](#configuration--설정)
@@ -31,458 +31,593 @@ A monorepo of self-contained infrastructure-as-code (IaC) workspaces for a perso
 
 ## Overview / 개요
 
-This repository hosts the IaC used to run a homelab and a small set of satellite external integrations (Cloudflare DNS/Access/Logpush, ELK observability, MCPHub tooling, CoreDNS service discovery, etc.). There are **no application sources** here — only manifests, Terraform modules, templates, helper Go scripts, and Docker Compose stacks needed to deploy them.
+This repository hosts the IaC used to run a personal homelab and a small set of satellite external integrations (Cloudflare DNS/Access/Logpush, ELK observability, MCPHub tooling, CoreDNS service discovery, etc.). There are **no application sources** here — only manifests, Terraform modules, templates, helper Go scripts, and Docker Compose stacks needed to deploy them.
 
-이 저장소는 홈랩과 위성 외부 통합(Cloudflare DNS/Access/Logpush, ELK 관측성, MCPHub 도구, CoreDNS 서비스 디스커버리 등)을 운영하는 데 필요한 IaC를 한곳에 모아둔 곳입니다. 여기에는 **애플리케이션 소스는 없으며**, 배포에 필요한 매니페스트, Terraform 모듈, 템플릿, 보조 Go 스크립트, Docker Compose 스택만 포함됩니다.
+이 저장소는 개인 홈랩과 위성(衛星) 외부 통합(Cloudflare DNS/Access/Logpush, ELK 관측성, MCPHub 도구, CoreDNS 서비스 디스커버리 등)을 운영하는 데 필요한 IaC를 한곳에 모아둔 곳입니다. 여기에는 **애플리케이션 소스는 없으며**, 배포에 필요한 매니페스트, Terraform 모듈, 템플릿, 보조 Go 스크립트, Docker Compose 스택만 포함됩니다.
 
-Three workspace flavors are supported / 세 가지 워크스페이스 종류를 지원합니다.
+Three workspace flavors co-exist / 세 가지 형태의 워크스페이스가 공존합니다:
 
-| Flavor / 종류 | Purpose / 용도 | Marker / 표식 |
+| Flavor / 형태 | Contents / 내용 | Apply / 적용 방식 |
 | --- | --- | --- |
-| Terraform workspace / Terraform 워크스페이스 | Owns `.tf` files; provisions real resources / `.tf` 파일 보유, 실제 리소스 프로비저닝 | `main.tf`, `providers.tf`, `versions.tf` |
-| Template-only workspace / 템플릿 전용 워크스페이스 | Pure `.tftpl` files rendered by `100-pve` / 순수 `.tftpl` 파일, `100-pve`가 렌더링 | `templates/*.tftpl` only |
-| App workspace with `terraform/` subdir / `terraform/` 하위 디렉터리를 가진 앱 워크스페이스 | App sources at workspace root, Terraform nested inside / 앱 소스는 루트, Terraform은 내부에 위치 | `terraform/main.tf` |
-
-A single root `Makefile` is the only operator entry point. Every Terraform and operational task flows through `make <target> [SVC=<workspace>]`.
-
-루트 `Makefile` 하나가 운영자의 유일한 진입점입니다. 모든 Terraform 및 운영 작업은 `make <target> [SVC=<workspace>]` 형태로 실행됩니다.
+| Terraform workspace | `*.tf` files, providers, state | `terraform plan/apply` (CI/CD only) |
+| Template-only workspace | `*.tftpl` files only | Rendered by Tier 0 at apply time |
+| Operational helper scripts | Go scripts (stdlib-only) under `scripts/` | Run locally or in CI jobs |
 
 ---
 
 ## Features / 주요 기능
 
-- **Single Makefile entry point** — One interface for `init`, `plan`, `apply` (CI/CD only), `validate`, `fmt`, `lint`, `test`, `drift-check`, `docs`, and helper scripts.
-  **단일 Makefile 진입점** — `init`, `plan`, `apply`(CI/CD 전용), `validate`, `fmt`, `lint`, `test`, `drift-check`, `docs`, 헬퍼 스크립트를 하나의 인터페이스로 제공합니다.
-- **Flat `NNN-SERVICE` naming** — Predictable numeric ordering for Proxmox, ingress, observability, app VMs, and external integrations.
-  **평탄한 `NNN-SERVICE` 명명** — Proxmox, 인그레스, 관측성, 앱 VM, 외부 통합을 위한 예측 가능한 숫자 순서.
-- **Workspace tiers** — Tier 0 (`100-pve`) provisions all LXC/VM lifecycles; Tier 1 consumes its `remote_state`; independent workspaces (Cloudflare, GitHub, Slack, GCP) run in any order.
-  **워크스페이스 계층** — Tier 0(`100-pve`)가 모든 LXC/VM 생명주기를 프로비저닝하고, Tier 1은 그 `remote_state`를 소비합니다. 독립 워크스페이스(Cloudflare, GitHub, Slack, GCP)는 어떤 순서로든 실행할 수 있습니다.
-- **1Password secret injection** — Centralized secret management via the shared `onepassword-secrets` module.
-  **1Password 시크릿 주입** — 공유 `onepassword-secrets` 모듈을 통한 중앙화된 시크릿 관리.
-- **Template-driven config rendering** — `hosts.tf` (single source of truth) feeds the `config-renderer` module, which `templatefile()`s `*.tftpl` sources into rendered configs deployed over SSH to `/opt/<service>/`.
-  **템플릿 기반 설정 렌더링** — `hosts.tf`(단일 진실 공급원)가 `config-renderer` 모듈로 전달되어, `*.tftpl` 소스를 `templatefile()`로 렌더링한 뒤 SSH로 `/opt/<service>/`에 배포합니다.
-- **Cross-workspace observability** — Filebeat → Logstash → Elasticsearch → Kibana with ILM, wired in `105-elk`.
-  **크로스 워크스페이스 관측성** — `105-elk`에 구성된 Filebeat → Logstash → Elasticsearch → Kibana + ILM 파이프라인.
-- **Bilingual docs** — All major docs (this README, `ARCHITECTURE.md`, per-workspace `AGENTS.md` / `README.md`) ship in Korean + English.
-  **이중 언어 문서** — 모든 주요 문서(이 README, `ARCHITECTURE.md`, 워크스페이스별 `AGENTS.md` / `README.md`)가 한국어 + 영어로 제공됩니다.
+| Feature / 기능 | Description / 설명 |
+| --- | --- |
+| **Flat `NNN-SERVICE` naming / 평탄한 명명** | Single-tier numeric prefix; no nested `envs/` per service. |
+| **Single `Makefile` control plane / 단일 Makefile 통제** | `make init/plan/verify/lint/test SVC=<alias>` covers every workspace. |
+| **Workspace aliases / 워크스페이스 별칭** | Short names (`elk`, `traefik`, `pve`) or full paths — see `ALIAS_*` in the Makefile. |
+| **1Password-backed secrets / 1Password 기반 비밀 관리** | Secrets are fetched at plan/apply time via the shared `onepassword-secrets` module. |
+| **CI/CD-only apply / CI/CD 전용 적용** | Local `apply` is intentionally disabled to keep state changes auditable. |
+| **Template rendering pipeline / 템플릿 렌더링 파이프라인** | `*.tftpl` files are rendered by Tier 0 and SSH-deployed to `/opt/<service>/`. |
+| **Stdlib-only Go helpers / 표준 라이브러리 전용 Go 헬퍼** | Operational scripts (ILM setup, watcher setup, promtail removal) use only the Go stdlib. |
+| **Bilingual docs / 이중 언어 문서** | Top-level docs are provided in English and Korean. |
 
 ---
 
 ## Architecture / 아키텍처
 
-The high-level request flow / 요청 흐름 요약:
+The system is organized as numbered workspaces under one repository, with a small set of independent external integrations. A central Tier 0 workspace (`100-pve`) provisions the LXC/VM fleet and renders templates for downstream services.
 
-1. Operator (or AI agent) edits Terraform / templates / `hosts.tf` in this repo.
-2. Push to `master` triggers GitHub Actions on the self-hosted runner LXC (`101-runner`).
-3. CI/CD runs `terraform init` → `plan` → `apply` per workspace in tier order.
-4. Tier 0 (`100-pve`) provisions the Proxmox LXC/VM fleet and renders per-service `*.tftpl` configs.
-5. Tier 1 (`102-traefik`, `103-coredns`, `105-elk`, `108-archon`, etc.) consume `100-pve`'s `remote_state` and configure themselves.
-6. Independent workspaces (`300-cloudflare`, `301-github`, `320-slack`, `400-gcp`) configure external systems.
-7. ELK pipeline (`105-elk`) ingests logs from Filebeat across the fleet.
+시스템은 하나의 저장소 안에서 번호가 매겨진 워크스페이스로 구성되며, 소규모의 독립적인 외부 통합을 포함합니다. 중앙 Tier 0 워크스페이스(`100-pve`)가 LXC/VM 플릿을 프로비저닝하고 다운스트림 서비스의 템플릿을 렌더링합니다.
 
-운영자(또는 AI 에이전트)가 저장소의 Terraform / 템플릿 / `hosts.tf`를 수정합니다. `master` 푸시는 셀프 호스트 러너 LXC(`101-runner`)의 GitHub Actions를 트리거하고, CI/CD가 워크스페이스별로 계층 순서대로 `init` → `plan` → `apply`를 수행합니다. Tier 0(`100-pve`)가 Proxmox LXC/VM 플릿을 프로비저닝하고 서비스별 `*.tftpl` 설정을 렌더링하며, Tier 1이 그 `remote_state`를 소비해 자신을 구성합니다.
+### Workspaces at a Glance / 워크스페이스 한눈에 보기
 
-### Runtime Roles / 런타임 역할
-
-| Layer / 계층 | Component / 구성요소 | Location / 위치 | Responsibility / 책임 |
+| Alias / 별칭 | Directory / 디렉터리 | Tier / 계층 | Role / 역할 |
 | --- | --- | --- | --- |
-| CI/CD | GitHub Actions runner | `101-runner` LXC | Hosts runners; drives `make plan`/`apply` |
-| Orchestration / 오케스트레이션 | Proxmox VE | Tier 0 host | LXC/VM lifecycle, networking, storage |
-| Compute / 컴퓨트 | LXC fleet | `101`–`115` prefixes | Lightweight services (runner, traefik, coredns, elk, …) |
-| Compute / 컴퓨트 | VM fleet | `200`–`299` prefixes | Heavier workloads (OC, Synology, YouTube) |
-| Ingress / 인그레스 | Traefik | `102-traefik/terraform` | Reverse proxy + TLS termination |
-| Discovery / 디스커버리 | CoreDNS | `103-coredns/templates` | LAN service discovery via `*.lan` |
-| Observability / 관측성 | ELK stack | `105-elk/terraform` | Logs, ILM, Kibana dashboards |
-| Tooling / 도구 | MCPHub | `112-mcphub` | Multi-server MCP tooling with op-Connect |
-| External / 외부 | Cloudflare | `300-cloudflare` | DNS, Access, Tunnel, Logpush |
-| External / 외부 | GitHub, Slack, GCP | `301-github`, `320-slack`, `400-gcp` | Repo mgmt, chat, cloud |
-| App VMs / 앱 VM | oc, synology, youtube | `200-oc`, `215-synology`, `220-youtube` | Service workloads |
+| `jclee` | `80-jclee/` | Physical | Workstation / physical host resources |
+| `pve` | `100-pve/` | 0 (core) | Central orchestrator; provisions all LXC/VM |
+| `runner` | `101-runner/` | 1 (infra) | GitHub Actions self-hosted runner LXC |
+| `traefik` | `102-traefik/terraform/` | 1 (infra) | Ingress reverse proxy; routes external traffic |
+| `coredns` | `103-coredns/` | Template-only | Service discovery via Corefile rendering |
+| `elk` | `105-elk/terraform/` | 1 (infra) | Elasticsearch + Logstash + Kibana stack |
+| `supabase` | `107-supabase/` | 1 (infra) | Self-hosted Supabase (database, auth, storage) |
+| `archon` | `108-archon/terraform/` | 1 (infra) | Archon coordination/automation service |
+| `n8n` | `110-n8n/` | 1 (infra) | Workflow automation (Docker Compose stack) |
+| `mcphub` | `112-mcphub/` | 1 (infra) | MCP server hub with patches + connectors |
+| `oc` | `200-oc/` | 2 (VM app) | OpenClaw VM workload |
+| `synology` | `215-synology/` | 2 (VM app) | Synology VM workload |
+| `youtube` | `220-youtube/` | 2 (VM app) | YouTube automation VM workload |
+| `cloudflare` | `300-cloudflare/` | 3 (external) | DNS, Access, Identity, Logpush |
+| `github` | `301-github/` | 3 (external) | GitHub repo/team configuration |
+| `safetywallet` | `310-safetywallet/` | 3 (external) | SafetyWallet product integration |
+| `slack` | `320-slack/` | 3 (external) | Slack workspace configuration |
+| `gcp` | `400-gcp/` | 3 (external) | Google Cloud Platform resources |
 
-### Configuration Pipeline / 설정 파이프라인
+> Note / 참고: Only a subset of directories is present in this checkout. The `Makefile` exposes every alias above; missing directories cause `make init/plan` to print an informative error and list available workspaces.
+>
+> 위 목록 중 일부분의 디렉터리만 이 체크아웃에 존재합니다. `Makefile`은 위 모든 별칭을 지원하며, 누락된 디렉터리는 `make init/plan` 실행 시 안내 메시지와 사용 가능한 워크스페이스 목록을 출력합니다.
+
+### Tier Definitions / 계층 정의
+
+| Tier / 계층 | Description / 설명 | Apply Order / 적용 순서 |
+| --- | --- | --- |
+| **0 (core)** | Provisions LXC/VM lifecycles via Proxmox | Apply **first** / 가장 먼저 적용 |
+| **1 (infra)** | Depends on Proxmox resources; reads remote state | Apply **second**, in parallel / 그 다음 병렬 적용 |
+| **2 (VM app)** | Application VMs that read infra state | Apply **third** / 세 번째 적용 |
+| **3 (external)** | No Proxmox dependency | Apply **any time** in parallel / 병렬, 자유 순서 |
+| **Template-only** | No `.tf` files; rendered by Tier 0 at apply | N/A — never independently applied |
+
+### Deployment Flow (CI/CD) / 배포 흐름(CI/CD)
+
+Numbered request flow / 번호가 매겨진 요청 흐름:
+
+1. **Push to `master`** / `master` 브랜치에 푸시
+2. **GitHub Actions runner LXC (`101-runner`)** picks up the CI job / 러너 LXC가 작업을 받음
+3. **Per-workspace job** validates, formats, lints, and runs `terraform plan` / 워크스페이스별 잡이 검증·포맷·린트 후 `terraform plan` 수행
+4. **1Password lookup** injects secrets into Terraform via the shared `onepassword-secrets` module / 1Password에서 비밀을 조회해 주입
+5. **Plan artifact** is uploaded for review and merged via the configured apply workflow / 플랜 산출물이 업로드 및 리뷰 후 적용
+6. **Tier 0 (`100-pve`)** renders `*.tftpl` files into `configs/` and SSH-deploys them to target LXC/VM nodes / Tier 0가 템플릿을 렌더링 후 SSH로 배포
+7. **Traefik (`102-traefik`)** picks up new routes; Cloudflare tunnel/DNS propagate external traffic / Traefik이 새 라우트를 수신하고 Cloudflare가 외부 트래픽을 전달
+
+### Config Rendering Pipeline / 설정 렌더링 파이프라인
 
 ```
 hosts.tf (SSoT) → module.hosts → onepassword_secrets + config_renderer
   → templatefile(.tftpl) → configs/ → SSH deploy to /opt/<service>/
 ```
 
-### Request Flow / 요청 흐름
+`hosts.tf` is the single source of truth for IPs, VMIDs, roles, and ports. The `config_renderer` module materializes every `*.tftpl` into a concrete file that is then shipped to the target node.
 
-1. Edit `hosts.tf` or per-service `*.tftpl` files.
-2. Run `make plan SVC=<workspace>` to preview.
-3. Push to `master` → CI applies the change.
-4. `100-pve` (when changed) re-renders downstream configs.
-5. ELK and Cloudflare observe every layer.
-
-자세한 내용은 [ARCHITECTURE.md](./ARCHITECTURE.md)와 [DEPENDENCY_MAP.md](./DEPENDENCY_MAP.md)를 참조하세요.
+`hosts.tf`가 IP, VMID, 역할, 포트의 단일 진실 공급원(SSOT)입니다. `config_renderer` 모듈이 모든 `*.tftpl`을 실재 파일로 구체화한 후 대상 노드에 전송합니다.
 
 ---
 
 ## Repository Layout / 저장소 구성
 
-```text
+The top-level layout reflects the actual contents of this checkout. Each numbered `NNN-SERVICE` directory may contain templates, Terraform code, helper scripts, and per-service documentation.
+
+최상위 구성은 이 체크아웃의 실제 내용을 반영합니다. 번호가 매겨진 각 `NNN-SERVICE` 디렉터리에는 템플릿, Terraform 코드, 헬퍼 스크립트, 워크스페이스별 문서가 포함될 수 있습니다.
+
+```
 /
-├── 103-coredns/              # Tier 1: CoreDNS service discovery (templates only)
-│   └── templates/            # Corefile, docker-compose.yml, filebeat.yml
-├── 105-elk/                  # Tier 1: ELK observability
-│   ├── scripts/              # Go operational tooling (remove-promtail, setup-ilm, setup-watcher)
-│   ├── config/               # Dockerfile.logstash, filebeat, ilm, logstash conf + yml
-│   ├── templates/            # *.tftpl rendered by 100-pve
-│   └── terraform/            # checks.tf, main.tf, onepassword.tf, outputs.tf, providers.tf, validation.tf, variables.tf, versions.tf
-├── 112-mcphub/               # MCPHub tooling
+├── AGENTS.md                  # AI/operator knowledge base (project context)
+├── ARCHITECTURE.md            # Full architecture reference
+├── CODE_STYLE.md              # Naming, file org, variable, template conventions
+├── CONTRIBUTING.md            # Contribution guidelines
+├── DEPENDENCY_MAP.md          # Module dependency graph + template inventory
+├── LICENSE                    # Repository license
+├── Makefile                   # Single control plane (init/plan/verify/lint/test/...)
+├── OWNERS                     # Code owners
+├── OWNERS_ALIASES             # Owner aliases for CODEOWNERS
+├── README.md                  # This file
+├── build.env                  # Build environment variables
+│
+├── 103-coredns/               # CoreDNS service discovery templates
+│   ├── AGENTS.md
+│   ├── README.md
+│   └── templates/
+│       ├── AGENTS.md
+│       ├── Corefile.tftpl
+│       ├── docker-compose.yml.tftpl
+│       └── filebeat.yml.tftpl
+│
+├── 105-elk/                   # ELK observability stack
+│   ├── AGENTS.md
+│   ├── docker-compose.yml
+│   ├── ilm-policy.json
+│   ├── scripts/               # Go stdlib-only operational scripts
+│   │   ├── remove-promtail
+│   │   ├── remove-promtail.go
+│   │   ├── setup-ilm.go
+│   │   └── setup-watcher.go
+│   ├── config/                # Reference configs / 빌드 입력
+│   │   ├── AGENTS.md
+│   │   ├── Dockerfile.logstash
+│   │   ├── filebeat.yml
+│   │   ├── ilm-policy.json
+│   │   ├── logstash.conf
+│   │   └── logstash.yml
+│   ├── templates/             # Rendered by Tier 0 at apply time
+│   │   ├── AGENTS.md
+│   │   ├── Dockerfile.logstash.tftpl
+│   │   ├── docker-compose.yml.tftpl
+│   │   ├── filebeat.yml.tftpl
+│   │   ├── ilm-policy.json.tftpl
+│   │   ├── logstash.conf.tftpl
+│   │   ├── logstash.yml.tftpl
+│   │   └── setup-ilm.sh.tftpl
+│   └── terraform/             # Tier 1 Terraform workspace
+│       ├── AGENTS.md
+│       ├── README.md
+│       ├── checks.tf
+│       ├── main.tf
+│       ├── onepassword.tf
+│       ├── outputs.tf
+│       ├── providers.tf
+│       ├── validation.tf
+│       ├── variables.tf
+│       └── versions.tf
+│
+├── 112-mcphub/                # MCP server hub with n8n patching
+│   ├── AGENTS.md
 │   ├── Dockerfile.dev-browser
 │   ├── Dockerfile.playwright
 │   ├── Dockerfile.proxmox
+│   ├── README.md
 │   ├── mcp_servers.json
-│   ├── validate_mcps.py
-│   ├── patches/n8n/          # license-state.js, license.js for n8n patches
-│   ├── op-mcp-server/        # Node.js 1Password Connect bridge (index.mjs, package*.json)
-│   ├── config/               # entrypoint-patch.go, filebeat.yml, patch-*.cjs
-│   └── templates/            # docker-compose*.yml.tftpl, filebeat.yml.tftpl, mcp_settings.json.tftpl
-├── 300-cloudflare/           # External: Cloudflare DNS / Access / Tunnel / Logpush
-│   └── *.tf                  # access, checks, dns, identity-provider, locals, logpush, main, onepassword, outputs(-homelab|-jclee|-synology)
-├── 103-coredns/AGENTS.md     # Per-workspace AI/operator guidance
-├── AGENTS.md                 # Repo-wide AI/operator guidance
-├── ARCHITECTURE.md           # Architecture reference
-├── CODE_STYLE.md             # Naming, file org, variable, template conventions
-├── CONTRIBUTING.md           # Contribution guide
-├── DEPENDENCY_MAP.md         # Module dependency graph + template inventory
-├── LICENSE
-├── Makefile                  # Single entry point (see Commands Reference)
-├── OWNERS                    # Repo ownership roster
-├── OWNERS_ALIASES            # Alias map for OWNERS
-├── README.md                 # This document
-└── build.env                 # Build-time environment variables
+│   ├── validate_mcps.py       # Validates MCP server definitions
+│   ├── patches/n8n/           # n8n license-state patches
+│   │   ├── license-state.js
+│   │   └── license.js
+│   ├── op-mcp-server/         # 1Password-backed MCP server (Node.js)
+│   │   ├── AGENTS.md
+│   │   ├── index.mjs
+│   │   ├── package-lock.json
+│   │   └── package.json
+│   ├── config/                # Entrypoint patch utilities
+│   │   ├── AGENTS.md
+│   │   ├── entrypoint-patch.go
+│   │   ├── filebeat.yml
+│   │   ├── patch-placeholder.cjs
+│   │   └── patch-sdk-schema.cjs
+│   └── templates/             # Compose + settings templates
+│       ├── AGENTS.md
+│       ├── docker-compose-op-connect.yml.tftpl
+│       ├── docker-compose.yml.tftpl
+│       ├── filebeat.yml.tftpl
+│       └── mcp_settings.json.tftpl
+│
+└── 300-cloudflare/            # Cloudflare DNS/Access/Identity/Logpush
+    ├── AGENTS.md
+    ├── README.md
+    ├── access.tf
+    ├── checks.tf
+    ├── dns.tf
+    ├── identity-provider.tf
+    ├── locals.tf
+    ├── logpush.tf
+    ├── main.tf
+    ├── onepassword.tf
+    ├── outputs-homelab.tf
+    ├── outputs-jclee.tf
+    ├── outputs-synology.tf
+    └── outputs.tf
 ```
 
-> The exact on-disk layout may include additional workspaces (`80-jclee`, `100-pve`, `101-runner`, `102-traefik`, `107-supabase`, `108-archon`, `110-n8n`, `200-oc`, `215-synology`, `220-youtube`, `301-github`, `310-safetywallet`, `320-slack`, `400-gcp`) and shared `modules/` (not listed above). The four directories above are what this README inspects directly.
-> 실제 디스크 레이아웃에는 위에 나열되지 않은 추가 워크스페이스와 공유 `modules/` 디렉터리가 포함될 수 있습니다. 위에 표시된 네 개 디렉터리는 이 README가 직접 검사한 항목입니다.
+> Note / 참고: The `ALIAS_*` map in the Makefile references additional workspaces (`80-jclee`, `100-pve`, `101-runner`, `102-traefik`, `107-supabase`, `108-archon`, `110-n8n`, `200-oc`, `215-synology`, `220-youtube`, `301-github`, `310-safetywallet`, `320-slack`, `400-gcp`) that are defined for alias routing but whose directories are not present in this particular checkout. They will appear once those workspaces are added.
+>
+> `Makefile`의 `ALIAS_*` 맵은 별칭 라우팅을 위해 정의된 추가 워크스페이스(`80-jclee`, `100-pve`, `101-runner`, `102-traefik`, `107-supabase`, `108-archon`, `110-n8n`, `200-oc`, `215-synology`, `220-youtube`, `301-github`, `310-safetywallet`, `320-slack`, `400-gcp`)를 참조하지만, 이 체크아웃에는 해당 디렉터리가 아직 포함되어 있지 않습니다. 추가되면 자동으로 인식됩니다.
 
 ---
 
 ## Workspaces / 워크스페이스
 
-The four workspaces with content shipped in this tree / 이 트리에 직접 포함된 네 개 워크스페이스.
+### Tier 0 — Core Orchestrator / 핵심 오케스트레이터
 
-### 103-coredns (template-only) — CoreDNS LAN service discovery
+| Workspace | Path | Responsibilities / 책임 |
+| --- | --- | --- |
+| `pve` | `100-pve/` | Provisions all LXC/VM lifecycles; renders every `*.tftpl` and SSH-deploys rendered output. |
 
-| File | Purpose |
-| --- | --- |
-| `templates/Corefile.tftpl` | CoreDNS zone config (forwarders, `*.lan` resolution) |
-| `templates/docker-compose.yml.tftpl` | Container runtime definition |
-| `templates/filebeat.yml.tftpl` | Filebeat shipper config for ELK ingestion |
+### Tier 1 — Infrastructure / 인프라
 
-### 105-elk (full Terraform + scripts) — Centralized logging
+| Workspace | Path | Responsibilities / 책임 |
+| --- | --- | --- |
+| `traefik` | `102-traefik/terraform/` | Ingress reverse proxy; consumes `remote_state` from `100-pve`. |
+| `coredns` | `103-coredns/` | Service discovery via rendered Corefile. |
+| `elk` | `105-elk/terraform/` | Elasticsearch + Logstash + Kibana observability. |
+| `supabase` | `107-supabase/` | Self-hosted Supabase stack. |
+| `archon` | `108-archon/terraform/` | Archon coordination service. |
+| `n8n` | `110-n8n/` | Workflow automation (Docker Compose). |
+| `mcphub` | `112-mcphub/` | MCP server hub (1Password-backed `op-mcp-server`, n8n license patches). |
+| `runner` | `101-runner/` | Self-hosted GitHub Actions runner LXC. |
 
-| File | Purpose |
-| --- | --- |
-| `docker-compose.yml` | Local Compose stack used during development |
-| `ilm-policy.json` | Index Lifecycle Management policy reference |
-| `scripts/remove-promtail.go`, `scripts/remove-promtail` | Removes Promtail from older hosts |
-| `scripts/setup-ilm.go` | Applies ILM policy to Elasticsearch |
-| `scripts/setup-watcher.go` | Watches indices and triggers ILM rollovers |
-| `config/Dockerfile.logstash`, `config/filebeat.yml`, `config/ilm-policy.json`, `config/logstash.conf`, `config/logstash.yml` | Pre-rendered reference configs |
-| `templates/*.tftpl` | Terraform-rendered equivalents of `config/` (one-to-one mapping) |
-| `terraform/checks.tf`, `validation.tf` | Pre/post condition checks |
-| `terraform/main.tf`, `providers.tf`, `versions.tf` | Module declarations, provider pinning |
-| `terraform/onepassword.tf` | 1Password secret references |
-| `terraform/outputs.tf` | Outputs (ELK URLs, credentials path) |
-| `terraform/variables.tf` | Input variables |
+### Tier 2 — VM-Based Applications / VM 기반 애플리케이션
 
-### 112-mcphub (app + Terraform nested) — Multi-MCP server hub
+| Workspace | Path | Responsibilities / 책임 |
+| --- | --- | --- |
+| `oc` | `200-oc/` | OpenClaw VM workload. |
+| `synology` | `215-synology/` | Synology VM workload. |
+| `youtube` | `220-youtube/` | YouTube automation VM workload. |
 
-| File | Purpose |
-| --- | --- |
-| `Dockerfile.dev-browser`, `Dockerfile.playwright` | Custom MCP image builds |
-| `Dockerfile.proxmox` | Proxmox MCP image build |
-| `mcp_servers.json` | MCP server registry |
-| `validate_mcps.py` | Validates MCP server configuration shape |
-| `patches/n8n/license.js`, `patches/n8n/license-state.js` | Runtime patch targets for n8n |
-| `op-mcp-server/index.mjs`, `package.json`, `package-lock.json` | Node.js 1Password Connect bridge |
-| `config/entrypoint-patch.go` | Container entrypoint patcher |
-| `config/filebeat.yml` | Filebeat shipper |
-| `config/patch-placeholder.cjs`, `config/patch-sdk-schema.cjs` | Generated SDK patch scaffolding |
-| `templates/docker-compose.yml.tftpl`, `templates/docker-compose-op-connect.yml.tftpl` | Container runtimes |
-| `templates/filebeat.yml.tftpl` | Filebeat config |
-| `templates/mcp_settings.json.tftpl` | Rendered MCP settings JSON |
+### Tier 3 — External Integrations / 외부 통합
 
-### 300-cloudflare (Terraform only) — External DNS / Access / Logpush
+| Workspace | Path | Responsibilities / 책임 |
+| --- | --- | --- |
+| `cloudflare` | `300-cloudflare/` | DNS zones, Access applications, Identity provider, Logpush jobs. |
+| `github` | `301-github/` | Repository and team configuration. |
+| `safetywallet` | `310-safetywallet/` | SafetyWallet product integration. |
+| `slack` | `320-slack/` | Slack workspace configuration. |
+| `gcp` | `400-gcp/` | Google Cloud Platform resources. |
+| `jclee` | `80-jclee/` | Physical workstation host resources. |
 
-| File | Purpose |
-| --- | --- |
-| `access.tf` | Cloudflare Access applications + policies |
-| `dns.tf` | DNS records (A, CNAME, TXT, etc.) |
-| `identity-provider.tf` | OIDC/SAML IdP wiring |
-| `locals.tf` | Shared local values |
-| `logpush.tf` | Logpush jobs to ELK / object storage |
-| `main.tf` | Module composition and provider config |
-| `onepassword.tf` | 1Password secret references (API tokens) |
-| `outputs.tf`, `outputs-homelab.tf`, `outputs-jclee.tf`, `outputs-synology.tf` | Split output surfaces by target |
-| `checks.tf`, `validation.tf` | Pre/post condition checks |
+### Workspace Inputs and Outputs / 워크스페이스 입출력
+
+| Workspace | Primary Inputs / 입력 | Primary Outputs / 출력 | Side Effects / 부수 효과 |
+| --- | --- | --- | --- |
+| `100-pve` | Proxmox API, 1Password | VMID allocation, IP allocation | Creates/destroys LXC + VM |
+| `102-traefik` | Remote state from `100-pve` | Dynamic config, certificates | Updates reverse-proxy routes |
+| `105-elk` | Remote state, ILM policy template | Docker Compose stack, ILM applied | Reads cluster logs |
+| `112-mcphub` | 1Password MCP server config | Compose stack, patched n8n image | Exposes MCP servers |
+| `300-cloudflare` | Cloudflare API + tokens | DNS records, Access policies, Logpush | Changes public DNS/Access |
 
 ---
 
 ## Numbering Convention / 번호 규칙
 
-| Range / 범위 | Meaning / 의미 | Examples |
-| --- | --- | --- |
-| `1` – `79` | Reserved | — |
-| `80` | Physical host(s) | `80-jclee` |
-| `100` – `199` | Proxmox infra (`100-pve` + LXC-based services) | `100-pve`, `101-runner`, `102-traefik`, `103-coredns`, `105-elk`, `107-supabase`, `108-archon`, `110-n8n`, `112-mcphub` |
-| `200` – `299` | VM-based app workloads | `200-oc`, `215-synology`, `220-youtube` |
-| `300` – `399` | External integrations (not LAN-resident) | `300-cloudflare`, `301-github`, `310-safetywallet`, `320-slack` |
-| `400`+ | Cloud platforms | `400-gcp` |
+The flat numeric prefix is the single most important convention in this repo. Once it is understood, the entire directory tree is self-documenting.
 
-Workspaces with `80`–`255` prefixes map to internal infrastructure. Workspaces with `300+` prefixes are external.
+이 저장소에서 평탄한 숫자 접두사는 가장 중요한 규칙입니다. 한 번 이해하면 전체 디렉터리 트리가 자체 문서화됩니다.
 
-`80`–`255` 접두사는 내부 인프라에 매핑되고, `300+` 접두사는 외부 시스템을 대상으로 합니다.
+| Range / 범대 | Tier / 계층 | CIDR / 서브넷 | Example / 예시 |
+| --- | --- | --- | --- |
+| `0–79` | Physical hosts / 물리 호스트 | Physical LAN | `80-jclee` |
+| `100–199` | Proxmox infrastructure / Proxmox 인프라 | RFC1918 homelab | `100-pve`, `102-traefik`, `105-elk` |
+| `200–299` | VM-based applications / VM 기반 앱 | RFC1918 homelab | `200-oc`, `215-synology`, `220-youtube` |
+| `300–399` | External service integrations / 외부 통합 | Public/external | `300-cloudflare`, `301-github`, `320-slack` |
+| `400+` | Cloud platforms / 클라우드 플랫폼 | Provider-native | `400-gcp` |
 
----
+Rules / 규칙:
 
-## Workspace Tiers and Apply Order / 워크스페이스 계층과 적용 순서
-
-| Tier / 계층 | Workspaces / 워크스페이스 | Apply order / 적용 순서 |
-| --- | --- | --- |
-| 0 (core) | `100-pve` | First — provisions all LXC/VM lifecycles and renders configs |
-| 1 (infra) | `102-traefik`, `103-coredns`, `105-elk`, `108-archon` | Second (parallel) — consume `remote_state` from `100-pve` |
-| 2 (apps) | `110-n8n`, `112-mcphub`, `107-supabase`, `200-oc`, `215-synology`, `220-youtube` | Third — consume `remote_state` from Tier 0/1 |
-| Independent / 독립 | `300-cloudflare`, `301-github`, `310-safetywallet`, `320-slack`, `400-gcp` | Any order — no Proxmox dependency |
-| Template-only / 템플릿 전용 | `103-coredns`, plus others rendered by `100-pve` | No `.tf` files — rendered as part of `100-pve` apply |
+- Never re-use a number across tiers / 계층 간 번호 재사용 금지.
+- Always zero-pad to 3 digits (`105`, not `5`) / 항상 3자리로 0패딩.
+- Range boundaries are exclusive at the top: `1–255` = internal, `300+` = external / 상한은 배타적.
 
 ---
 
 ## Quick Start / 빠른 시작
 
-### Prerequisites / 사전 요구사항
+Most operators should not need to run anything manually. CI/CD handles `plan` and `apply` automatically. Local commands are intended for **validation and testing only**.
 
-| Tool / 도구 | Version / 버전 | Purpose / 용도 |
+대부분의 운영자는 수동으로 아무것도 실행할 필요가 없습니다. CI/CD가 `plan`과 `apply`를 자동으로 처리합니다. 로컬 명령어는 **검증 및 테스트 전용**입니다.
+
+### Prerequisites / 사전 요구 사항
+
+| Tool / 도구 | Version / 버전 | Notes / 참고 |
 | --- | --- | --- |
-| Terraform | `>= 1.7, < 2.0` (pinned to `1.10.5`) | IaC engine |
-| `make` | Any modern POSIX make | Wraps all terraform / scripts |
-| `go` | `1.22+` | Build operator scripts in `*/scripts/` |
-| `python3` | `3.10+` | For `112-mcphub/validate_mcps.py` |
-| `node` | `20+` | For `op-mcp-server` |
-| `docker` / `docker compose` | `24+` | Local Compose stack for `105-elk` |
-| `pre-commit` | `3+` | Optional hooks (`make pre-commit-install`) |
-| 1Password CLI (`op`) | `2+` | For secret references in `onepassword.tf` |
+| Terraform | `>= 1.7, < 2.0` (project pins 1.10.5) | `terraform -version` to verify |
+| Go | Latest stable | Only required for running `scripts/*.go` |
+| Node.js | LTS | Only required for `112-mcphub/op-mcp-server/` |
+| 1Password CLI | Latest | Required for any plan that touches `onepassword.tf` |
+| Python 3 | 3.x | Required only by `112-mcphub/validate_mcps.py` |
+| `make` | GNU Make 4.x | Used to invoke workspace commands |
 
-### Initialize a workspace / 워크스페이스 초기화
+### First-Time Clone / 최초 클론
+
+1. Clone the repository / 저장소 클론
+2. Read `AGENTS.md` for the latest project knowledge base / 최신 프로젝트 지식 베이스 확인
+3. Read `ARCHITECTURE.md` for the full architecture reference / 전체 아키텍처 참고
+4. Skim `DEPENDENCY_MAP.md` to understand module dependencies between workspaces / 워크스페이스 간 모듈 의존성 확인
+
+### Run Your First Plan / 첫 플랜 실행
+
+Pick a workspace via alias or full path / 별칭 또는 전체 경로로 워크스페이스 선택:
 
 ```bash
-# Full path
-make init SVC=100-pve
-
-# Short alias
-make init SVC=pve
-make init SVC=traefik
+# Initialize a workspace / 워크스페이스 초기화
 make init SVC=elk
-make init SVC=mcphub
-make init SVC=cloudflare
+
+# Show what would change / 변경 사항 미리보기
+make plan SVC=elk
+
+# Validate the rendered configuration / 렌더링된 설정 검증
+make verify SVC=elk
 ```
 
-### Plan a workspace / 워크스페이스 플랜 생성
+Manual apply is intentionally blocked. Push your branch and let CI/CD handle the apply step.
 
-```bash
-make plan SVC=pve
-# Opens Terraform plan in CI (never apply locally)
-```
-
-> Never run `make apply` locally. CI/CD is the only authorized execution surface.
-> 로컬에서 `make apply`를 실행하지 마세요. CI/CD만 유일하게 허가된 실행 경로입니다.
+수동 `apply`는 의도적으로 차단되어 있습니다. 브랜치를 푸시하여 CI/CD가 적용하도록 하십시오.
 
 ---
 
 ## Configuration / 설정
 
-### Secrets / 시크릿
+### `build.env`
 
-All secrets are stored in the **homelab 1Password vault** and referenced through the shared `modules/shared/onepassword-secrets` module. Each workspace that needs a secret has its own `onepassword.tf`.
+A top-level file that captures build-time environment variables used by helper scripts and CI runners. Source it before running local scripts:
 
-모든 시크릿은 **홈랩 1Password 볼트**에 저장되고, 공유 `modules/shared/onepassword-secrets` 모듈을 통해 참조됩니다. 시크릿이 필요한 각 워크스페이스는 자체 `onepassword.tf`를 가집니다.
+도우미 스크립트와 CI 러너에서 사용하는 빌드 시점 환경 변수를 보관합니다. 로컬 스크립트 실행 전 반드시 로드:
 
-To rotate a secret / 시크릿 순환:
+```bash
+set -a; source ./build.env; set +a
+```
 
-1. Update the entry in 1Password.
-2. Bump or re-plan the relevant workspace; Terraform re-reads on apply.
-3. Confirm downstream services picked up the new value via `remote_state` outputs or ELK login events.
+### 1Password Secrets / 1Password 비밀
 
-### Network / 네트워크
+All secrets are fetched at plan/apply time. The shared `modules/shared/onepassword-secrets/` module is the only authorized way to read from the homelab vault.
 
-- Homelab domain / 홈랩 도메인: `<HOMELAB_DOMAIN>` (production: `jclee.me`)
-- Homelab subnet / 홈랩 서브넷: `<HOMELAB_SUBNET>/24` (production: RFC1918 private range — placeholder here)
-- Traefik LXC ID / Traefik LXC ID: `102`
-- DNS service discovery / DNS 서비스 디스커버리: `*.lan` via CoreDNS
+모든 비밀이 플랜/적용 시점에 조회됩니다. 공유 모듈 `modules/shared/onepassword-secrets/`가 홈랩 볼트에서 읽기 위한 유일한 공식 통로입니다.
 
-> The README deliberately avoids hardcoded internal IPs. See `ARCHITECTURE.md` and per-workspace `locals.tf` for the production values.
-> 이 README는 의도적으로 내부 IP를 하드코딩하지 않습니다. 프로덕션 값은 `ARCHITECTURE.md`와 워크스페이스별 `locals.tf`를 참조하세요.
+When you add a new secret:
 
-### Build Environment / 빌드 환경
+1. Add the item to the homelab 1Password vault / 홈랩 1Password 볼트에 항목 추가
+2. Reference it from the relevant `onepassword.tf` / 해당 `onepassword.tf`에서 참조
+3. Pass it through `variables.tf` / `variables.tf`를 통해 전달
+4. Document non-obvious names with a comment / 이름이 자명하지 않으면 주석 추가
 
-`build.env` exports CI-relevant variables (image tags, registry paths, runner labels). Source it before ad-hoc `make` invocations if you override any defaults.
+### Terraform Versions / Terraform 버전
 
-`build.env`는 CI 관련 변수(이미지 태그, 레지스트리 경로, 러너 레이블)를 내보냅니다. 기본값을 재정의할 계획이면 임시 `make` 호출 전에 소싱하세요.
+| Component / 구성요소 | Required / 필수 범위 |
+| --- | --- |
+| Terraform CLI | `>= 1.7, < 2.0` |
+| `versions.tf` pins | Per-workspace; aggregate never exceeds CLI bound |
+
+### Workspace Alias Resolution / 워크스페이스 별칭 해석
+
+The `Makefile` follows this resolution order / `Makefile`은 다음 순서로 별칭을 해석합니다:
+
+```text
+SVC=elk → look up ALIAS_elk → TF_DIR=105-elk/terraform → cd into it
+SVC=105-elk/terraform → ALIAS_$(SVC) is undefined → TF_DIR=SVC as-is
+```
+
+If the resolved `TF_DIR` does not exist, the Makefile aborts with a list of direct directories and aliases that do exist.
+
+해석된 `TF_DIR`이 존재하지 않으면, `Makefile`은 직접 디렉터리와 존재하는 별칭 목록을 출력하며 중단합니다.
+
+### Per-Workspace Configuration / 워크스페이스별 설정
+
+Some workspaces expose extra knobs. Always check the workspace's own `README.md` and `AGENTS.md` first.
+
+일부 워크스페이스는 추가 설정을 노출합니다. 항상 해당 워크스페이스의 `README.md`와 `AGENTS.md`를 먼저 확인하십시오.
+
+| Workspace | Notable Config / 주요 설정 |
+| --- | --- |
+| `105-elk` | ILM policy, Logstash pipeline template, Filebeat inputs |
+| `112-mcphub` | MCP server list, n8n license patches, `mcp_settings.json` template |
+| `300-cloudflare` | DNS records, Access policies, Identity provider, Logpush jobs |
 
 ---
 
 ## Commands Reference / 명령어 참조
 
-All targets are dispatched through the root `Makefile`. The `SVC` variable selects the workspace.
+All commands are phrased as `make <target> [SVC=<alias or path>]`.
 
-모든 타깃은 루트 `Makefile`을 통해 디스패치됩니다. `SVC` 변수가 워크스페이스를 선택합니다.
+모든 명령은 `make <target> [SVC=<별칭 또는 경로>]` 형식입니다.
 
-### Terraform / Terraform 명령
+### Terraform Targets / Terraform 타겟
 
-| Target / 타깃 | Command / 명령 | Description / 설명 |
-| --- | --- | --- |
-| `init` | `make init SVC=<ws>` | `terraform init` in the resolved workspace |
-| `plan` | `make plan SVC=<ws>` | `terraform plan -out=tfplan` in the resolved workspace |
-| `apply` | `make apply SVC=<ws>` | **DISABLED locally** — CI/CD only. Errors out with a deploy-via-CI message |
-| `validate` | `make validate SVC=<ws>` | `terraform validate` |
-| `fmt` | `make fmt SVC=<ws>` | `terraform fmt -recursive` |
-| `verify` | `make verify SVC=<ws>` | `terraform verify` |
-| `drift-check` | `make drift-check SVC=<ws>` | Plan-only scan to surface drift |
-
-### Linting and Code Style / 린트와 코드 스타일
-
-| Target / 타깃 | Description / 설명 |
+| Target / 타겟 | Description / 설명 |
 | --- | --- |
-| `lint` | Run all linters for the workspace |
-| `lint-go` | Run `go vet` / `gofmt` checks against `*/scripts/*.go` |
+| `make init SVC=<w>` | Run `terraform init` in the selected workspace. |
+| `make plan SVC=<w>` | Produce a `tfplan` file with the proposed changes. |
+| `make apply SVC=<w>` | **DISABLED.** Use CI/CD. |
 
-### Testing / 테스트
+### Validation and Quality Targets / 검증 및 품질 타겟
 
-| Target / 타깃 | Description / 설명 |
+| Target / 타겟 | Description / 설명 |
 | --- | --- |
-| `test` | Run the full test suite |
-| `test-unit` | `terraform test` unit tests |
-| `test-integration` | Integration tests against ephemeral resources |
-| `test-workspace` | Run a per-workspace validation harness |
+| `make verify SVC=<w>` | Run `terraform validate` and check rendered outputs. |
+| `make fmt` | Run `terraform fmt -recursive` across the repo. |
+| `make lint` | Run repository linter. |
+| `make lint-go` | Lint the `scripts/**/*.go` helpers. |
+| `make validate` | Cross-workspace validation pass. |
+| `make drift-check SVC=<w>` | Compare live state against the committed configuration. |
+| `make backup SVC=<w>` | Snapshot the workspace's state file. |
 
-### Tooling / 도구
+### Testing Targets / 테스트 타겟
 
-| Target / 타깃 | Description / 설명 |
+| Target / 타겟 | Description / 설명 |
 | --- | --- |
-| `backup` | Snapshot state for the selected workspace |
-| `docs` | Regenerate docs (architecture, ADRs) |
-| `pre-commit-install` | Install pre-commit hooks |
-| `pre-commit-run` | Run hooks against the full repo |
-| `setup` | One-shot bootstrap (tools, hooks, providers) |
-| `help` | Print the Makefile help |
+| `make test` | Run every test target in the order below. |
+| `make test-unit` | `terraform test` unit suites. |
+| `make test-integration` | Integration suites that exercise module composition. |
+| `make test-workspace` | Per-workspace end-to-end tests against a sandbox. |
 
-### Workspace Resolution / 워크스페이스 해석
+### Developer Workflow Targets / 개발 워크플로우 타겟
 
-| Invocation / 호출 | Meaning / 의미 |
+| Target / 타겟 | Description / 설명 |
 | --- | --- |
-| `make plan SVC=100-pve` | Use directory `100-pve/` directly |
-| `make plan SVC=pve` | Use alias `ALIAS_pve := 100-pve` → `100-pve/` |
-| `make plan SVC=traefik` | Resolves to `102-traefik/terraform/` |
-| `make plan SVC=elk` | Resolves to `105-elk/terraform/` |
-| `make plan SVC=mcphub` | Resolves to `112-mcphub/` |
-| `make plan SVC=cloudflare` | Resolves to `300-cloudflare/` |
+| `make pre-commit-install` | Install pre-commit hooks (if used). |
+| `make pre-commit-run` | Run the pre-commit hook set against the working tree. |
+| `make docs` | Regenerate API references and embedded diagrams. |
+| `make setup` | Bootstrap local tooling (`tfenv`, `tflint`, etc.). |
+| `make help` | Print the auto-generated target help. |
 
-Aliases honored / 지원되는 별칭:
+### Common Recipes / 자주 쓰는 조합
 
-```
-jclee  pve  runner  traefik  elk  supabase  archon  n8n  mcphub
-oc  synology  youtube
-cloudflare  github  safetywallet  slack  gcp
+```bash
+# Iterating on a single workspace / 단일 워크스페이스 반복 작업
+make init SVC=elk && make plan SVC=elk
+
+# Format everything before a PR / PR 전 전체 포맷
+make fmt
+
+# Lint Go scripts only / Go 스크립트만 린트
+make lint-go
+
+# Full pre-PR sweep / PR 전 전체 점검
+make fmt && make lint && make test
 ```
 
 ---
 
 ## Local Development / 로컬 개발
 
-### Editing a service template / 서비스 템플릿 수정
+### Working on a Single Workspace / 단일 워크스페이스 작업
 
-1. Locate the workspace / 워크스페이스 찾기:
-   ```bash
-   ls [0-9]*-*/templates
-   ```
-2. Edit `templates/*.tftpl` / `templates/*.tftpl` 수정.
-3. Run `make plan SVC=<ws>` to render the diff against the deployed state.
-4. If the workspace is `100-pve` (and the changed service has an LXC), expect downstream Tier-1 workspaces to also detect drift on the next plan because configs are rendered server-side.
+1. Pick the workspace and locate its `AGENTS.md` / 워크스페이스를 선택하고 `AGENTS.md` 위치 확인
+2. Read the workspace's own `README.md` (if present) for service-specific notes / 서비스별 메모는 워크스페이스의 `README.md` 참고
+3. Edit either the Terraform code or templates / Terraform 코드나 템플릿 편집
+4. Run `make init` once, then `make plan` to preview / 최초 1회 `make init` 후 `make plan`으로 미리보기
+5. Run `make verify` and the appropriate test target / `make verify`와 적절한 테스트 타겟 실행
 
-### Validating MCPHub config / MCPHub 설정 검증
+### Template-Only Workspaces / 템플릿 전용 워크스페이스
+
+Template-only workspaces (e.g. `103-coredns`, `110-n8n`, `112-mcphub`) carry no Terraform code of their own. Their `*.tftpl` files are rendered by Tier 0 at apply time. To preview locally:
+
+템플릿 전용 워크스페이스(예: `103-coredns`, `110-n8n`, `112-mcphub`) 자체는 Terraform 코드를 갖지 않습니다. 해당 `*.tftpl` 파일은 적용 시점에 Tier 0에 의해 렌더링됩니다. 로컬에서 미리 보려면:
+
+1. Run `make plan SVC=pve` to render the template outputs / `make plan SVC=pve`로 템플릿 출력 렌더링
+2. Inspect the generated file under `100-pve/configs/` / `100-pve/configs/` 아래 생성된 파일 확인
+3. Iterate on the `.tftpl` source until outputs match expectations / 출력이 기대와 일치할 때까지 `.tftpl` 원본 반복 편집
+
+### Editing Helper Scripts / 헬퍼 스크립트 편집
+
+Helper scripts in `105-elk/scripts/*.go` and similar locations use **only the Go standard library**:
+
+`105-elk/scripts/*.go` 등 위치의 헬퍼 스크립트는 **Go 표준 라이브러리만** 사용합니다:
+
+- No `go.mod` / `go.sum` is required / `go.mod` / `go.sum` 불필요
+- Run any of them with `go run path/to/script.go args…`
+- Keep error messages actionable and bilingual-friendly / 오류 메시지는 실행 가능하고 명확하게 유지
+
+### Validating MCP Server Definitions / MCP 서버 정의 검증
 
 ```bash
-python3 112-mcphub/validate_mcps.py
+python3 112-mcphub/validate_mcps.py 112-mcphub/mcp_servers.json
 ```
 
-### Building operator Go scripts / 운영자 Go 스크립트 빌드
+The validator checks structural correctness of the MCP server registry. Run this whenever `mcp_servers.json` changes.
+
+이 검증기는 MCP 서버 레지스트리의 구조적 정확성을 확인합니다. `mcp_servers.json`을 변경할 때마다 실행하십시오.
+
+### Environment Variables for Local Runs / 로컬 실행용 환경 변수
+
+The `build.env` file is the source of truth for build-time variables. Always source it before invoking helpers:
+
+`build.env` 파일이 빌드 시점 변수의 진실 공급원입니다. 헬퍼 호출 전 항상 로드:
 
 ```bash
-cd 105-elk/scripts
-go build -o setup-ilm         setup-ilm.go
-go build -o setup-watcher     setup-watcher.go
-go build -o remove-promtail   remove-promtail.go
+set -a; source ./build.env; set +a
 ```
-
-### Local Compose stack for ELK / ELK 로컬 Compose 스택
-
-```bash
-cd 105-elk
-docker compose up -d
-```
-
-This stack mirrors the rendered configs in `105-elk/config/` and is useful for iterating on log parsing before terraform-rendered equivalents in `templates/` move forward.
-
-이 스택은 `105-elk/config/`의 렌더링된 설정을 미러링하며, Terraform 렌더링 등가물이 진행되기 전에 로그 파싱을 반복 작업할 때 유용합니다.
-
-### IDE & Hooks / IDE 및 훅
-
-- Install hooks / 훅 설치: `make pre-commit-install`
-- Run hooks across the repo / 리포 전체 훅 실행: `make pre-commit-run`
-- Style conventions / 스타일 규약: [`CODE_STYLE.md`](./CODE_STYLE.md)
 
 ---
 
 ## Testing / 테스트
 
-| Layer / 계층 | Command / 명령 | Tool / 도구 |
-| --- | --- | --- |
-| Unit / 단위 | `make test-unit SVC=<ws>` | `terraform test` |
-| Integration / 통합 | `make test-integration` | Terraform + Docker harness |
-| Workspace validation / 워크스페이스 검증 | `make test-workspace SVC=<ws>` | `terraform validate` + policy checks |
-| MCPHub config / MCPHub 설정 | `python3 112-mcphub/validate_mcps.py` | Schema validator |
-| ELK pipeline / ELK 파이프라인 | `make -C 105-elk test` (if present) | Go `scripts/setup-*` against ephemeral ES |
-| Drift / 드리프트 | `make drift-check SVC=<ws>` | `terraform plan -detailed-exitcode` |
+Three layers of testing are available; pick the one closest to the change you are making.
 
-CI runs the full matrix on PRs and on push to `master`. Manual `apply` is gated exclusively by CI.
+세 가지 테스트 계층이 제공되며, 변경 사항에 가장 가까운 계층을 선택합니다.
 
-CI는 PR 및 `master` 푸시에서 전체 매트릭스를 실행합니다. 수동 `apply`는 CI에 의해서만 게이트됩니다.
+| Layer / 계층 | Command / 명령 | Scope / 범위 | When to Run / 실행 시점 |
+| --- | --- | --- | --- |
+| Unit | `make test-unit SVC=<w>` | A single module's inputs/outputs | Every commit affecting modules |
+| Integration | `make test-integration SVC=<w>` | Module composition | Before opening a PR |
+| Workspace | `make test-workspace SVC=<w>` | Full workspace end-to-end against sandbox | Pre-merge, after major refactors |
+| Full sweep | `make test` | All three layers in order | Before release tagging |
+
+### Script-Level Tests / 스크립트 수준 테스트
+
+For the Go helpers under `scripts/` and per-workspace `scripts/` directories, prefer running them with realistic inputs in a sandbox LXC. They are stdlib-only and quick to execute end-to-end.
+
+`s scripts/ ` 및 워크스페이스별 `scripts/` 디렉터리의 Go 헬퍼는 샌드박스 LXC에서 현실적인 입력으로 실행하는 것을 권장합니다. 표준 라이브러리만 사용하여 빠르게 종단 간 실행됩니다.
+
+### Validation Hooks / 검증 훅
+
+Two on-disk validate helpers exist:
+
+- `validate_mcps.py` — structural validation of `mcp_servers.json`
+- `setup-ilm.go` / `setup-watcher.go` / `remove-promtail.go` — idempotent operational setup; safe to re-run
+
+두 개의 디스크 기반 검증 헬퍼:
+
+- `validate_mcps.py` — `mcp_servers.json`의 구조적 검증
+- `setup-ilm.go` / `setup-watcher.go` / `remove-promtail.go` — 멱등성을 갖는 운영 셋업; 재실행 안전
 
 ---
 
 ## Contributing / 기여 방법
 
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full contribution guide (PR process, branch policy, review roles via `OWNERS` / `OWNERS_ALIASES`).
+1. Read `CONTRIBUTING.md` for the canonical contribution flow / 표준 기여 절차는 `CONTRIBUTING.md` 참고
+2. Read `CODE_STYLE.md` for naming, file organization, variable, and template conventions / 명명·파일 구성·변수·템플릿 규칙은 `CODE_STYLE.md` 참고
+3. Read `DEPENDENCY_MAP.md` to understand how your change propagates between workspaces / 워크스페이스 간 변경 전파는 `DEPENDENCY_MAP.md` 참고
+4. Pick the tier / 계층 선택:
+   - Tier 0 / 핵심: changes to `100-pve` require explicit maintainer review / 명시적 메인테이너 리뷰 필요
+   - Tier 1 / 인프라: ensure remote-state inputs from `100-pve` are honored / `100-pve`의 원격 상태 입력 존중
+   - Tier 2–3 / 외부: less coupling, but always keep template + state coverage / 결합도는 낮지만 템플릿 + 상태 커버리지를 유지
+5. Branch off `master`, run `make fmt lint test`, and open a PR / `master`에서 분기, `make fmt lint test` 실행 후 PR 열기
+6. Code owners are defined in `OWNERS` and `OWNERS_ALIASES`; review routing is automatic / 코드 오너는 `OWNERS` 및 `OWNERS_ALIASES`에 정의되어 자동 라우팅
 
-전체 기여 안내(PR 절차, 브랜치 정책, `OWNERS` / `OWNERS_ALIASES`를 통한 리뷰 역할)는 [`CONTRIBUTING.md`](./CONTRIBUTING.md)를 참조하세요.
+### Pull Request Checklist / PR 체크리스트
 
-### Workflow summary / 워크플로 요약
-
-1. Branch off `master`.
-2. Edit the relevant `.tf` / `.tftpl` / `Go` / Python files plus their per-workspace `AGENTS.md` if behavior changed.
-3. Run `make validate fmt lint test-unit SVC=<ws>` locally.
-4. Open a PR — CI will run the matrix; merge requires green CI + OWNERS review.
-5. Push to `master` triggers CD; CI applies the change via the authorized deploy job.
+| Item / 항목 | Required? |
+| --- | --- |
+| `make fmt` passes | ✓ |
+| `make lint` passes | ✓ |
+| `make verify SVC=<w>` passes | ✓ |
+| `make test-unit` / `test-integration` pass (when applicable) | ✓ |
+| Updated the workspace's `README.md` / `AGENTS.md` if behavior changed | ✓ |
+| Re-rendered templates for template-only workspaces | ✓ |
 
 ---
 
 ## Additional Documentation / 추가 문서
 
-| Document | Description |
+| File | Purpose / 용도 |
 | --- | --- |
-| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Full architecture reference (modules, tiers, request flow) |
-| [`DEPENDENCY_MAP.md`](./DEPENDENCY_MAP.md) | Module dependency graph and template inventory |
-| [`CODE_STYLE.md`](./CODE_STYLE.md) | Naming, file org, variable, template conventions |
-| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | PR process, branch policy, review roles |
-| [`103-coredns/AGENTS.md`](./103-coredns/AGENTS.md), [`105-elk/AGENTS.md`](./105-elk/AGENTS.md), [`112-mcphub/AGENTS.md`](./112-mcphub/AGENTS.md), [`300-cloudflare/AGENTS.md`](./300-cloudflare/AGENTS.md) | Per-workspace AI/operator guidance |
-| Per-workspace `README.md` (when present) | Workspace-local notes |
+| `AGENTS.md` | AI/operator knowledge base; auto-updated context for project navigation. |
+| `ARCHITECTURE.md` | Long-form architecture reference; complements this README. |
+| `CODE_STYLE.md` | Authoritative style guide: naming, file organization, variables, templates. |
+| `CONTRIBUTING.md` | Canonical contribution workflow. |
+| `DEPENDENCY_MAP.md` | Module dependency graph and template inventory. |
+| `OWNERS` / `OWNERS_ALIASES` | Code-owner routing for reviews. |
+| Per-workspace `AGENTS.md` | Service-specific context: how that workspace is wired up. |
+| Per-workspace `README.md` | Service-specific notes, knobs, and operator guidance. |
+
+Detailed Mermaid diagrams, sequence flows, and per-service runbooks intentionally live in dedicated documentation files rather than this README, so this landing page stays scannable.
+
+세부 Mermaid 다이어그램, 시퀀스 흐름, 서비스별 런북은 의도적으로 본 README 대신 전용 문서 파일에 위치합니다. 본 랜딩 페이지는 빠르게 훑어볼 수 있도록 유지됩니다.
 
 ---
 
 ## License / 라이선스
 
-See [`LICENSE`](./LICENSE) for licensing terms.
+See the [`LICENSE`](./LICENSE) file at the root of this repository for license terms and conditions.
 
-라이선스 조건은 [`LICENSE`](./LICENSE)를 참조하세요.
+라이선스 조건은 저장소 루트의 [`LICENSE`](./LICENSE) 파일을 참고하십시오.
