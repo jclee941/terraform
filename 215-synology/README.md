@@ -42,6 +42,7 @@ make plan SVC=synology    # Plan changes
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7, < 2.0 |
+| <a name="requirement_minio"></a> [minio](#requirement\_minio) | ~> 3.2 |
 | <a name="requirement_onepassword"></a> [onepassword](#requirement\_onepassword) | ~> 3.2 |
 | <a name="requirement_synology"></a> [synology](#requirement\_synology) | ~> 0.6 |
 
@@ -49,6 +50,7 @@ make plan SVC=synology    # Plan changes
 
 | Name | Version |
 |------|---------|
+| <a name="provider_minio"></a> [minio](#provider\_minio) | 3.34.0 |
 | <a name="provider_synology"></a> [synology](#provider\_synology) | 0.6.9 |
 
 ## Modules
@@ -61,6 +63,8 @@ make plan SVC=synology    # Plan changes
 
 | Name | Type |
 |------|------|
+| [minio_iam_user.console_admin](https://registry.terraform.io/providers/aminueza/minio/latest/docs/resources/iam_user) | resource |
+| [minio_iam_user_policy_attachment.console_admin](https://registry.terraform.io/providers/aminueza/minio/latest/docs/resources/iam_user_policy_attachment) | resource |
 | [synology_container_project.minio](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
 | [synology_container_project.registry](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
 | [synology_core_package.container_manager](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/core_package) | resource |
@@ -73,6 +77,7 @@ make plan SVC=synology    # Plan changes
 | <a name="input_enable_container_manager_package"></a> [enable\_container\_manager\_package](#input\_enable\_container\_manager\_package) | Manage ContainerManager package installation via Terraform | `bool` | `false` | no |
 | <a name="input_enable_portainer"></a> [enable\_portainer](#input\_enable\_portainer) | Enable Portainer CE container deployment on Synology | `bool` | `false` | no |
 | <a name="input_enable_registry"></a> [enable\_registry](#input\_enable\_registry) | Enable Docker Registry container on Synology | `bool` | `true` | no |
+| <a name="input_minio_console_admin_password"></a> [minio\_console\_admin\_password](#input\_minio\_console\_admin\_password) | Password for the MinIO console admin IAM user | `string` | `""` | no |
 | <a name="input_minio_endpoint"></a> [minio\_endpoint](#input\_minio\_endpoint) | MinIO S3 endpoint for Registry backend | `string` | `"http://192.168.50.215:9000"` | no |
 | <a name="input_minio_registry_bucket"></a> [minio\_registry\_bucket](#input\_minio\_registry\_bucket) | MinIO bucket name for Registry storage | `string` | `"docker-registry"` | no |
 | <a name="input_minio_root_password"></a> [minio\_root\_password](#input\_minio\_root\_password) | MinIO root password for Registry backend | `string` | `""` | no |
@@ -82,9 +87,6 @@ make plan SVC=synology    # Plan changes
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret retrieval | `string` | `"homelab"` | no |
 | <a name="input_portainer_edge_port"></a> [portainer\_edge\_port](#input\_portainer\_edge\_port) | Published TCP port for Portainer Edge agent communication | `string` | `"8000"` | no |
 | <a name="input_portainer_https_port"></a> [portainer\_https\_port](#input\_portainer\_https\_port) | Published HTTPS port for Portainer web UI | `string` | `"9443"` | no |
-| <a name="input_portainer_share_path"></a> [portainer\_share\_path](#input\_portainer\_share\_path) | Synology share path for Portainer compose project | `string` | `"/docker/portainer"` | no |
-| <a name="input_portainer_timezone"></a> [portainer\_timezone](#input\_portainer\_timezone) | Timezone used by Portainer container | `string` | `"Asia/Seoul"` | no |
-| <a name="input_portainer_version"></a> [portainer\_version](#input\_portainer\_version) | Portainer CE image tag | `string` | `"latest"` | no |
 | <a name="input_registry_port"></a> [registry\_port](#input\_registry\_port) | Published HTTP port for Docker Registry | `string` | `"5051"` | no |
 | <a name="input_registry_share_path"></a> [registry\_share\_path](#input\_registry\_share\_path) | Synology share path for Registry compose project | `string` | `"/docker/registry"` | no |
 | <a name="input_registry_version"></a> [registry\_version](#input\_registry\_version) | Docker Registry image tag | `string` | `"2"` | no |
