@@ -306,7 +306,7 @@ Enforced rules:
 - `pre-commit-terraform`: terraform_fmt, terraform_validate, terraform_tflint, terraform_docs
 - `yamllint`: YAML linting (`.yamllint.yml` config)
 - `shellcheck`: Shell script linting (`--severity=warning`)
-- `detect-secrets`: Secret detection (`.secrets.baseline`)
+- `gitleaks`: Secret detection with the repository `.gitleaks.toml` config; do not commit detector baselines.
 - `actionlint`: GitHub Actions workflow linting
 
 ## Testing Patterns

@@ -34,12 +34,13 @@ repos:
         args: ["-c", ".yamllint.yml"]
         exclude: 'tf-configs/|node_modules/|_archived/'
 
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
+  - repo: local
     hooks:
-      - id: detect-secrets
-        args: ["--baseline", ".secrets.baseline"]
-        exclude: '_archived/'
+      - id: gitleaks
+        name: Gitleaks secret scan
+        entry: gitleaks detect --source . --no-git --redact=100
+        language: system
+        pass_filenames: false
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.7

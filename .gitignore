@@ -73,6 +73,7 @@ Thumbs.db
 in-memoria*.db
 
 # Secrets (never commit)
+.secrets.baseline
 *.pem
 *.key
 **/secrets/
