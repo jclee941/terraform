@@ -1,266 +1,432 @@
-# jclee.me 홈랩 인프라 / jclee.me Homelab Infrastructure
+# jclee.me 홈랩 IaC
 
-[![Terraform 1.10.5](https://img.shields.io/badge/Terraform-1.10.5-7B42BC?logo=terraform&logoColor=white)](Makefile)
-[![Build: Makefile](https://img.shields.io/badge/Build-Makefile-0277BD?logo=gnu&logoColor=white)](Makefile)
-[![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen)](#status)
-[![License: See LICENSE](https://img.shields.io/badge/License-See%20LICENSE-blue)](LICENSE)
+![Terraform 1.10.5](https://img.shields.io/badge/terraform-1.10.5-623CE4) ![상태: 활성](https://img.shields.io/badge/status-active-success) ![워크스페이스 컨벤션 NNN--SVC](https://img.shields.io/badge/convention-NNN--SVC-informational) ![도메인 jclee.me](https://img.shields.io/badge/domain-jclee.me-blue)
 
-> Terraform 1.10.5로 Proxmox 홈랩을 코드로 정의하는 단일 저장소. 번호가 매겨진 워크스페이스(`100-pve`, `102-traefik`, `300-cloudflare` 등)에 LXC/VM, 내부 서비스, 외부 DNS를 분산 배치하고, 1Password `homelab` 볼트의 비밀을 공유 모듈로 주입합니다.
->
-> *Single repository that defines the `jclee.me` Proxmox homelab with Terraform 1.10.5. Numbered workspaces (`100-pve`, `102-traefik`, `300-cloudflare` …) distribute LXC/VM, internal services, and external DNS, while the shared 1Password `homelab` vault feeds secrets through one module.*
+## 한 줄 요약
 
-## 한눈에 보기 / At a Glance
+`jclee.me` 홈랩을 코드로 운영하는 Terraform 모노레포입니다. Proxmox 자원, 티어 1 서비스 템플릿, Cloudflare 외부 종속성, 1Password 비밀 백엔드, GitHub Actions CI/CD를 단일 저장소에서 선언적으로 관리합니다.
 
-| 항목 / Item | 값 / Value | 근거 / Source |
-|---|---|---|
-| 도메인 / Domain | `jclee.me` | DNS, [103-coredns/README.md](103-coredns/README.md) |
-| 사설 LAN / Private LAN | `<homelab-subnet>/24` (RFC1918 자리표시자) | `100-pve/envs/prod/hosts.tf` |
-| Terraform | 1.10.5, 제약 `>= 1.7, < 2.0` | [Makefile](Makefile), [DEPENDENCY_MAP.md](DEPENDENCY_MAP.md) |
-| 워크스페이스 / Workspaces | 12 Makefile 별칭, 번호 `80`–`400` | [Makefile](Makefile) |
-| 비밀 / Secrets | 1Password vault `homelab` | [modules/shared/onepassword-secrets/](modules/shared/onepassword-secrets/) |
-| 상태 백엔드 / State backend | 로컬, 워크스페이스 옆 | [ARCHITECTURE.md](ARCHITECTURE.md) |
-| CI/CD | GitHub Actions, 동시성 그룹 직렬화 | [.github/workflows/](.github/workflows/) |
-| 테스트 / Testing | `terraform test`, 프로바이더 모의 | [tests/AGENTS.md](tests/AGENTS.md), [Makefile](Makefile) |
-| 상태 / Status | Active (개인 홈랩) | - |
-| 라이선스 / License | [LICENSE](LICENSE) 참조 | - |
+## English Summary
 
-## 요청 흐름 / Request Flow
+Terraform-managed homelab IaC monorepo for `jclee.me`, covering Proxmox fleet provisioning, tier‑1 service templates (Traefik, CoreDNS, ELK, MCP Hub), external Cloudflare resources, 1Password-backed secrets, and CI/CD via GitHub Actions.
 
-1. **호스트 변경** — 운영자가 `100-pve/envs/prod/hosts.tf`에서 LXC/VM 추가/리사이즈 (호스트·IP·VMID 단일 출처)
-2. **로컬 검증** — `make SVC=pve init && make SVC=pve plan` 으로 드리프트와 계획 검토
-3. **변경 푸시** — PR이 GitHub Actions 워크플로를 트리거, 동시성 그룹이 동일 워크스페이스 apply 직렬화
-4. **비밀 주입** — CI 환경에서 `OP_VAULT=homelab`을 통해 공유 모듈이 자격증명 채움
-5. **Tier 0 적용** — `100-pve`가 Proxmox 자원을 apply 후 `.tftpl` 파일을 `docker-compose.yml`, `Corefile`, `filebeat.yml` 등으로 렌더링
-6. **인접 서비스** — Tier 1 워크스페이스(`102-traefik`, `105-elk`, `112-mcphub` 등)가 자기 서비스를 표준 시퀀스로 apply
-7. **외부 반영** — `300-cloudflare`, `400-gcp`가 호스트 맵을 외부 DNS·터널·Workers에 반영
+## 빠른 참조
 
-*Operating pattern: the operator edits the single host source of truth (`100-pve/envs/prod/hosts.tf`), Makefile targets plan/apply each workspace, GitHub Actions serializes via concurrency, and `100-pve` renders downstream `.tftpl` files so siblings stay consistent.*
+| 영역 | 값 |
+|------|-----|
+| 도메인 | `jclee.me` |
+| 서브넷 | `<homelab-host>/24` (호스트 의존, 환경별 정의) |
+| IaC 도구 | Terraform 1.10.5 (`>= 1.7, < 2.0`) |
+| 티어 0 | Proxmox 오케스트레이터 (`100-pve`) |
+| 티어 1 | Traefik, CoreDNS, ELK, MCP Hub |
+| 외부 | Cloudflare |
+| 비밀 백엔드 | 1Password vault `homelab` |
+| 모듈 루트 | `modules/{proxmox,shared,cloudflare,elasticstack}` |
+| 빌드 진입점 | `Makefile` (`make help`) |
+| 언어 | HCL, Go, TypeScript, YAML, Python |
 
-## 목차 / Table of Contents
+## 운영 흐름
 
-- [처음 읽을 파일 / First Files to Read](#처음-읽을-파일--first-files-to-read)
-- [워크스페이스 카탈로그 / Workspace Catalog](#워크스페이스-카탈로그--workspace-catalog)
-- [시작하기 / Quick Start](#시작하기--quick-start)
-- [명령어 / Commands Reference](#명령어--commands-reference)
-- [구성 / Configuration](#구성--configuration)
-- [아키텍처 / Architecture](#아키텍처--architecture)
-- [로컬 개발 / Local Development](#로컬-개발--local-development)
-- [테스트 / Testing](#테스트--testing)
-- [기여 / Contribution Guide](#기여--contribution-guide)
-- [운영 / Maintainers &amp; Status](#운영--maintainers--status)
-- [추가 문서 / Further Documentation](#추가-문서--further-documentation)
-- [라이선스 / License](#라이선스--license)
+1. 워크스페이스 선택 — `make SVC=<alias>` (예: `pve`, `elk`, `cloudflare`).
+2. 초기화 — `make init`(provider, 잠금 파일).
+3. 계획 — `make plan`이 `tfpla` 산출, PR 리뷰에 사용.
+4. 적용 — `make apply`, CI 동시성으로 직렬화.
+5. 검증 — `make verify`, `make lint`, `make validate`, `make drift-check`.
+6. 테스트 — `make test` 또는 `make test-unit`/`test-integration`/`test-workspace`.
+7. 백업 — `make backup`, 상태/산출물 보존.
 
----
+## 목차
 
-## 처음 읽을 파일 / First Files to Read
+- [프로젝트 목적 (Purpose)](#프로젝트-목적-purpose)
+- [패키지 구성 (Package Contents)](#패키지-구성-package-contents)
+- [상태 (Status)](#상태-status)
+- [먼저 읽을 파일 (First Files to Read)](#먼저-읽을-파일-first-files-to-read)
+- [진입점 (API or Entry Points)](#진입점-api-or-entry-points)
+- [빠른 시작 (Quickstart)](#빠른-시작-quickstart)
+- [아키텍처 (Architecture)](#아키텍처-architecture)
+- [설정 (Configuration)](#설정-configuration)
+- [명령 참조 (Commands Reference)](#명령-참조-commands-reference)
+- [로컬 개발 (Local Development)](#로컬-개발-local-development)
+- [테스트 (Testing)](#테스트-testing)
+- [기여 가이드 (Contributing)](#기여-가이드-contributing)
+- [유지보수자 및 문의 (Maintainers & Help)](#유지보수자-및-문의-maintainers--help)
+- [추가 문서 (Further Documentation)](#추가-문서-further-documentation)
+- [라이선스 (License)](#라이선스-license)
 
-| 목적 / Purpose | 파일 / File | 비고 / Notes |
-|---|---|---|
-| 저장소 지도 / Repo map | [AGENTS.md](AGENTS.md) | 운영 지식 베이스, `WHERE TO LOOK` 표 포함 |
-| 의존성 그래프 / Dependency graph | [DEPENDENCY_MAP.md](DEPENDENCY_MAP.md) | 모듈·워크스페이스 간 관계 |
-| 아키텍처 결정 / Architecture decisions | [ARCHITECTURE.md](ARCHITECTURE.md) | 계층, 데이터 흐름 |
-| 호스트/IP/VMID | `100-pve/envs/prod/hosts.tf` | 단일 출처, 변경 출발점 |
-| 코드 규약 / Code style | [CODE_STYLE.md](CODE_STYLE.md) | PR 전 필수 |
-| 기여 절차 / Contribution | [CONTRIBUTING.md](CONTRIBUTING.md) | PR 정책, 워크스페이스 추가 절차 |
-| 책임자 / Ownership | [OWNERS](OWNERS), [OWNERS_ALIASES](OWNERS_ALIASES) | 검토자 매핑 |
+## 프로젝트 목적 (Purpose)
 
-## 워크스페이스 카탈로그 / Workspace Catalog
+`jclee.me` 홈랩은 단일 머신에 종속된 수동 구성이 아니라 **선언적 IaC**로 재현 가능하게 운영하는 것이 목표입니다. 이 저장소는 다음을 제공합니다.
 
-번호 규칙 — `1–255` 내부 홈랩 인프라(LAN 내부 도달 가능), `300+` 외부 공급자. 빈 구간은 의도적 예약.
+- Proxmox 기반 LXC/VM 자원의 단일 출처(SSoT) — 호스트, IP, VMID 매핑을 코드로 보관.
+- Traefik, CoreDNS, ELK, MCP Hub 등 티어 1 서비스의 **템플릿 기반** 구성 산출물.
+- Cloudflare DNS/Tunnel/Workers를 위한 외부 IaC.
+- 1Password vault `homelab`을 통한 안전한 시크릿 주입.
+- GitHub Actions 기반 CI/CD (동시성으로 직렬화).
+- 정적 검증, 드리프트 검사, 단위/통합 테스트를 통한 품질 게이트.
 
-| 번호 / No. | 별칭 / Alias | 경로 / Path | 책임 / Responsibility | 핵심 자산 / Key Assets |
-|---|---|---|---|---|
-| 80 | `jclee` | `80-jclee/` | 개인 워크스테이션 골격 | `main.tf` |
-| 100 | `pve` | `100-pve/terraform/` | Tier 0 Proxmox 오케스트레이터, 호스트 SSoT, `.tftpl` 중앙 렌더러 | `main.tf`, `envs/prod/hosts.tf` |
-| 101 | `runner` | `101-runner/` | 템플릿 전용 GitHub Actions 러너 | `*.tftpl` |
-| 102 | `traefik` | `102-traefik/terraform/` | Tier 1 리버스 프록시 | `main.tf`, `templates/*.yml.tftpl` |
-| 103 | (없음) | `103-coredns/` | 템플릿 전용 분할 DNS | `templates/Corefile.tftpl`, `docker-compose.yml.tftpl`, `filebeat.yml.tftpl` |
-| 105 | `elk` | `105-elk/terraform/` | Tier 1 ELK 스택 | `main.tf`, `templates/`, `scripts/`, `config/` |
-| 112 | `mcphub` | `112-mcphub/` | 템플릿 전용 MCP Hub + 1Password Connect 자산 | `templates/`, `op-mcp-server/`, `config/`, `mcp_servers.json`, `validate_mcps.py` |
-| 200 | `oc` | `200-oc/` | 보조 워크로드 | - |
-| 215 | `synology` | `215-synology/` | Synology DSM 통합 (플랫 레이아웃 예외) | `main.tf` |
-| 220 | `youtube` | `220-youtube/` | YouTube 자동화 | - |
-| 300 | `cloudflare` | `300-cloudflare/terraform/` | 독립형 Cloudflare DNS·터널·Workers | `main.tf`, `scripts/`, `inventory/secrets.yaml`, `workers/` |
-| 310 | `safetywallet` | `310-safetywallet/` | 외부 서비스 통합 | - |
-| 400 | `gcp` | `400-gcp/` | GCP 통합 | - |
+### 대상 사용자
 
-워크스페이스는 두 가지 유형입니다:
+- 자가 호스팅 워크플로의 네트워킹/관측/보안 도구를 직접 합성하려는 운영자.
+- 작은 규모에서 IaC 모범 사례를 검증하려는 학습자.
+- 프로바이더 모킹 기반 native `terraform test`로 안전하게 실험하려는 개발자.
 
-- **Terraform 워크스페이스** — `main.tf` 보유, `make SVC=<alias> plan/apply` 대상
-- **템플릿 전용** — `100-pve`가 `.tftpl`을 중앙 렌더링, 자체 Terraform 진입점 없음 (`101-runner`, `103-coredns`, `112-mcphub`)
+### 이 저장소로 무엇을 할 수 있는가
 
-*Numbering convention: 1–255 internal LAN-reachable infrastructure; 300+ external providers; template-only workspaces have no Make alias and are rendered centrally by `100-pve`.*
+- 새 LXC/VM 추가와 리사이즈를 코드 변경만으로 처리.
+- 템플릿(`*.tftpl`) 편집으로 서비스 구성을 변경, 중앙 렌더러가 산출물 재생성.
+- 새 Traefik 라우트를 호스트 맵에서 참조되는 백엔드 IP와 함께 선언.
+- ELK 파이프라인과 인덱싱 정책을 코드 리뷰로 발전.
+- Cloudflare DNS/Tunnel/Workers 변경을 PR로 추적.
+- 비밀을 커밋하지 않고 1Password 단일 보관에서 일관되게 주입.
 
-## 시작하기 / Quick Start
+## 패키지 구성 (Package Contents)
 
-사전 준비 / Prerequisites:
+`NNN-SVC` 워크스페이스 컨벤션을 사용하는 IaC 모노레포입니다. 저장소 트리에 직접 존재하는 최상위 워크스페이스는 다음과 같습니다.
 
-| 요구 / Requirement | 권장 / Recommended | 확인 방법 / Check |
-|---|---|---|
-| Terraform | 1.10.5 (제약 `>= 1.7, < 2.0`) | `terraform version` |
-| Go | 1.22+ (스크립트 빌드용) | `go version` |
-| 1Password CLI | v2 이상 | `op --version` |
-| Proxmox API 토큰 | 홈랩 API 액세스 권한 | `cat ~/.config/proxmox/token` |
-| Python | 3.11+ (`validate_mcps.py` 등) | `python3 --version` |
+| 경로 | 티어 | 역할 |
+|------|------|------|
+| `103-coredns/` | Tier 1 | CoreDNS 템플릿(`Corefile.tftpl`), Docker Compose, filebeat 설정 |
+| `105-elk/` | Tier 1 | ELK Terraform 모듈, 템플릿, 헬퍼 Go 스크립트 |
+| `112-mcphub/` | Tier 1 | MCP 허브 컨테이너, 1Password Connect 자산, 템플릿 |
+| `300-cloudflare/` | 외부 | Cloudflare Terraform, 비밀 인벤토리, Workers, 운영 스크립트 |
 
-```bash
-# 1. 저장소 클론
-git clone <repo-url> homelab
-cd homelab
+`AGENTS.md`는 전체 지식 베이스로서 추가 워크스페이스(`100-pve`, `102-traefik`, `200-oc`, `215-synology`, `220-youtube`, `310-safetywallet`, `400-gcp` 등)와 모듈 맵을 정의합니다. 본 트리에는 해당 디렉터리가 직접 노출되어 있지 않을 수 있으므로, 인벤토리의 완전한 그림은 `AGENTS.md`의 구조 표를 참조하십시오.
 
-# 2. 환경 변수 — 1Password + Proxmox 자격증명 주입
-export OP_VAULT=homelab
-export PROXMOX_VE_API_URL=<proxmox-api-url>
-export PROXMOX_VE_API_TOKEN_ID=<token-id>
-export PROXMOX_VE_API_TOKEN_SECRET=<token-secret>
-# 그 외 워크스페이스별 자격증명은 modules/shared/onepassword-secrets/ 참조
+### 최상위 자산
 
-# 3. 워크스페이스 초기화 (별칭 또는 풀 패스)
-make SVC=cloudflare init
-# 또는
-make SVC=300-cloudflare/terraform init
+| 경로 | 역할 |
+|------|------|
+| `AGENTS.md` | 프로젝트 지식 베이스(운영 컨벤션, 모듈 맵) |
+| `ARCHITECTURE.md` | 시스템 아키텍처 설명 |
+| `CODE_STYLE.md` | 코드 스타일 가이드 |
+| `CONTRIBUTING.md` | 기여 절차 |
+| `DEPENDENCY_MAP.md` | 외부/내부 의존성 맵 |
+| `Makefile` | 통합 빌드 진입점 |
+| `build.env` | 빌드 환경 변수(워크스페이스 공통) |
+| `OWNERS`, `OWNERS_ALIASES` | 리뷰 권한 매트릭스 |
+| `LICENSE` | 라이선스 |
 
-# 4. 계획 검토 및 적용
-make SVC=cloudflare plan
-make SVC=cloudflare apply
-```
+### 워크스페이스 공통 레이아웃
 
-워크스페이스별 사전 단계는 각 디렉터리의 `README.md` / `AGENTS.md`에 명시되어 있습니다 (예: `105-elk/terraform/README.md`, `300-cloudflare/README.md`).
+| 하위 디렉터리 | 역할 |
+|---------------|------|
+| `terraform/` | `*.tf` 정의(일부 워크스페이스는 평면 레이아웃) |
+| `templates/` | `*.tftpl` 템플릿과 부속 자산 |
+| `config/` | 정적 자산, 추가 구성 |
+| `scripts/` | 보조 Go 스크립트 및 셸 헬퍼 |
+| `AGENTS.md` | 워크스페이스 지식 베이스(자율 운영 안내) |
 
-## 명령어 / Commands Reference
+### 명명 규칙
 
-모든 명령은 `make SVC=<alias|path> <target>` 패턴. 별칭 미정의 워크스페이스는 풀 경로도 허용.
+| 범위 | 규칙 | 예시 |
+|------|------|------|
+| 워크스페이스 디렉터리 | `NNN-SVC` (1–255 내부, 300+ 외부) | `100-pve`, `105-elk`, `300-cloudflare` |
+| Terraform 식별자 | `snake_case`, 단일 인스턴스는 `resource "x" "this"` | `resource "proxmox_lxc" "this"` |
+| 템플릿/스크립트 | `kebab-case` | `setup-ilm.sh.tftpl` |
+| 모듈 진입점 | `modules/<provider>/<module>/main.tf` | `modules/cloudflare/tunnel/main.tf` |
 
-| 타겟 / Target | 목적 / Purpose | 예 / Example |
-|---|---|---|
-| `init` | Terraform 초기화 | `make SVC=cloudflare init` |
-| `plan` | 실행 계획, `tfpla`로 저장 | `make SVC=pve plan` |
-| `apply` | 적용 | `make SVC=traefik apply` |
-| `verify` | 검증 절차 | `make SVC=elk verify` |
-| `lint`, `lint-go` | 정적 분석 (Terraform / Go) | `make SVC=pve lint` |
-| `fmt` | 포맷 통일 (모든 `*.tf` 워크스페이스) | `make fmt` |
-| `validate` | 워크스페이스 검증 | `make SVC=gcp validate` |
-| `drift-check` | 드리프트 점검 | `make SVC=pve drift-check` |
-| `backup` | 상태 백업 | `make SVC=synology backup` |
-| `test`, `test-unit`, `test-integration`, `test-workspace` | 테스트 스위트 | `make SVC=elk test`, `make test-workspace SVC=pve` |
-| `docs` | 문서 생성·갱신 | `make docs` |
-| `pre-commit-install`, `pre-commit-run` | 사전 커밋 훅 설치/실행 | `make pre-commit-install` |
-| `setup` | 초기 셋업 | `make setup` |
-| `help` | 사용 가능한 타겟 목록 | `make help` |
+## 상태 (Status)
 
-워크스페이스 디렉터리는 `find . -name '*.tf'`로 자동 수집되므로 새 디렉터리를 추가해도 `fmt`/`validate`/`lint`가 자동으로 인식합니다.
+| 항목 | 상태 |
+|------|------|
+| 운영 환경 | 활성(개인 홈랩) |
+| 프로덕션 사용 | 자체 호스팅 워크로드에 사용 중 |
+| 프로바이더 잠금 | `versions.tf`에 정의, Terraform 1.10.5 |
+| 상태 백엔드 | 로컬 (명시적 예외 외에는 워크스페이스 인접) |
+| CI/CD | GitHub Actions, 동시성으로 직렬화 |
+| 비밀 관리 | 1Password vault `homelab` |
+| 모듈 수 | 10 (`modules/{proxmox,shared,cloudflare,elasticstack}` 아래) |
+| 지원 상태 | 자체 사용 — 외부 호환성은 보장하지 않음 |
 
-## 구성 / Configuration
+### 알려진 예외
 
-### 비밀 / Secrets
+- `105-elk/terraform/`은 산출물 인접에 상태/플랜 아티팩트를 보관하는 명시적 예외입니다. 패턴으로 복제하지 마십시오.
+- AGENTS.md가 언급하는 평면 레이아웃 워크스페이스(예: `215-synology/`)는 `terraform/` 하위 디렉터리 없이 정의됩니다.
 
-- 단일 출처는 1Password 볼트 `homelab`. [modules/shared/onepassword-secrets/](modules/shared/onepassword-secrets/)가 Terraform 입력으로 주입.
-- 환경 변수 `OP_VAULT`는 모든 워크스페이스에서 일관되게 사용.
-- 워크스페이스별 `terraform.tfvars`는 비밀을 직접 보관하지 않고 1Password 항목 참조만 유지.
+## 먼저 읽을 파일 (First Files to Read)
 
-### 호스트 단일 출처 / Host Single Source of Truth
+| 순서 | 경로 | 이유 |
+|------|------|------|
+| 1 | `AGENTS.md` | 전체 지식 베이스, 컨벤션, 안티패턴 |
+| 2 | `ARCHITECTURE.md` | 시스템 아키텍처 |
+| 3 | `Makefile` | 명령 계약과 별칭 매핑 |
+| 4 | `DEPENDENCY_MAP.md` | 외부/내부 의존성 |
+| 5 | `CODE_STYLE.md` | 코드 스타일 기준 |
+| 6 | `<workspace>/AGENTS.md` | 작업할 워크스페이스의 운영 지침 |
 
-- LXC/VM 호스트, IP, VMID는 모두 `100-pve/envs/prod/hosts.tf`가 관리.
-- 후속 워크스페이스는 이 hosts 파일을 템플릿 변수로 소비 (백엔드 IP, DNS 트리거 등).
+### 운영 작업별 진입점
 
-### 시크릿 인벤토리 / Secret Inventory
+| 작업 | 위치 |
+|------|------|
+| LXC/VM 추가/리사이즈 | `100-pve/terraform/locals.tf` + `100-pve/envs/prod/hosts.tf`(호스트/IP/VMID SSoT) |
+| 서비스 구성 변경 | `<workspace>/templates/*.tftpl`(출력물 직접 수정 금지) |
+| 새 Traefik 라우트 | `102-traefik/templates/*.yml.tftpl`(백엔드 IP는 호스트 맵에서만) |
+| ELK 파이프라인 | `105-elk/templates/logstash.conf.tftpl` + `modules/elasticstack/` |
+| Cloudflare DNS/터널/Workers | `300-cloudflare/terraform/` + `modules/cloudflare/` |
+| 비밀 검색 | `modules/shared/onepassword-secrets/`(1Password 참조만) |
+| CI/CD 정책 | `.github/AGENTS.md` + `.github/workflows/` |
+| 테스트 정책 | `tests/AGENTS.md` |
+| 문서 정책 | `docs/AGENTS.md`(ADRs은 추가 전용) |
 
-- 워크스페이스별 인벤토리가 키와 1Password 참조를 매핑 (예: [300-cloudflare/inventory/secrets.yaml](300-cloudflare/inventory/secrets.yaml)).
+## 진입점 (API or Entry Points)
 
-### 빌드 변수 / Build Variables
+사람이 호출하는 IaC 시스템이므로 "진입점"은 모듈/Terraform 루트와 Make 타깃입니다.
 
-- 저장소 루트의 [`build.env`](build.env)에 공유 빌드 환경 변수 정의. 워크스페이스별 추가 변수는 `variables.tf` 참조.
+### Terraform 모듈
 
-## 아키텍처 / Architecture
+| 경로 | 용도 |
+|------|------|
+| `modules/proxmox/*/main.tf` | LXC/VM 프로비저닝 |
+| `modules/cloudflare/tunnel/main.tf` | Cloudflare 터널 |
+| `modules/elasticstack/*/main.tf` | ELK 스택 |
+| `modules/shared/onepassword-secrets/` | 1Password 백엔드 시크릿 |
 
-| 계층 / Layer | 역할 / Role | 구성 요소 / Components |
-|---|---|---|
-| Tier 0 — 오케스트레이터 | Proxmox 자원·템플릿 중앙 제어 | `100-pve` (호스트 SSoT, `.tftpl` 렌더러) |
-| Tier 1 — 내부 서비스 | 홈랩 LAN 내부 동작 | `102-traefik`, `103-coredns`, `105-elk`, `112-mcphub` |
-| Tier 1 — 보조 워크로드 | 워크스테이션, 외부 기기 통합 | `80-jclee`, `215-synology`, `220-youtube` |
-| Tier 1 — 보조 CI/Workflow | 런너 이미지 | `101-runner` |
-| 외부 / External | 홈랩 밖 DNS·클라우드 | `300-cloudflare`, `310-safetywallet`, `400-gcp` |
-| 공유 / Shared | 재사용 모듈 | `modules/{proxmox,shared,cloudflare,elasticstack}` |
+### 워크스페이스 진입점
 
-핵심 흐름 / Core flow:
+| 경로 | 진입점 |
+|------|--------|
+| `103-coredns/` | `templates/Corefile.tftpl`, `templates/docker-compose.yml.tftpl`, `templates/filebeat.yml.tftpl` |
+| `105-elk/terraform/` | `main.tf`, `providers.tf`, `variables.tf`, `outputs.tf`, `onepassword.tf`, `checks.tf`, `validation.tf`, `versions.tf` |
+| `105-elk/config/` | 정적 구성 — `Dockerfile.logstash`, `logstash.conf`, `logstash.yml`, `filebeat.yml`, `ilm-policy.json` |
+| `105-elk/scripts/` | `setup-ilm.go`, `setup-watcher.go`, `remove-promtail.go`, 셸 헬퍼 `remove-promtail` |
+| `112-mcphub/` | `mcp_servers.json`, `validate_mcps.py`, `op-mcp-server/index.mjs`, Dockerfile 모음 |
+| `112-mcphub/config/` | `entrypoint-patch.go`, `patch-sdk-schema.cjs`, `patch-placeholder.cjs`, `filebeat.yml` |
+| `300-cloudflare/terraform/` | `main.tf`, `checks.tf`, `validation.tf`, `onepassword.tf`, `outputs.tf`, `providers.tf`, `variables.tf`, `versions.tf` |
+| `300-cloudflare/scripts/` | `audit.go`, `collect.go`, `deploy-worker.go`, `generate-bindings.go`, `sync.go` |
+| `300-cloudflare/workers/synology-proxy/` | Synology 프록시 Worker |
 
-1. `100-pve`가 호스트 맵을 입력으로 받아 Proxmox 자원을 apply — VMID·IP는 동시에 다른 워크스페이스의 입력으로 노출
-2. 호스트 결과를 토대로 `100-pve`가 `.tftpl` 파일을 `docker-compose.yml`, `Corefile`, `filebeat.yml`, `logstash.conf` 등으로 렌더링
-3. `102-traefik`, `105-elk` 등 Tier 1 워크스페이스가 자기 서비스를 표준 시퀀스로 apply (라우팅은 hosts 맵에서 backend IP만 참조)
-4. `300-cloudflare`는 호스트 맵을 외부 DNS 레코드·터널·Workers에 반영 (`scripts/collect.go`, `generate-bindings.go`, `deploy-worker.go` 등 자체 스크립트 보유)
-5. GitHub Actions 동시성 그룹이 동일 워크스페이스의 동시 apply를 차단해 상태 파일 경합을 제거
-6. CI 진입점과 PR 규칙은 [CONTRIBUTING.md](CONTRIBUTING.md) 및 [.github/workflows/](.github/workflows/) 참조
+## 빠른 시작 (Quickstart)
 
-*Architecture in brief: `100-pve` (Tier 0) owns the host map and renders `.tftpl` files; Tier 1 (`102-traefik`, `105-elk`, `112-mcphub`) consumes the rendered outputs; external workspaces (`300-cloudflare`, `400-gcp`) sit outside the LAN and share only secrets and code-style conventions.*
+### 사전 요구 사항
 
-상세 결정은 [ARCHITECTURE.md](ARCHITECTURE.md), 의존성 그래프는 [DEPENDENCY_MAP.md](DEPENDENCY_MAP.md) 참조.
+| 항목 | 권장 버전 |
+|------|-----------|
+| Terraform | 1.10.5 (제약: `>= 1.7, < 2.0`) |
+| Go | 워크스페이스 헬퍼 스크립트 빌드용 |
+| Node.js | Workers 및 일부 헬퍼 스크립트용 |
+| Docker / Docker Compose | 템플릿 산출물 검증용 |
+| 1Password CLI | 비밀 주입용 |
 
-## 로컬 개발 / Local Development
+### 단계별 절차
 
-| 영역 / Area | 권장 절차 / Recommended Workflow |
-|---|---|
-| 코드 스타일 | [CODE_STYLE.md](CODE_STYLE.md) 준수, 변경 후 `make fmt` |
-| 새 워크스페이스 | `NNN-svc/` 디렉터리 생성, Makefile `ALIAS_*` 매핑 추가, `SVC` 검증 |
-| 환경 격리 | 워크스페이스별 로컬 상태, 동시 작업은 별 디렉터리(또는 워크트리) 사용 |
-| 변경 전 백업 | `make SVC=<ws> backup` |
-| 변경 후 점검 | `make SVC=<ws> drift-check` → `make SVC=<ws> verify` |
-| 시크릿 점검 | 변수 파일이 평문 비밀을 갖지 않는지 grep (예: `password|token|secret`) |
-| LXC/VM 변경 | `100-pve/envs/prod/hosts.tf` 한 곳에서만 수정, 후속 워크스페이스는 자동 반영 확인 |
-| 템플릿 검증 | `*.tftpl` 변경 후 `100-pve` 렌더링 결과를 인접 워크스페이스에서 dry-run |
+1. 저장소 클론.
 
-사전 커밋 훅은 `make pre-commit-install`로 설치하고 `make pre-commit-run`으로 수동 실행할 수 있습니다.
+   ```bash
+   git clone https://github.com/<owner>/<repo>.git
+   cd <repo>
+   ```
 
-## 테스트 / Testing
+2. 빌드 환경 적용.
 
-- 기본 프레임워크는 네이티브 `terraform test`. 프로바이더 호출은 기본적으로 모의(mock).
-- Makefile이 테스트 부분 집합을 실행:
-  - `make SVC=<ws> test` — 통합
-  - `make SVC=<ws> test-unit`
-  - `make SVC=<ws> test-integration`
-  - `make SVC=<ws> test-workspace`
-- 표준 모듈 테스트는 [modules/](modules/) 워크스페이스 디렉터리에서, 정책은 [tests/AGENTS.md](tests/AGENTS.md)에서 확인.
-- 추가 자동 점검:
-  - [112-mcphub/validate_mcps.py](112-mcphub/validate_mcps.py) — MCP 서버 구성 정합성
-  - Go 스크립트는 각 디렉터리의 `scripts/`에 위치 ([105-elk/scripts/](105-elk/scripts/), [300-cloudflare/scripts/](300-cloudflare/scripts/))
+   ```bash
+   set -a; source build.env; set +a
+   ```
 
-## 기여 / Contribution Guide
+3. 사용 가능한 타깃과 별칭 확인.
 
-1. 워크스페이스 디렉터리와 Makefile `ALIAS_<name>`을 함께 추가·수정.
-2. 변수/출력에 명시적 타입과 설명을 부여 (anti-pattern 회피).
-3. PR 전에 `make fmt && make SVC=<ws> validate && make SVC=<ws> lint` 통과.
-4. 새 워크스페이스 번호 규칙 준수 — 내부 `1–255`, 외부 `300+`.
-5. `*.tftpl` 변경은 인접 워크스페이스의 dry-run 결과를 PR에 첨부.
-6. 비밀 평문 노출 금지 — 1Password 참조로만 작성.
-7. 상세 절차는 [CONTRIBUTING.md](CONTRIBUTING.md), 스타일은 [CODE_STYLE.md](CODE_STYLE.md) 참조.
+   ```bash
+   make help
+   ```
 
-## 운영 / Maintainers & Status
+4. 워크스페이스 선택 및 초기화(`pve` 별칭 예시).
 
-| 항목 / Item | 값 / Value |
-|---|---|
-| 상태 / Status | Active (개인 홈랩) |
-| 책임자 / Owners | [OWNERS](OWNERS), [OWNERS_ALIASES](OWNERS_ALIASES) |
-| 지원 채널 / Support | 홈랩 사내 채팅, [AGENTS.md](AGENTS.md) 트러블슈팅 섹션 |
-| 주요 정책 / Policy | [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_STYLE.md](CODE_STYLE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DEPENDENCY_MAP.md](DEPENDENCY_MAP.md) |
+   ```bash
+   make SVC=pve init
+   ```
 
-## 추가 문서 / Further Documentation
+5. 계획 검토.
 
-루트 문서:
+   ```bash
+   make SVC=pve plan   # tfpla 산출
+   ```
 
-- [AGENTS.md](AGENTS.md) — 운영 에이전트용 전역 지식 베이스 (`WHERE TO LOOK`, `CODE MAP`)
-- [ARCHITECTURE.md](ARCHITECTURE.md) — 아키텍처 결정, 계층, 데이터 흐름
-- [DEPENDENCY_MAP.md](DEPENDENCY_MAP.md) — 모듈·워크스페이스 의존성 그래프
-- [CONTRIBUTING.md](CONTRIBUTING.md) — PR 정책, 워크스페이스 추가 절차
-- [CODE_STYLE.md](CODE_STYLE.md) — Terraform·Go 스타일 규약
-- [OWNERS](OWNERS), [OWNERS_ALIASES](OWNERS_ALIASES) — 책임자 매핑
+6. 적용.
 
-워크스페이스별 문서:
+   ```bash
+   make SVC=pve apply
+   ```
 
-- [103-coredns/README.md](103-coredns/README.md), [103-coredns/AGENTS.md](103-coredns/AGENTS.md)
-- [105-elk/terraform/README.md](105-elk/terraform/README.md), [105-elk/AGENTS.md](105-elk/AGENTS.md), [105-elk/terraform/AGENTS.md](105-elk/terraform/AGENTS.md), [105-elk/config/AGENTS.md](105-elk/config/AGENTS.md), [105-elk/templates/AGENTS.md](105-elk/templates/AGENTS.md), [105-elk/scripts/AGENTS.md](105-elk/scripts/AGENTS.md)
-- [112-mcphub/README.md](112-mcphub/README.md), [112-mcphub/AGENTS.md](112-mcphub/AGENTS.md), [112-mcphub/config/AGENTS.md](112-mcphub/config/AGENTS.md), [112-mcphub/templates/AGENTS.md](112-mcphub/templates/AGENTS.md), [112-mcphub/op-mcp-server/AGENTS.md](112-mcphub/op-mcp-server/AGENTS.md)
-- [300-cloudflare/README.md](300-cloudflare/README.md), [300-cloudflare/AGENTS.md](300-cloudflare/AGENTS.md), [300-cloudflare/scripts/AGENTS.md](300-cloudflare/scripts/AGENTS.md), [300-cloudflare/workers/AGENTS.md](300-cloudflare/workers/AGENTS.md), [300-cloudflare/workers/synology-proxy/AGENTS.md](300-cloudflare/workers/synology-proxy/AGENTS.md), [300-cloudflare/docs/requirements.md](300-cloudflare/docs/requirements.md)
+7. 검증과 드리프트 검사.
 
-## 라이선스 / License
+   ```bash
+   make SVC=pve verify
+   make SVC=pve lint
+   make SVC=pve validate
+   make SVC=pve drift-check
+   ```
 
-[LICENSE](LICENSE) 파일 참조. 본 저장소를 외부에 배포할 때는 라이선스 전문을 함께 제공합니다.
+워크스페이스별 절차 차이는 해당 워크스페이스의 `AGENTS.md`와 `README.md`(`105-elk/terraform/README.md`, `300-cloudflare/README.md` 등)를 참조하십시오.
+
+## 아키텍처 (Architecture)
+
+홈랩은 **세 개의 운영 티어**와 **외부** 범주로 나뉘며, 각 티어는 Make 별칭과 Terraform 루트로 일대일 대응합니다.
+
+### 계층별 책임
+
+| 티어 | 책임 | 예시 |
+|------|------|------|
+| Tier 0 | 오케스트레이션 호스트 SSoT | `100-pve` (Proxmox 오케스트레이터) |
+| Tier 1 | 내부 서비스 | Traefik, CoreDNS, ELK, MCP Hub |
+| 외부 | 클라우드/외부 종속성 | Cloudflare (`300-cloudflare`) |
+
+### Terraform 적용 흐름
+
+1. 운영자가 `make SVC=<alias> ...`을 호출.
+2. Make가 `ALIAS_*` 테이블로 별칭을 디렉터리 경로로 해소.
+3. `init`이 provider 다운로드와 잠금 파일 생성.
+4. `plan`이 `tfpla`를 직렬화, CI/PR 리뷰 입력으로 사용.
+5. `apply`가 상태 파일 업데이트, GitHub Actions 동시성으로 직렬화.
+6. `verify`/`validate`/`fmt`/`lint`/`drift-check`/`test`가 품질 게이트 역할.
+7. `backup`이 상태/산출물 보존.
+
+### 비밀 흐름
+
+1. 1Password vault `homelab`에 시크릿 보관.
+2. Terraform이 `modules/shared/onepassword-secrets/`로 값을 조회.
+3. 환경 변수 또는 모듈 입력으로 주입 — 시크릿은 커밋하지 않음.
+
+### 모듈 계층
+
+| 모듈군 | 역할 | 진입점 |
+|--------|------|--------|
+| `modules/proxmox` | LXC/VM 프로비저닝 | 각 모듈 `main.tf` |
+| `modules/cloudflare` | DNS/Tunnel/접근 | `modules/cloudflare/tunnel/main.tf` |
+| `modules/elasticstack` | ELK 스택 | 각 모듈 `main.tf` |
+| `modules/shared` | 공통(예: 시크릿) | `modules/shared/onepassword-secrets/` |
+
+상세 시스템 다이어그램과 데이터 흐름은 `ARCHITECTURE.md` 및 `docs/`를 참조하십시오.
+
+## 설정 (Configuration)
+
+다음 규칙이 설정 정합성을 보장합니다.
+
+| 항목 | 규칙 |
+|------|------|
+| `variable` | 명시적 `type`과 `description` 필수 |
+| `output` | `description` 필수 |
+| 단일 인스턴스 리소스 | `resource "<type>" "this"` |
+| 비밀 | 절대 커밋 금지 — 1Password 참조만 사용 |
+| 상태 백엔드 | 로컬이 기본, 예외는 `versions.tf`/워크스페이스 문서에 명시 |
+| 빌드 환경 | `build.env`를 공통 베이스로 적용 |
+
+## 명령 참조 (Commands Reference)
+
+`Makefile`이 단일 진입점이며 모든 타깃은 `SVC` 파라미터를 받거나 독립적으로 동작합니다.
+
+| 타깃 | SVC 지원 | 설명 |
+|------|---------|------|
+| `make help` | – | 사용 가능한 타깃/별칭 출력 |
+| `make init` | ✓ | Terraform 초기화 |
+| `make plan` | ✓ | `tfpla`로 차이점 직렬화 |
+| `make apply` | ✓ | 계획 적용 |
+| `make verify` | ✓ | 외부 검증 |
+| `make validate` | ✓ | Terraform 문법 검증 |
+| `make fmt` | ✓ | `*.tf` 포맷(워크스페이스 전체) |
+| `make lint` | ✓ | HCL 정적 분석 |
+| `make lint-go` | ✓ | Go 헬퍼 린트 |
+| `make drift-check` | ✓ | 상태 드리프트 검사 |
+| `make test` | ✓ | Terraform 테스트 |
+| `make test-unit` | – | 단위 테스트 |
+| `make test-integration` | – | 통합 테스트 |
+| `make test-workspace` | – | 특정 워크스페이스 테스트 |
+| `make backup` | – | 상태/산출물 백업 |
+| `make docs` | – | 문서 생성/검증 |
+| `make pre-commit-install` | – | pre-commit 훅 설치 |
+| `make pre-commit-run` | – | pre-commit 훅 수동 실행 |
+| `make setup` | – | 로컬 1회 셋업 |
+
+### 주요 별칭 매핑
+
+| 별칭 | 디렉터리 |
+|------|----------|
+| `pve` | `100-pve/terraform` |
+| `runner` | `101-runner` |
+| `traefik` | `102-traefik/terraform` |
+| `coredns` | `103-coredns` |
+| `elk` | `105-elk/terraform` |
+| `mcphub` | `112-mcphub` |
+| `synology` | `215-synology` |
+| `cloudflare` | `300-cloudflare/terraform` |
+| `safetywallet` | `310-safetywallet` |
+| `gcp` | `400-gcp` |
+
+전체 매핑과 디렉터리 검증 로직은 `Makefile`의 `ALIAS_*` 블록과 `check_svc_dir` 매크로를 참조하십시오.
+
+## 로컬 개발 (Local Development)
+
+### 권장 워크플로
+
+1. 베이스라인 확보 — 변경 전 `make SVC=<svc> plan`.
+2. 코드 편집 — `templates/*.tftpl`, `terraform/*.tf`, 또는 워크스페이스 스크립트.
+3. 포맷과 검증 — `make fmt validate`.
+4. 정적 분석 — `make lint lint-go`.
+5. 테스트 — `make test test-unit`(해당 시 `test-integration`).
+6. 계획 재검토 — `make SVC=<svc> plan`을 다시 실행, `tfpla`를 PR 첨부.
+7. pre-commit — `make pre-commit-run`.
+
+### 도구 추천
+
+| 목적 | 도구 |
+|------|------|
+| 편집기 | VSCode + HashiCorp Terraform 확장 |
+| 비밀 접근 | 1Password CLI (`op`) |
+| 컨테이너 검증 | Docker Compose (`<workspace>/templates` 렌더 결과) |
+| 워커 검증 | Node.js + Wrangler (`300-cloudflare/workers/*`) |
+
+## 테스트 (Testing)
+
+테스트는 기본적으로 프로바이더를 모킹한 native `terraform test`를 사용합니다.
+
+| Make 타깃 | 범위 |
+|-----------|------|
+| `make test` | Terraform 전체 |
+| `make test-unit` | 단위 테스트 |
+| `make test-integration` | 통합 테스트 |
+| `make test-workspace` | 특정 워크스페이스 |
+| `make lint` | HCL 정적 분석 |
+| `make validate` | Terraform 문법 검증 |
+| `make drift-check` | 상태 드리프트 검사 |
+
+상세 테스트 정책과 모킹 전략은 `tests/AGENTS.md`를 참조하십시오.
+
+## 기여 가이드 (Contributing)
+
+기여 절차는 `CONTRIBUTING.md`를 따릅니다.
+
+- 모든 변경은 PR로 제출.
+- 코딩 스타일은 `CODE_STYLE.md` 준수.
+- 리뷰 권한 그룹은 `OWNERS`/`OWNERS_ALIASES`에 정의.
+- CI는 동시성으로 직렬화되므로 충돌은 PR 순서로 해결.
+- 워크스페이스별 추가 지침은 해당 `AGENTS.md`를 참조.
+
+PR 체크리스트:
+
+- [ ] `make fmt validate lint` 통과.
+- [ ] `make test` (또는 해당 범위 테스트) 통과.
+- [ ] 비밀/내부 IP/개인 정보 미포함.
+- [ ] 출력 산출물 직접 변경이 아닌 템플릿/`*.tf` 변경.
+- [ ] 관련 `AGENTS.md`/`README.md` 갱신.
+
+## 유지보수자 및 문의 (Maintainers & Help)
+
+리뷰 권한 그룹은 `OWNERS`와 `OWNERS_ALIASES`에 정의되어 있습니다. 질문, 버그, 기능 요청은 저장소 이슈 트래커를 사용하십시오. 본 프로젝트는 개인 홈랩 용도이며 외부 지원 채널은 제공되지 않습니다.
+
+## 추가 문서 (Further Documentation)
+
+| 문서 | 내용 |
+|------|------|
+| `AGENTS.md` | 프로젝트 지식 베이스, 컨벤션, 안티패턴 |
+| `ARCHITECTURE.md` | 시스템 아키텍처 |
+| `CODE_STYLE.md` | 코드 스타일 |
+| `CONTRIBUTING.md` | 기여 절차 |
+| `DEPENDENCY_MAP.md` | 의존성 맵 |
+| `<workspace>/AGENTS.md` | 워크스페이스별 운영 지침 |
+| `tests/AGENTS.md` | 테스트 정책 |
+| `docs/AGENTS.md` | 문서 정책 (ADRs 추가 전용, runbook 실행 가능) |
+| `105-elk/terraform/README.md` | ELK 워크스페이스 가이드 |
+| `300-cloudflare/README.md` | Cloudflare 워크스페이스 가이드 |
+| `300-cloudflare/docs/requirements.md` | Cloudflare 인수 조건 |
+
+## 라이선스 (License)
+
+`LICENSE` 파일을 참조하십시오.
