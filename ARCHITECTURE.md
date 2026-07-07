@@ -111,8 +111,8 @@ terraform/
 
 ### Service Topology
 
-```mermaid
-flowchart TB
+```text
+%% diagram: flowchart TB
   Internet["Internet"] --> CFDNS["Cloudflare DNS"]
   CFDNS --> CFAccess["Cloudflare Access"]
   CFAccess --> CFTunnel["Cloudflare Tunnel"]
@@ -132,8 +132,8 @@ flowchart TB
 
 ### Terraform Control Flow
 
-```mermaid
-flowchart LR
+```text
+%% diagram: flowchart LR
   Hosts["100-pve/envs/prod/hosts.tf\nHost SSoT"] --> HostModule["module.hosts"]
   HostModule --> LXC["modules/proxmox/lxc"]
   HostModule --> VM["modules/proxmox/vm"]
@@ -154,8 +154,8 @@ flowchart LR
 
 ### Workspace Apply Order
 
-```mermaid
-graph TD
+```text
+%% diagram: graph TD
   PVE["100-pve\nTier 0 core"] --> Tier1["Tier 1 parallel"]
   Tier1 --> Traefik["102-traefik"]
   Tier1 --> ELK["105-elk"]
@@ -174,8 +174,8 @@ graph TD
 
 ### Observability Flow
 
-```mermaid
-flowchart LR
+```text
+%% diagram: flowchart LR
   Services["LXC / VM Services"] --> Filebeat["Filebeat Agents"]
   PVEHost["Proxmox Host"] --> Filebeat
   Cloudflare["Cloudflare Logpush"] --> Logpush["HTTPS Logpush Ingest"]

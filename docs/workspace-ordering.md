@@ -9,8 +9,8 @@ app workspaces.
 
 ## Dependency Graph
 
-```mermaid
-graph TD
+```text
+%% diagram: graph TD
   PVE["100-pve\nProvision fleet and render configs"] --> Infra["Tier 1 infra workspaces"]
   Infra --> Traefik["102-traefik"]
   Infra --> ELK["105-elk"]
