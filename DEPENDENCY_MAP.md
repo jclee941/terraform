@@ -44,8 +44,8 @@
 
 ## MODULE DEPENDENCY GRAPH
 
-```mermaid
-graph TD
+```text
+%% diagram: graph TD
   Main["100-pve/terraform/main.tf"] --> Hosts["100-pve/envs/prod/hosts.tf"]
   Main --> LXC["modules/proxmox/lxc"]
   Main --> VM["modules/proxmox/vm"]
@@ -83,8 +83,8 @@ graph TD
 
 ## TEMPLATE RENDERING PIPELINE
 
-```mermaid
-flowchart LR
+```text
+%% diagram: flowchart LR
   Templates["Service templates\n{NNN}-{svc}/templates/*.tftpl"] --> Renderer["config-renderer module"]
   Hosts["module.hosts.hosts"] --> Renderer
   Secrets["module.onepassword_secrets.secrets"] --> Renderer
@@ -161,8 +161,8 @@ template_vars = {
 
 ### Provider Dependency Graph
 
-```mermaid
-graph LR
+```text
+%% diagram: graph LR
   PVE["100-pve"] --> Proxmox["bpg/proxmox"]
   PVE --> OnePassword["1Password/onepassword"]
 
@@ -244,8 +244,8 @@ export CLOUDFLARE_API_TOKEN="..."
 
 ### Entrypoint Decision Tree
 
-```mermaid
-flowchart TD
+```text
+%% diagram: flowchart TD
   Need["What do you need to change?"] --> Host["Add or modify LXC/VM"]
   Need --> Route["Add or modify ingress route"]
   Need --> Logs["Change ELK pipeline"]
