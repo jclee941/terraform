@@ -16,11 +16,11 @@ mock_provider "minio" {}
 override_module {
   target = module.onepassword_secrets
   outputs = {
-    secrets = {                    # pragma: allowlist secret
-      synology_user           = "" # pragma: allowlist secret
-      synology_password       = "" # pragma: allowlist secret
-      registry_minio_user     = "" # pragma: allowlist secret
-      registry_minio_password = "" # pragma: allowlist secret
+    secrets = {                    # pragma: allowlist secret # gitleaks:allow
+      synology_user           = "" # pragma: allowlist secret # gitleaks:allow
+      synology_password       = "" # pragma: allowlist secret # gitleaks:allow
+      registry_minio_user     = "" # pragma: allowlist secret # gitleaks:allow
+      registry_minio_password = "" # pragma: allowlist secret # gitleaks:allow
     }
   }
 }
@@ -38,8 +38,8 @@ run "minio_console_admin_policy_attachment_skipped_when_password_empty" {
 
   variables {
     enable_registry              = false
-    synology_user                = "test-user" # pragma: allowlist secret
-    synology_password            = "test-pass" # pragma: allowlist secret
+    synology_user                = "test-user" # pragma: allowlist secret # gitleaks:allow
+    synology_password            = "test-pass" # pragma: allowlist secret # gitleaks:allow
     minio_console_admin_password = ""
   }
 
@@ -58,9 +58,9 @@ run "minio_console_admin_policy_attachment_created_when_password_set" {
 
   variables {
     enable_registry              = false
-    synology_user                = "test-user"           # pragma: allowlist secret
-    synology_password            = "test-pass"           # pragma: allowlist secret
-    minio_console_admin_password = "test-admin-password" # pragma: allowlist secret
+    synology_user                = "test-user"           # pragma: allowlist secret # gitleaks:allow
+    synology_password            = "test-pass"           # pragma: allowlist secret # gitleaks:allow
+    minio_console_admin_password = "test-admin-password" # pragma: allowlist secret # gitleaks:allow
   }
 
   assert {
@@ -78,8 +78,8 @@ run "mailplus_catch_all_routes_to_configured_user" {
 
   variables {
     enable_registry         = false
-    synology_user           = "test-user" # pragma: allowlist secret
-    synology_password       = "test-pass" # pragma: allowlist secret
+    synology_user           = "test-user" # pragma: allowlist secret # gitleaks:allow
+    synology_password       = "test-pass" # pragma: allowlist secret # gitleaks:allow
     mailplus_domain_id      = 7
     mailplus_catch_all_user = "mail-owner"
   }
@@ -109,8 +109,8 @@ run "mailplus_catch_all_user_rejects_email_address" {
 
   variables {
     enable_registry         = false
-    synology_user           = "test-user" # pragma: allowlist secret
-    synology_password       = "test-pass" # pragma: allowlist secret
+    synology_user           = "test-user" # pragma: allowlist secret # gitleaks:allow
+    synology_password       = "test-pass" # pragma: allowlist secret # gitleaks:allow
     mailplus_catch_all_user = "user@example.test"
   }
 

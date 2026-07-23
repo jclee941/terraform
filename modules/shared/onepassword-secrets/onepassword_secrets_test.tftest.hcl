@@ -25,7 +25,7 @@ run "custom_vault_name" {
   }
 
   assert {
-    condition     = data.onepassword_vault.this.name == "Production"
+    condition     = data.onepassword_vault.this.name == "Production" # gitleaks:allow
     error_message = "Custom vault_name should be respected."
   }
 }
