@@ -11,7 +11,6 @@ locals {
     docker             = { name = "Docker", tier = "standard" }
     elk                = { name = "ELK", tier = "critical" }
     github-runner      = { name = "GitHub Runner", tier = "ephemeral" }
-    mcphub             = { name = "MCPHub", tier = "standard" }
     opencode           = { name = "OpenCode", tier = "standard" }
     pve                = { name = "PVE", tier = "critical" }
     synology           = { name = "Synology", tier = "standard" }

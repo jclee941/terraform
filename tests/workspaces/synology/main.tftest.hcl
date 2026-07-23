@@ -69,6 +69,54 @@ run "minio_console_admin_policy_attachment_created_when_password_set" {
   }
 }
 
+run "mailplus_catch_all_routes_to_configured_user" {
+  command = plan
+
+  module {
+    source = "../../../215-synology"
+  }
+
+  variables {
+    enable_registry         = false
+    synology_user           = "test-user" # pragma: allowlist secret
+    synology_password       = "test-pass" # pragma: allowlist secret
+    mailplus_domain_id      = 7
+    mailplus_catch_all_user = "mail-owner"
+  }
+
+  assert {
+    condition     = synology_api.mailplus_catch_all["primary"].parameters["domain_id"] == "7"
+    error_message = "MailPlus catch-all must target the configured domain ID"
+  }
+
+  assert {
+    condition = jsondecode(
+      synology_api.mailplus_catch_all["primary"].parameters["catch_all"]
+      ) == {
+      enable  = true
+      setting = "mail-owner"
+    }
+    error_message = "MailPlus catch-all must route unmatched addresses to the configured DSM user"
+  }
+}
+
+run "mailplus_catch_all_user_rejects_email_address" {
+  command = plan
+
+  module {
+    source = "../../../215-synology"
+  }
+
+  variables {
+    enable_registry         = false
+    synology_user           = "test-user" # pragma: allowlist secret
+    synology_password       = "test-pass" # pragma: allowlist secret
+    mailplus_catch_all_user = "user@example.test"
+  }
+
+  expect_failures = [var.mailplus_catch_all_user]
+}
+
 run "synology_host_requires_https" {
   command = plan
 

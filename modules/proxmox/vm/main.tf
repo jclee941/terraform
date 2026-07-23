@@ -12,20 +12,26 @@ terraform {
 data "proxmox_virtual_environment_nodes" "nodes" {}
 
 resource "proxmox_virtual_environment_vm" "this" {
-  name        = var.hostname
-  description = var.description
-  node_name   = var.node_name
-  vm_id       = var.vmid
-  bios        = var.bios
-  machine     = var.machine
-  on_boot     = var.on_boot
+  name            = var.hostname
+  description     = var.description
+  node_name       = var.node_name
+  vm_id           = var.vmid
+  bios            = var.bios
+  hotplug         = var.hotplug
+  keyboard_layout = var.keyboard_layout
+  machine         = var.machine
+  on_boot         = var.on_boot
+  protection      = var.protection
+  scsi_hardware   = var.scsi_hardware
+  started         = var.started
+  tablet_device   = var.tablet_device
 
   dynamic "efi_disk" {
     for_each = var.bios == "ovmf" ? [1] : []
     content {
       datastore_id      = var.datastore_id
       type              = "4m"
-      pre_enrolled_keys = true
+      pre_enrolled_keys = var.efi_pre_enrolled_keys
     }
   }
 
@@ -45,15 +51,21 @@ resource "proxmox_virtual_environment_vm" "this" {
   agent {
     enabled = true
     trim    = var.qemu_agent_trim
+    type    = var.qemu_agent_type
   }
 
   cpu {
     cores = var.cores
+    limit = var.cpu_limit
+    numa  = var.cpu_numa
     type  = var.cpu_type
+    units = var.cpu_units
   }
 
   vga {
-    type = "std"
+    clipboard = var.vga_clipboard
+    memory    = var.vga_memory
+    type      = var.vga_type
   }
 
   memory {
@@ -65,7 +77,10 @@ resource "proxmox_virtual_environment_vm" "this" {
     datastore_id = var.datastore_id
     interface    = var.disk_interface
     size         = var.disk_size
+    backup       = var.disk_backup
+    cache        = var.disk_cache
     iothread     = true
+    replicate    = var.disk_replicate
     ssd          = var.ssd_emulation
     discard      = var.disk_discard
     aio          = var.disk_aio
@@ -78,10 +93,14 @@ resource "proxmox_virtual_environment_vm" "this" {
   dynamic "hostpci" {
     for_each = var.hostpci_devices
     content {
-      device  = hostpci.value.device
-      mapping = hostpci.value.mapping
-      id      = hostpci.value.id
-      pcie    = hostpci.value.pcie
+      device   = hostpci.value.device
+      mapping  = hostpci.value.mapping
+      id       = hostpci.value.id
+      mdev     = hostpci.value.mdev
+      pcie     = hostpci.value.pcie
+      rom_file = hostpci.value.rom_file
+      rombar   = hostpci.value.rombar
+      xvga     = hostpci.value.xvga
     }
   }
 
@@ -92,6 +111,14 @@ resource "proxmox_virtual_environment_vm" "this" {
       usb3 = usb.value.usb3
     }
   }
+
+  dynamic "serial_device" {
+    for_each = var.serial_devices
+    content {
+      device = serial_device.value.device
+    }
+  }
+
   initialization {
     datastore_id      = var.cloud_init_datastore_id
     user_data_file_id = var.cloud_init_file_id

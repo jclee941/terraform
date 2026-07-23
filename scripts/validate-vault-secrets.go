@@ -309,12 +309,6 @@ var services = []serviceCheck{
 	},
 	// --- Presence-check only (no public API) ---
 	{
-		name: "mcphub",
-		fields: []fieldSpec{
-			{"password", "op://homelab/mcphub/password"},
-		},
-	},
-	{
 		name: "safetywallet",
 		fields: []fieldSpec{
 			{"username", "op://homelab/safetywallet/username"},

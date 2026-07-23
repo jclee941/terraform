@@ -21,7 +21,7 @@ Production host inventory source of truth. `hosts.tf` defines VMID, IP, role, an
 | Parent workspace rules | `../../AGENTS.md` | SSoT and full workspace data flow contract. |
 
 ## CONVENTIONS
-- Keep host keys stable (`runner`, `traefik`, `elk`, `mcphub`, etc.).
+- Keep active host keys stable (`elk`, `cliproxy`, `oc`, `synology`, `youtube`, etc.).
 - Preserve object shape for each host: `vmid`, `ip`, `roles`, `ports`.
 - Keep VMID in managed range and aligned with service directory numbering.
 - Keep ports map explicit; use `{}` when no exposed ports.

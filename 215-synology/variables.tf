@@ -55,6 +55,38 @@ variable "enable_container_manager_package" {
 }
 
 # -----------------------------------------------------------------------------
+# Synology MailPlus
+# -----------------------------------------------------------------------------
+
+variable "enable_mailplus_catch_all" {
+  description = "Route otherwise-unmatched addresses in the primary MailPlus domain to one DSM user"
+  type        = bool
+  default     = true
+}
+
+variable "mailplus_domain_id" {
+  description = "MailPlus primary domain identifier returned by SYNO.MailPlusServer.Domain/list"
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.mailplus_domain_id > 0 && floor(var.mailplus_domain_id) == var.mailplus_domain_id
+    error_message = "mailplus_domain_id must be a positive integer"
+  }
+}
+
+variable "mailplus_catch_all_user" {
+  description = "DSM user that receives otherwise-unmatched mail for the primary MailPlus domain"
+  type        = string
+  default     = "jclee"
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9._-]+$", var.mailplus_catch_all_user))
+    error_message = "mailplus_catch_all_user must be a valid DSM account name"
+  }
+}
+
+# -----------------------------------------------------------------------------
 # Portainer
 # -----------------------------------------------------------------------------
 

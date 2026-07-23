@@ -12,11 +12,13 @@ terraform {
 data "proxmox_virtual_environment_nodes" "nodes" {}
 
 resource "proxmox_virtual_environment_container" "this" {
-  node_name    = var.node_name
-  vm_id        = var.vmid
-  description  = var.description
-  started      = true
-  unprivileged = var.privileged ? false : true
+  node_name     = var.node_name
+  vm_id         = var.vmid
+  description   = var.description
+  protection    = var.protection
+  start_on_boot = var.start_on_boot
+  started       = true
+  unprivileged  = var.privileged ? false : true
 
   initialization {
     hostname = var.hostname
@@ -47,6 +49,7 @@ resource "proxmox_virtual_environment_container" "this" {
 
   cpu {
     cores = var.cores
+    units = var.cpu_units
   }
 
   disk {
@@ -70,8 +73,12 @@ resource "proxmox_virtual_environment_container" "this" {
   dynamic "mount_point" {
     for_each = var.mount_points
     content {
-      volume = mount_point.value.volume
-      path   = mount_point.value.path
+      backup    = mount_point.value.backup
+      path      = mount_point.value.path
+      replicate = mount_point.value.replicate
+      shared    = mount_point.value.shared
+      size      = mount_point.value.size
+      volume    = mount_point.value.volume
     }
   }
 
@@ -135,7 +142,6 @@ resource "proxmox_virtual_environment_container" "this" {
       template,
       startup,
       disk[0].datastore_id,
-      mount_point,
     ]
 
     # KEPT in ignore_changes (auto-generated or read-only fields):

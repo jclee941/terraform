@@ -1,8 +1,8 @@
-# Cloudflare Tunnel — Synology NAS
+# Cloudflare Tunnel Connector — Native Runtime
 
 ## Overview
 
-Runs `cloudflared` as a Docker container on the Synology NAS to establish a secure tunnel to Cloudflare. Bridges external traffic to the DSM API and other NAS services.
+The active `cloudflared` connector runs as a native systemd service on the cliproxy VM (VMID 114). This directory contains the retired Docker-on-Synology reference and is not the active deployment path.
 
 ## Architecture
 
@@ -11,67 +11,38 @@ Runs `cloudflared` as a Docker container on the Synology NAS to establish a secu
 - Type: flowchart
 - Internet -> Cloudflare Edge (CF)
 - Cloudflare Edge (CF) -> Cloudflare Tunnel (Tunnel)
-- Cloudflare Tunnel (Tunnel) -> cloudflared container (Container)
-- cloudflared container (Container) -> Synology DSM API\nlocalhost:5001 (DSM)
+- Cloudflare Tunnel (Tunnel) -> native cloudflared service (cliproxy)
+- native cloudflared service (cliproxy) -> configured tunnel origins
 
 
 ## Source of Truth
 
-- **Terraform workspace**: `../../terraform/` (tunnel token output)
-- **Docker Compose**: `docker-compose.yml` in this directory
-- **Environment**: `.env` (tunnel token, never commit)
+- **Terraform workspace**: `../../terraform/` (tunnel configuration and token output)
+- **Active connector host**: cliproxy VM (VMID 114)
+- **Legacy files**: `docker-compose.yml` and `.env.example` in this directory are not used by the active service.
 
 ## Operations
 
-### Setup
+### Check the Active Connector
 
 ```bash
-# Get tunnel token from Terraform output
-cd ../../terraform
-terraform output -raw tunnel_token
-
-# Create environment file
-cp .env.example .env
-# Paste the tunnel token into .env
+ssh root@cliproxy 'systemctl status cloudflared --no-pager'
+ssh root@cliproxy 'journalctl -u cloudflared -n 50 --no-pager'
 ```
 
-### Deploy
+### Restart
 
 ```bash
-# SSH into Synology NAS
-ssh admin@192.168.50.215
-
-# Navigate to this directory
-cd /volume1/docker/cloudflared
-
-# Start the tunnel
-docker compose up -d
-
-# Verify it's running
-docker compose logs -f
+ssh root@cliproxy 'systemctl restart cloudflared'
+ssh root@cliproxy 'systemctl is-active cloudflared'
 ```
 
-### Lifecycle
+### Legacy Docker Reference
 
-```bash
-# Check status
-docker compose ps
-
-# View logs
-docker compose logs -f cloudflared
-
-# Restart
-docker compose restart
-
-# Update cloudflared
-docker compose pull && docker compose up -d
-
-# Stop
-docker compose down
-```
+Do not deploy the connector on Synology with the compose files in this directory. Use the native systemd service on cliproxy instead.
 
 ## Safety Notes
 
 - Never commit `.env` or tunnel tokens to git.
-- If the container fails to connect, re-run `terraform output -raw tunnel_token` to verify the token.
-- Ensure DSM HTTPS is running on port 5001.
+- If the service fails to connect, inspect `journalctl -u cloudflared` on cliproxy and verify the Terraform-managed tunnel configuration.
+- Synology remains a tunnel origin at `192.168.50.215:5000`; it does not host the active connector.

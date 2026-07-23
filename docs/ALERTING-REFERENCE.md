@@ -7,7 +7,7 @@ Complete reference for the homelab error handling and alerting pipeline.
 ## Architecture
 
 ```
-Hosts (100, 101, 102, 103, 105, 112, 200, 220)
+Hosts (100, 101, 102, 105, 200, 220)
   └─ Filebeat → Logstash:5044 (105)
        └─ 4-tier error classification (error_classification + error_severity)
             └─ Elasticsearch (105:9200, index: logs-YYYY.MM.dd)
@@ -23,11 +23,7 @@ Each host runs a Filebeat config deployed via Terraform (`lxc-config`/`vm-config
 | Host      | VMID | Inputs                               | fields_under_root |
 | --------- | ---- | ------------------------------------ | ----------------- |
 | pve       | 100  | system, ceph, proxmox                | true              |
-| runner    | 101  | system, github-runner                | true              |
-| traefik   | 102  | system, traefik, traefik-access      | true              |
-| coredns   | 103  | Docker autodiscover, system          | true              |
-| elk       | 105  | system, elk-docker, mcp              | true              |
-| mcphub    | 112  | mcphub (Docker JSON), system         | true              |
+| elk       | 105  | system, elk-docker                   | true              |
 
 > **Requirement**: All inputs **must** use `fields_under_root: true` — Logstash filters reference `[service]` at root level.
 
@@ -41,7 +37,7 @@ Template: `105-elk/templates/logstash.conf.tftpl`
 | ---------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `error_classification` | Error category         | CRITICAL_FAILURE, RESOURCE_EXHAUSTION, CONNECTIVITY_FAILURE, GATEWAY_ERROR, AUTH_FAILURE, DATA_ERROR, APPLICATION_ERROR, DEPRECATION, WARNING |
 | `error_severity`       | Severity level         | critical, high, medium, low                                                                                                                   |
-| `service`              | Source service name    | mcphub, elk, traefik, system, etc.                                                                                                            |
+| `service`              | Source service name    | elk, system, etc.                                                                                                                              |
 | `level`                | Log level (normalized) | error, warn, info                                                                                                                             |
 | `log_message`          | Parsed log content     | "Connection refused"                                                                                                                          |
 | `error_message`        | Error-specific message | "ECONNREFUSED"                                                                                                                                |
@@ -62,7 +58,6 @@ Template: `105-elk/templates/logstash.conf.tftpl`
 _exists_:error_classification                               # All classified errors
 error_severity:critical                                      # Critical only
 error_classification:GATEWAY_ERROR                           # Gateway errors
-(service:mcp OR service:mcphub) AND _exists_:error_classification  # MCP errors
 ```
 
 **Error handling:**
@@ -89,7 +84,7 @@ Config: alerting templates/config rendered through the `100-pve` pipeline.
 | warning  | alert-log-fallback      | 1m         | 4h              |
 | info     | alert-log-fallback      | 2m         | 12h             |
 
-**Alert rules (10 total, 3 groups):**
+**Alert rules (9 total, 2 groups):**
 
 #### homelab-logs (folder: Alerting, eval: 1m)
 
@@ -97,15 +92,7 @@ Config: alerting templates/config rendered through the `100-pve` pipeline.
 | ---------------------- | -------- | ------ | ----------------------------------- |
 | `high-error-rate`      | warning  | ES     | >100 errors in 5 min                |
 | `critical-error-spike` | critical | ES     | >5 fatal/panic/critical in 1 min    |
-| `gateway-errors`       | warning  | ES     | >10 502/503 from traefik in 5 min   |
-| `client-errors-spike`  | info     | ES     | >100 4xx from traefik in 5 min      |
 | `host-silent`          | warning  | ES     | <5 unique hosts reporting in 10 min |
-
-#### mcp-alerts (folder: MCP Alerts, eval: 1m)
-
-| Rule             | Severity | Source | Condition               |
-| ---------------- | -------- | ------ | ----------------------- |
-| `mcp_error_logs` | warning  | ES     | >5 MCP errors in 10 min |
 
 #### infrastructure-health (folder: Alerting, eval: 1m)
 

@@ -28,7 +28,7 @@ OpenCode development VM. Provisioned via `100-pve/terraform/main.tf` as `jclee-d
 | SSH tunnel       | `300-cloudflare/terraform/locals.tf` → `tcp_services.ssh` | `ssh.jclee.me` → .200:22 |
 | SSH tunnel (alt) | `300-cloudflare/terraform/locals.tf` → `tcp_services.oc-ssh` | `oc-ssh.jclee.me` → .200:22 |
 | RDP tunnel       | `300-cloudflare/terraform/locals.tf` → `tcp_services.oc-rdp` | `oc-rdp.jclee.me` → .200:3389 |
-| CF Access status | `300-cloudflare/terraform/access.tf`               | Access resources removed; tombstone only |
+| Tunnel status | `300-cloudflare/terraform/tunnel.tf`               | SSH/RDP tunnel origins for the VM |
 | Firewall rules   | `100-pve/terraform/firewall.tf`                    | VM-level security group        |
 
 ## CONVENTIONS

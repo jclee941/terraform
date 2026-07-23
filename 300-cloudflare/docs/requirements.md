@@ -16,10 +16,10 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 
 | 모듈 | 기술 스택 | 역할 |
 |------|-----------|------|
-| **Terraform** | HCL (CF ~5.0, GitHub ~6.0, Vault ~4.0) | 인프라 프로비저닝 (시크릿, 터널, Access, R2, DNS) |
+| **Terraform** | HCL (CF ~5.0, GitHub ~6.0, Vault ~4.0) | 인프라 프로비저닝 (시크릿, 터널, R2, DNS) |
 | **Worker** | TypeScript, Hono 4.x, Vitest | Synology FileStation 프록시 + R2 캐시 |
 | **Scripts** | Bash | 시크릿 수집, 감사, 동기화, 바인딩 생성 |
-| **Docker** | cloudflared | Synology NAS 터널 커넥터 |
+| **systemd** | cloudflared | cliproxy VM (VMID 114) 터널 커넥터 |
 | **CI** | GitHub Actions | lint + typecheck + test + terraform validate |
 | **Inventory** | YAML | 시크릿 메타데이터 레지스트리 (SSoT) |
 
@@ -33,7 +33,7 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 | database | 2 | PostgreSQL |
 | app_security | 5 | Flask, JWT, HMAC, encryption key |
 | threat_intel | 4 | Regtech, Secudium, CF threat ingest |
-| storage | 3 | MinIO |
+| storage | 2 | Synology and Cloudflare R2 |
 | ai | 3 | Anthropic, OpenAI, Gemini |
 | media | 4 | ElevenLabs, Replicate, Runway, Suno |
 | external | 1 | FAS API |
@@ -77,8 +77,8 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 | ID | 요구사항 | 우선순위 | 상태 | 관련 이슈 |
 |----|----------|----------|------|-----------|
 | FR-03-01 | Zero Trust 터널 생성 (Terraform) | P0 | 완료 | - |
-| FR-03-02 | cloudflared Docker 컨테이너 배포 (Synology NAS) | P0 | 미완료 | [#4] |
-| FR-03-03 | CF Access 이메일 정책 (`synology.jclee.win`) | P0 | 완료 | - |
+| FR-03-02 | cliproxy VM (VMID 114)에 cloudflared 네이티브 서비스 배포 | P0 | 완료 | - |
+| FR-03-03 | Synology Cloudflare Tunnel 경로 (`nas.jclee.me`) | P0 | 완료 | - |
 | FR-03-04 | 터널 연결 및 Synology API 도달성 검증 | P0 | 미완료 | [#3] |
 | FR-03-05 | DNS 레코드 관리 (Terraform) | P0 | 완료 | - |
 
@@ -136,8 +136,8 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 
 | 이슈 | 제목 | 라벨 |
 |------|------|------|
-| #3 | Verify tunnel connectivity and Synology API reachability | docker |
-| #4 | Deploy cloudflared Docker container on Synology NAS | docker |
+| #3 | Verify tunnel connectivity and Synology API reachability | tunnel |
+| #4 | Deploy native cloudflared service on cliproxy VM (VMID 114) | tunnel |
 | #5 | E2E verification: file list, download, R2 cache hit | worker |
 | #6 | Configure Worker secrets and deploy synology-proxy | worker |
 
@@ -192,7 +192,7 @@ Synology NAS FileStation API를 Cloudflare Worker로 프록시하여 외부 접�
 | 이슈 | 제목 | 요구사항 ID | 마일스톤 |
 |------|------|-------------|----------|
 | #3 | Verify tunnel connectivity | FR-03-04 | M1 |
-| #4 | Deploy cloudflared Docker | FR-03-02 | M1 |
+| #4 | Deploy native cloudflared service | FR-03-02 | M1 |
 | #5 | E2E verification | FR-02-07 | M1 |
 | #6 | Configure & deploy Worker | FR-02-06 | M1 |
 | #10 | Rate limiting | FR-02-08, NFR-01-05 | M2 |

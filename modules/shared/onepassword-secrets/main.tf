@@ -28,10 +28,8 @@ locals {
     "cloudflare",
     "elk",
     "github",
-    "mcphub",
     "proxmox",
     "telegram",
-    "traefik",
   ])
 
   # Items conditionally looked up.

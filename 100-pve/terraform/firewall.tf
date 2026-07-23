@@ -7,11 +7,7 @@
 locals {
   # ── Guest registry ─────────────────────────────────────────────────────────
   firewall_guests = {
-    runner      = "container"
-    traefik     = "container"
-    coredns     = "container"
     elk         = "container"
-    mcphub      = "vm"
     "jclee-dev" = "vm"
     youtube     = "vm"
   }
@@ -33,24 +29,14 @@ locals {
     rdp                 = "RDP"
     realtime            = "Realtime"
     server              = "Server"
-    traefik             = "Traefik API"
     ui                  = "UI"
     web                 = "Web UI"
   }
 
   # ── Per-host overrides ─────────────────────────────────────────────────────
   firewall_overrides = {
-    coredns = {
-      dual_proto = ["dns"]
-    }
     elk = {
       exclude = ["es_transport", "logstash_api", "logstash_http"]
-    }
-    mcphub = {
-      exclude = ["proxmox", "playwright", "op_connect"]
-      extra = [
-        { dport = "8055:8079", proto = "tcp", comment = "MCP server ports" },
-      ]
     }
     "jclee-dev" = {
       exclude = ["opencode", "ssh"]

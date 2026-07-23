@@ -19,13 +19,13 @@ Restore a workspace state to the pre-apply snapshot captured in the same GitHub 
 
 - Pipeline ran on default branch.
 - Pre-apply backup object exists:
-  - `gs://tfstate-homelab-backups/<workspace>-pre-apply-<pipeline_id>.tfstate`
+  - `gs://tfstate-homelab-backups/<workspace>-pre-apply-<run_id>.tfstate`
 - CI runner has `terraform` and `gsutil` available.
 
 ## Rollback Procedure
 
-1. Open failed pipeline in GitLab.
-2. In stage **deploy**, locate manual job `deploy:rollback` for the failed workspace matrix entry.
+1. Open the failed workflow run in GitHub Actions.
+2. In the **deploy** stage, locate the manual rollback job for the failed workspace matrix entry.
 3. Run the job.
 
 The rollback job executes:
@@ -33,7 +33,7 @@ The rollback job executes:
 ```bash
 cd "${TF_WORKING_DIR}"
 terraform init -input=false
-gsutil cp "gs://tfstate-homelab-backups/${TF_WORKSPACE_NAME}-pre-apply-${CI_PIPELINE_ID}.tfstate" ./pre-apply-state.tfstate
+gsutil cp "gs://tfstate-homelab-backups/${TF_WORKSPACE_NAME}-pre-apply-${GITHUB_RUN_ID}.tfstate" ./pre-apply-state.tfstate
 terraform state push pre-apply-state.tfstate
 terraform plan -input=false -detailed-exitcode
 ```
@@ -53,12 +53,12 @@ terraform plan -input=false -detailed-exitcode
 
 ## Emergency CLI Fallback (outside CI)
 
-Use only when GitLab job execution is unavailable.
+Use only when GitHub Actions job execution is unavailable.
 
 ```bash
 cd <workspace-dir>
 terraform init -input=false
-gsutil cp "gs://tfstate-homelab-backups/<workspace>-pre-apply-<pipeline_id>.tfstate" ./pre-apply-state.tfstate
+gsutil cp "gs://tfstate-homelab-backups/<workspace>-pre-apply-<run_id>.tfstate" ./pre-apply-state.tfstate
 terraform state push pre-apply-state.tfstate
 terraform plan -input=false
 ```
@@ -67,4 +67,4 @@ terraform plan -input=false
 
 - Do not run automatic rollback on apply failure.
 - Do not delete pre-apply objects during incident response.
-- Keep rollback actions auditable through pipeline job history.
+- Keep rollback actions auditable through workflow run history.

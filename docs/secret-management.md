@@ -42,7 +42,6 @@ The shared module (`modules/shared/onepassword-secrets/`) manages core homelab a
 | `github`     | GitHub PAT           | `personal_access_token`                                                                                                      |
 
 | `cloudflare` | CF account           | `account_id`, `zone_id`, `api_token`                                                                                         |
-| `mcphub`     | MCPHub service       | `admin_password`, `op_token`, `github_pat`, `es_password`, `proxmox_token` |
 | `elk`        | ELK stack            | `elastic_password`, `kibana_password`                                                                                        |
 | `synology`   | Synology NAS         | `username`, `password`                                                                                                       |
 | `youtube`    | YouTube API          | `client_id`, `client_secret`, `access_token`, `refresh_token`                                                               |
@@ -72,7 +71,6 @@ try(module.secrets.secrets["elk_elastic_password"], section_map["Passwords"].fie
 | 105-elk/terraform     | ✅                       | `elk_elastic_password`                             |
 | 215-synology          | ✅                       | `synology_username`, `synology_password`           |
 | 300-cloudflare        | ✅                       | Cloudflare account/zone IDs, API token/key fallback, Google OAuth |
-| 102-traefik           | ❌                       | —                                                  |
 
 ## Runtime Secret Distribution
 
@@ -80,21 +78,17 @@ Per-host `.env` secrets deployed via config-renderer templates:
 
 | Host          | Secrets                                                                                                                                    |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 102-traefik   | `homelab_tunnel_token` (via cloudflared compose)                                                                                           |
+| cliproxy (VMID 114) | `homelab_tunnel_token` (native cloudflared systemd service)                                                                            |
 | 105-elk       | `elastic_password`, `kibana_password` (in docker-compose env vars)                                                                         |
-| 112-mcphub    | MCPHub admin, 1Password Connect, Proxmox token, GitHub PAT, Elasticsearch password |
 
 ## Provider Authentication
 
-The `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` environment variables authenticate the Terraform provider to 1Password via the Connect Server on LXC 112 (port 8090).
+The Terraform provider authenticates to 1Password with a service-account token.
 
-**Token location:** LXC 112 at `/opt/mcphub/.env`
-
-**Local Terraform runs:** The provider falls back to `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` env vars when `op_service_account_token` variable is empty (default). Set these locally:
+**Local Terraform runs:** Set `OP_SERVICE_ACCOUNT_TOKEN` or pass the `op_service_account_token` variable:
 
 ```bash
-export OP_CONNECT_TOKEN=$(ssh root@192.168.50.112 'grep OP_SERVICE_ACCOUNT_TOKEN /opt/mcphub/.env | cut -d= -f2-')
-export OP_CONNECT_HOST="http://192.168.50.112:8090"
+export OP_SERVICE_ACCOUNT_TOKEN="ops_..."
 terraform plan
 ```
 
@@ -139,8 +133,6 @@ Note: `PROXMOX_ENDPOINT` was renamed to `TF_VAR_PROXMOX_ENDPOINT` and all workfl
 | Secret                    | Priority | Source                                  | Used By                     |
 | ------------------------- | -------- | --------------------------------------- | --------------------------- |
 | `TF_API_TOKEN`            | P0       | Terraform Cloud (skip if not using TFC) | terraform-plan/apply, drift |
-| `CF_ACCESS_CLIENT_ID`     | P2       | CF Zero Trust → Service Tokens          | internal-service-access     |
-| `CF_ACCESS_CLIENT_SECRET` | P2       | CF Zero Trust → Service Tokens          | internal-service-access     |
 
 ## Secret Rotation
 

@@ -10,16 +10,15 @@ Synology NAS providing network-attached storage for the homelab. Managed via the
 
 - Type: flowchart
 - Internet -> Cloudflare Tunnel (Cloudflare)
-- Cloudflare Tunnel (Cloudflare) -> Traefik
-- Traefik -> Synology DSM\n192.168.50.215 (DSM)
-- Synology DSM\n192.168.50.215 (DSM) -> Container Manager\nMinIO / Registry (Services)
+- Cloudflare Tunnel (cloudflared-homelab on cliproxy/114) -> Synology DSM\n192.168.50.215:5001 (DSM)
+- Synology DSM\n192.168.50.215 (DSM) -> Container Manager (Services)
 
 
 ## Source of Truth
 
 - **Host inventory**: `100-pve/envs/prod/hosts.tf` → `hosts.synology`
 - **Terraform resources**: `main.tf`, `variables.tf`, `onepassword.tf`
-- **Traefik routing**: `102-traefik/templates/synology.yml.tftpl`
+- **Cloudflare direct route**: `300-cloudflare/` -> `https://192.168.50.215:5001`
 
 ## Operations
 
@@ -35,6 +34,12 @@ make plan SVC=synology    # Plan changes
 - `skip_cert_check = true` is set for self-signed DSM certificates.
 - Do not hardcode IPs in service configs. Use `module.hosts.synology_ip`.
 - DSM admin credentials are stored in 1Password vault "homelab" under item "synology".
+
+## MailPlus Recovery Notes
+
+- `mailplus_domain_id` defaults to `1` because the live primary `jclee.me` domain was verified as ID 1. Before changing or applying it in another environment, verify the value with `SYNO.MailPlusServer.Domain/list`.
+- MailPlus Server routing and IMAPS work independently of the optional MailClient package. Stable MailClient `4.0.1-22254` currently fails the official compatibility preinstall check against MailPlus Server `4.0.2-31664`; do not downgrade, install a beta, patch the SPK, or bypass the guard. Wait for a compatible stable client.
+- Verify recovery with an API catch-all read-back, a fresh random SMTP recipient that receives `RCPT TO` `250`, and an IMAPS login.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -65,6 +70,7 @@ make plan SVC=synology    # Plan changes
 |------|------|
 | [minio_iam_user.console_admin](https://registry.terraform.io/providers/aminueza/minio/latest/docs/resources/iam_user) | resource |
 | [minio_iam_user_policy_attachment.console_admin](https://registry.terraform.io/providers/aminueza/minio/latest/docs/resources/iam_user_policy_attachment) | resource |
+| [synology_api.mailplus_catch_all](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/api) | resource |
 | [synology_container_project.minio](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
 | [synology_container_project.registry](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/container_project) | resource |
 | [synology_core_package.container_manager](https://registry.terraform.io/providers/synology-community/synology/latest/docs/resources/core_package) | resource |
@@ -75,8 +81,11 @@ make plan SVC=synology    # Plan changes
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_enable_container_manager_package"></a> [enable\_container\_manager\_package](#input\_enable\_container\_manager\_package) | Manage ContainerManager package installation via Terraform | `bool` | `false` | no |
+| <a name="input_enable_mailplus_catch_all"></a> [enable\_mailplus\_catch\_all](#input\_enable\_mailplus\_catch\_all) | Route otherwise-unmatched addresses in the primary MailPlus domain to one DSM user | `bool` | `true` | no |
 | <a name="input_enable_portainer"></a> [enable\_portainer](#input\_enable\_portainer) | Enable Portainer CE container deployment on Synology | `bool` | `false` | no |
 | <a name="input_enable_registry"></a> [enable\_registry](#input\_enable\_registry) | Enable Docker Registry container on Synology | `bool` | `true` | no |
+| <a name="input_mailplus_catch_all_user"></a> [mailplus\_catch\_all\_user](#input\_mailplus\_catch\_all\_user) | DSM user that receives otherwise-unmatched mail for the primary MailPlus domain | `string` | `"jclee"` | no |
+| <a name="input_mailplus_domain_id"></a> [mailplus\_domain\_id](#input\_mailplus\_domain\_id) | MailPlus primary domain identifier returned by SYNO.MailPlusServer.Domain/list | `number` | `1` | no |
 | <a name="input_minio_console_admin_password"></a> [minio\_console\_admin\_password](#input\_minio\_console\_admin\_password) | Password for the MinIO console admin IAM user | `string` | `""` | no |
 | <a name="input_minio_endpoint"></a> [minio\_endpoint](#input\_minio\_endpoint) | MinIO S3 endpoint for Registry backend | `string` | `"http://192.168.50.215:9000"` | no |
 | <a name="input_minio_registry_bucket"></a> [minio\_registry\_bucket](#input\_minio\_registry\_bucket) | MinIO bucket name for Registry storage | `string` | `"docker-registry"` | no |
@@ -100,6 +109,7 @@ make plan SVC=synology    # Plan changes
 | Name | Description |
 |------|-------------|
 | <a name="output_container_manager_installed"></a> [container\_manager\_installed](#output\_container\_manager\_installed) | Whether ContainerManager package is installed |
+| <a name="output_mailplus_catch_all"></a> [mailplus\_catch\_all](#output\_mailplus\_catch\_all) | Configured MailPlus catch-all target for the primary domain |
 | <a name="output_network_info"></a> [network\_info](#output\_network\_info) | Synology NAS network configuration |
 | <a name="output_portainer_enabled"></a> [portainer\_enabled](#output\_portainer\_enabled) | Whether Portainer container project is enabled |
 | <a name="output_portainer_endpoints"></a> [portainer\_endpoints](#output\_portainer\_endpoints) | Portainer endpoint details when container project is enabled |

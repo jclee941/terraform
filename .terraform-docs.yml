@@ -15,23 +15,15 @@ sections:
 content: |-
   {{ .Header }}
 
-  ## Requirements
-
   {{ .Requirements }}
-
-  ## Providers
 
   {{ .Providers }}
 
-  ## Resources
+  {{ .Modules }}
 
   {{ .Resources }}
 
-  ## Inputs
-
   {{ .Inputs }}
-
-  ## Outputs
 
   {{ .Outputs }}
 

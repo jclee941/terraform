@@ -22,7 +22,7 @@ modules/shared/
 ## CONVENTIONS
 - **Provider-Agnostic**: Logic here must NOT depend on specific infrastructure providers (Proxmox/AWS/Cloudflare) unless strictly necessary.
 - **Output-First**: Designed to output values for consumption by other modules.
-- **Auth**: Uses `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` environment variables (Connect Server on LXC 112, port 8090). Provider falls back to these when `op_service_account_token` is empty.
+- **Auth**: Uses a 1Password service-account token supplied through `OP_SERVICE_ACCOUNT_TOKEN` or `op_service_account_token`.
 
 ## NOTES
 - Keep this scope focused on reusable secret access logic only.

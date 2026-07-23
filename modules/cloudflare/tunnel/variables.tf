@@ -13,6 +13,9 @@ variable "ingress" {
   type = list(object({
     hostname = optional(string)
     service  = string
+    origin_request = optional(object({
+      no_tls_verify = optional(bool)
+    }))
   }))
   default = null
 }

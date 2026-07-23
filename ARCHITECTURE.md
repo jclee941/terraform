@@ -1,6 +1,6 @@
 # Architecture
 
-**Last Updated:** 2026-05-07
+**Last Updated:** 2026-07-23
 
 ## Overview
 
@@ -38,11 +38,7 @@ terraform/
 │   │   └── versions.tf           # required_version, backend, required_providers
 │   ├── envs/prod/hosts.tf        # SSoT: all host IPs, VMIDs, roles, ports
 │   └── configs/                  # Rendered outputs (never hand-edit)
-├── 101-runner/                   # Template-only: GitHub Actions runner
-├── 102-traefik/                  # Tier 1: Reverse proxy config
-├── 103-coredns/                  # Template-only: Split DNS
 ├── 105-elk/                      # Tier 1: Log aggregation (ES + Logstash + Kibana)
-├── 112-mcphub/                   # Template-only: MCP Hub + 1Password Connect
 ├── 200-oc/                       # Template-only: OpenCode dev environment
 ├── 215-synology/                 # Flat Terraform workspace: Synology NAS inventory
 ├── 220-youtube/                  # Template-only: YouTube automation VM
@@ -77,8 +73,8 @@ terraform/
 ```
 
 > **Layout convention**: Active workspaces keep their root module under a nested
-> `{workspace}/terraform/` directory (e.g. `100-pve/terraform/`, `102-traefik/terraform/`,
-> `105-elk/terraform/`, `300-cloudflare/terraform/`). The Makefile aliases resolve to these
+> `{workspace}/terraform/` directory (e.g. `100-pve/terraform/`, `105-elk/terraform/`,
+> `300-cloudflare/terraform/`). The Makefile aliases resolve to these
 > nested paths. The one exception is `215-synology/`, whose `.tf` files live at the workspace
 > root. `make` targets (`fmt`, `validate`, `lint`) scan the directories that actually contain
 > `.tf` (see `TF_WORKSPACE_DIRS` in the Makefile), so both layouts are covered.
@@ -87,25 +83,22 @@ terraform/
 
 | Tier | Workspaces | Role | Apply Order |
 | ---- | ---------- | ---- | ----------- |
-| 0 (core) | `100-pve` | Central orchestrator. Provisions 7 LXC + 3 VM. | First |
-| 1 (infra) | `102-traefik`, `105-elk` | Consume `terraform_remote_state` from 100-pve. | Second (parallel) |
+| 0 (core) | `100-pve` | Central orchestrator. Provisions the active LXC/VM fleet. | First |
+| 1 (infra) | `105-elk` | ELK logging and observability. | Second |
 | Independent | `300-cloudflare`, `400-gcp` | No Proxmox dependency. | Third (parallel) |
-| Template/config-only | `101-runner`, `103-coredns`, `112-mcphub`, `200-oc`, `220-youtube`, `310-safetywallet` | Config templates + docker-compose only, no workspace-local `.tf` files. | N/A |
+| Template/config-only | `200-oc`, `220-youtube`, `310-safetywallet` | Config templates + docker-compose only, no workspace-local `.tf` files. | N/A |
 
 ## Service Inventory
 
 | VMID | Name | IP | Type | Purpose |
 | ---- | ---- | -- | ---- | ------- |
 | 100 | pve | .100 | Host | Proxmox hypervisor |
-| 101 | runner | .101 | LXC | GitHub Actions self-hosted runner |
-| 102 | traefik | .102 | LXC | Reverse proxy (ingress) |
-| 103 | coredns | .103 | LXC | Split DNS |
 | 105 | elk | .105 | LXC | ELK Stack |
-| 112 | mcphub | .112 | VM | MCP Hub + 1Password Connect |
+| 114 | cliproxy | .114 | LXC | Cloudflare Tunnel and GitHub Actions runner host |
 | 200 | oc | .200 | VM | OpenCode dev environment (RTX 5070 Ti GPU passthrough) |
 | 215 | synology | .215 | Physical | NAS storage |
 | 220 | youtube | .220 | VM | YouTube automation |
-| 250 | pbs | .250 | VM | Proxmox Backup Server |
+| 9000 | template | — | Template | Proxmox guest template |
 
 ## Data Flows
 
@@ -116,15 +109,13 @@ terraform/
   Internet["Internet"] --> CFDNS["Cloudflare DNS"]
   CFDNS --> CFAccess["Cloudflare Access"]
   CFAccess --> CFTunnel["Cloudflare Tunnel"]
-  CFTunnel --> Traefik["Traefik\nLXC 102"]
+  CFTunnel --> Direct["Direct service IP:port routing\ncloudflared-homelab on LXC 114"]
 
   subgraph Homelab["Homelab 192.168.50.0/24"]
-    Traefik --> CoreDNS["CoreDNS\nLXC 103"]
-    Traefik --> ELK["ELK\nLXC 105"]
-    Traefik --> MCPHub["MCPHub\nVM 112"]
-    Traefik --> OC["OpenCode\nVM 200"]
-    Traefik --> Synology["Synology\nNAS 215"]
-    Traefik --> YouTube["YouTube\nVM 220"]
+    Direct --> ELK["ELK\nLXC 105"]
+    Direct --> OC["OpenCode\nVM 200"]
+    Direct --> Synology["Synology\nNAS 215"]
+    Direct --> YouTube["YouTube\nVM 220"]
   end
 
   PVE["Proxmox Host\n100"] --> Homelab
@@ -157,18 +148,14 @@ terraform/
 ```text
 %% diagram: graph TD
   PVE["100-pve\nTier 0 core"] --> Tier1["Tier 1 parallel"]
-  Tier1 --> Traefik["102-traefik"]
   Tier1 --> ELK["105-elk"]
 
   PVE --> Template["Template-only rendered by 100-pve"]
-  Template --> Runner["101-runner"]
-  Template --> CoreDNS["103-coredns"]
-  Template --> MCPHub["112-mcphub"]
   Template --> OC["200-oc"]
   Template --> Synology["215-synology"]
   Template --> YouTube["220-youtube"]
 
-  Independent["Independent external workspaces"] --> Cloudflare["300-cloudflare"]
+  Independent["Independent external workspaces"] --> Cloudflare["300-cloudflare\nTunnel direct routing"]
   Independent --> GCP["400-gcp"]
 ```
 
@@ -226,16 +213,15 @@ terraform/
 
 ## Secrets
 
-1Password vault `homelab` (12 items, 48 keys) → `onepassword-secrets` module → `.tftpl` templates → `.env` files on hosts.
+1Password vault `homelab` → `onepassword-secrets` module → `.tftpl` templates → `.env` files on hosts.
 
-- **Connect Server**: LXC 112, port 8090
-- **Auth**: `OP_CONNECT_TOKEN` + `OP_CONNECT_HOST` environment variables
+- **Auth**: 1Password service-account token supplied through `OP_SERVICE_ACCOUNT_TOKEN` or the provider variable `op_service_account_token`
 - **Access pattern**: `module.secrets.secrets["elk_kibana_system_password"]`
 go run scripts/sync-vault-secrets.go → GitHub Actions Secrets
 
 ## CI/CD
 
-- **Runner**: Self-hosted on LXC 101
+- **GitHub Actions**: Self-hosted jobs run on cliproxy (LXC 114)
 - **PR workflow**: `terraform plan` on PR, `terraform apply` on merge to master
 - **Local apply**: Disabled (`make apply` exits with error)
 - **Drift detection**: Mon–Fri 00:00 UTC via scheduled workflow

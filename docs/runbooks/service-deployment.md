@@ -70,7 +70,7 @@ CI automatically runs:
 
 Push to `master` triggers the corresponding apply workflow:
 - `terraform-apply.yml` for 100-pve (core infrastructure)
-- `{svc}-apply.yml` for service-specific workspaces such as cloudflare, elk, and traefik
+- `{svc}-apply.yml` for service-specific workspaces such as cloudflare and elk
 - `worker-deploy.yml` for Cloudflare Workers
 
 Each apply workflow includes:
@@ -104,7 +104,7 @@ git push origin master
 
 ### Emergency Rollback
 
-If CI is broken, file an issue and use the self-hosted runner directly.
+If CI is broken, file an issue and use the approved GitHub Actions recovery procedure.
 Never run `terraform apply` locally against production.
 
 ## Adding a New Service
@@ -125,7 +125,6 @@ Never run `terraform apply` locally against production.
 | 100-pve | terraform-plan.yml | terraform-apply.yml | 100-pve/**, modules/** |
 | Cloudflare | cloudflare-plan.yml | cloudflare-apply.yml | 300-cloudflare/** |
 | ELK | elk-plan.yml | elk-apply.yml | 105-elk/** |
-| Traefik | traefik-plan.yml | traefik-apply.yml | 102-traefik/** |
 | CF Worker | — | worker-deploy.yml | 300-cloudflare/workers/** |
 
 Services without dedicated Terraform roots are managed through the 100-pve orchestrator and template/config pipeline.
@@ -134,7 +133,7 @@ Services without dedicated Terraform roots are managed through the 100-pve orche
 
 - [ ] CI apply workflow succeeded (green check in Actions)
 - [ ] Service responds on expected port
-- [ ] Traefik routing works (if externally accessible)
+- [ ] Cloudflare Tunnel direct route works (if externally accessible)
 - [ ] Logs flowing to ELK
 - [ ] Monitoring alerts not firing
 - [ ] `make plan SVC=xxx` shows no further drift

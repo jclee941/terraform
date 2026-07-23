@@ -1,8 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
-## Requirements
-
 ## Requirements
 
 | Name | Version |
@@ -16,11 +12,11 @@
 
 ## Providers
 
-## Providers
-
 No providers.
 
-## Resources
+## Modules
+
+No modules.
 
 ## Resources
 
@@ -28,14 +24,9 @@ No resources.
 
 ## Inputs
 
-## Inputs
-
 No inputs.
 
 ## Outputs
 
-## Outputs
-
 No outputs.
-
 <!-- END_TF_DOCS -->

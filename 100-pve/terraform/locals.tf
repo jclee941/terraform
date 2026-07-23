@@ -34,40 +34,12 @@ locals {
     if !contains(host.roles, "hypervisor") && !contains(host.roles, "workstation") && !contains(host.roles, "nas")
   ]
 
-  mcp_catalog = jsondecode(file("${path.module}/../../112-mcphub/mcp_servers.json"))
-  mcp_hub_servers = {
-    for k, v in local.mcp_catalog.servers : k => v
-    if v.location == "hub"
-  }
-  mcp_hub_stdio_servers = {
-    for k, v in local.mcp_hub_servers : k => v
-    if lookup(v, "transport", "stdio") == "stdio"
-  }
-  mcp_hub_sse_servers = {
-    for k, v in local.mcp_hub_servers : k => v
-    if lookup(v, "transport", "stdio") == "sse" && !contains(keys(v), "url")
-  }
-  mcp_hub_external_sse_servers = {
-    for k, v in local.mcp_hub_servers : k => v
-    if lookup(v, "transport", "stdio") == "sse" && contains(keys(v), "url")
-  }
-  mcp_hub_http_servers = {
-    for k, v in local.mcp_hub_servers : k => v
-    if lookup(v, "transport", "stdio") == "http"
-  }
-  mcp_hub_external_http_servers = {
-    for k, v in local.mcp_hub_servers : k => v
-    if lookup(v, "transport", "stdio") == "streamable-http" && contains(keys(v), "url")
-  }
-
   # Container sizing (IP/VMID from module.hosts, sizing here)
   # Memory budget: Optimized with per-container swap for efficient memory utilization
   # Strategy: Match live Proxmox allocation for active containers.
   container_sizing = {
-    runner  = { memory = 3072, swap = 1536, cores = 2, disk_size = 32, description = "GitHub Actions CI Runner - Docker executor (3GB RAM)", mount_points = [{ volume = "/mnt/runner-cache", path = "/srv/runner/cache" }] }
-    traefik = { memory = 512, swap = 256, cores = 2, disk_size = 8, description = "Traefik Reverse Proxy + Cloudflare Tunnel" }
-    elk     = { memory = 10240, swap = 5120, cores = 4, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk" }] }
-    coredns = { memory = 256, swap = 256, cores = 1, disk_size = 4, description = "CoreDNS Split DNS Resolver" }
+    elk      = { memory = 10240, swap = 5120, cores = 4, cpu_limit = 2, cpu_units = 512, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk", replicate = false }] }
+    cliproxy = { memory = 8192, swap = 1024, cores = 2, cpu_limit = 1.5, cpu_units = 512, disk_size = 100, description = "Squid Forward Proxy", mount_points = [{ volume = "/mnt/pve/shared/ci-cache", path = "/mnt/nas-cache", backup = false, replicate = false }] }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -80,6 +52,11 @@ locals {
       },
       sizing
     )
+  }
+
+  lxc_cpu_limits = {
+    for name, container in local.containers : name => container
+    if lookup(container, "cpu_limit", null) != null
   }
 
   # Validation: Ensure all VMIDs are within managed range
@@ -115,45 +92,53 @@ locals {
 
 locals {
   cloud_init_files = {
-    mcphub  = "local:snippets/mcphub-user-data.yaml"
     youtube = "local:snippets/youtube-user-data.yaml"
   }
   vm_definitions = {
-    mcphub = {
-      vmid        = 112
-      description = "MCPHub - Unified MCP Server Gateway"
-      memory      = 10240
-      balloon_min = 3072
-      cores       = 4
-      disk_size   = 32
-    }
     youtube = {
-      vmid        = 220
-      description = "YouTube Media Server"
-      memory      = 32768
-      balloon_min = 4096
-      cores       = 8
-      disk_size   = 300
-      bios        = "ovmf"
-      machine     = "q35"
+      vmid                  = 220
+      description           = "YouTube Media Server"
+      memory                = 32768
+      balloon_min           = 16384
+      cores                 = 8
+      cpu_limit             = 4
+      cpu_numa              = true
+      cpu_units             = 512
+      disk_size             = 300
+      disk_backup           = true
+      disk_cache            = "none"
+      disk_replicate        = true
+      efi_pre_enrolled_keys = false
+      bios                  = "ovmf"
+      hotplug               = "memory,usb"
+      machine               = "q35"
       hostpci_devices = [
-        { device = "hostpci0", mapping = "gpu", pcie = true }
+        { device = "hostpci0", mapping = "gpu", pcie = true, xvga = true }
       ]
+      serial_devices = [{ device = "socket" }]
+      tablet_device  = false
       usb_devices = [
         { host = "04e8:6860" },
         { host = "04e8:6860", usb3 = true },
       ]
     }
     jclee-dev = {
-      vmid        = 200
-      description = "OpenCode Development VM (oc)"
-      memory      = 28672
-      balloon_min = 28672
-      cores       = 8
-      disk_size   = 200
-      hostname    = "oc"
-      bios        = "seabios"
-      machine     = "q35"
+      vmid          = 200
+      description   = "OpenCode Development VM (oc)"
+      memory        = 28672
+      balloon_min   = 20480
+      cores         = 8
+      cpu_limit     = 4
+      cpu_numa      = true
+      cpu_units     = 768
+      disk_size     = 200
+      hotplug       = "0"
+      hostname      = "oc"
+      bios          = "seabios"
+      machine       = "q35"
+      tablet_device = false
+      vga_clipboard = "vnc"
+      vga_type      = "virtio"
     }
   }
 }
@@ -167,14 +152,8 @@ locals {
     "elk_elastic_password",
     "elk_kibana_password",
     "github_personal_access_token",
-    "mcphub_admin_password",
-    "mcphub_op_connect_token",
-    "mcphub_op_service_account_token",
-    "mcphub_proxmox_token_name",
-    "mcphub_proxmox_token_value",
     "proxmox_ssh_private_key",
     "telegram_bot_token",
-    "traefik_htpasswd_hash",
   ]
 
   missing_required_template_secret_keys = [
@@ -204,23 +183,6 @@ locals {
 locals {
   # Service template registry: each service dir maps to its output prefix and template files.
   _svc_tpl = {
-    "101-runner" = { prefix = "runner", files = {
-      filebeat = "filebeat.yml.tftpl"
-    } }
-    "102-traefik" = { prefix = "traefik", files = {
-      mcphub      = "mcphub.yml.tftpl"
-      nas         = "nas.yml.tftpl"
-      registry    = "registry.yml.tftpl"
-      minio       = "minio.yml.tftpl"
-      filebeat    = "filebeat.yml.tftpl"
-      cloudflared = "cloudflared-docker-compose.yml.tftpl"
-      middlewares = "middlewares.yml.tftpl"
-    } }
-    "103-coredns" = { prefix = "coredns", files = {
-      corefile       = "Corefile.tftpl"
-      docker_compose = "docker-compose.yml.tftpl"
-      filebeat       = "filebeat.yml.tftpl"
-    } }
     "105-elk" = { prefix = "elk", files = {
       filebeat            = "filebeat.yml.tftpl"
       docker_compose      = "docker-compose.yml.tftpl"
@@ -229,13 +191,6 @@ locals {
       ilm_policy          = "ilm-policy.json.tftpl"
       setup_ilm           = "setup-ilm.sh.tftpl"
       dockerfile_logstash = "Dockerfile.logstash.tftpl"
-    } }
-    "112-mcphub" = { prefix = "mcphub", files = {
-      filebeat           = "filebeat.yml.tftpl"
-      docker_compose     = "docker-compose.yml.tftpl"
-      mcp_settings       = "mcp_settings.json.tftpl"
-      env                = ".env.tftpl"
-      op_connect_compose = "docker-compose-op-connect.yml.tftpl"
     } }
     "220-youtube" = { prefix = "youtube", files = {
       filebeat       = "filebeat.yml.tftpl"
@@ -254,11 +209,4 @@ locals {
     }
   ]...)
 
-  # Root-level templates that output to the top-level (not in service subdirs).
-  root_templates = {
-    traefik_elk = {
-      source = "${path.module}/../../102-traefik/templates/traefik-elk.yml.tftpl"
-      output = "traefik-elk.yml"
-    }
-  }
 }

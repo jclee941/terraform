@@ -34,6 +34,26 @@ resource "synology_core_package" "container_manager" {
   name = "ContainerManager"
 }
 
+# -----------------------------------------------------------------------------
+# MailPlus - primary domain catch-all routing
+# -----------------------------------------------------------------------------
+
+resource "synology_api" "mailplus_catch_all" {
+  for_each = var.enable_mailplus_catch_all ? { primary = true } : {}
+
+  api     = "SYNO.MailPlusServer.Domain.Settings"
+  method  = "set"
+  version = 1
+
+  parameters = {
+    domain_id = tostring(var.mailplus_domain_id)
+    catch_all = jsonencode({
+      enable  = true
+      setting = var.mailplus_catch_all_user
+    })
+  }
+}
+
 
 
 # -----------------------------------------------------------------------------

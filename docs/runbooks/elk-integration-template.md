@@ -51,10 +51,10 @@ index => "logs-%{[service]}-%{+YYYY.MM.dd}"
   - `logs-ephemeral` -> `homelab-logs-ephemeral-7d`
 - Add `<service-name>` pattern to the correct index template set.
 
-### 4) Traefik exposure rule (only if needed)
+### 4) Cloudflare Tunnel exposure rule (only if needed)
 
-- If adding external endpoint behavior, update `102-traefik/templates/traefik-elk.yml.tftpl`.
-- Keep ES route protected by LAN-only allowlist middleware.
+- If adding external endpoint behavior, update the matching direct-origin ingress in `300-cloudflare/terraform/`.
+- Keep Elasticsearch protected by the Cloudflare access policy and do not expose the LAN origin directly.
 
 ## Verification
 

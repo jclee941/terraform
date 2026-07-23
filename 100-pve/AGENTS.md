@@ -29,8 +29,8 @@ Central Terraform workspace orchestrating Proxmox infrastructure. The live Terra
 | Task                 | Location                                | Notes                                                         |
 | -------------------- | --------------------------------------- | ------------------------------------------------------------- |
 | **All IPs/Ports**    | `envs/prod/hosts.tf`                    | SSoT. `module.hosts.hosts[name].{ip,vmid,ports,roles}`.       |
-| **Container Sizing** | `terraform/locals.tf` → `container_sizing` | Four active LXC sizing entries: runner, traefik, elk, coredns. |
-| **VM Definitions**   | `terraform/locals.tf` → `vm_definitions` | Three QEMU VMs: mcphub, youtube, jclee-dev. |
+| **Container Sizing** | `terraform/locals.tf` → `container_sizing` | Active LXC sizing entries: elk and cliproxy. |
+| **VM Definitions**   | `terraform/locals.tf` → `vm_definitions` | Two QEMU VMs: oc and youtube. |
 | **Validation**       | `terraform/checks.tf`                   | VMID range, IP subnet, memory checks.                         |
 | **LXC Provisioning** | `terraform/main.tf` → `module.lxc`      | Calls `../../modules/proxmox/lxc` for `local.containers`.     |
 | **VM Provisioning**  | `terraform/main.tf` → `module.vm`       | Calls `../../modules/proxmox/vm` for `local.vm_definitions`.  |

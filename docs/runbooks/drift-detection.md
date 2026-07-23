@@ -13,7 +13,6 @@ The repository convention documents scheduled drift detection on GitHub Actions 
 ```bash
 # From repository root
 make plan SVC=pve
-make plan SVC=traefik
 make plan SVC=elk
 make plan SVC=cloudflare
 make plan SVC=gcp

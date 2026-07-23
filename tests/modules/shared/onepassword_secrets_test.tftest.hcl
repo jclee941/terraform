@@ -12,13 +12,6 @@ mock_provider "onepassword" {
     }
   }
 
-  override_data {
-    target = data.onepassword_item.this["traefik"]
-    values = {
-      title       = "traefik"
-      section_map = {}
-    }
-  }
 
   override_data {
     target = data.onepassword_item.this["proxmox"]
@@ -41,14 +34,6 @@ mock_provider "onepassword" {
     target = data.onepassword_item.this["cloudflare"]
     values = {
       title       = "cloudflare"
-      section_map = {}
-    }
-  }
-
-  override_data {
-    target = data.onepassword_item.this["mcphub"]
-    values = {
-      title       = "mcphub"
       section_map = {}
     }
   }
@@ -155,24 +140,6 @@ run "test_secrets_default_to_empty_string" {
   assert {
     condition     = output.secrets.google_oauth_client_secret == ""
     error_message = "google_oauth_client_secret should default to empty string"
-  }
-
-  # --- MCPHub (4 keys) ---
-  assert {
-    condition     = output.secrets.mcphub_proxmox_token_name == ""
-    error_message = "mcphub_proxmox_token_name should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.mcphub_proxmox_token_value == ""
-    error_message = "mcphub_proxmox_token_value should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.mcphub_admin_password == ""
-    error_message = "mcphub_admin_password should default to empty string"
-  }
-  assert {
-    condition     = output.secrets.mcphub_op_service_account_token == ""
-    error_message = "mcphub_op_service_account_token should default to empty string"
   }
 
   # --- ELK (2 keys) ---
@@ -300,8 +267,8 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 26
-    error_message = "Secrets output should contain exactly 26 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 20
+    error_message = "Secrets output should contain exactly 20 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
@@ -396,24 +363,6 @@ run "test_all_secret_key_names_exist" {
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "google_oauth_client_secret")
     error_message = "Missing secret key: google_oauth_client_secret"
-  }
-
-  # MCPHub
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "mcphub_proxmox_token_name")
-    error_message = "Missing secret key: mcphub_proxmox_token_name"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "mcphub_proxmox_token_value")
-    error_message = "Missing secret key: mcphub_proxmox_token_value"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "mcphub_admin_password")
-    error_message = "Missing secret key: mcphub_admin_password"
-  }
-  assert {
-    condition     = contains(nonsensitive(keys(output.secrets)), "mcphub_op_service_account_token")
-    error_message = "Missing secret key: mcphub_op_service_account_token"
   }
 
   # ELK
@@ -594,7 +543,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 49
-    error_message = "Total keys (secrets + metadata + connection_info) should equal 49"
+    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 43
+    error_message = "Total keys (secrets + metadata + connection_info) should equal 43"
   }
 }

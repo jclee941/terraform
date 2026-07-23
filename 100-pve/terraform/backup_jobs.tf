@@ -11,16 +11,16 @@
 locals {
   backup_jobs_cfg = <<-EOT
     vzdump: lxc-daily
-    \tcomment Daily LXC backups - critical infra (traefik, coredns, runner)
-    \tschedule 02:00
-    \tcompress zstd
-    \tenabled 1
-    \tmailnotification failure
-    \tmailto admin@jclee.me
-    \tmode snapshot
-    \tprune-backups keep-last=7,keep-weekly=4,keep-monthly=3
-    \tstorage pbs
-    \tvmid 101,102,103
+    	comment Daily LXC backups - critical infra (elk)
+    	schedule 02:00
+    	compress zstd
+    	enabled 1
+    	mailnotification failure
+    	mailto admin@jclee.me
+    	mode snapshot
+    	prune-backups keep-last=7,keep-weekly=4,keep-monthly=3
+    	storage pbs
+    	vmid 105
 
     vzdump: lxc-weekly
     \tcomment Weekly LXC backups - heavy workloads (elk)
@@ -35,7 +35,7 @@ locals {
     \tvmid 105
 
     vzdump: vm-daily
-    \tcomment Daily VM backups (mcphub, oc, youtube)
+    \tcomment Daily VM backups (oc, youtube)
     \tschedule 04:00
     \tcompress zstd
     \tenabled 1
@@ -44,7 +44,7 @@ locals {
     \tmode snapshot
     \tprune-backups keep-last=7,keep-weekly=4,keep-monthly=3
     \tstorage pbs
-    \tvmid 112,200,220
+    \tvmid 200,220
   EOT
 }
 
@@ -146,6 +146,6 @@ output "backup_jobs_summary" {
     pbs_gc_schedule     = "sun 02:00"
     pbs_prune_schedule  = "daily (keep 7d/4w/3m)"
     pbs_verify_schedule = "monthly"
-    pbs_storage_id      = "pbs"
+    pbs_storage_id      = "pbs-backup"
   }
 }

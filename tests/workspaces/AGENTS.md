@@ -12,7 +12,6 @@ tests/workspaces/
 ├── pve/                        # Proxmox workspace validation tests
 ├── safetywallet/               # SafetyWallet workspace validation tests
 ├── synology/                   # Synology workspace validation tests
-├── traefik/                    # Traefik workspace remote-state tests
 ```
 
 ## WHERE TO LOOK
@@ -21,7 +20,6 @@ tests/workspaces/
 | Cloudflare workspace validation | `cloudflare/cloudflare_test.tftest.hcl` | Input format/range checks with `expect_failures`. |
 | PVE workspace validation | `pve/pve_test.tftest.hcl` | Endpoint/token/node/network/VMID range/SSH key validation with `override_module` for secrets. |
 | ELK workspace validation | `elk/elk_test.tftest.hcl` | Data view and index pattern validation with mock ES provider. |
-| Traefik workspace validation | `traefik/traefik_test.tftest.hcl` | Remote-state consumption plan test (no providers). |
 | GCP workspace validation | `gcp/main.tftest.hcl` | GCP workspace validation with mocked provider behavior. |
 | SafetyWallet workspace validation | `safetywallet/main.tftest.hcl` | Reserved external-service workspace checks. |
 | Synology workspace validation | `synology/main.tftest.hcl` | Flat workspace validation checks. |

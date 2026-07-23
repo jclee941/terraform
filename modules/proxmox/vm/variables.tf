@@ -87,6 +87,24 @@ variable "disk_aio" {
   }
 }
 
+variable "disk_backup" {
+  description = "Include VM disk in Proxmox backups (null = provider default)"
+  type        = bool
+  default     = null
+}
+
+variable "disk_cache" {
+  description = "Disk cache mode (null = provider default)"
+  type        = string
+  default     = null
+}
+
+variable "disk_replicate" {
+  description = "Include VM disk in replication jobs (null = provider default)"
+  type        = bool
+  default     = null
+}
+
 variable "cores" {
   description = "CPU cores"
   type        = number
@@ -94,6 +112,28 @@ variable "cores" {
   validation {
     condition     = var.cores >= 1 && var.cores <= 16
     error_message = "cores must be between 1 and 16."
+  }
+}
+
+variable "cpu_limit" {
+  description = "CPU usage limit in cores (null = Proxmox default/no explicit limit)"
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.cpu_limit == null || var.cpu_limit >= 0
+    error_message = "cpu_limit must be null or >= 0."
+  }
+}
+
+variable "cpu_units" {
+  description = "CPU scheduler weight (null = Proxmox default)"
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.cpu_units == null || (var.cpu_units >= 1 && var.cpu_units <= 10000)
+    error_message = "cpu_units must be null or between 1 and 10000."
   }
 }
 
@@ -196,6 +236,12 @@ variable "cpu_type" {
   default     = "host"
 }
 
+variable "cpu_numa" {
+  description = "Enable NUMA CPU topology"
+  type        = bool
+  default     = false
+}
+
 variable "disk_interface" {
   description = "Disk interface (scsi0, virtio0, etc.)"
   type        = string
@@ -225,14 +271,78 @@ variable "on_boot" {
   default     = true
 }
 
+variable "started" {
+  description = "Keep VM started"
+  type        = bool
+  default     = true
+}
+
+variable "protection" {
+  description = "Protect VM and disks from removal"
+  type        = bool
+  default     = true
+}
+
+variable "hotplug" {
+  description = "VM hotplug feature list, or 0 to disable"
+  type        = string
+  default     = null
+}
+
+variable "keyboard_layout" {
+  description = "VM keyboard layout (null = provider default)"
+  type        = string
+  default     = null
+}
+
+variable "tablet_device" {
+  description = "Enable USB tablet device"
+  type        = bool
+  default     = false
+}
+
+variable "scsi_hardware" {
+  description = "SCSI controller model"
+  type        = string
+  default     = "virtio-scsi-single"
+}
+
+variable "vga_type" {
+  description = "VGA type"
+  type        = string
+  default     = "std"
+}
+
+variable "vga_memory" {
+  description = "VGA memory in MB (null = provider default)"
+  type        = number
+  default     = 16
+}
+
+variable "vga_clipboard" {
+  description = "VGA clipboard mode (null = disabled/provider default)"
+  type        = string
+  default     = null
+}
+
+variable "efi_pre_enrolled_keys" {
+  description = "Use pre-enrolled EFI secure boot keys for OVMF VMs"
+  type        = bool
+  default     = false
+}
+
 
 variable "hostpci_devices" {
   description = "PCI devices to pass through to the VM (use 'mapping' for resource-mapped devices, 'id' for raw passthrough)"
   type = list(object({
-    device  = string
-    mapping = optional(string)
-    id      = optional(string)
-    pcie    = optional(bool, true)
+    device   = string
+    mapping  = optional(string)
+    id       = optional(string)
+    mdev     = optional(string)
+    pcie     = optional(bool, true)
+    rom_file = optional(string)
+    rombar   = optional(bool)
+    xvga     = optional(bool)
   }))
   default = []
 }
@@ -250,4 +360,18 @@ variable "qemu_agent_trim" {
   description = "Enable fstrim on cloned disks via QEMU agent"
   type        = bool
   default     = true
+}
+
+variable "qemu_agent_type" {
+  description = "QEMU agent interface type"
+  type        = string
+  default     = "virtio"
+}
+
+variable "serial_devices" {
+  description = "Serial devices to attach to the VM"
+  type = list(object({
+    device = optional(string, "socket")
+  }))
+  default = []
 }

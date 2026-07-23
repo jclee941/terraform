@@ -17,7 +17,14 @@ locals {
       ingress = concat(
         [for key, svc in local.homelab_services : {
           hostname = "${svc.subdomain}.${var.homelab_domain}"
-          service  = "http://localhost:80"
+          service  = svc.origin
+          origin_request = lookup(svc, "no_tls_verify", false) ? {
+            no_tls_verify = true
+          } : null
+        }],
+        [for key, svc in local.direct_services : {
+          hostname = "${svc.subdomain}.${var.homelab_domain}"
+          service  = svc.origin
         }],
         [for key, svc in local.tcp_services : {
           hostname = "${svc.subdomain}.${var.homelab_domain}"
