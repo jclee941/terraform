@@ -9,10 +9,7 @@ SVC ?= 100-pve
 # App workspaces with nested terraform/ dirs resolve automatically
 ALIAS_jclee      := 80-jclee
 ALIAS_pve        := 100-pve/terraform
-ALIAS_runner     := 101-runner
-ALIAS_traefik    := 102-traefik/terraform
 ALIAS_elk        := 105-elk/terraform
-ALIAS_mcphub     := 112-mcphub
 ALIAS_oc         := 200-oc
 ALIAS_synology   := 215-synology
 ALIAS_youtube    := 220-youtube
@@ -33,7 +30,7 @@ define check_svc_dir
 		echo "Error: workspace directory '$(TF_DIR)' does not exist."; \
 		echo "Available workspaces:"; \
 		echo "  Direct: $$(ls -d [0-9]*/ | tr -d '/' | tr '\n' ' ')"; \
-		echo "  Aliases: jclee pve runner traefik elk mcphub oc synology youtube cloudflare safetywallet gcp"; \
+		echo "  Aliases: jclee pve elk oc synology youtube cloudflare safetywallet gcp"; \
 		exit 1; \
 	fi
 endef

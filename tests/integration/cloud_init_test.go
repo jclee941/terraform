@@ -213,11 +213,7 @@ func TestHostInventoryStructure(t *testing.T) {
 	// Validate required hosts exist
 	contentStr := string(content)
 	requiredHosts := []string{
-		"runner",
-		"traefik",
 		"elk",
-		"coredns",
-		"mcphub",
 		"synology",
 		"youtube",
 	}

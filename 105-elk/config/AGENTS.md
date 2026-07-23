@@ -25,7 +25,7 @@ config/
 ## CONVENTIONS
 - Treat files here as rendered/reference unless a runbook explicitly says otherwise.
 - Logstash listens on 5044 (Beats), 8080 (HTTP ingest), and 9600 (API/exporter path).
-- Kibana/Elasticsearch external access is through Traefik routes.
+- Kibana/Elasticsearch external access uses direct Cloudflare Tunnel origins.
 
 ## ANTI-PATTERNS
 - NEVER expose ES port 9200 publicly

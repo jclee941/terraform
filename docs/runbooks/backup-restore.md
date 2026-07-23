@@ -9,9 +9,7 @@
 
 | VMID | Service | Type | Priority |
 |------|---------|------|----------|
-| 102 | Traefik | LXC | High — routing configs |
 | 105 | ELK | LXC | High — log pipeline configs |
-| 112 | MCPHub | VM | High — MCP configs + 1Password Connect |
 
 ## Diagnosis
 
@@ -21,11 +19,11 @@ ssh pve
 # List available backups
 vzdump --list
 
-# Check backup storage
-ls -lh /var/lib/vz/dump/
+# Check PBS backup storage
+pvesh get /nodes/pve/storage/pbs-backup/content --content backup --output-format json-pretty
 
-# Find backups for specific VMID
-ls /var/lib/vz/dump/ | grep "vzdump-.*-{VMID}-"
+# Find backups for a specific VMID in PBS output
+pvesh get /nodes/pve/storage/pbs-backup/content --content backup --output-format json-pretty
 ```
 
 ## Resolution
@@ -38,8 +36,8 @@ ssh pve
 pct stop {VMID}
 
 # Restore from backup (overwrites existing)
-pct restore {VMID} /var/lib/vz/dump/vzdump-lxc-{VMID}-{DATE}.tar.zst \
-  --force --storage local-lvm
+pct restore {VMID} pbs-backup:backup/vzdump-lxc-{VMID}-{DATE}.tar.zst \
+  --force --storage hdd-local
 
 # Start restored container
 pct start {VMID}
@@ -53,8 +51,8 @@ ssh pve
 qm stop {VMID}
 
 # Restore from backup
-qm restore {VMID} /var/lib/vz/dump/vzdump-qemu-{VMID}-{DATE}.vma.zst \
-  --force --storage local-lvm
+qm restore {VMID} pbs-backup:backup/vzdump-qemu-{VMID}-{DATE}.vma.zst \
+  --force --storage hdd-local
 
 # Start restored VM
 qm start {VMID}

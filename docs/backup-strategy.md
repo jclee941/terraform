@@ -11,26 +11,23 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 
 ### What Gets Backed Up
 
-| VMID | Name      | Type | Backup Schedule | Purpose                                   |
-| ---- | --------- | ---- | --------------- | ----------------------------------------- |
-| 101  | runner    | LXC  | 02:00 UTC daily | GitHub Actions runner state and cache     |
-| 102  | traefik   | LXC  | 02:00 UTC daily | Reverse proxy / edge router               |
-| 103  | coredns   | LXC  | 02:00 UTC daily | Split DNS resolver                        |
-| 105  | elk       | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch               |
-| 112  | mcphub    | VM   | 03:00 UTC daily | MCP Hub + 1Password Connect               |
-| 200  | jclee-dev | VM   | 03:00 UTC daily | Development workstation                   |
-| 220  | youtube   | VM   | 03:00 UTC daily | Media worker                              |
-| 215  | synology  | NAS  | NAS snapshots   | Shared storage, registry, S3-compatible cache |
+| VMID | Name    | Type | Backup Schedule | Purpose                          |
+| ---- | ------- | ---- | --------------- | -------------------------------- |
+| 105  | elk     | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch       |
+| 200  | oc      | VM   | 03:00 UTC daily | OpenCode development environment |
+| 220  | youtube | VM   | 03:00 UTC daily | Media worker                      |
 
 ### What's NOT Backed Up (Non-Critical)
 
 - **100-pve**: Proxmox host itself (system-level config)
+- **114 cliproxy**: Cloudflare connector and CI/CD host; rebuild from Terraform and service configuration
+- **215 synology**: Physical NAS data is outside this Proxmox guest backup job
 
 ## Backup Storage & Infrastructure
 
 | Setting                 | Value              | Notes                                           |
 | ----------------------- | ------------------ | ----------------------------------------------- |
-| **Storage Location**    | `local` (PVE host) | `/var/lib/vz/dump/`                             |
+| **Storage Location**    | `pbs-backup` (PBS storage) | Proxmox Backup Server datastore                    |
 | **Compression**         | zstd               | Modern, space-efficient                         |
 | **Mode**                | snapshot           | Consistent point-in-time backups, zero downtime |
 | **Frequency**           | Daily              | Automated via Proxmox scheduler                 |
@@ -59,16 +56,16 @@ Oldest backup automatically deleted: ~2025-11-11 (90 days old)
 
 ## Backup Execution Details
 
-### LXC Containers (101, 102, 103, 105)
+### LXC Container (105)
 
 **Schedule**: Daily at **02:00 UTC** (9:00 PM UTC-5)
 **Command**:
 
 ```bash
 pvesh create /cluster/backup \
-  --vmid 101,102,103,105 \
+  --vmid 105 \
   --schedule "0 2 * * *" \
-  --storage local \
+  --storage pbs-backup \
   --mode snapshot \
   --compress zstd \
   --prune-backups keep-last=7,keep-weekly=4,keep-monthly=3 \
@@ -83,16 +80,16 @@ pvesh create /cluster/backup \
 - `--compress zstd`: Modern compression (better than gzip/lzo)
 - Notification to root upon completion/failure
 
-### VMs (112-mcphub, 200-jclee-dev, 220-youtube)
+### VMs (200-oc, 220-youtube)
 
 **Schedule**: Daily at **03:00 UTC** (10:00 PM UTC-5)
 **Command**:
 
 ```bash
 pvesh create /cluster/backup \
-  --vmid 112,200,220 \
+  --vmid 200,220 \
   --schedule "0 3 * * *" \
-  --storage local \
+  --storage pbs-backup \
   --mode snapshot \
   --compress zstd \
   --prune-backups keep-last=7,keep-weekly=4,keep-monthly=3 \
@@ -135,7 +132,7 @@ pvesh create /cluster/backup \
 
 **Prerequisites**:
 
-- Backup file located at `/var/lib/vz/dump/`
+- Backup snapshot available in `pbs-backup`
 - Target VMID available or specify new VMID
 
 **Procedure**:
@@ -143,7 +140,7 @@ pvesh create /cluster/backup \
 1. **List available backups**:
 
    ```bash
-   ls -lah /var/lib/vz/dump/ | grep 105
+   pvesh get /nodes/pve/storage/pbs-backup/content --content backup --output-format json-pretty
    ```
 
    Example output:
@@ -158,7 +155,8 @@ pvesh create /cluster/backup \
    pvesh create /nodes/pve/lxc \
       --vmid 150 \
       --hostname elk-restored \
-     --archive /var/lib/vz/dump/vzdump-lxc-105-2026_02_11-02_15_00.tar.zst
+     --archive pbs-backup:backup/vzdump-lxc-105-2026_02_11-02_15_00.tar.zst \
+     --storage hdd-local
    ```
 
    Or via GUI: Datacenter → Backup → select backup → Restore
@@ -183,7 +181,7 @@ pvesh create /cluster/backup \
    sed -i 's/150/105/' /etc/pve/nodes/pve/lxc/150.conf
    ```
 
-### VM Restore (e.g., 112-mcphub)
+### VM Restore (e.g., 220-youtube)
 
 **Prerequisite**: Target VMID must be free (or destroyed first).
 
@@ -192,14 +190,14 @@ pvesh create /cluster/backup \
 1. **List available backups**:
 
    ```bash
-   ls -lah /var/lib/vz/dump/ | grep 112
+   pvesh get /nodes/pve/storage/pbs-backup/content --content backup --output-format json-pretty
    ```
 
 2. **Restore to new VM**:
 
    ```bash
-   qmrestore /var/lib/vz/dump/vzdump-qemu-112-2026_02_11-03_15_00.vma.zst 150 \
-     --storage local-lvm
+   qmrestore pbs-backup:backup/vzdump-qemu-220-2026_02_11-03_15_00.vma.zst 150 \
+     --storage hdd-local
    ```
 
    Or via GUI: Datacenter → Backup → select backup → Restore
@@ -218,19 +216,19 @@ pvesh create /cluster/backup \
 
 5. **(Optional) Swap old for restored**:
    ```bash
-   qm stop 112 && qm destroy 112
-   qm set 150 --name mcphub
+   qm stop 220 && qm destroy 220
+   qm set 150 --name youtube
    ```
 
 ### Partial Restore (Single Files from LXC)
 
 If you only need to restore a subset of files:
 
-1. **Mount backup archive**:
+1. **Download the backup archive from `pbs-backup`**:
 
    ```bash
    mkdir /tmp/restore
-   tar -xf /var/lib/vz/dump/vzdump-lxc-105-2026_02_11-02_15_00.tar.zst \
+   tar -xf /path/to/downloaded/vzdump-lxc-105-2026_02_11-02_15_00.tar.zst \
      -C /tmp/restore --strip-components=1
    ```
 
@@ -259,7 +257,7 @@ Backups are verified post-creation by Proxmox:
 **Check backup file integrity**:
 
 ```bash
-cd /var/lib/vz/dump/
+cd /path/to/downloaded/backups/
 tar -tzf vzdump-lxc-105-2026_02_11-02_15_00.tar.zst | head -20
 ```
 
@@ -288,11 +286,11 @@ tar -tzf vzdump-lxc-105-2026_02_11-02_15_00.tar.zst | wc -l
 
 ### Scenario 2: Full Host Failure (PVE Host)
 
-Backups are stored locally on PVE, so restoration depends on PVE availability:
+Backups are stored in `pbs-backup`, so restoration requires the Proxmox host and PBS storage to be reachable:
 
 1. **If PVE is recoverable**:
    - Boot PVE host from backup/snapshot
-   - Restore containers/VMs from `/var/lib/vz/dump/`
+   - Restore containers/VMs from `pbs-backup`
 
 2. **If PVE is destroyed**:
    - Backups are lost (single point of failure)
@@ -326,13 +324,13 @@ journalctl -u postfix -f
 Backup-related alert rules are managed through the monitoring template/config pipeline:
 
 - **Host Silent**: Triggers if a host stops sending logs (possible backup failure)
-- **Disk Usage High**: Alerts if `/var/lib/vz/dump/` exceeds 80% capacity
+- **Disk Usage High**: Alerts if `pbs-backup` exceeds 80% capacity
 
 ### Manual Check
 
 ```bash
-# List recent backups
-ls -lht /var/lib/vz/dump/ | head -10
+# List recent backups in PBS storage
+pvesh get /nodes/pve/storage/pbs-backup/content --content backup --output-format json-pretty
 
 # Check backup schedule
 pvesh get /cluster/backup
@@ -349,29 +347,28 @@ tail -f /var/log/syslog | grep vzdump
 
 Estimated daily backup sizes (with zstd compression):
 
-| VMID      | Service   | Uncompressed | Compressed (zstd) | Daily Growth |
-| --------- | --------- | ------------ | ----------------- | ------------ |
-| 102       | traefik   | ~500 MB      | ~150 MB           | 150 MB       |
-| 105       | elk       | ~4.0 GB      | ~1.2 GB           | 1.2 GB       |
-| 112       | mcphub    | ~2.0 GB      | ~600 MB           | 600 MB       |
-| **Total** |           | **6.5 GB**   | **~1.95 GB**      | **~1.95 GB** |
+| VMID | Service | Backup storage | Sizing guidance |
+| ---- | ------- | -------------- | --------------- |
+| 105  | elk     | `pbs-backup`   | Measure actual archive size in PBS |
+| 200  | oc      | `pbs-backup`   | Measure actual archive size in PBS |
+| 220  | youtube | `pbs-backup`   | Measure actual archive size in PBS |
 
 ### Retention Storage
 
-With 90-day retention (21 daily + 4 weekly + 3 monthly snapshots):
+With 90-day retention (21 daily + 4 weekly + 3 monthly snapshots) in `pbs-backup`:
 
 ```
-~1.95 GB/day × ~28 backups (average) = ~55 GB total retention
+Query PBS storage usage and prune status rather than relying on a fixed size estimate.
 ```
 
-**Current available**: `/var/lib/vz/dump/` on PVE (check with `df -h`)
+**Current available**: `pbs-backup` storage (check with the Proxmox storage usage view)
 
 ### Future Scaling
 
 When storage reaches 80%:
 
 1. Reduce retention to `keep-last=3,keep-weekly=2,keep-monthly=2` (~40 GB)
-2. Or: Implement offsite replication (S3/MinIO) and delete local after 30 days
+2. Or: Implement offsite replication to object storage and delete local after 30 days
 
 ## Future Enhancements
 

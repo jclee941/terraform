@@ -10,75 +10,6 @@ module "lxc_config" {
   ssh_private_key    = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
   lxc_containers = {
-    runner = {
-      vmid           = module.hosts.hosts["runner"].vmid
-      hostname       = "runner"
-      ip_address     = module.hosts.hosts["runner"].ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      cloud_init = {
-        packages = ["curl", "jq", "ca-certificates"]
-        runcmd   = ["systemctl enable filebeat || true"]
-      }
-
-      config_files = {
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.runner_filebeat
-        }
-      }
-    }
-
-    traefik = {
-      vmid           = module.hosts.hosts.traefik.vmid
-      hostname       = "traefik"
-      ip_address     = module.hosts.hosts.traefik.ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      cloud_init = {
-        packages = ["curl", "jq", "ca-certificates"]
-        runcmd = [
-          "mkdir -p /etc/traefik/dynamic",
-          "rm -f /etc/traefik/dynamic/gitlab.yml /etc/traefik/dynamic/gitlab-http.yml /etc/traefik/dynamic/glitchtip.yml /etc/traefik/dynamic/bot.yml /etc/traefik/dynamic/opencode.yml /etc/traefik/dynamic/code.yml /etc/traefik/dynamic/vault.yml /etc/traefik/dynamic/archon.yml /etc/traefik/dynamic/supabase.yml /etc/traefik/dynamic/grafana.yml",
-          "systemctl enable filebeat || true",
-          "systemctl reload traefik || systemctl restart traefik || true",
-        ]
-      }
-
-      config_files = {
-        "traefik.yml" = {
-          path    = "/etc/traefik/traefik.yml"
-          content = file("${path.module}/../../102-traefik/config/traefik.yml")
-        }
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.traefik_filebeat
-        }
-        "middlewares.yml" = {
-          path    = "/etc/traefik/dynamic/middlewares.yml"
-          content = module.config_renderer.rendered_configs.traefik_middlewares
-        }
-        "registry.yml" = {
-          path    = "/etc/traefik/dynamic/registry.yml"
-          content = module.config_renderer.rendered_configs.traefik_registry
-        }
-        "mcphub.yml" = {
-          path    = "/etc/traefik/dynamic/mcphub.yml"
-          content = module.config_renderer.rendered_configs.traefik_mcphub
-        }
-        "nas.yml" = {
-          path    = "/etc/traefik/dynamic/nas.yml"
-          content = module.config_renderer.rendered_configs.traefik_nas
-        }
-        "minio.yml" = {
-          path    = "/etc/traefik/dynamic/minio.yml"
-          content = module.config_renderer.rendered_configs.traefik_minio
-        }
-      }
-    }
-
     elk = {
       vmid           = module.hosts.hosts.elk.vmid
       hostname       = "elk"
@@ -105,35 +36,6 @@ module "lxc_config" {
         "filebeat.yml" = {
           path    = "/etc/filebeat/filebeat.yml"
           content = module.config_renderer.rendered_configs.elk_filebeat
-        }
-      }
-    }
-
-    coredns = {
-      vmid           = module.hosts.hosts.coredns.vmid
-      hostname       = "coredns"
-      ip_address     = module.hosts.hosts.coredns.ip
-      deploy         = var.deploy_lxc_configs
-      setup_filebeat = true
-
-      cloud_init = {
-        packages = ["curl", "jq", "ca-certificates"]
-        runcmd   = ["systemctl enable filebeat || true"]
-      }
-
-      docker_compose = {
-        path    = "/opt/coredns/docker-compose.yml"
-        content = module.config_renderer.rendered_configs.coredns_docker_compose
-      }
-
-      config_files = {
-        "Corefile" = {
-          path    = "/opt/coredns/Corefile"
-          content = module.config_renderer.rendered_configs.coredns_corefile
-        }
-        "filebeat.yml" = {
-          path    = "/etc/filebeat/filebeat.yml"
-          content = module.config_renderer.rendered_configs.coredns_filebeat
         }
       }
     }

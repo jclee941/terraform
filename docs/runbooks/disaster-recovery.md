@@ -12,12 +12,10 @@
 ## Recovery Priority Order
 
 1. **PVE Host** (100) — Hypervisor must be up first
-2. **1Password Connect** (112:8090) — Secret provider for all workspaces
-3. **Traefik** (102) — Routing for all services
-4. **ELK** (105) — Logging pipeline
-5. **Monitoring services** — alerting runtime managed by templates
-6. **Runner** (101) — CI/CD
-7. **Remaining services** — MCPHub and other active inventory entries
+2. **ELK** (105) — Logging pipeline
+3. **cliproxy** (114) — Cloudflare Tunnel connector and CI/CD host
+4. **Monitoring services** — alerting runtime managed by templates
+5. **Remaining services** — active inventory entries
 
 ## Backup Strategy
 
@@ -25,7 +23,7 @@
 |-----------|--------|----------|-----------|
 | Terraform state | Local backend backups | Workspace `terraform/` directories and external backups | Before/after apply |
 | Elasticsearch | Snapshot API | Local filesystem | Daily |
-| Proxmox VMs/LXCs | vzdump | Synology NAS (215) | Weekly |
+| Proxmox LXC/VM guests | vzdump | `pbs-backup` storage | Weekly |
 | Cloudflare config | Terraform state backups | Local backend and external backups | Before/after apply |
 | Docker volumes | Volume backup scripts | Local + NAS | Daily |
 
@@ -36,8 +34,9 @@
 # 1. Boot PVE from backup/reinstall
 # 2. Restore network config
 # 3. Start critical LXCs
-pct start 102  # traefik
 pct start 105  # elk
+pct start 114  # cliproxy
+pct exec 114 -- systemctl start cloudflared-homelab
 # Start monitoring runtime if present in current inventory
 ```
 
@@ -73,7 +72,7 @@ terraform -chdir=100-pve/terraform validate
 
 ## Recovery Drill Checklist
 
-- [ ] Verify 1Password Connect Server health (LXC 112:8090)
+- [ ] Verify 1Password service-account authentication
 - [ ] Verify Proxmox vzdump backups are current (< 7 days)
 - [ ] Verify ES snapshots exist and are restorable
 - [ ] Verify terraform plan shows no unexpected changes

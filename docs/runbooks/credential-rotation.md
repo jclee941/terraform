@@ -4,49 +4,38 @@ Scheduled and reactive rotation procedures for homelab service credentials.
 
 ## Symptoms
 - Authentication failures in service logs
-- MCP connections dropping
-- `onepassword-test.yml` or `mcp-health-check.yml` reporting auth failures
 
 ## Credential Inventory
 
 | Credential | Location | Cadence | Service |
 |------------|----------|---------|---------|
-| 1Password SA Token | GitHub secret + MCPHub `.env` | 90 days / on failure | CI + MCPHub |
+| 1Password SA Token | GitHub secret + Terraform provider | 90 days / on failure | CI + Terraform |
 | Cloudflare API Token | GitHub secret | 90 days / on failure | Cloudflare CI |
 | GitHub PAT | GitHub secret + 1Password | 90 days / on failure | CI cross-repo |
 | GitHub Runner Token | `/opt/runner/.env` on LXC 101 | 30 days | GitHub Actions |
 | Synology credentials | 1Password synology item | On failure | Synology NAS |
 | YouTube OAuth tokens | 1Password youtube item | On failure | YouTube |
-| CF Access service token | access.tf (time_rotating) | 60 days | Cloudflare Access |
 
 ---
 
 ## 1Password Service Account Token
 
-**Scope:** GitHub Actions CI + MCPHub (192.168.50.112)
+**Scope:** GitHub Actions CI + Terraform provider authentication
 
 ```bash
 # 1. Generate new token
 #    1Password admin → Service Accounts → homelab → Rotate Token
 
-# 2. Update GitHub Actions secrets (Connect Server auth)
-gh secret set OP_CONNECT_TOKEN
-gh secret set OP_CONNECT_HOST
+# 2. Update GitHub Actions secret
+gh secret set OP_SERVICE_ACCOUNT_TOKEN
 
-# 3. Update MCPHub .env
-pct exec 112 -- sed -i 's|OP_SERVICE_ACCOUNT_TOKEN=.*|OP_SERVICE_ACCOUNT_TOKEN=<new-token>|' /opt/mcphub/.env
-
-# 4. Restart MCPHub 1Password server
-pct exec 112 -- docker compose -f /opt/mcphub/docker-compose.yml restart
-
-# 5. Verify
+# 3. Verify
 #    Run onepassword-test.yml via workflow_dispatch
 #    Check: op whoami, op vault list, 12 items accessible
 ```
 
 **Verification:**
 - `onepassword-test.yml` (workflow_dispatch) validates token + vault + 12 items + critical fields.
-- `mcp-health-check.yml` includes 1Password smoke test (op whoami + vault list).
 
 ---
 
@@ -126,17 +115,12 @@ op item edit "youtube" "secrets.client_secret=NEW" --vault homelab
 
 ---
 
-## Cloudflare Access Service Token
+## Cloudflare Access Service Token (Retired)
 
-**Scope:** Cloudflare Zero Trust internal service access
-**Cadence:** 60 days (managed via terraform time_rotating in access.tf)
-
-```bash
-# 1. Token auto-rotates via terraform time_rotating resource
-# 2. Verify current token is valid
-curl -H "Authorization: Bearer $(op item get youtube --fields secrets.access_token)" https://internal-service.jclee.me
-# 3. If rotation needed, re-run terraform apply in 300-cloudflare
-```
+Cloudflare Access resources and service-token rotation are no longer active. Do not
+rotate or recreate the former `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET`
+credentials from this runbook. Current external access uses Cloudflare Tunnel
+origins; see [the troubleshooting runbook](troubleshooting.md).
 
 ---
 

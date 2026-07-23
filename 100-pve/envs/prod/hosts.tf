@@ -33,38 +33,6 @@ locals {
     #   }
     # }
 
-    runner = {
-      vmid  = 101
-      ip    = "192.168.50.101"
-      roles = ["ci", "runner", "github"]
-      ports = {}
-    }
-
-    # Note: runner (101) is active - LXC container for GitHub Actions CI (migrated from HDD to SSD 2026-03-28)
-    # Removed: vault (was 101->repurposed), terraform (103),
-    # minio_cache (109), swagger (was 112->repurposed), github_runner (113->repurposed to 101)
-    # Removed: mcpdog (111) - migrated to mcphub (112)
-
-    traefik = {
-      vmid  = 102
-      ip    = "192.168.50.102"
-      roles = ["proxy", "ingress"]
-      ports = {
-        http    = 80
-        https   = 443
-        traefik = 8080
-      }
-    }
-
-    coredns = {
-      vmid  = 103
-      ip    = "192.168.50.103"
-      roles = ["dns", "split-dns"]
-      ports = {
-        dns    = 53
-        health = 8080
-      }
-    }
 
     elk = {
       vmid  = 105
@@ -82,16 +50,14 @@ locals {
       }
     }
 
-    mcphub = {
-      vmid  = 112
-      ip    = "192.168.50.112"
-      roles = ["mcp-hub", "ai", "mcp", "gateway", "automation"]
+    cliproxy = {
+      vmid  = 114
+      ip    = "192.168.50.114"
+      roles = ["proxy", "cli", "api"]
       ports = {
-        web        = 3000
-        proxmox    = 8055
-        playwright = 8056
-        op_connect = 8090
-        cadvisor   = 8888
+        ssh = 22
+        web = 3000
+        api = 8317
       }
     }
 

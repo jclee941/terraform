@@ -2,7 +2,7 @@
 
 ## Overview
 
-Terraform and script-based central secret management system for the `jclee.me` homelab. Manages DNS records, Zero Trust Access policies, Cloudflare Tunnels, WAF rules, R2 storage, and secrets across three target stores.
+Terraform and script-based central secret management system for the `jclee.me` homelab. Manages DNS records, Cloudflare Tunnels, WAF rules, R2 storage, and secrets across three target stores.
 
 ## Architecture
 
@@ -12,15 +12,22 @@ Terraform and script-based central secret management system for the `jclee.me` h
 - inventory/secrets.yaml\nMetadata only (Inventory) -> Terraform
 - 1Password homelab vault (OnePassword) -> Terraform
 - Terraform -> Cloudflare DNS (DNS)
-- Terraform -> Cloudflare Access (Access)
 - Terraform -> Cloudflare Tunnels (Tunnel)
 - Terraform -> Cloudflare Secrets Store (CFSecrets)
 - Terraform -> GitHub Actions Secrets (GHSecrets)
-- Cloudflare Tunnels (Tunnel) -> Traefik ingress (Traefik)
-- Cloudflare Access (Access) -> Protected homelab services (Services)
+- Cloudflare Tunnels (Tunnel) -> HTTP, TCP, and log ingestion origins (Services)
 - Cloudflare Secrets Store (CFSecrets) -> Cloudflare Workers runtime (Workers)
 - GitHub Actions Secrets (GHSecrets) -> GitHub Actions CI/CD (CI)
 
+
+## Tunnel Runtime
+
+- The active `cloudflared` connector runs as a native systemd service on the cliproxy VM (VMID 114).
+- `code.jclee.me` routes directly to the OpenCode VM at `192.168.50.200:8888`.
+- Synology routes directly to its HTTPS DSM origin.
+- `logstash-ingest.jclee.me` routes directly to Logstash at `192.168.50.105:8080`.
+- HTTP and TCP services use their direct tunnel origins; no reverse proxy is required.
+- `docker/cloudflared/` is retained as a legacy reference and is not the active connector deployment path.
 
 ## Source of Truth
 

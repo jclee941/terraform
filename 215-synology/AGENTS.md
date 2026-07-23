@@ -9,7 +9,7 @@
 
 ## OVERVIEW
 
-Synology NAS providing network-attached storage for the homelab. Managed via the `synology-community/synology` Terraform provider for DSM packages, Docker Compose projects, and file operations. Exposed via Traefik reverse proxy at `nas.jclee.me` (DSM port 5000). Also hosts Cloudflare tunnel connector (`cloudflared`) for external access. Sends syslog events to ELK stack.
+Synology NAS providing network-attached storage for the homelab. Managed via the `synology-community/synology` Terraform provider for DSM packages, Docker Compose projects, and file operations. Exposed through the Cloudflare Tunnel at `nas.jclee.me` with a direct HTTPS origin on port 5001. The native tunnel connector runs on cliproxy (LXC 114). Sends syslog events to ELK stack.
 
 ## STRUCTURE
 
@@ -35,21 +35,21 @@ Synology NAS providing network-attached storage for the homelab. Managed via the
 | **Credentials**        | `onepassword.tf`                           | 1Password priority, variable fallback    |
 | **DSM packages**       | `main.tf`                                  | `synology_core_package` resources        |
 | **Container projects** | `main.tf`                                  | `synology_container_project` resources   |
-| **Traefik routing**    | `102-traefik/templates/synology.yml.tftpl` | `nas.jclee.me` → DSM                     |
-| **Cloudflare tunnel**  | `300-cloudflare/`                          | `cloudflared` connector on NAS           |
+| **Cloudflare direct route** | `300-cloudflare/`                      | `nas.jclee.me` → `https://192.168.50.215:5001` |
+| **Cloudflare tunnel**  | `300-cloudflare/`                          | `cloudflared-homelab` on cliproxy (114)  |
 | **Syslog to ELK**      | `syslog-config.md`                         | DSM syslog forwarding to Logstash on 105 |
 
 ## CONVENTIONS
 
 - **Physical Device**: NOT a Proxmox VM/LXC. Managed as an inventory host in `hosts.tf` and via Synology provider.
-- **Governance**: Referenced in Terraform via `module.hosts` for IP/port injection into dependent services (Traefik, Cloudflare).
+- **Governance**: Referenced in Terraform via `module.hosts` for IP/port injection into dependent services and Cloudflare direct routes.
 - **Credentials**: DSM admin credentials stored in 1Password vault "homelab" under item "synology".
-- **DSM Access**: Port 5001 (HTTPS) for provider API. Port 5000 (HTTP) proxied through Traefik with TLS.
+- **DSM Access**: Port 5001 (HTTPS) is used by the provider and the Cloudflare Tunnel origin.
 - **Naming**: Follows `{NNN}-{HOSTNAME}` convention where 215 = `192.168.50.215`.
 - **Syslog**: DSM configured to forward syslog to Logstash syslog input on LXC 105.
 
 ## ANTI-PATTERNS
 
 - **NO hardcoded IPs** in service configs. Use `module.hosts.synology_ip`.
-- **NO direct external exposure**. All access must route through Traefik or Cloudflare tunnel.
+- **NO direct external exposure**. External access must use the Cloudflare Tunnel; the NAS origin remains on the LAN.
 - **NO plaintext credentials**. Use 1Password integration via `onepassword.tf`.

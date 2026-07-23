@@ -12,7 +12,6 @@ app workspaces.
 ```text
 %% diagram: graph TD
   PVE["100-pve\nProvision fleet and render configs"] --> Infra["Tier 1 infra workspaces"]
-  Infra --> Traefik["102-traefik"]
   Infra --> ELK["105-elk"]
 
   PVE --> Templates["Template-only services\nRendered by 100-pve"]
@@ -37,7 +36,6 @@ They are independent of each other and can run in parallel.
 
 | Workspace | CI Workflow | Triggers On |
 |-----------|-------------|-------------|
-| `102-traefik/terraform` | `traefik-plan.yml` / `traefik-apply.yml` | `102-traefik/**` |
 | `105-elk/terraform` | `elk-plan.yml` / `elk-apply.yml` | `105-elk/**` |
 
 Removed app workspaces are represented only by placeholder tests until they return.
@@ -47,7 +45,7 @@ Removed app workspaces are represented only by placeholder tests until they retu
 | Workspace | CI Workflow | Triggers On |
 |-----------|-------------|-------------|
 | `300-cloudflare` | `cloudflare-plan.yml` / `cloudflare-apply.yml` | `300-cloudflare/**` |
-| `310-safetywallet` | `safetywallet-plan.yml` / `safetywallet-apply.yml` (GitLab CI) | `310-safetywallet/**` |
+| `310-safetywallet` | `safetywallet-plan.yml` / `safetywallet-apply.yml` | `310-safetywallet/**` |
 | `400-gcp` | `gcp-plan.yml` / `gcp-apply.yml` | `400-gcp/**` |
 ## CI/CD Notes
 
@@ -74,6 +72,5 @@ When changing `100-pve` outputs consumed by downstream workspaces:
 make plan SVC=pve
 
 # 2. Plan dependent workspaces
-make plan SVC=traefik
 make plan SVC=elk
 ```

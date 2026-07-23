@@ -45,6 +45,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_cores"></a> [cores](#input\_cores) | CPU cores | `number` | n/a | yes |
+| <a name="input_cpu_units"></a> [cpu\_units](#input\_cpu\_units) | CPU scheduler weight (null = Proxmox default) | `number` | `null` | no |
 | <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Proxmox storage ID for container disks | `string` | n/a | yes |
 | <a name="input_description"></a> [description](#input\_description) | Container description | `string` | n/a | yes |
 | <a name="input_disk_size"></a> [disk\_size](#input\_disk\_size) | Disk size in GB | `number` | n/a | yes |
@@ -54,11 +55,13 @@ No modules.
 | <a name="input_managed_vmid_max"></a> [managed\_vmid\_max](#input\_managed\_vmid\_max) | Maximum managed VMID | `number` | n/a | yes |
 | <a name="input_managed_vmid_min"></a> [managed\_vmid\_min](#input\_managed\_vmid\_min) | Minimum managed VMID | `number` | n/a | yes |
 | <a name="input_memory"></a> [memory](#input\_memory) | Dedicated memory in MB | `number` | n/a | yes |
-| <a name="input_mount_points"></a> [mount\_points](#input\_mount\_points) | List of mount points to add to the container | <pre>list(object({<br/>    volume = string<br/>    path   = string<br/>  }))</pre> | `[]` | no |
+| <a name="input_mount_points"></a> [mount\_points](#input\_mount\_points) | List of mount points to add to the container | <pre>list(object({<br/>    volume    = string<br/>    path      = string<br/>    backup    = optional(bool)<br/>    replicate = optional(bool)<br/>    shared    = optional(bool)<br/>    size      = optional(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_network_gateway"></a> [network\_gateway](#input\_network\_gateway) | Network gateway IP address | `string` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node name to deploy the container | `string` | n/a | yes |
 | <a name="input_privileged"></a> [privileged](#input\_privileged) | Run container in privileged mode | `bool` | `false` | no |
+| <a name="input_protection"></a> [protection](#input\_protection) | Protect container and disks from removal | `bool` | `false` | no |
 | <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | SSH public keys for root user | `list(string)` | `[]` | no |
+| <a name="input_start_on_boot"></a> [start\_on\_boot](#input\_start\_on\_boot) | Automatically start container when the host boots | `bool` | `true` | no |
 | <a name="input_swap"></a> [swap](#input\_swap) | Swap memory in MB (per-container) | `number` | `512` | no |
 | <a name="input_template_file_id"></a> [template\_file\_id](#input\_template\_file\_id) | Container template file ID (e.g., local:vztmpl/debian-12-standard\_12.12-1\_amd64.tar.zst) | `string` | `"local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst"` | no |
 | <a name="input_vmid"></a> [vmid](#input\_vmid) | Container VMID | `number` | n/a | yes |

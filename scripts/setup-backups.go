@@ -17,8 +17,8 @@ const (
 	storage  = "local"
 	compress = "zstd"
 
-	lxcVMIDs    = "101,102,103,105"
-	vmVMIDs     = "112,200,220"
+	lxcVMIDs    = "105"
+	vmVMIDs     = "200,220"
 	lxcSchedule = "0 2 * * *"
 	vmSchedule  = "0 3 * * *"
 )

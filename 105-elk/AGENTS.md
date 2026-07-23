@@ -57,7 +57,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 
 - **xpack.security**: Enabled with HTTP basic auth (no TLS for internal). Credentials in 1Password `homelab/elk` (`elastic_password`, `kibana_password`).
 - **Auth Flow**: `elk-setup` container bootstraps `kibana_system`. ES uses `ELASTIC_PASSWORD` env var; Kibana uses `kibana_system`; Logstash uses `elastic`.
-- **Traefik**: `es.jclee.me` restricted to LAN via `ipAllowList` middleware.
+- **Public routing**: `es.jclee.me` uses the direct Cloudflare Tunnel origin; keep the Elasticsearch API protected by its existing authentication and network controls.
 
 ## ANTI-PATTERNS
 

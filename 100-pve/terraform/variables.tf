@@ -98,9 +98,9 @@ variable "github_org" {
 }
 
 variable "dns_servers" {
-  description = "DNS servers for containers"
+  description = "DNS servers for containers (router/gateway DNS first, upstream fallback)"
   type        = list(string)
-  default     = ["192.168.50.103", "8.8.8.8"]
+  default     = ["192.168.50.1", "8.8.8.8"]
 
   validation {
     condition     = length(var.dns_servers) > 0 && length(var.dns_servers) <= 3
@@ -109,9 +109,9 @@ variable "dns_servers" {
 }
 
 variable "datastore_id" {
-  description = "Proxmox storage ID for container disks"
+  description = "Proxmox storage ID for container disks (ssd-nvme = Crucial T500 NVMe SSD thin pool; hdd-local = WD HDD thin pool)"
   type        = string
-  default     = "dfge"
+  default     = "ssd-nvme"
 
   validation {
     condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_-]*$", var.datastore_id))

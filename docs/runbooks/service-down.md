@@ -1,8 +1,8 @@
-# Service Down: Container/VM Restart
+# Service Down: Container/VM and Tunnel Recovery
 
 ## Symptoms
 
-- Service unreachable (HTTP 502/503 from Traefik)
+- Public hostname unreachable or Cloudflare edge error
 - Alert or health-check failure for an active service
 - Health endpoint returns error or timeout
 
@@ -10,9 +10,8 @@
 
 | VMID | Service   | Type | Health Check                                         |
 | ---- | --------- | ---- | ---------------------------------------------------- |
-| 102  | Traefik   | LXC  | `curl -s http://192.168.50.102:8080/ping`            |
+| 114  | cliproxy | LXC  | `systemctl is-active cloudflared-homelab`            |
 | 105  | ELK       | LXC  | `curl -s http://192.168.50.105:9200/_cluster/health` |
-| 112  | MCPHub    | VM   | `curl -s http://192.168.50.112:3000/`                |
 
 ## Diagnosis
 
@@ -63,11 +62,13 @@ qm start {VMID}
 
 ### Service-Specific Recovery
 
-**Traefik (102)** — Reverse proxy for all services:
+**Cloudflare Tunnel (114)** — Native public ingress connector:
 
 ```bash
-pct exec 102 -- systemctl restart docker
-pct exec 102 -- docker logs traefik --tail 20
+pct exec 114 -- systemctl restart cloudflared-homelab
+pct exec 114 -- journalctl -u cloudflared-homelab -n 20 --no-pager
+# Verify the affected direct origin separately, for example:
+curl -s http://192.168.50.105:9200/_cluster/health
 ```
 
 **ELK (105)** — Elasticsearch + Logstash + Kibana:
@@ -76,13 +77,6 @@ pct exec 102 -- docker logs traefik --tail 20
 pct exec 105 -- docker compose -f /opt/elk/docker-compose.yml restart
 # Verify Elasticsearch cluster health
 pct exec 105 -- curl -s localhost:9200/_cluster/health | jq .status
-```
-
-**MCPHub (112)** — MCP Hub + 1Password Connect:
-
-```bash
-ssh root@192.168.50.112
-docker compose -f /opt/mcphub/docker-compose.yml restart
 ```
 
 ## Prevention

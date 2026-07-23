@@ -44,7 +44,7 @@ pct enter <VMID>              # Open a shell inside the container
 
 # Manage Virtual Machines
 qm list                       # Show status of all VMs
-qm start <VMID>               # Power on VM (e.g., qm start 112)
+qm start <VMID>               # Power on VM (e.g., qm start 220)
 qm shutdown <VMID>            # Graceful ACPI shutdown
 ```
 
@@ -59,7 +59,7 @@ qm shutdown <VMID>            # Graceful ACPI shutdown
 - **Local `make apply` is disabled.** All deployments go through GitHub Actions CI/CD.
 - **`configs/` outputs are generated.** Never hand-edit. Regenerate via `terraform apply`.
 - **Manual changes in the Proxmox UI will be overwritten** by Terraform. Always update `.tf` files instead.
-- **High memory pressure** from ELK (105) or MCPHub (112) can affect the host. Monitor with `htop`.
+- **High memory pressure** from ELK (105) can affect the host. Monitor with `htop`.
 - **IO delay** usually indicates intensive backup jobs or heavy Elasticsearch indexing.
 
 <!-- BEGIN_TF_DOCS -->
@@ -107,7 +107,7 @@ qm shutdown <VMID>            # Graceful ACPI shutdown
 | <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Proxmox storage ID for container disks | `string` | `"dfge"` | no |
 | <a name="input_deploy_lxc_configs"></a> [deploy\_lxc\_configs](#input\_deploy\_lxc\_configs) | Whether to deploy LXC configurations via SSH | `bool` | `false` | no |
 | <a name="input_deploy_vm_configs"></a> [deploy\_vm\_configs](#input\_deploy\_vm\_configs) | Whether to deploy VM configurations via SSH | `bool` | `false` | no |
-| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | DNS servers for containers | `list(string)` | <pre>[<br/>  "192.168.50.103",<br/>  "8.8.8.8"<br/>]</pre> | no |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | DNS servers for containers | `list(string)` | <pre>[<br/>  "8.8.8.8"<br/>]</pre> | no |
 | <a name="input_enable_pbs"></a> [enable\_pbs](#input\_enable\_pbs) | Enable Proxmox Backup Server storage registration (requires 'pbs' item in 1Password vault) | `bool` | `false` | no |
 | <a name="input_enable_synology"></a> [enable\_synology](#input\_enable\_synology) | Whether to look up Synology secrets from 1Password | `bool` | `false` | no |
 | <a name="input_enable_youtube"></a> [enable\_youtube](#input\_enable\_youtube) | Whether to look up YouTube secrets from 1Password | `bool` | `false` | no |

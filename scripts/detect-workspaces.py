@@ -27,7 +27,6 @@ from typing import List, Set
 # Workspace to directory mapping
 WORKSPACE_MAP = {
     "100-pve": ["100-pve/", "modules/"],
-    "102-traefik": ["102-traefik/"],
     "105-elk": ["105-elk/"],
     "215-synology": ["215-synology/"],
     "300-cloudflare": ["300-cloudflare/"],
@@ -36,9 +35,6 @@ WORKSPACE_MAP = {
 
 # Template-only workspaces (no Terraform, but configs rendered)
 TEMPLATE_WORKSPACES = [
-    "101-runner",
-    "103-coredns",
-    "112-mcphub",
     "200-oc",
     "220-youtube",
 ]

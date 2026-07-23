@@ -26,7 +26,7 @@ Preferred item structure uses semantic section names with spaces:
 **Account**, **MCP Tokens**, **OpenCode Tokens**, **Keys**, **Login**, **OAuth**, **Passwords**, and **Secrets**.
 
 ```
-Item: "traefik"  (category: password)
+Item: "elk"  (category: password)
   +-- Section: "Credentials"
       +-- Field: "htpasswd_hash" (CONCEALED)
 ```
@@ -36,7 +36,7 @@ For API_CREDENTIAL items such as `github`, the module also supports top-level
 
 ## Authentication
 
-Set `OP_SERVICE_ACCOUNT_TOKEN` as an environment variable for Terraform and CLI verification flows. The repo's current Terraform provider usage is environment-driven, with empty `provider "onepassword" {}` blocks in consuming workspaces. `OP_CONNECT_TOKEN` and `OP_CONNECT_HOST` remain relevant for MCPHub-side Connect integrations, not the Terraform provider path.
+Set `OP_SERVICE_ACCOUNT_TOKEN` as an environment variable for Terraform and CLI verification flows. The repo's current Terraform provider usage is environment-driven, with empty `provider "onepassword" {}` blocks in consuming workspaces.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -80,5 +80,5 @@ No modules.
 |------|-------------|
 | <a name="output_connection_info"></a> [connection\_info](#output\_connection\_info) | Non-secret connection details and routing metadata (12 keys) |
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (11 keys) |
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (26 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (21 keys) |
 <!-- END_TF_DOCS -->

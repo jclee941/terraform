@@ -25,7 +25,7 @@ run "custom_vault_name" {
   }
 
   assert {
-    condition     = data.onepassword_vault.this.name == "Production"
+    condition     = data.onepassword_vault.this.name == "Production" # gitleaks:allow
     error_message = "Custom vault_name should be respected."
   }
 }
@@ -49,11 +49,6 @@ run "all_item_titles" {
   }
 
   assert {
-    condition     = data.onepassword_item.this["mcphub"].title == "mcphub"
-    error_message = "MCPHub item title should be 'mcphub'."
-  }
-
-  assert {
     condition     = data.onepassword_item.this["proxmox"].title == "proxmox"
     error_message = "Proxmox item title should be 'proxmox'."
   }
@@ -61,10 +56,5 @@ run "all_item_titles" {
   assert {
     condition     = data.onepassword_item.this["telegram"].title == "telegram"
     error_message = "Telegram item title should be 'telegram'."
-  }
-
-  assert {
-    condition     = data.onepassword_item.this["traefik"].title == "traefik"
-    error_message = "Traefik item title should be 'traefik'."
   }
 }

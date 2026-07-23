@@ -18,7 +18,6 @@ tests/
     ├── pve/             # PVE workspace validation
     ├── safetywallet/    # SafetyWallet workspace validation
     ├── synology/        # Synology workspace validation
-    └── traefik/         # Traefik workspace remote-state tests
 ```
 
 ## WHERE TO LOOK
@@ -31,7 +30,7 @@ tests/
 | Elasticstack module tests | `tests/modules/elasticstack/` | ILM policy and index template checks. |
 | Pipeline integration checks | `tests/integration/AGENTS.md` | Config renderer and hosts-map end-to-end strategy. |
 | Workspace validation checks | `tests/workspaces/AGENTS.md` | Standalone workspace variable-validation strategy. |
-| Specific workspace tests | `tests/workspaces/{cloudflare,elk,gcp,pve,safetywallet,synology,traefik}/` | Per-workspace `*.tftest.hcl` + mock `main.tf`. |
+| Specific workspace tests | `tests/workspaces/{cloudflare,elk,gcp,pve,safetywallet,synology}/` | Per-workspace `*.tftest.hcl` + mock `main.tf`. |
 
 ## CONVENTIONS
 - Use native `terraform test`; avoid custom runners.

@@ -58,6 +58,17 @@ variable "cores" {
   }
 }
 
+variable "cpu_units" {
+  description = "CPU scheduler weight (null = Proxmox default)"
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.cpu_units == null || (var.cpu_units >= 1 && var.cpu_units <= 10000)
+    error_message = "cpu_units must be null or between 1 and 10000."
+  }
+}
+
 variable "disk_size" {
   description = "Disk size in GB"
   type        = number
@@ -75,6 +86,18 @@ variable "description" {
 
 variable "privileged" {
   description = "Run container in privileged mode"
+  type        = bool
+  default     = false
+}
+
+variable "start_on_boot" {
+  description = "Automatically start container when the host boots"
+  type        = bool
+  default     = true
+}
+
+variable "protection" {
+  description = "Protect container and disks from removal"
   type        = bool
   default     = false
 }
@@ -161,8 +184,12 @@ variable "template_file_id" {
 variable "mount_points" {
   description = "List of mount points to add to the container"
   type = list(object({
-    volume = string
-    path   = string
+    volume    = string
+    path      = string
+    backup    = optional(bool)
+    replicate = optional(bool)
+    shared    = optional(bool)
+    size      = optional(string)
   }))
   default = []
 

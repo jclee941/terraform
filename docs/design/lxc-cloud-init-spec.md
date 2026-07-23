@@ -247,7 +247,7 @@ For existing LXC containers, we'll add cloud_init blocks to `100-pve/lxc_configs
 module "lxc_config" {
   # ...
   containers = {
-    traefik = {
+    elk = {
       # ... existing fields ...
       cloud_init = {
         packages = ["curl", "jq", "ca-certificates"]

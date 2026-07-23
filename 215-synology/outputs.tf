@@ -21,6 +21,18 @@ output "container_manager_installed" {
   value       = var.enable_container_manager_package ? length(synology_core_package.container_manager) > 0 : true
 }
 
+# -----------------------------------------------------------------------------
+# MailPlus
+# -----------------------------------------------------------------------------
+
+output "mailplus_catch_all" {
+  description = "Configured MailPlus catch-all target for the primary domain"
+  value = var.enable_mailplus_catch_all ? {
+    domain_id = var.mailplus_domain_id
+    user      = var.mailplus_catch_all_user
+  } : null
+}
+
 
 # -----------------------------------------------------------------------------
 # Docker Registry + MinIO

@@ -15,19 +15,8 @@ locals {
   cloudflare_account_id      = try(data.onepassword_item.this["cloudflare"].section_map["Account"].field_map["account_id"].value, "")
   cloudflare_zone_id         = try(data.onepassword_item.this["cloudflare"].section_map["Account"].field_map["zone_id"].value, "")
 
-  mcphub_proxmox_token_name       = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_name"].value, "")
-  mcphub_proxmox_token_value      = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["proxmox_token_value"].value, "")
-  mcphub_admin_password           = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["admin_password"].value, "")
-  mcphub_op_service_account_token = try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_service_account_token"].value, "")
-  mcphub_op_connect_token = try(
-    data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_connect_token"].value,
-    try(data.onepassword_item.this["mcphub"].section_map["Credentials"].field_map["op_service_account_token"].value, "")
-  )
-
   elk_elastic_password = try(data.onepassword_item.this["elk"].section_map["Passwords"].field_map["elastic_password"].value, "")
   elk_kibana_password  = try(data.onepassword_item.this["elk"].section_map["Passwords"].field_map["kibana_password"].value, "")
-
-  traefik_htpasswd_hash = try(data.onepassword_item.this["traefik"].section_map["Credentials"].field_map["htpasswd_hash"].value, "")
 
   pbs_password    = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["Login"].field_map["password"].value, try(data.onepassword_item.this["pbs"].password, "")) : ""
   pbs_server      = var.enable_pbs ? try(data.onepassword_item.this["pbs"].section_map["Connection"].field_map["server"].value, "") : ""
@@ -56,7 +45,7 @@ locals {
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (26 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (21 keys)"
   sensitive   = true
   value = {
     # Proxmox
@@ -73,22 +62,12 @@ output "secrets" {
     google_oauth_client_id     = local.google_oauth_client_id
     google_oauth_client_secret = local.google_oauth_client_secret
 
-    # MCPHub (MCPHub-specific secrets only)
-    mcphub_proxmox_token_name       = local.mcphub_proxmox_token_name
-    mcphub_proxmox_token_value      = local.mcphub_proxmox_token_value
-    mcphub_admin_password           = local.mcphub_admin_password
-    mcphub_op_service_account_token = local.mcphub_op_service_account_token
-    mcphub_op_connect_token         = local.mcphub_op_connect_token
-
     # ELK / Elasticsearch
     elk_elastic_password = local.elk_elastic_password
     elk_kibana_password  = local.elk_kibana_password
 
     # PBS (Proxmox Backup Server)
     pbs_password = local.pbs_password
-
-    # Traefik
-    traefik_htpasswd_hash = local.traefik_htpasswd_hash
 
     # Synology
     synology_user     = local.synology_user

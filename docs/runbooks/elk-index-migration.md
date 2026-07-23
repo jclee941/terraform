@@ -62,7 +62,7 @@ These are legacy indices from a previous config iteration.
 # List service-only indices (no date suffix)
 STALE_SERVICES="logs-analytics logs-auth logs-blackbox-exporter logs-ceph logs-db \
 logs-docker logs-elasticsearch logs-kibana logs-kong logs-logstash \
-logs-logstash-exporter logs-mcphub logs-mcp-playwright logs-mcp-proxmox logs-meta \
+logs-logstash-exporter logs-mcp-playwright logs-mcp-proxmox logs-meta \
 logs-opencode logs-prometheus logs-proxmox logs-realtime logs-redis \
 logs-studio logs-supavisor logs-system logs-tempo logs-unknown logs-vault \
 logs-vector logs-web logs-worker"
@@ -100,7 +100,7 @@ curl -s -u elastic:$ELASTIC_PASSWORD \
 If filebeat config drift was also fixed:
 
 ```bash
-# From each managed log-shipping host (101, 102, 103, 105, 112, 220)
+# From each managed log-shipping host (101, 102, 105, 200, 220)
 # Copy updated filebeat.yml and restart
 sudo systemctl restart filebeat
 sudo systemctl status filebeat

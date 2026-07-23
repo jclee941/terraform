@@ -42,21 +42,6 @@ check "proxmox_provider_token_required" {
   }
 }
 
-check "mcphub_required_secrets" {
-  assert {
-    condition = alltrue([
-      for k in [
-        "mcphub_admin_password",
-        "mcphub_op_connect_token",
-        "mcphub_op_service_account_token",
-        "mcphub_proxmox_token_name",
-        "mcphub_proxmox_token_value",
-      ] : length(trimspace(lookup(module.onepassword_secrets.secrets, k, ""))) > 0
-    ])
-    error_message = "MCPHub required 1Password fields are missing. Required keys: mcphub_admin_password, mcphub_op_connect_token, mcphub_op_service_account_token, mcphub_proxmox_token_name, mcphub_proxmox_token_value"
-  }
-}
-
 check "deploy_ssh_key_required" {
   assert {
     condition     = !(var.deploy_lxc_configs || var.deploy_vm_configs) || length(trimspace(lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", ""))) > 0

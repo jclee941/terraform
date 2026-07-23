@@ -1,6 +1,6 @@
 # Terraform Monorepo — Dependency Graph & Entry Points
 
-**Generated:** 2026-05-07
+**Generated:** 2026-07-23
 **Scope:** Complete module dependency mapping, template inventory, provider matrix
 
 ---
@@ -17,7 +17,6 @@
 
 | Workspace          | Entry Point         | Role                     | Modules Used            | Providers                                           |
 | ------------------ | ------------------- | ------------------------ | ----------------------- | --------------------------------------------------- |
-| **102-traefik**    | `terraform/main.tf` | Reverse proxy config     | None (remote-state shim) | None (template-only)                                |
 | **105-elk**        | `terraform/main.tf` | Log aggregation          | None                    | elasticstack ~>0.13, onepassword ~>3.2              |
 | **215-synology**   | `main.tf`           | NAS management           | onepassword-secrets     | synology ~>0.6, onepassword ~>3.2                   |
 | **300-cloudflare** | `main.tf`           | External DNS/tunnel      | onepassword-secrets     | cloudflare ~>5.0, random ~>3.0, onepassword ~>3.2, time ~>0.12 |
@@ -26,10 +25,8 @@
 
 | Workspace         | Purpose               | Templates          | Rendered By                    |
 | ----------------- | --------------------- | ------------------ | ------------------------------ |
-| **101-runner**    | GitHub Actions runner | filebeat.yml.tftpl | 100-pve/module.config_renderer |
-| **103-coredns**   | DNS resolver          | 3x .tftpl          | 100-pve/module.config_renderer |
-| **112-mcphub**    | MCP server hub        | 5x .tftpl          | 100-pve/module.config_renderer |
-| **220-youtube**   | YouTube VM            | 3x .tftpl          | 100-pve/module.config_renderer |
+| **200-oc**        | OpenCode VM          | —                 | 100-pve/module.config_renderer |
+| **220-youtube**   | YouTube VM           | 3x .tftpl         | 100-pve/module.config_renderer |
 
 ### PLACEHOLDER WORKSPACES
 
@@ -61,6 +58,8 @@
   VM --> ProxmoxVM["Proxmox VM Resources"]
   LXCConfig --> LXCGuest["LXC Guest Config"]
   VMConfig --> VMGuest["VM Cloud-Init / Systemd"]
+  Cloudflare["300-cloudflare"] --> Tunnel["cloudflared-homelab on cliproxy (114)"]
+  Tunnel --> Origins["Direct service IP:port origins"]
 ```
 
 ### CORE MODULES (modules/proxmox/)
@@ -101,17 +100,6 @@
 
 | Workspace                      | Template                      | Purpose             | Rendered By       | Output Path                                     |
 | ------------------------------ | ----------------------------- | ------------------- | ----------------- | ----------------------------------------------- |
-| **101-runner**                 | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-101-runner/filebeat.yml             |
-| **102-traefik**                | cloudflared-docker-compose.yml.tftpl | Cloudflared tunnel  | config-renderer   | configs/lxc-102-traefik/cloudflared-docker-compose.yml |
-|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-102-traefik/filebeat.yml            |
-|                                | mcphub.yml.tftpl              | Traefik route       | config-renderer   | configs/rendered/traefik/mcphub.yml             |
-|                                | middlewares.yml.tftpl         | Traefik middlewares | config-renderer   | configs/rendered/traefik/middlewares.yml        |
-|                                | nas.yml.tftpl                 | Traefik route       | config-renderer   | configs/rendered/traefik/nas.yml                |
-|                                | registry.yml.tftpl            | Traefik route       | config-renderer   | configs/rendered/traefik/registry.yml           |
-|                                | traefik-elk.yml.tftpl         | Traefik route       | config-renderer   | configs/rendered/traefik/traefik-elk.yml        |
-| **103-coredns**                | Corefile.tftpl                | CoreDNS config      | config-renderer   | configs/lxc-103-coredns/Corefile                |
-|                                | docker-compose.yml.tftpl      | CoreDNS stack       | config-renderer   | configs/lxc-103-coredns/docker-compose.yml      |
-|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-103-coredns/filebeat.yml            |
 | **105-elk**                    | docker-compose.yml.tftpl      | ELK stack           | config-renderer   | configs/lxc-105-elk/docker-compose.yml          |
 |                                | Dockerfile.logstash.tftpl     | Logstash container  | config-renderer   | configs/lxc-105-elk/Dockerfile.logstash         |
 |                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/lxc-105-elk/filebeat.yml                |
@@ -119,11 +107,6 @@
 |                                | logstash.conf.tftpl           | Logstash pipeline   | config-renderer   | configs/lxc-105-elk/logstash.conf               |
 |                                | logstash.yml.tftpl            | Logstash config     | config-renderer   | configs/lxc-105-elk/logstash.yml                |
 |                                | setup-ilm.sh.tftpl            | ILM setup script    | config-renderer   | configs/lxc-105-elk/setup-ilm.sh                |
-| **112-mcphub**                 | .env.tftpl                    | Env vars            | config-renderer   | configs/vm-112-mcphub/.env                      |
-|                                | docker-compose.yml.tftpl      | MCPHub stack        | config-renderer   | configs/vm-112-mcphub/docker-compose.yml        |
-|                                | docker-compose-op-connect.yml.tftpl | 1Password Connect | config-renderer   | configs/vm-112-mcphub/docker-compose-op-connect.yml |
-|                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/vm-112-mcphub/filebeat.yml              |
-|                                | mcp_settings.json.tftpl       | MCP server catalog  | config-renderer   | configs/rendered/mcphub/mcp_settings.json       |
 | **220-youtube**                | .env.tftpl                    | Env vars            | config-renderer   | configs/vm-220-youtube/.env                     |
 |                                | docker-compose.yml.tftpl      | YouTube stack       | config-renderer   | configs/vm-220-youtube/docker-compose.yml       |
 |                                | filebeat.yml.tftpl            | Filebeat config     | config-renderer   | configs/vm-220-youtube/filebeat.yml             |
@@ -132,7 +115,7 @@
 | **modules/proxmox/lxc-config** | cloud-init-lxc.yaml.tftpl     | Cloud-init (LXC)    | lxc-config module | (inline in LXC resource)                        |
 |                                | lxc-systemd.service.tftpl     | Systemd service     | lxc-config module | (inline in LXC resource)                        |
 
-**Total:** 30 `.tftpl` files across 6 service workspaces and 2 module template directories.
+**Total:** 14 `.tftpl` files across 2 service workspaces and 2 module template directories.
 
 ### Template Variables (from 100-pve/terraform/main.tf)
 
@@ -144,12 +127,7 @@ template_vars = {
   # Service secrets (from 1Password)
   # ... consumed via module.onepassword_secrets.secrets
 
-  # MCP catalog
-  mcp_servers = local.mcp_catalog.servers
-  mcp_hub_servers = local.mcp_hub_servers
-
   # Service-specific vars
-  traefik_domain = "jclee.me"
   elk_memory = local.container_sizing.elk.memory
   # ... per-service overrides
 }
@@ -184,7 +162,6 @@ template_vars = {
 | ------------------ | --------------------- | ------- | --------------------- | ---------------------- |
 | **100-pve**        | bpg/proxmox           | ~>0.94  | API token (env)       | LXC/VM provisioning    |
 |                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching        |
-| **102-traefik**    | None                  | —       | —                     | Template-only          |
 | **105-elk**        | elastic/elasticstack  | ~>0.13  | API key (env)         | Index/ILM/space mgmt   |
 |                    | 1Password/onepassword | ~>3.2   | Service account (env) | Secret fetching        |
 | **215-synology**   | synology-community/synology | ~>0.6 | DSM credentials (env) | NAS package/container mgmt |
@@ -200,8 +177,7 @@ template_vars = {
 # Core infrastructure
 export PROXMOX_VE_ENDPOINT="https://pve.jclee.me:8006"
 export PROXMOX_VE_API_TOKEN="PVEAPIToken=user@pam!terraform=..."
-export OP_CONNECT_TOKEN="ops_..."
-export OP_CONNECT_HOST="http://192.168.50.112:8090"
+export OP_SERVICE_ACCOUNT_TOKEN="ops_..."
 
 # Secondary workspaces
 export ELASTICSEARCH_ENDPOINTS="http://192.168.50.105:9200"
@@ -219,7 +195,6 @@ export CLOUDFLARE_API_TOKEN="..."
 | `data "proxmox_virtual_environment_nodes"`              | 100-pve, modules/lxc, modules/vm | Validate Proxmox node availability     |
 | `data "onepassword_vault"`                              | 100-pve (via module) | Resolve vault UUID by name                     |
 | `data "onepassword_item"`                               | 100-pve (via module) | Fetch service secrets                          |
-| `data "terraform_remote_state"`                         | 102-traefik          | Cross-workspace state reference (from 100-pve) |
 | `data "cloudflare_zero_trust_tunnel_cloudflared_token"` | 300-cloudflare       | Fetch tunnel tokens                            |
 | `data "synology_core_network"`                          | 215-synology         | Read NAS network configuration                 |
 
@@ -237,7 +212,7 @@ export CLOUDFLARE_API_TOKEN="..."
 
 ### For Workspace-Specific Work
 
-- **Traefik routes**: Edit `/home/jclee/dev/terraform/102-traefik/templates/*.yml.tftpl`
+- **Cloudflare Tunnel routes**: Edit `/home/jclee/dev/terraform/300-cloudflare/*.tf`; origins route directly to service IP:port
 - **ELK pipelines**: Edit `/home/jclee/dev/terraform/105-elk/templates/logstash.conf.tftpl`
 - **Cloudflare DNS**: Edit `/home/jclee/dev/terraform/300-cloudflare/main.tf`
 - **Synology NAS**: Edit `/home/jclee/dev/terraform/215-synology/main.tf`
@@ -254,7 +229,7 @@ export CLOUDFLARE_API_TOKEN="..."
   Need --> Secret["Add or rotate secret"]
 
   Host --> PVE["Edit 100-pve/locals.tf and 100-pve/envs/prod/hosts.tf"]
-  Route --> Traefik["Edit 102-traefik/templates/*.yml.tftpl"]
+  Route --> Tunnel["Edit 300-cloudflare/*.tf direct ingress"]
   Logs --> ELK["Edit 105-elk/templates/logstash.conf.tftpl"]
   DNS --> CF["Edit 300-cloudflare/*.tf"]
   Module --> Modules["Edit modules/proxmox/ or modules/shared/"]

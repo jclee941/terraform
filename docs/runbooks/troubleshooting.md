@@ -43,14 +43,10 @@ terraform -chdir=100-pve apply
 
 ### Authentication Failure
 ```bash
-# Check Connect Server connectivity (LXC 112, port 8090)
+# Check local 1Password CLI authentication
 op whoami
-# If failing, verify tokens
-echo $OP_CONNECT_TOKEN | head -c 20
-echo $OP_CONNECT_HOST
-# Re-export if needed
-export OP_CONNECT_TOKEN="<token>"
-export OP_CONNECT_HOST="http://192.168.50.112:8090"
+# If failing, verify the service-account environment variable
+test -n "$OP_SERVICE_ACCOUNT_TOKEN"
 ```
 
 ### Secret Not Found
@@ -79,10 +75,11 @@ pct exec NNN -- nslookup jclee.me
 
 ### Cloudflare Tunnel Down
 ```bash
-# Check tunnel status on Synology
-ssh root@192.168.50.215 'docker logs cloudflared --tail 20'
+# Check the native connector on cliproxy (VMID 114)
+ssh root@cliproxy 'systemctl status cloudflared --no-pager'
+ssh root@cliproxy 'journalctl -u cloudflared -n 50 --no-pager'
 # Restart tunnel
-ssh root@192.168.50.215 'docker restart cloudflared'
+ssh root@cliproxy 'systemctl restart cloudflared'
 ```
 
 ## Log Access
@@ -114,4 +111,4 @@ curl -s http://192.168.50.105:9600/ | jq
 | Docker containers restarting | OOM | Increase memory in main.tf |
 | TF plan shows unexpected changes | Manual edits | `terraform refresh`, revert manual changes |
 | Logs not appearing in Kibana | Logstash down | Restart Logstash on 105 |
-| External access broken | CF tunnel down | Restart cloudflared on 215 |
+| External access broken | CF tunnel down | Restart cloudflared on cliproxy |
