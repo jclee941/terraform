@@ -40,6 +40,7 @@ jobs:
           ref: master
           path: pr-agent-src
           fetch-depth: 1
+          token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Set up build cache (NAS-backed on self-hosted)
         uses: ./.github/actions/setup-build-cache
