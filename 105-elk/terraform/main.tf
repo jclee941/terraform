@@ -24,16 +24,19 @@ locals {
 
   ilm_policies = {
     logs_30d = {
-      name    = "homelab-logs-30d"
-      min_age = "30d"
+      name         = "homelab-logs-30d"
+      min_age      = "30d"
+      warm_min_age = "7d"
     }
     logs_critical_90d = {
-      name    = "homelab-logs-critical-90d"
-      min_age = "90d"
+      name         = "homelab-logs-critical-90d"
+      min_age      = "90d"
+      warm_min_age = "7d"
     }
     logs_ephemeral_7d = {
-      name    = "homelab-logs-ephemeral-7d"
-      min_age = "7d"
+      name         = "homelab-logs-ephemeral-7d"
+      min_age      = "7d"
+      warm_min_age = null
     }
   }
 
@@ -82,8 +85,9 @@ module "ilm" {
 
   for_each = local.ilm_policies
 
-  name    = each.value.name
-  min_age = each.value.min_age
+  name         = each.value.name
+  min_age      = each.value.min_age
+  warm_min_age = each.value.warm_min_age
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -104,6 +108,8 @@ module "index_templates" {
   number_of_replicas    = each.value.number_of_replicas
   number_of_shards      = each.value.number_of_shards
   priority              = each.value.priority
+  index_codec           = "best_compression"
+  refresh_interval      = "30s"
 }
 
 moved {
