@@ -104,7 +104,7 @@ locals {
       cpu_limit             = 4
       cpu_numa              = true
       cpu_units             = 512
-      disk_size             = 300
+      disk_size             = 400
       disk_backup           = true
       disk_cache            = "none"
       disk_replicate        = true
