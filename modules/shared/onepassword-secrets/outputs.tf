@@ -38,14 +38,10 @@ locals {
   gcp_region      = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["Connection"].field_map["region"].value, "") : ""
 
   telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
-
-  # Docker Registry (MinIO backend)
-  registry_minio_user     = var.enable_registry ? try(data.onepassword_item.this["registry"].username, try(data.onepassword_item.this["registry"].credential, "")) : ""
-  registry_minio_password = var.enable_registry ? try(data.onepassword_item.this["registry"].password, "") : ""
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (21 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (18 keys)"
   sensitive   = true
   value = {
     # Proxmox
@@ -82,10 +78,6 @@ output "secrets" {
     gcp_credentials = local.gcp_credentials
 
     telegram_bot_token = local.telegram_bot_token
-
-    # Docker Registry (MinIO backend)
-    registry_minio_user     = local.registry_minio_user
-    registry_minio_password = local.registry_minio_password
   }
 }
 

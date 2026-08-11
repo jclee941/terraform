@@ -69,7 +69,6 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_enable_gcp"></a> [enable\_gcp](#input\_enable\_gcp) | Whether to look up GCP secrets from 1Password (requires 'gcp' item in vault) | `bool` | `false` | no |
 | <a name="input_enable_pbs"></a> [enable\_pbs](#input\_enable\_pbs) | Whether to look up PBS secrets from 1Password (requires 'pbs' item in vault) | `bool` | `false` | no |
-| <a name="input_enable_registry"></a> [enable\_registry](#input\_enable\_registry) | Whether to look up Docker Registry (MinIO) secrets from 1Password (requires 'registry' item in vault) | `bool` | `false` | no |
 | <a name="input_enable_synology"></a> [enable\_synology](#input\_enable\_synology) | Whether to look up Synology secrets from 1Password (requires 'synology' item in vault) | `bool` | `false` | no |
 | <a name="input_enable_youtube"></a> [enable\_youtube](#input\_enable\_youtube) | Whether to look up YouTube secrets from 1Password (requires 'youtube' item in vault) | `bool` | `false` | no |
 | <a name="input_vault_name"></a> [vault\_name](#input\_vault\_name) | 1Password vault name containing homelab secrets | `string` | `"homelab"` | no |
@@ -80,5 +79,5 @@ No modules.
 |------|-------------|
 | <a name="output_connection_info"></a> [connection\_info](#output\_connection\_info) | Non-secret connection details and routing metadata (12 keys) |
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (11 keys) |
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (21 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (18 keys) |
 <!-- END_TF_DOCS -->
