@@ -35,26 +35,6 @@ output "mailplus_catch_all" {
 
 
 # -----------------------------------------------------------------------------
-# Docker Registry + MinIO
-# -----------------------------------------------------------------------------
-
-output "registry_enabled" {
-  description = "Whether standalone Docker Registry + MinIO is enabled"
-  value       = var.enable_registry
-}
-
-output "registry_endpoints" {
-  description = "Docker Registry and MinIO endpoint details when enabled"
-  value = var.enable_registry ? {
-    registry_url  = "http://192.168.50.215:${var.registry_port}"
-    minio_api     = "http://192.168.50.215:9000"
-    minio_console = "http://192.168.50.215:9001"
-    bucket        = var.minio_registry_bucket
-  } : null
-}
-
-
-# -----------------------------------------------------------------------------
 # Portainer
 # -----------------------------------------------------------------------------
 
