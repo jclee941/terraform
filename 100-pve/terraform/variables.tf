@@ -189,12 +189,6 @@ variable "enable_pbs" {
   default     = false
 }
 
-variable "enable_registry" {
-  description = "Whether to look up registry MinIO secrets from 1Password"
-  type        = bool
-  default     = true
-}
-
 variable "enable_synology" {
   description = "Whether to look up Synology secrets from 1Password"
   type        = bool

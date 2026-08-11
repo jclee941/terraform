@@ -53,19 +53,6 @@ module "vm_config" {
             permissions = "0600"
             owner       = "root:root"
           },
-          {
-            path        = "/etc/profile.d/docker-buildx-s3.sh"
-            content     = <<-EOF
-              # Docker Buildx S3 cache environment variables for MinIO
-              export BUILDKIT_S3_REGION=us-east-1
-              export BUILDKIT_S3_BUCKET=buildx-cache
-              export BUILDKIT_S3_ENDPOINT=http://192.168.50.215:9000
-              export BUILDKIT_S3_ACCESS_KEY_ID=${module.onepassword_secrets.secrets["registry_minio_user"]}
-              export BUILDKIT_S3_SECRET_ACCESS_KEY=${module.onepassword_secrets.secrets["registry_minio_password"]}
-            EOF
-            permissions = "0644"
-            owner       = "root:root"
-          },
         ]
       }
     }
@@ -84,27 +71,8 @@ module "vm_config" {
           "docker-compose-v2",
           "fail2ban",
         ]
-        runcmd = concat(local.vm_baseline_runcmd, [
-          "# Docker Buildx S3 cache setup via MinIO (192.168.50.215:9000)",
-          "mkdir -p /etc/docker/buildx",
-          "docker buildx create --use --name s3-cache --driver docker-container --driver-opt env.BUILDKIT_S3_REGION=us-east-1 --driver-opt env.BUILDKIT_S3_BUCKET=buildx-cache --driver-opt env.BUILDKIT_S3_ENDPOINT=http://192.168.50.215:9000 --driver-opt env.BUILDKIT_S3_ACCESS_KEY_ID=${module.onepassword_secrets.secrets["registry_minio_user"]} --driver-opt env.BUILDKIT_S3_SECRET_ACCESS_KEY=${module.onepassword_secrets.secrets["registry_minio_password"]} || docker buildx use s3-cache || true",
-          "docker buildx inspect s3-cache --bootstrap || true",
-        ])
-        write_files = [
-          {
-            path        = "/etc/profile.d/docker-buildx-s3.sh"
-            content     = <<-EOF
-              # Docker Buildx S3 cache environment variables for MinIO
-              export BUILDKIT_S3_REGION=us-east-1
-              export BUILDKIT_S3_BUCKET=buildx-cache
-              export BUILDKIT_S3_ENDPOINT=http://192.168.50.215:9000
-              export BUILDKIT_S3_ACCESS_KEY_ID=${module.onepassword_secrets.secrets["registry_minio_user"]}
-              export BUILDKIT_S3_SECRET_ACCESS_KEY=${module.onepassword_secrets.secrets["registry_minio_password"]}
-            EOF
-            permissions = "0644"
-            owner       = "root:root"
-          },
-        ]
+        runcmd      = local.vm_baseline_runcmd
+        write_files = []
       }
     }
   }

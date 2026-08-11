@@ -49,26 +49,6 @@ check "deploy_ssh_key_required" {
   }
 }
 
-# Blocking guard (not a `check` block — those only warn). A terraform_data with a
-# lifecycle precondition FAILS `terraform plan` when enable_registry is true but the
-# registry MinIO credentials are missing or still the insecure 'minioadmin' default,
-# preventing minioadmin from silently reaching VM cloud-init.
-resource "terraform_data" "registry_minio_secrets_guard" {
-  count = var.enable_registry ? 1 : 0
-
-  lifecycle {
-    precondition {
-      condition = (
-        length(trimspace(lookup(module.onepassword_secrets.secrets, "registry_minio_user", ""))) > 0 &&
-        length(trimspace(lookup(module.onepassword_secrets.secrets, "registry_minio_password", ""))) > 0 &&
-        trimspace(lookup(module.onepassword_secrets.secrets, "registry_minio_user", "")) != "minioadmin" &&
-        trimspace(lookup(module.onepassword_secrets.secrets, "registry_minio_password", "")) != "minioadmin"
-      )
-      error_message = "enable_registry is true but registry MinIO credentials are missing or still the insecure 'minioadmin' default. Add a 'registry' item (minio user + password) to the 1Password vault, or set enable_registry = false."
-    }
-  }
-}
-
 check "no_placeholder_secrets" {
   assert {
     condition     = length(local.placeholder_template_secret_keys) == 0
