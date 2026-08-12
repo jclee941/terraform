@@ -79,5 +79,5 @@ No modules.
 |------|-------------|
 | <a name="output_connection_info"></a> [connection\_info](#output\_connection\_info) | Non-secret connection details and routing metadata (12 keys) |
 | <a name="output_metadata"></a> [metadata](#output\_metadata) | Non-secret configuration metadata: usernames, URLs, IDs (11 keys) |
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (18 keys) |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Flat map of all homelab secrets for template\_vars merge (19 keys) |
 <!-- END_TF_DOCS -->

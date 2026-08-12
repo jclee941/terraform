@@ -113,10 +113,14 @@ run "test_secrets_default_to_empty_string" {
 
 
 
-  # --- Telegram (1 key) ---
+  # --- Telegram (2 keys) ---
   assert {
     condition     = output.secrets.telegram_bot_token == ""
     error_message = "telegram_bot_token should default to empty string"
+  }
+  assert {
+    condition     = output.secrets.telegram_chat_id == ""
+    error_message = "telegram_chat_id should default to empty string"
   }
 
 
@@ -267,8 +271,8 @@ run "test_secrets_key_count" {
   }
 
   assert {
-    condition     = length(output.secrets) == 18
-    error_message = "Secrets output should contain exactly 18 keys, got ${nonsensitive(length(output.secrets))}"
+    condition     = length(output.secrets) == 19
+    error_message = "Secrets output should contain exactly 19 keys, got ${nonsensitive(length(output.secrets))}"
   }
 }
 
@@ -341,6 +345,10 @@ run "test_all_secret_key_names_exist" {
   assert {
     condition     = contains(nonsensitive(keys(output.secrets)), "telegram_bot_token")
     error_message = "Missing secret key: telegram_bot_token"
+  }
+  assert {
+    condition     = contains(nonsensitive(keys(output.secrets)), "telegram_chat_id")
+    error_message = "Missing secret key: telegram_chat_id"
   }
 
   # Cloudflare
@@ -543,7 +551,7 @@ run "test_default_vault_name" {
   # No variables block — vault_name defaults to "homelab"
 
   assert {
-    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 41
-    error_message = "Total keys (secrets + metadata + connection_info) should equal 41"
+    condition     = length(output.secrets) + length(output.metadata) + length(output.connection_info) == 42
+    error_message = "Total keys (secrets + metadata + connection_info) should equal 42"
   }
 }

@@ -38,10 +38,11 @@ locals {
   gcp_region      = var.enable_gcp ? try(data.onepassword_item.this["gcp"].section_map["Connection"].field_map["region"].value, "") : ""
 
   telegram_bot_token = try(data.onepassword_item.this["telegram"].credential, "")
+  telegram_chat_id   = try(data.onepassword_item.this["telegram"].section_map["Bot"].field_map["chat_id"].value, "")
 }
 
 output "secrets" {
-  description = "Flat map of all homelab secrets for template_vars merge (18 keys)"
+  description = "Flat map of all homelab secrets for template_vars merge (19 keys)"
   sensitive   = true
   value = {
     # Proxmox
@@ -78,6 +79,7 @@ output "secrets" {
     gcp_credentials = local.gcp_credentials
 
     telegram_bot_token = local.telegram_bot_token
+    telegram_chat_id   = local.telegram_chat_id
   }
 }
 
