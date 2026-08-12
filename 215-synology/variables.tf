@@ -54,6 +54,73 @@ variable "enable_container_manager_package" {
   default     = false
 }
 
+variable "enable_proxmox_monitor" {
+  description = "Run the Proxmox resource monitor independently on Synology Container Manager"
+  type        = bool
+  default     = true
+}
+
+variable "proxmox_monitor_image" {
+  description = "Pinned Go runtime image used to build and run the mounted Proxmox monitor source"
+  type        = string
+  default     = "golang:1.25.0-alpine3.22"
+}
+
+variable "proxmox_monitor_interval" {
+  description = "Polling interval passed to the Proxmox monitor"
+  type        = string
+  default     = "60s"
+
+  validation {
+    condition     = can(regex("^[1-9][0-9]*[smh]$", var.proxmox_monitor_interval))
+    error_message = "proxmox_monitor_interval must be a positive duration using s, m, or h"
+  }
+}
+
+variable "proxmox_monitor_failure_threshold" {
+  description = "Consecutive unhealthy polls required before sending a Telegram alert"
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.proxmox_monitor_failure_threshold >= 1 && floor(var.proxmox_monitor_failure_threshold) == var.proxmox_monitor_failure_threshold
+    error_message = "proxmox_monitor_failure_threshold must be a positive integer"
+  }
+}
+
+variable "proxmox_monitor_cpu_percent" {
+  description = "CPU usage percentage that triggers a sustained pressure alert"
+  type        = number
+  default     = 95
+
+  validation {
+    condition     = var.proxmox_monitor_cpu_percent > 0 && var.proxmox_monitor_cpu_percent <= 100
+    error_message = "proxmox_monitor_cpu_percent must be within (0, 100]"
+  }
+}
+
+variable "proxmox_monitor_memory_percent" {
+  description = "Memory usage percentage that triggers a sustained pressure alert"
+  type        = number
+  default     = 95
+
+  validation {
+    condition     = var.proxmox_monitor_memory_percent > 0 && var.proxmox_monitor_memory_percent <= 100
+    error_message = "proxmox_monitor_memory_percent must be within (0, 100]"
+  }
+}
+
+variable "proxmox_monitor_disk_percent" {
+  description = "Disk usage percentage that triggers a sustained pressure alert"
+  type        = number
+  default     = 90
+
+  validation {
+    condition     = var.proxmox_monitor_disk_percent > 0 && var.proxmox_monitor_disk_percent <= 100
+    error_message = "proxmox_monitor_disk_percent must be within (0, 100]"
+  }
+}
+
 # -----------------------------------------------------------------------------
 # Synology MailPlus
 # -----------------------------------------------------------------------------

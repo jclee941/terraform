@@ -21,6 +21,11 @@ output "container_manager_installed" {
   value       = var.enable_container_manager_package ? length(synology_core_package.container_manager) > 0 : true
 }
 
+output "proxmox_monitor_status" {
+  description = "Synology Container Manager project status for the Proxmox Telegram monitor"
+  value       = var.enable_proxmox_monitor ? synology_container_project.proxmox_monitor["this"].status : "disabled"
+}
+
 # -----------------------------------------------------------------------------
 # MailPlus
 # -----------------------------------------------------------------------------
