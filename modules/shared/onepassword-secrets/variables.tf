@@ -27,9 +27,3 @@ variable "enable_gcp" {
   type        = bool
   default     = false
 }
-
-variable "enable_registry" {
-  description = "Whether to look up Docker Registry (MinIO) secrets from 1Password (requires 'registry' item in vault)"
-  type        = bool
-  default     = false
-}

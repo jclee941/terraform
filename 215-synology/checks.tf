@@ -15,14 +15,14 @@ check "required_secrets" {
   }
 }
 
-
-check "registry_credentials" {
+check "proxmox_monitor_secrets" {
   assert {
-    condition = (
-      !var.enable_registry ||
-      (length(trimspace(local.effective_minio_user)) > 0 &&
-      length(trimspace(local.effective_minio_password)) > 0)
-    )
-    error_message = "Registry is enabled but MinIO credentials are empty. Set 1Password item 'registry' (username/password) or TF_VAR_minio_root_user/TF_VAR_minio_root_password."
+    condition = !var.enable_proxmox_monitor || alltrue([
+      length(local.proxmox_monitor_endpoint) > 0,
+      length(local.proxmox_monitor_api_token) > 0,
+      length(local.proxmox_monitor_telegram_token) > 0,
+      length(local.proxmox_monitor_chat_id) > 0,
+    ])
+    error_message = "Proxmox monitor requires the Proxmox endpoint/API token and Telegram bot token/chat_id from 1Password."
   }
 }

@@ -23,10 +23,11 @@ Thank you for your interest in contributing! This project follows standard open-
 
 ### Automated Checks
 
-All PRs are automatically checked by:
-- **pr-checks.yml**: PR size, title, branch name validation
-- **gitleaks.yml**: Secret scanning
-- **jclee-bot**: AI code review (Korean responses)
+All PRs are automatically reviewed by:
+- **10_pr-review.yml**: AI code review (Korean responses)
+- **11_security-pr-review.yml**: Security review
+
+Run `pre-commit run --all-files` locally for gitleaks, actionlint, yamllint, and Terraform checks. PRs are merged manually.
 
 ---
 
@@ -51,7 +52,8 @@ All PRs are automatically checked by:
 
 ### 자동화 검증
 
-모든 PR은 다음 자동 검증을 통과해야 합니다:
-- **pr-checks.yml**: PR 크기, 제목, 브랜치 이름 검증
-- **gitleaks.yml**: 민감정보 스캔
-- **jclee-bot**: AI 코드 리뷰 (한국어 응답)
+모든 PR은 다음 워크플로가 자동 리뷰합니다:
+- **10_pr-review.yml**: AI 코드 리뷰 (한국어 응답)
+- **11_security-pr-review.yml**: 보안 리뷰
+
+gitleaks, actionlint, yamllint, Terraform 검사는 로컬에서 `pre-commit run --all-files`로 실행합니다. PR 머지는 수동으로 합니다.

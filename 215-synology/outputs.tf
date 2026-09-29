@@ -21,6 +21,11 @@ output "container_manager_installed" {
   value       = var.enable_container_manager_package ? length(synology_core_package.container_manager) > 0 : true
 }
 
+output "proxmox_monitor_status" {
+  description = "Synology Container Manager project status for the Proxmox Telegram monitor"
+  value       = var.enable_proxmox_monitor ? synology_container_project.proxmox_monitor["this"].status : "disabled"
+}
+
 # -----------------------------------------------------------------------------
 # MailPlus
 # -----------------------------------------------------------------------------
@@ -30,26 +35,6 @@ output "mailplus_catch_all" {
   value = var.enable_mailplus_catch_all ? {
     domain_id = var.mailplus_domain_id
     user      = var.mailplus_catch_all_user
-  } : null
-}
-
-
-# -----------------------------------------------------------------------------
-# Docker Registry + MinIO
-# -----------------------------------------------------------------------------
-
-output "registry_enabled" {
-  description = "Whether standalone Docker Registry + MinIO is enabled"
-  value       = var.enable_registry
-}
-
-output "registry_endpoints" {
-  description = "Docker Registry and MinIO endpoint details when enabled"
-  value = var.enable_registry ? {
-    registry_url  = "http://192.168.50.215:${var.registry_port}"
-    minio_api     = "http://192.168.50.215:9000"
-    minio_console = "http://192.168.50.215:9001"
-    bucket        = var.minio_registry_bucket
   } : null
 }
 

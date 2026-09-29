@@ -11,61 +11,19 @@ mock_provider "synology" {
 
 mock_provider "onepassword" {}
 
-mock_provider "minio" {}
-
 override_module {
   target = module.onepassword_secrets
   outputs = {
-    secrets = {                    # pragma: allowlist secret # gitleaks:allow
-      synology_user           = "" # pragma: allowlist secret # gitleaks:allow
-      synology_password       = "" # pragma: allowlist secret # gitleaks:allow
-      registry_minio_user     = "" # pragma: allowlist secret # gitleaks:allow
-      registry_minio_password = "" # pragma: allowlist secret # gitleaks:allow
+    secrets = {                                       # pragma: allowlist secret # gitleaks:allow
+      synology_user           = ""                    # pragma: allowlist secret # gitleaks:allow
+      synology_password       = ""                    # pragma: allowlist secret # gitleaks:allow
+      proxmox_api_token_value = "test-proxmox-token"  # pragma: allowlist secret # gitleaks:allow
+      telegram_bot_token      = "test-telegram-token" # pragma: allowlist secret # gitleaks:allow
+      telegram_chat_id        = "test-chat-id"        # pragma: allowlist secret # gitleaks:allow
     }
-  }
-}
-
-# Pin minio_iam_user_policy_attachment.console_admin count behavior so a future
-# refactor of the upstream condition (count = var.minio_console_admin_password != "" ? 1 : 0)
-# cannot regress the empty/non-empty password symmetry.
-
-run "minio_console_admin_policy_attachment_skipped_when_password_empty" {
-  command = plan
-
-  module {
-    source = "../../../215-synology"
-  }
-
-  variables {
-    enable_registry              = false
-    synology_user                = "test-user" # pragma: allowlist secret # gitleaks:allow
-    synology_password            = "test-pass" # pragma: allowlist secret # gitleaks:allow
-    minio_console_admin_password = ""
-  }
-
-  assert {
-    condition     = length(minio_iam_user_policy_attachment.console_admin) == 0
-    error_message = "minio_iam_user_policy_attachment.console_admin must be empty when minio_console_admin_password is empty"
-  }
-}
-
-run "minio_console_admin_policy_attachment_created_when_password_set" {
-  command = plan
-
-  module {
-    source = "../../../215-synology"
-  }
-
-  variables {
-    enable_registry              = false
-    synology_user                = "test-user"           # pragma: allowlist secret # gitleaks:allow
-    synology_password            = "test-pass"           # pragma: allowlist secret # gitleaks:allow
-    minio_console_admin_password = "test-admin-password" # pragma: allowlist secret # gitleaks:allow
-  }
-
-  assert {
-    condition     = length(minio_iam_user_policy_attachment.console_admin) == 1
-    error_message = "minio_iam_user_policy_attachment.console_admin must exist when minio_console_admin_password is non-empty"
+    connection_info = {
+      proxmox_endpoint = "https://192.168.50.100:8006"
+    }
   }
 }
 
@@ -77,7 +35,6 @@ run "mailplus_catch_all_routes_to_configured_user" {
   }
 
   variables {
-    enable_registry         = false
     synology_user           = "test-user" # pragma: allowlist secret # gitleaks:allow
     synology_password       = "test-pass" # pragma: allowlist secret # gitleaks:allow
     mailplus_domain_id      = 7
@@ -108,13 +65,40 @@ run "mailplus_catch_all_user_rejects_email_address" {
   }
 
   variables {
-    enable_registry         = false
     synology_user           = "test-user" # pragma: allowlist secret # gitleaks:allow
     synology_password       = "test-pass" # pragma: allowlist secret # gitleaks:allow
     mailplus_catch_all_user = "user@example.test"
   }
 
   expect_failures = [var.mailplus_catch_all_user]
+}
+
+run "proxmox_monitor_uses_independent_synology_runtime_and_telegram" {
+  command = plan
+
+  module {
+    source = "../../../215-synology"
+  }
+
+  variables {
+    synology_user     = "test-user" # pragma: allowlist secret # gitleaks:allow
+    synology_password = "test-pass" # pragma: allowlist secret # gitleaks:allow
+  }
+
+  assert {
+    condition     = synology_container_project.proxmox_monitor["this"].services["monitor"].restart == "unless-stopped"
+    error_message = "Proxmox monitor must restart independently on Synology"
+  }
+
+  assert {
+    condition     = synology_container_project.proxmox_monitor["this"].services["monitor"].environment["TELEGRAM_CHAT_ID_FILE"] == "/run/secrets/telegram_chat_id"
+    error_message = "Proxmox monitor must read the Telegram chat ID from a Docker secret"
+  }
+
+  assert {
+    condition     = synology_container_project.proxmox_monitor["this"].secrets["telegram_chat_id"].content == "test-chat-id"
+    error_message = "Proxmox monitor must source the Telegram chat ID from 1Password"
+  }
 }
 
 run "synology_host_requires_https" {

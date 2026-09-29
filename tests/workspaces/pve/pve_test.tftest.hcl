@@ -38,8 +38,6 @@ override_module {
       google_oauth_client_id          = "mock-secret"              # pragma: allowlist secret
       google_oauth_client_secret      = "mock-secret"              # pragma: allowlist secret
       pbs_password                    = "mock-secret"              # pragma: allowlist secret
-      registry_minio_user             = "test-mc-user"             # pragma: allowlist secret
-      registry_minio_password         = "test-mc-pass"             # pragma: allowlist secret
       synology_user                   = "mock-secret"              # pragma: allowlist secret
       synology_password               = "mock-secret"              # pragma: allowlist secret
       youtube_google_client_id        = "mock-secret"              # pragma: allowlist secret
@@ -61,67 +59,6 @@ override_module {
 }
 
 
-
-# --- BuildKit S3 cache credentials: must use registry 1Password secrets ---
-
-run "test_buildkit_minio_credentials_use_registry_secrets" {
-  command = plan
-
-  assert {
-    condition     = terraform.workspace != "" && !can(regex("minioadmin", file("../../../100-pve/terraform/vm_configs.tf")))
-    error_message = "100-pve VM BuildKit S3 cache config must not hardcode minioadmin."
-  }
-
-  assert {
-    condition     = terraform.workspace != "" && can(regex("registry_minio_user", file("../../../100-pve/terraform/vm_configs.tf"))) && can(regex("registry_minio_password", file("../../../100-pve/terraform/vm_configs.tf")))
-    error_message = "100-pve VM BuildKit S3 cache config must reference registry_minio_user and registry_minio_password from 1Password."
-  }
-
-  assert {
-    condition     = terraform.workspace != "" && can(regex("enable_registry\\s*=\\s*var\\.enable_registry", file("../../../100-pve/terraform/secrets.tf")))
-    error_message = "100-pve must pass var.enable_registry into module.onepassword_secrets."
-  }
-}
-
-# --- registry MinIO guard: a BLOCKING precondition must reject empty/minioadmin creds ---
-# A full positive plan of 100-pve cannot complete under mocks (pre-existing template
-# rendering depends on live host inventory), so this test statically verifies the guard's
-# structure: it is a terraform_data lifecycle precondition (blocking, not a `check` warning)
-# gated on enable_registry, and it rejects BOTH user and password being empty or 'minioadmin'.
-
-run "test_registry_guard_is_blocking_and_rejects_minioadmin" {
-  command = plan
-
-  # Guard is a blocking lifecycle precondition on a terraform_data resource,
-  # NOT a non-blocking `check` block.
-  assert {
-    condition     = terraform.workspace != "" && can(regex("resource\\s+\"terraform_data\"\\s+\"registry_minio_secrets_guard\"", file("../../../100-pve/terraform/checks.tf")))
-    error_message = "registry guard must be a terraform_data resource (blocking) not a check block (warning only)."
-  }
-
-  assert {
-    condition     = terraform.workspace != "" && can(regex("precondition", file("../../../100-pve/terraform/checks.tf")))
-    error_message = "registry guard must use a lifecycle precondition so terraform plan FAILS, not just warns."
-  }
-
-  # Guard is gated on enable_registry.
-  assert {
-    condition     = terraform.workspace != "" && can(regex("count\\s*=\\s*var\\.enable_registry", file("../../../100-pve/terraform/checks.tf")))
-    error_message = "registry guard must only apply when enable_registry is true."
-  }
-
-  # Guard rejects the insecure 'minioadmin' default for BOTH user AND password.
-  assert {
-    condition     = terraform.workspace != "" && can(regex("registry_minio_user\", \"\"\\)\\)\\s*!=\\s*\"minioadmin\"", file("../../../100-pve/terraform/checks.tf"))) && can(regex("registry_minio_password\", \"\"\\)\\)\\s*!=\\s*\"minioadmin\"", file("../../../100-pve/terraform/checks.tf")))
-    error_message = "registry guard must reject 'minioadmin' for BOTH registry_minio_user and registry_minio_password."
-  }
-
-  # Guard requires both creds to be non-empty.
-  assert {
-    condition     = terraform.workspace != "" && length(regexall("length\\(trimspace\\(lookup\\(module\\.onepassword_secrets\\.secrets, \"registry_minio_(user|password)\", \"\"\\)\\)\\)\\s*>\\s*0", file("../../../100-pve/terraform/checks.tf"))) == 2
-    error_message = "registry guard must require both registry_minio_user and registry_minio_password to be non-empty."
-  }
-}
 
 # =============================================================================
 # NEGATIVE TESTS — Invalid Variable Values

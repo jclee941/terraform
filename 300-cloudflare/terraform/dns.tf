@@ -83,16 +83,6 @@ import {
 }
 
 import {
-  to = cloudflare_dns_record.direct["minio"]
-  id = "ed060daac18345f6900fc5a661dc94f9/f4e15310dc1823065bb0b8090c7b9fcc"
-}
-
-import {
-  to = cloudflare_dns_record.direct["minio-api"]
-  id = "ed060daac18345f6900fc5a661dc94f9/84aaac36652e0650f4234e95ac9ab401"
-}
-
-import {
   to = cloudflare_dns_record.direct["youtube"]
   id = "ed060daac18345f6900fc5a661dc94f9/cba5e9eef3eb06fb3589c6ee022bad55"
 }

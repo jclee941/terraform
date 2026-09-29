@@ -16,20 +16,17 @@ locals {
   # ============================================
 
   homelab_services = {
-    elk      = { subdomain = "elk", origin = "http://${var.elk_ip}:5601" }
-    kibana   = { subdomain = "kibana", origin = "http://${var.elk_ip}:5601" }
-    es       = { subdomain = "es", origin = "http://${var.elk_ip}:9200" }
-    nas      = { subdomain = "nas", origin = "https://${var.synology_nas_ip}:5001", no_tls_verify = true }
-    registry = { subdomain = "registry", origin = "http://${var.synology_nas_ip}:5051" }
+    elk    = { subdomain = "elk", origin = "http://${var.elk_ip}:5601" }
+    kibana = { subdomain = "kibana", origin = "http://${var.elk_ip}:5601" }
+    es     = { subdomain = "es", origin = "http://${var.elk_ip}:9200" }
+    nas    = { subdomain = "nas", origin = "https://${var.synology_nas_ip}:5001", no_tls_verify = true }
   }
 
   # HTTP services exposed directly via Cloudflare Tunnel (no reverse proxy)
   direct_services = {
-    grafana   = { subdomain = "grafana", origin = "http://${var.synology_nas_ip}:3456" }
-    minio     = { subdomain = "minio", origin = "http://${var.synology_nas_ip}:9001" }
-    minio-api = { subdomain = "minio-api", origin = "http://${var.synology_nas_ip}:9000" }
-    youtube   = { subdomain = "youtube", origin = "http://${var.youtube_ip}:30800" }
-    idle      = { subdomain = "idle", origin = "http://${var.youtube_ip}:6080" }
+    grafana = { subdomain = "grafana", origin = "http://${var.synology_nas_ip}:3456" }
+    youtube = { subdomain = "youtube", origin = "http://${var.youtube_ip}:30800" }
+    idle    = { subdomain = "idle", origin = "http://${var.youtube_ip}:6080" }
   }
 
   # TCP/non-HTTP services exposed directly via Cloudflare Tunnel
