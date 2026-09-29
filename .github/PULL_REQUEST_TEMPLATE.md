@@ -46,5 +46,5 @@ Branch / 브랜치: feat/* | fix/* | hotfix/* | docs/* | refactor/* | chore/* | 
 - [ ] Documentation updated (README/AGENTS.md/docs/) / 관련 문서 업데이트
 - [ ] Tests added/updated / 테스트 추가/갱신 (해당 시)
 
-> This PR is auto-reviewed by `jclee-bot` (cli_proxy + Kimi-k2.6, 한국어 응답).
-> 이 PR은 `jclee-bot`이 자동 리뷰합니다 (cli_proxy + Kimi-k2.6, 한국어 응답).
+> This PR is auto-reviewed by the `PR Review` workflow (`10_pr-review.yml`, CLIProxyAPI).
+> 이 PR은 `PR Review` 워크플로(`10_pr-review.yml`, CLIProxyAPI)가 자동 리뷰합니다.
