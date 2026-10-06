@@ -62,6 +62,7 @@ No modules.
 | <a name="input_protection"></a> [protection](#input\_protection) | Protect container and disks from removal | `bool` | `false` | no |
 | <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | SSH public keys for root user | `list(string)` | `[]` | no |
 | <a name="input_start_on_boot"></a> [start\_on\_boot](#input\_start\_on\_boot) | Automatically start container when the host boots | `bool` | `true` | no |
+| <a name="input_startup"></a> [startup](#input\_startup) | Container startup order and startup/shutdown delays in seconds | <pre>object({<br/>    order      = number<br/>    up_delay   = number<br/>    down_delay = number<br/>  })</pre> | `null` | no |
 | <a name="input_swap"></a> [swap](#input\_swap) | Swap memory in MB (per-container) | `number` | `512` | no |
 | <a name="input_template_file_id"></a> [template\_file\_id](#input\_template\_file\_id) | Container template file ID (e.g., local:vztmpl/debian-12-standard\_12.12-1\_amd64.tar.zst) | `string` | `"local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst"` | no |
 | <a name="input_vmid"></a> [vmid](#input\_vmid) | Container VMID | `number` | n/a | yes |

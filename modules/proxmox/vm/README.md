@@ -84,9 +84,12 @@ No modules.
 | <a name="input_serial_devices"></a> [serial\_devices](#input\_serial\_devices) | Serial devices to attach to the VM | <pre>list(object({<br/>    device = optional(string, "socket")<br/>  }))</pre> | `[]` | no |
 | <a name="input_ssd_emulation"></a> [ssd\_emulation](#input\_ssd\_emulation) | Enable SSD emulation (TRIM support via guest OS) | `bool` | `true` | no |
 | <a name="input_started"></a> [started](#input\_started) | Keep VM started | `bool` | `true` | no |
+| <a name="input_startup"></a> [startup](#input\_startup) | VM startup order and startup/shutdown delays in seconds | <pre>object({<br/>    order      = number<br/>    up_delay   = number<br/>    down_delay = number<br/>  })</pre> | `null` | no |
 | <a name="input_tablet_device"></a> [tablet\_device](#input\_tablet\_device) | Enable USB tablet device | `bool` | `false` | no |
+| <a name="input_tpm_enabled"></a> [tpm\_enabled](#input\_tpm\_enabled) | Attach a TPM state device (null = enabled for OVMF only) | `bool` | `null` | no |
 | <a name="input_usb_devices"></a> [usb\_devices](#input\_usb\_devices) | USB devices to pass through to the VM | <pre>list(object({<br/>    host = string<br/>    usb3 = optional(bool, false)<br/>  }))</pre> | `[]` | no |
 | <a name="input_vga_clipboard"></a> [vga\_clipboard](#input\_vga\_clipboard) | VGA clipboard mode (null = disabled/provider default) | `string` | `null` | no |
+| <a name="input_vga_enabled"></a> [vga\_enabled](#input\_vga\_enabled) | Attach a virtual VGA device | `bool` | `true` | no |
 | <a name="input_vga_memory"></a> [vga\_memory](#input\_vga\_memory) | VGA memory in MB (null = provider default) | `number` | `16` | no |
 | <a name="input_vga_type"></a> [vga\_type](#input\_vga\_type) | VGA type | `string` | `"std"` | no |
 | <a name="input_vmid"></a> [vmid](#input\_vmid) | VM ID | `number` | n/a | yes |

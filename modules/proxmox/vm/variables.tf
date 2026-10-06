@@ -271,6 +271,21 @@ variable "on_boot" {
   default     = true
 }
 
+variable "startup" {
+  description = "VM startup order and startup/shutdown delays in seconds"
+  type = object({
+    order      = number
+    up_delay   = number
+    down_delay = number
+  })
+  default = null
+
+  validation {
+    condition     = var.startup == null || alltrue([var.startup.order >= 0, var.startup.up_delay >= 0, var.startup.down_delay >= 0])
+    error_message = "startup order and delays must be non-negative."
+  }
+}
+
 variable "started" {
   description = "Keep VM started"
   type        = bool
@@ -301,6 +316,13 @@ variable "tablet_device" {
   default     = false
 }
 
+variable "tpm_enabled" {
+  description = "Attach a TPM state device (null = enabled for OVMF only)"
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
 variable "scsi_hardware" {
   description = "SCSI controller model"
   type        = string
@@ -311,6 +333,12 @@ variable "vga_type" {
   description = "VGA type"
   type        = string
   default     = "std"
+}
+
+variable "vga_enabled" {
+  description = "Attach a virtual VGA device"
+  type        = bool
+  default     = true
 }
 
 variable "vga_memory" {

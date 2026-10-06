@@ -96,6 +96,21 @@ variable "start_on_boot" {
   default     = true
 }
 
+variable "startup" {
+  description = "Container startup order and startup/shutdown delays in seconds"
+  type = object({
+    order      = number
+    up_delay   = number
+    down_delay = number
+  })
+  default = null
+
+  validation {
+    condition     = var.startup == null || alltrue([var.startup.order >= 0, var.startup.up_delay >= 0, var.startup.down_delay >= 0])
+    error_message = "startup order and delays must be non-negative."
+  }
+}
+
 variable "protection" {
   description = "Protect container and disks from removal"
   type        = bool
