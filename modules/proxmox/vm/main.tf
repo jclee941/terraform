@@ -36,7 +36,7 @@ resource "proxmox_virtual_environment_vm" "this" {
   }
 
   dynamic "tpm_state" {
-    for_each = var.bios == "ovmf" ? [1] : []
+    for_each = coalesce(var.tpm_enabled, var.bios == "ovmf") ? [1] : []
     content {
       datastore_id = var.datastore_id
       version      = "v2.0"
@@ -62,10 +62,13 @@ resource "proxmox_virtual_environment_vm" "this" {
     units = var.cpu_units
   }
 
-  vga {
-    clipboard = var.vga_clipboard
-    memory    = var.vga_memory
-    type      = var.vga_type
+  dynamic "vga" {
+    for_each = var.vga_enabled ? [1] : []
+    content {
+      clipboard = var.vga_clipboard
+      memory    = var.vga_memory
+      type      = var.vga_type
+    }
   }
 
   memory {
@@ -88,6 +91,15 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   network_device {
     bridge = "vmbr0"
+  }
+
+  dynamic "startup" {
+    for_each = var.startup == null ? [] : [var.startup]
+    content {
+      order      = startup.value.order
+      up_delay   = startup.value.up_delay
+      down_delay = startup.value.down_delay
+    }
   }
 
   dynamic "hostpci" {
