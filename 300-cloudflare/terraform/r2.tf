@@ -7,3 +7,9 @@ resource "cloudflare_r2_bucket" "synology_cache" {
   name       = "synology-cache"
   location   = "APAC"
 }
+
+resource "cloudflare_r2_bucket" "terraform_state" {
+  account_id = local.effective_cloudflare_account_id
+  name       = "terraform-state"
+  location   = "APAC"
+}
