@@ -28,16 +28,17 @@ func main() {
 	policies := []struct {
 		name      string
 		retention string
+		warmAge   string
 	}{
-		{"homelab-logs-30d", "30d"},
-		{"homelab-logs-critical-90d", "90d"},
-		{"homelab-logs-ephemeral-7d", "7d"},
+		{"homelab-logs-30d", "30d", "7d"},
+		{"homelab-logs-critical-90d", "90d", "7d"},
+		{"homelab-logs-ephemeral-7d", "7d", ""},
 	}
 
 	for _, p := range policies {
 		fmt.Printf("Creating ILM policy: %s (delete after %s)...\n", p.name, p.retention)
 		url := fmt.Sprintf("%s/_ilm/policy/%s", esHost, p.name)
-		body := fmt.Sprintf(`{"policy":{"phases":{"hot":{"actions":{"set_priority":{"priority":100}}},"delete":{"min_age":"%s","actions":{"delete":{}}}}}`, p.retention)
+		body := ilmPolicyBody(p.retention, p.warmAge)
 		putRequest(url, esUser, esPass, body)
 		fmt.Println("")
 	}
@@ -92,10 +93,37 @@ func createIndexTemplate(host, user, pass, name string, patterns []string, ilmPo
 	fmt.Printf("Creating index template: %s (priority %d, %s)...\n", name, priority, strings.TrimSuffix(strings.TrimPrefix(ilmPolicy, "homelab-logs-"), "-30d:-90d:-7d"))
 
 	url := fmt.Sprintf("%s/_index_template/%s", host, name)
-	patternsJSON, _ := json.Marshal(patterns)
-	body := fmt.Sprintf(`{"index_patterns":%s,"template":{"settings":{"number_of_shards":1,"number_of_replicas":0,"index.lifecycle.name":"%s"}},"priority":%d}`, string(patternsJSON), ilmPolicy, priority)
+	body := indexTemplateBody(patterns, ilmPolicy, priority)
 	putRequest(url, user, pass, body)
 	fmt.Println("")
+}
+
+func ilmPolicyBody(retention, warmAge string) string {
+	if warmAge == "" {
+		return fmt.Sprintf(`{
+  "policy": {
+    "phases": {
+      "hot": {"actions": {"set_priority": {"priority": 100}}},
+      "delete": {"min_age": "%s", "actions": {"delete": {}}}
+    }
+  }
+}`, retention)
+	}
+
+	return fmt.Sprintf(`{
+  "policy": {
+    "phases": {
+      "hot": {"actions": {"set_priority": {"priority": 100}}},
+      "warm": {"min_age": "%s", "actions": {"forcemerge": {"max_num_segments": 1}}},
+      "delete": {"min_age": "%s", "actions": {"delete": {}}}
+    }
+  }
+}`, warmAge, retention)
+}
+
+func indexTemplateBody(patterns []string, ilmPolicy string, priority int) string {
+	patternsJSON, _ := json.Marshal(patterns)
+	return fmt.Sprintf(`{"index_patterns":%s,"template":{"settings":{"number_of_shards":1,"number_of_replicas":0,"index.lifecycle.name":"%s","index.codec":"best_compression","index.refresh_interval":"30s"}},"priority":%d}`, string(patternsJSON), ilmPolicy, priority)
 }
 
 func verifyILM(host, user, pass string) {

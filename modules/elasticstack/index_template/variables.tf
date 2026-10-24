@@ -29,3 +29,15 @@ variable "priority" {
   description = "Index template priority."
   type        = number
 }
+
+variable "index_codec" {
+  description = "Codec used to compress stored index data."
+  type        = string
+  default     = null
+}
+
+variable "refresh_interval" {
+  description = "Interval between automatic index refreshes."
+  type        = string
+  default     = null
+}

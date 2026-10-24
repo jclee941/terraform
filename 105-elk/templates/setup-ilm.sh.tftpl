@@ -36,33 +36,39 @@ echo "Elasticsearch is ready."
 # —— ILM Policies ————————————————————————————————————————————————
 
 create_ilm_policy() {
-  local name="$1" delete_after="$2"
+  local name="$1" delete_after="$2" warm_after="$${3:-}"
+  local payload
   echo "Creating ILM policy: $${name} (delete after $${delete_after})"
-  curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_ilm/policy/$${name}" \
-    -H 'Content-Type: application/json' \
-    -d '{
-    "policy": {
-      "phases": {
-        "hot": {
-          "min_age": "0ms",
-          "actions": {
-            "set_priority": { "priority": 100 }
-          }
-        },
-        "delete": {
-          "min_age": "'"$${delete_after}"'",
-          "actions": {
-            "delete": {}
-          }
+
+  if [[ -n "$${warm_after}" ]]; then
+    payload=$(jq -n --arg delete_after "$${delete_after}" --arg warm_after "$${warm_after}" '{
+      policy: {
+        phases: {
+          hot: { min_age: "0ms", actions: { set_priority: { priority: 100 } } },
+          warm: { min_age: $warm_after, actions: { forcemerge: { max_num_segments: 1 } } },
+          delete: { min_age: $delete_after, actions: { delete: {} } }
         }
       }
-    }
-  }'
+    }')
+  else
+    payload=$(jq -n --arg delete_after "$${delete_after}" '{
+      policy: {
+        phases: {
+          hot: { min_age: "0ms", actions: { set_priority: { priority: 100 } } },
+          delete: { min_age: $delete_after, actions: { delete: {} } }
+        }
+      }
+    }')
+  fi
+
+  curl -sf -u "$${ES_AUTH}" -X PUT "$${ES_HOST}/_ilm/policy/$${name}" \
+    -H 'Content-Type: application/json' \
+    -d "$${payload}"
   echo
 }
 
-create_ilm_policy "homelab-logs-critical-90d"  "${ilm_critical_delete_after}"
-create_ilm_policy "homelab-logs-30d"           "${ilm_delete_after}"
+create_ilm_policy "homelab-logs-critical-90d"  "${ilm_critical_delete_after}" "7d"
+create_ilm_policy "homelab-logs-30d"           "${ilm_delete_after}" "7d"
 create_ilm_policy "homelab-logs-ephemeral-7d"  "${ilm_ephemeral_delete_after}"
 
 # —— Index Templates —————————————————————————————————————————————
@@ -91,7 +97,9 @@ create_index_template() {
       "settings": {
         "number_of_shards": 1,
         "number_of_replicas": 0,
-        "index.lifecycle.name": "'"$${policy}"'"
+        "index.lifecycle.name": "'"$${policy}"'",
+        "index.codec": "best_compression",
+        "index.refresh_interval": "30s"
       }
     }
   }'
