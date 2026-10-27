@@ -5,17 +5,15 @@ Terraform workspace tests for `100-pve` infrastructure provisioning.
 
 ## STRUCTURE
 ```
-pve/
-├── main.tf                # Test workspace configuration
-└── .terraform/            # Provider cache
+100-pve/terraform/tests/
+└── pve_test.tftest.hcl    # Production-root test file
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Test setup | `main.tf` | Test-specific workspace vars |
-| Assertions | `tests/` parent | Module-level assertions |
+| Test setup and assertions | `100-pve/terraform/tests/pve_test.tftest.hcl` | Runs in the production root with mocked providers. |
 
 ## CONVENTIONS
 - Use `terraform test` framework
@@ -28,6 +26,6 @@ pve/
 
 ## COMMANDS
 ```bash
-terraform -chdir=tests/workspaces/pve test
-make test-workspace SVC=pve
+terraform -chdir=100-pve/terraform test -filter=tests/pve_test.tftest.hcl
+make test-workspace
 ```

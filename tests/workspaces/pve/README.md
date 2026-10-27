@@ -1,29 +1,11 @@
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+# PVE Production-Root Tests
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7, < 2.0 |
-| <a name="requirement_onepassword"></a> [onepassword](#requirement\_onepassword) | ~> 3.2 |
-| <a name="requirement_proxmox"></a> [proxmox](#requirement\_proxmox) | ~> 0.94 |
+The PVE workspace test now lives in `100-pve/terraform/tests/pve_test.tftest.hcl` so Terraform evaluates it with the production root's provider and import semantics.
 
-## Providers
+Run it from the repository root:
 
-No providers.
+```bash
+terraform -chdir=100-pve/terraform test -filter=tests/pve_test.tftest.hcl
+```
 
-## Modules
-
-No modules.
-
-## Resources
-
-No resources.
-
-## Inputs
-
-No inputs.
-
-## Outputs
-
-No outputs.
-<!-- END_TF_DOCS -->
+This legacy directory retains migration documentation only; it is not a Terraform test root.

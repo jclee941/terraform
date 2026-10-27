@@ -1,32 +1,11 @@
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+# Cloudflare Production-Root Tests
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7, < 2.0 |
-| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | ~> 5.0 |
-| <a name="requirement_github"></a> [github](#requirement\_github) | ~> 6.6 |
-| <a name="requirement_onepassword"></a> [onepassword](#requirement\_onepassword) | ~> 3.2 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
-| <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.12 |
+The Cloudflare workspace test now lives in `300-cloudflare/terraform/tests/cloudflare_test.tftest.hcl` so Terraform evaluates it with the production root's provider and import semantics.
 
-## Providers
+Run it from the repository root:
 
-No providers.
+```bash
+terraform -chdir=300-cloudflare/terraform test -filter=tests/cloudflare_test.tftest.hcl
+```
 
-## Modules
-
-No modules.
-
-## Resources
-
-No resources.
-
-## Inputs
-
-No inputs.
-
-## Outputs
-
-No outputs.
-<!-- END_TF_DOCS -->
+This legacy directory retains migration documentation only; it is not a Terraform test root.

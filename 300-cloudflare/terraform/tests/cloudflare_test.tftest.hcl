@@ -1,14 +1,125 @@
 # Cloudflare Workspace Variable Validation Tests
 # Workspace: 300-cloudflare (Cloudflare DNS, Tunnel, Access, R2, Secrets)
 # Tests validate variable validation rules using mock providers.
-# Run: terraform test (from tests/workspaces/cloudflare)
+# Run: terraform -chdir=300-cloudflare/terraform test -filter=tests/cloudflare_test.tftest.hcl
 
 # ---------------------------------------------------------------------------
 # Mock Providers — prevent real API calls during plan-only tests
 # ---------------------------------------------------------------------------
 
-mock_provider "cloudflare" {}
-mock_provider "github" {}
+mock_provider "cloudflare" {
+  mock_resource "cloudflare_dns_record" {
+    defaults = {
+      comment_modified_on = "2026-07-23T00:00:00Z"
+      created_on          = "2026-07-23T00:00:00Z"
+      id                  = "00000000000000000000000000000000"
+      meta                = "{}"
+      modified_on         = "2026-07-23T00:00:00Z"
+      proxiable           = true
+      tags_modified_on    = "2026-07-23T00:00:00Z"
+    }
+  }
+  override_resource {
+    target          = cloudflare_dns_record.tcp_services["code"]
+    override_during = plan
+    values = {
+      content             = "mock.cfargotunnel.com"
+      id                  = "mock-dns-code"
+      meta                = "{}"
+      name                = "code.jclee.me"
+      type                = "CNAME"
+      ttl                 = 1
+      zone_id             = "1234567890abcdef1234567890abcdef"
+      comment             = ""
+      data                = null
+      priority            = null
+      proxied             = true
+      created_on          = "2026-07-23T00:00:00Z"
+      modified_on         = "2026-07-23T00:00:00Z"
+      proxiable           = true
+      tags                = []
+      settings            = { flatten_cname = false, ipv4_only = false, ipv6_only = false }
+      comment_modified_on = null
+      tags_modified_on    = null
+    }
+  }
+
+  override_resource {
+    target          = cloudflare_dns_record.direct["grafana"]
+    override_during = plan
+    values = {
+      content             = "mock.cfargotunnel.com"
+      id                  = "mock-dns-grafana"
+      meta                = "{}"
+      name                = "grafana.jclee.me"
+      type                = "CNAME"
+      ttl                 = 1
+      zone_id             = "1234567890abcdef1234567890abcdef"
+      comment             = ""
+      data                = null
+      priority            = null
+      proxied             = true
+      created_on          = "2026-07-23T00:00:00Z"
+      modified_on         = "2026-07-23T00:00:00Z"
+      proxiable           = true
+      tags                = []
+      settings            = { flatten_cname = false, ipv4_only = false, ipv6_only = false }
+      comment_modified_on = null
+      tags_modified_on    = null
+    }
+  }
+
+  override_resource {
+    target          = cloudflare_dns_record.direct["idle"]
+    override_during = plan
+    values = {
+      content             = "mock.cfargotunnel.com"
+      id                  = "mock-dns-idle"
+      meta                = "{}"
+      name                = "idle.jclee.me"
+      type                = "CNAME"
+      ttl                 = 1
+      zone_id             = "1234567890abcdef1234567890abcdef"
+      comment             = ""
+      data                = null
+      priority            = null
+      proxied             = true
+      created_on          = "2026-07-23T00:00:00Z"
+      modified_on         = "2026-07-23T00:00:00Z"
+      proxiable           = true
+      tags                = []
+      settings            = { flatten_cname = false, ipv4_only = false, ipv6_only = false }
+      comment_modified_on = null
+      tags_modified_on    = null
+    }
+  }
+
+  override_resource {
+    target          = cloudflare_dns_record.direct["youtube"]
+    override_during = plan
+    values = {
+      content             = "mock.cfargotunnel.com"
+      id                  = "mock-dns-youtube"
+      meta                = "{}"
+      name                = "youtube.jclee.me"
+      type                = "CNAME"
+      ttl                 = 1
+      zone_id             = "1234567890abcdef1234567890abcdef"
+      comment             = ""
+      data                = null
+      priority            = null
+      proxied             = true
+      created_on          = "2026-07-23T00:00:00Z"
+      modified_on         = "2026-07-23T00:00:00Z"
+      proxiable           = true
+      tags                = []
+      settings            = { flatten_cname = false, ipv4_only = false, ipv6_only = false }
+      comment_modified_on = null
+      tags_modified_on    = null
+    }
+  }
+
+}
 mock_provider "random" {}
 mock_provider "onepassword" {}
 mock_provider "time" {}
@@ -27,6 +138,13 @@ override_module {
   }
 }
 
+override_module {
+  target = module.tunnels["homelab"]
+  outputs = {
+    tunnel_id = "00000000-0000-0000-0000-000000000000"
+  }
+}
+
 
 # =============================================================================
 # Negative Tests — invalid inputs that must fail validation
@@ -38,10 +156,6 @@ override_module {
 
 run "test_invalid_account_id_too_short" {
   command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
 
   variables {
     cloudflare_account_id = "abcdef0123456789"
@@ -57,10 +171,6 @@ run "test_invalid_account_id_too_short" {
 run "test_invalid_account_id_uppercase" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "ABCDEF0123456789ABCDEF0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
@@ -74,10 +184,6 @@ run "test_invalid_account_id_uppercase" {
 
 run "test_invalid_account_id_special_chars" {
   command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
 
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef012345678!"
@@ -95,10 +201,6 @@ run "test_invalid_account_id_special_chars" {
 run "test_invalid_zone_id_too_long" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef00"
@@ -115,10 +217,6 @@ run "test_invalid_zone_id_too_long" {
 run "test_invalid_synology_domain_starts_with_dot" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
@@ -132,10 +230,6 @@ run "test_invalid_synology_domain_starts_with_dot" {
 
 run "test_invalid_synology_domain_ends_with_dot" {
   command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
 
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
@@ -153,10 +247,6 @@ run "test_invalid_synology_domain_ends_with_dot" {
 run "test_invalid_synology_ip_with_cidr" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
@@ -171,10 +261,6 @@ run "test_invalid_synology_ip_with_cidr" {
 
 run "test_invalid_synology_ip_not_ip" {
   command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
 
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
@@ -193,10 +279,6 @@ run "test_invalid_synology_ip_not_ip" {
 run "test_invalid_synology_port_zero" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
@@ -211,10 +293,6 @@ run "test_invalid_synology_port_zero" {
 
 run "test_invalid_synology_port_too_high" {
   command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
 
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
@@ -232,10 +310,6 @@ run "test_invalid_synology_port_too_high" {
 
 run "test_invalid_homelab_domain_uppercase" {
   command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
 
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
@@ -255,10 +329,6 @@ run "test_invalid_homelab_domain_uppercase" {
 run "test_invalid_secrets_store_id_empty" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id       = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id          = "1234567890abcdef1234567890abcdef"
@@ -276,10 +346,6 @@ run "test_invalid_secrets_store_id_empty" {
 run "test_onepassword_vault_name_empty" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id  = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id     = "1234567890abcdef1234567890abcdef"
@@ -296,10 +362,6 @@ run "test_onepassword_vault_name_empty" {
 run "test_jclee_ip_invalid" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
@@ -314,10 +376,6 @@ run "test_jclee_ip_invalid" {
 
 run "test_jclee_dev_ip_invalid" {
   command = plan
-
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
 
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
@@ -334,10 +392,6 @@ run "test_jclee_dev_ip_invalid" {
 run "test_elk_ip_invalid" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
@@ -353,10 +407,6 @@ run "test_elk_ip_invalid" {
 run "test_youtube_ip_invalid" {
   command = plan
 
-  module {
-    source = "../../../300-cloudflare/terraform"
-  }
-
   variables {
     cloudflare_account_id = "abcdef0123456789abcdef0123456789"
     cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
@@ -365,4 +415,34 @@ run "test_youtube_ip_invalid" {
   }
 
   expect_failures = [var.youtube_ip]
+}
+
+run "test_public_logstash_ingress_is_retired" {
+  command = plan
+
+  variables {
+    cloudflare_account_id = "abcdef0123456789abcdef0123456789"
+    cloudflare_zone_id    = "1234567890abcdef1234567890abcdef"
+    synology_domain       = "nas.jclee.me"
+  }
+
+  assert {
+    condition     = module.onepassword_secrets.metadata.vault_name == "homelab" && !can(regex("logstash-ingest", file("dns.tf")))
+    error_message = "Cloudflare DNS must not publish logstash-ingest."
+  }
+
+  assert {
+    condition     = module.onepassword_secrets.metadata.vault_name == "homelab" && !can(regex("logstash-ingest|:8080", file("tunnel.tf")))
+    error_message = "Cloudflare Tunnel must not route public traffic to Logstash HTTP ingest."
+  }
+
+  assert {
+    condition     = module.onepassword_secrets.metadata.vault_name == "homelab" && !fileexists("logpush.tf")
+    error_message = "The retired Cloudflare Logpush job must not remain configured."
+  }
+
+  assert {
+    condition     = module.onepassword_secrets.metadata.vault_name == "homelab" && can(regex("beats\\s*\\{[\\s\\S]*port\\s*=>\\s*5044", file("../../105-elk/templates/logstash.conf.tftpl")))
+    error_message = "Private Filebeat ingestion must remain configured on port 5044."
+  }
 }

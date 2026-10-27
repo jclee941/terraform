@@ -6,10 +6,10 @@ Workspace-level variable validation tests for standalone stacks using mock provi
 ## STRUCTURE
 ```text
 tests/workspaces/
-├── cloudflare/                 # Cloudflare workspace validation tests
+├── cloudflare/                 # Migration docs for production-root tests
 ├── elk/                        # ELK workspace validation tests
 ├── gcp/                        # GCP workspace validation tests
-├── pve/                        # Proxmox workspace validation tests
+├── pve/                        # Migration docs for production-root tests
 ├── safetywallet/               # SafetyWallet workspace validation tests
 ├── synology/                   # Synology workspace validation tests
 ```
@@ -17,8 +17,8 @@ tests/workspaces/
 ## WHERE TO LOOK
 | Task | File | Notes |
 |------|------|-------|
-| Cloudflare workspace validation | `cloudflare/cloudflare_test.tftest.hcl` | Input format/range checks with `expect_failures`. |
-| PVE workspace validation | `pve/pve_test.tftest.hcl` | Endpoint/token/node/network/VMID range/SSH key validation with `override_module` for secrets. |
+| Cloudflare workspace validation | `../../300-cloudflare/terraform/tests/cloudflare_test.tftest.hcl` | Production-root DNS and retired-ingress checks. |
+| PVE workspace validation | `../../100-pve/terraform/tests/pve_test.tftest.hcl` | Production-root validation and PBS command contracts. |
 | ELK workspace validation | `elk/elk_test.tftest.hcl` | Data view and index pattern validation with mock ES provider. |
 | GCP workspace validation | `gcp/main.tftest.hcl` | GCP workspace validation with mocked provider behavior. |
 | SafetyWallet workspace validation | `safetywallet/main.tftest.hcl` | Reserved external-service workspace checks. |
@@ -36,6 +36,6 @@ tests/workspaces/
 ## COMMANDS
 ```bash
 make test-workspace
-cd tests/workspaces/pve && terraform init -backend=false && terraform test
-cd tests/workspaces/cloudflare && terraform test -filter=cloudflare_test.tftest.hcl
+terraform -chdir=100-pve/terraform init -backend=false && terraform -chdir=100-pve/terraform test -filter=tests/pve_test.tftest.hcl
+terraform -chdir=300-cloudflare/terraform init -backend=false && terraform -chdir=300-cloudflare/terraform test -filter=tests/cloudflare_test.tftest.hcl
 ```

@@ -1,9 +1,10 @@
-.PHONY: plan apply verify lint lint-go backup fmt validate init drift-check test test-unit test-integration test-workspace docs pre-commit-install pre-commit-run setup help
+.PHONY: plan apply verify lint lint-go backup fmt validate init drift-check test test-unit test-integration test-workspace test-go docs pre-commit-install pre-commit-run setup help
 
 # Flat NNN-SVC convention: SVC=100-pve (default)
 # 1-255 = internal infra (192.168.50.x), 300+ = external (cloudflare, aws...)
 # Accepts full paths (100-pve) or short aliases (pve, elk, etc.)
 SVC ?= 100-pve
+TF_TEST_DATA_DIR ?= $(CURDIR)/.terraform-test
 
 # Workspace alias map: short name → directory path
 # App workspaces with nested terraform/ dirs resolve automatically
@@ -45,10 +46,10 @@ plan: ## Create Terraform plan (SVC=100-pve)
 	$(check_svc_dir)
 	cd $(TF_DIR) && terraform plan -out=tfplan
 
-apply: ## Apply Terraform plan — DISABLED (use CI/CD)
-	@echo '\033[31mERROR: Manual apply is disabled. Deploy via CI/CD:\033[0m'
-	@echo '  Push to master branch to trigger automated apply.'
-	@echo '  See: https://github.com/qws941/terraform/actions'
+apply: ## Apply Terraform plan — DISABLED by repository policy
+	@echo '\033[31mERROR: make apply is disabled by repository policy.\033[0m'
+	@echo '  No apply workflow exists in .github/workflows/; ci.yml only validates.'
+	@echo '  See: https://github.com/jclee941/terraform/actions'
 	@exit 1
 
 fmt: ## Format all Terraform files
@@ -104,8 +105,8 @@ test: ## Run all Terraform tests (module + integration + workspace)
 	cd tests/modules/proxmox && terraform init -backend=false && terraform test
 	cd tests/modules/shared && terraform init -backend=false && terraform test
 	cd tests/integration && terraform init -backend=false && terraform test
-	cd tests/workspaces/pve && terraform init -backend=false && terraform test
-	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
+	TF_DATA_DIR=$(TF_TEST_DATA_DIR)/pve terraform -chdir=100-pve/terraform init -backend=false && TF_DATA_DIR=$(TF_TEST_DATA_DIR)/pve terraform -chdir=100-pve/terraform test -filter=tests/pve_test.tftest.hcl
+	TF_DATA_DIR=$(TF_TEST_DATA_DIR)/cloudflare terraform -chdir=300-cloudflare/terraform init -backend=false && TF_DATA_DIR=$(TF_TEST_DATA_DIR)/cloudflare terraform -chdir=300-cloudflare/terraform test -filter=tests/cloudflare_test.tftest.hcl
 	cd tests/workspaces/elk && terraform init -backend=false && terraform test
 
 
@@ -117,9 +118,15 @@ test-integration: ## Run integration tests only
 	cd tests/integration && terraform init -backend=false && terraform test
 
 test-workspace: ## Run workspace validation tests only
-	cd tests/workspaces/pve && terraform init -backend=false && terraform test
-	cd tests/workspaces/cloudflare && terraform init -backend=false && terraform test
+	TF_DATA_DIR=$(TF_TEST_DATA_DIR)/pve terraform -chdir=100-pve/terraform init -backend=false && TF_DATA_DIR=$(TF_TEST_DATA_DIR)/pve terraform -chdir=100-pve/terraform test -filter=tests/pve_test.tftest.hcl
+	TF_DATA_DIR=$(TF_TEST_DATA_DIR)/cloudflare terraform -chdir=300-cloudflare/terraform init -backend=false && TF_DATA_DIR=$(TF_TEST_DATA_DIR)/cloudflare terraform -chdir=300-cloudflare/terraform test -filter=tests/cloudflare_test.tftest.hcl
 	cd tests/workspaces/elk && terraform init -backend=false && terraform test
+
+test-go: export GO111MODULE := off
+test-go: ## Run Go tests with race detection and shuffled order
+	go test -race -shuffle=on -count=1 ./scripts/validate-docs
+	go test -race -shuffle=on -count=1 scripts/backup-tfstate.go scripts/backup-tfstate_test.go
+	go test -race -shuffle=on -count=1 scripts/audit-workflows.go scripts/audit-workflows_test.go
 
 
 ## Verification & Backup
@@ -130,11 +137,9 @@ verify: ## Run production verification
 backup: ## Create encrypted Terraform state backup
 	go run ./scripts/backup-tfstate.go
 
-drift-check: ## Check for Terraform drift — DISABLED (use CI/CD)
-	@echo '\033[31mERROR: Local drift-check is disabled. Use GitHub Actions:\033[0m'
-	@echo '  Drift detection runs automatically Mon-Fri 00:00 UTC.'
-	@echo '  Manual trigger: gh workflow run terraform-drift.yml'
-	@echo '  See: https://github.com/qws941/terraform/actions/workflows/terraform-drift.yml'
+drift-check: ## Check for Terraform drift — DISABLED by repository policy
+	@echo '\033[31mERROR: Local drift-check is disabled by repository policy.\033[0m'
+	@echo '  No drift workflow exists in .github/workflows/.'
 	@exit 1
 
 ## Pre-commit
