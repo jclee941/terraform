@@ -68,10 +68,11 @@ var (
 
 // Directory names to skip entirely (matches any path component)
 var skipDirNames = map[string]bool{
-	".terraform":   true,
-	".git":         true,
-	".omo":         true,
-	"node_modules": true,
+	".terraform":      true,
+	".terraform-test": true, // Makefile TF_TEST_DATA_DIR provider caches
+	".git":            true,
+	".omo":            true,
+	"node_modules":    true,
 }
 
 // Path prefixes to skip (matched against relative path from repo root)
