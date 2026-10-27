@@ -1,0 +1,6 @@
+[Unit]
+Description=Collect Proxmox node/guest resource metrics to JSONL for Filebeat
+
+[Service]
+Type=oneshot
+ExecStart=/root/pve-hacks/proxmox-metrics-collector
