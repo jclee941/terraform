@@ -35,6 +35,20 @@ filebeat.inputs:
       host_role: pve
     fields_under_root: false
 
+  - type: filestream
+    id: pve-proxmox-metrics
+    paths:
+      - /var/log/proxmox-metrics/*.jsonl
+    parsers:
+      - ndjson:
+          target: ""
+    fields:
+      service: proxmox-metrics
+      host_role: pve
+    fields_under_root: false
+    ignore_older: 24h
+    clean_inactive: 72h
+
 processors:
   - add_host_metadata: ~
 
