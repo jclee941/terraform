@@ -40,6 +40,7 @@ modules/proxmox/vm-config/configs/
 
 # Test artifacts
 tests/integration/tmp/
+.terraform-test/
 
 # Terraform plan files
 *.tfplan
@@ -81,6 +82,7 @@ in-memoria*.db
 **/.env.*
 
 # Backup files
+.backups/
 *.backup
 *.backup.*
 **/*.backup

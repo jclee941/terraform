@@ -4,6 +4,7 @@ useDefault = true
 [allowlist]
 paths = [
   '''(^|/)\.terraform/''',
+  '''(^|/)\.terraform-test/''',
   '''(^|/)\.omo/''',
   '''(^|/)tests/''',
   '''(^|/)modules/shared/onepassword-secrets/onepassword_secrets_test\.tftest\.hcl$''',
