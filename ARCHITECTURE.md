@@ -165,10 +165,12 @@ terraform/
 %% diagram: flowchart LR
   Services["LXC / VM Services"] --> Filebeat["Filebeat Agents"]
   PVEHost["Proxmox Host"] --> Filebeat
-  Cloudflare["Cloudflare Logpush"] --> Logpush["HTTPS Logpush Ingest"]
+  Synology["Synology NAS"] --> Syslog["Private Syslog Input"]
+  Internal["Internal Clients"] --> HTTP["Private HTTP Input"]
 
   Filebeat --> Logstash["Logstash\n105:5044"]
-  Logpush --> Logstash
+  Syslog --> Logstash
+  HTTP --> Logstash
   Logstash --> Elasticsearch["Elasticsearch\n105:9200"]
   Elasticsearch --> Kibana["Kibana\n105"]
 ```

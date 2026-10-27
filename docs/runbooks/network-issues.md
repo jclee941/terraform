@@ -33,7 +33,8 @@ Guest DNS uses the router at `192.168.50.1` and `8.8.8.8` as a secondary resolve
 | `youtube.jclee.me` | `192.168.50.220:30800` |
 | `idle.jclee.me` | `192.168.50.220:6080` |
 | `code.jclee.me` | `192.168.50.200:8888` |
-| `logstash-ingest.jclee.me` | `192.168.50.105:8080` plus TCP SSH/RDP entries |
+
+Logstash inputs are private LAN endpoints. There is no public DNS or Tunnel ingress for port `8080`, and Cloudflare Logpush is disabled pending an authenticated ingestion design.
 
 ## Diagnosis
 

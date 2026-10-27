@@ -1,7 +1,7 @@
 # Backup Strategy for jclee.me homelab
 
 **Document Version:** 1.0
-**Last Updated:** 2026-02-11
+**Last Updated:** 2026-07-23
 **Status:** Active
 **Issue Reference:** #34
 
@@ -11,16 +11,16 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 
 ### What Gets Backed Up
 
-| VMID | Name    | Type | Backup Schedule | Purpose                          |
-| ---- | ------- | ---- | --------------- | -------------------------------- |
-| 105  | elk     | LXC  | 02:00 UTC daily | ELK logging / Elasticsearch       |
-| 200  | oc      | VM   | 03:00 UTC daily | OpenCode development environment |
-| 220  | youtube | VM   | 03:00 UTC daily | Media worker                      |
+| VMID | Name      | Type | Backup Schedule     | Purpose                          |
+| ---- | --------- | ---- | ------------------- | -------------------------------- |
+| 114  | cliproxy | LXC  | 02:00 daily         | Cloudflare connector and CI host |
+| 105  | elk       | LXC  | Sunday 03:00 weekly | ELK logging / Elasticsearch      |
+| 200  | oc        | VM   | 04:00 daily         | OpenCode development environment |
+| 220  | youtube   | VM   | 04:00 daily         | Media worker                     |
 
 ### What's NOT Backed Up (Non-Critical)
 
 - **100-pve**: Proxmox host itself (system-level config)
-- **114 cliproxy**: Cloudflare connector and CI/CD host; rebuild from Terraform and service configuration
 - **215 synology**: Physical NAS data is outside this Proxmox guest backup job
 
 ## Backup Storage & Infrastructure
@@ -30,7 +30,7 @@ This document defines the comprehensive backup strategy for the jclee.me homelab
 | **Storage Location**    | `pbs-backup` (PBS storage) | Proxmox Backup Server datastore                    |
 | **Compression**         | zstd               | Modern, space-efficient                         |
 | **Mode**                | snapshot           | Consistent point-in-time backups, zero downtime |
-| **Frequency**           | Daily              | Automated via Proxmox scheduler                 |
+| **Frequency**           | Daily and weekly   | Automated via Proxmox scheduler                 |
 | **Full vs Incremental** | Full               | Simplifies restore workflow                     |
 
 ## Retention Policy
@@ -56,73 +56,40 @@ Oldest backup automatically deleted: ~2025-11-11 (90 days old)
 
 ## Backup Execution Details
 
-### LXC Container (105)
+`100-pve/terraform/backup_jobs.tf` is the source of truth. Terraform converges only
+the three owned jobs through `pvesh`, creating a missing job or updating an existing
+one without rewriting `/etc/pve/jobs.cfg` or deleting unrelated jobs.
 
-**Schedule**: Daily at **02:00 UTC** (9:00 PM UTC-5)
-**Command**:
+| Job | VMIDs | Schedule | Storage | Retention |
+| --- | ----- | -------- | ------- | --------- |
+| `lxc-daily` | `114` | `02:00` | `pbs-backup` | 7 daily, 4 weekly, 3 monthly |
+| `lxc-weekly` | `105` | `sun 03:00` | `pbs-backup` | 4 latest, 2 weekly, 2 monthly |
+| `vm-daily` | `200,220` | `04:00` | `pbs-backup` | 7 daily, 4 weekly, 3 monthly |
 
-```bash
-pvesh create /cluster/backup \
-  --vmid 105 \
-  --schedule "0 2 * * *" \
-  --storage pbs-backup \
-  --mode snapshot \
-  --compress zstd \
-  --prune-backups keep-last=7,keep-weekly=4,keep-monthly=3 \
-  --enabled 1 \
-  --notes-template "{{guestname}}-daily" \
-  --mailto root
-```
-
-**Benefits**:
-
-- `--mode snapshot`: Quiescent snapshots, zero downtime during backup
-- `--compress zstd`: Modern compression (better than gzip/lzo)
-- Notification to root upon completion/failure
-
-### VMs (200-oc, 220-youtube)
-
-**Schedule**: Daily at **03:00 UTC** (10:00 PM UTC-5)
-**Command**:
-
-```bash
-pvesh create /cluster/backup \
-  --vmid 200,220 \
-  --schedule "0 3 * * *" \
-  --storage pbs-backup \
-  --mode snapshot \
-  --compress zstd \
-  --prune-backups keep-last=7,keep-weekly=4,keep-monthly=3 \
-  --enabled 1 \
-  --notes-template "{{guestname}}-daily" \
-  --mailto root
-```
-
-**Rationale**: Staggered from LXCs to avoid backup storms on the host.
+All jobs use snapshot mode, zstd compression, and failure notifications to
+`admin@jclee.me`. Staggered schedules avoid backup storms on the host.
 
 ## Setup Instructions
 
-### On PVE Host (192.168.50.100)
+### Terraform-managed rollout
 
-1. **SSH to PVE**:
-
-   ```bash
-   ssh root@192.168.50.100
-   ```
-
-2. **Run backup setup script**:
+1. Update `100-pve/terraform/backup_jobs.tf` in the repository.
+2. Validate without contacting production:
 
    ```bash
-   go run scripts/setup-backups.go
+   terraform -chdir=100-pve/terraform init -backend=false
+   terraform -chdir=100-pve/terraform test -filter=tests/pve_test.tftest.hcl
+   make plan SVC=pve
    ```
 
-3. **Verify jobs created**:
+3. Apply through the approved CI/CD workflow only.
+4. After deployment, verify the owned jobs on the PVE host:
 
    ```bash
    pvesh get /cluster/backup --output-format json-pretty
    ```
 
-4. **Monitor first backup run**:
+5. **Monitor first backup run**:
    - Visit Proxmox GUI → Datacenter → Backup
    - Or: `grep vzdump /var/log/syslog | tail -20`
 
@@ -196,7 +163,7 @@ pvesh create /cluster/backup \
 2. **Restore to new VM**:
 
    ```bash
-   qmrestore pbs-backup:backup/vzdump-qemu-220-2026_02_11-03_15_00.vma.zst 150 \
+   qmrestore pbs-backup:backup/vzdump-qemu-220-2026_02_11-04_15_00.vma.zst 150 \
      --storage hdd-local
    ```
 
@@ -250,7 +217,7 @@ If you only need to restore a subset of files:
 Backups are verified post-creation by Proxmox:
 
 - `--mode snapshot` includes implicit verification
-- Failed backups trigger email to `root@pve`
+- Failed backups trigger email to `admin@jclee.me`
 
 ### Manual Verification
 
@@ -349,13 +316,14 @@ Estimated daily backup sizes (with zstd compression):
 
 | VMID | Service | Backup storage | Sizing guidance |
 | ---- | ------- | -------------- | --------------- |
+| 114  | cliproxy | `pbs-backup`  | Measure actual archive size in PBS |
 | 105  | elk     | `pbs-backup`   | Measure actual archive size in PBS |
 | 200  | oc      | `pbs-backup`   | Measure actual archive size in PBS |
 | 220  | youtube | `pbs-backup`   | Measure actual archive size in PBS |
 
 ### Retention Storage
 
-With 90-day retention (21 daily + 4 weekly + 3 monthly snapshots) in `pbs-backup`:
+With per-job daily/weekly/monthly retention in `pbs-backup`:
 
 ```
 Query PBS storage usage and prune status rather than relying on a fixed size estimate.

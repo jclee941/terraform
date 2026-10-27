@@ -11,6 +11,7 @@ This directory contains historical architecture decisions for the Terraform home
 | [003](003-cloudflare-tunnel-architecture.md) | Cloudflare Tunnel Architecture | Accepted | Documents external access model. |
 | [004](004-onepassword-vault-standardization.md) | 1Password Vault Standardization | Accepted | Defines shared vault item/schema conventions. |
 | [014](014-cloud-init-for-lxc.md) | Cloud-init for LXC | Accepted | Documents LXC initialization/configuration decision. |
+| [015](015-registry-lan-direct-exposure.md) | Registry LAN Direct (Grey-Cloud) Exposure | Accepted | registry.jclee.me bypasses the Cloudflare edge 100MB upload cap via a grey-cloud A record and LAN TLS termination. |
 
 ## Numbering Gaps
 

@@ -118,7 +118,7 @@ Config: alerting templates/config rendered through the `100-pve` pipeline.
 | ----------------- | --------------------------------------------------- |
 | Filebeat configs  | Terraform-deployed via lxc-config/vm-config modules |
 | Logstash template | `105-elk/templates/logstash.conf.tftpl`             |
-| Logstash config   | `105-elk/config/logstash.yml`                       |
+| Logstash settings | `105-elk/templates/logstash.yml.tftpl`              |
 | Alert rules       | Template/config pipeline rendered by `100-pve`      |
 
 ## Known Issues
