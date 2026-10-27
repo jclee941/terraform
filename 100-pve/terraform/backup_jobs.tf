@@ -1,59 +1,83 @@
 # =============================================================================
-# BACKUP JOBS — IaC-managed vzdump schedule (writes /etc/pve/jobs.cfg)
+# BACKUP JOBS — IaC-managed vzdump schedules through the Proxmox API
 # =============================================================================
 # Note: bpg/proxmox provider does NOT expose a cluster_backup_job resource as of
-# v0.98.1. We render /etc/pve/jobs.cfg via SSH + null_resource.
+# v0.98.1. We converge the owned jobs through pvesh over SSH + null_resource.
 #
 # Storage target: PBS (datastore "backups" on 192.168.50.250).
 # Retention: PBS prune-job handles long-term retention; vzdump only emits new
 # snapshots — actual pruning is centralised in PBS.
 
 locals {
-  backup_jobs_cfg = <<-EOT
-    vzdump: lxc-daily
-    	comment Daily LXC backups - critical infra (elk)
-    	schedule 02:00
-    	compress zstd
-    	enabled 1
-    	mailnotification failure
-    	mailto admin@jclee.me
-    	mode snapshot
-    	prune-backups keep-last=7,keep-weekly=4,keep-monthly=3
-    	storage pbs
-    	vmid 105
+  backup_jobs = {
+    lxc-daily = {
+      comment       = "Daily LXC backups - critical infra (cliproxy)"
+      schedule      = "02:00"
+      vmid          = "114"
+      storage       = "pbs-backup"
+      bwlimit       = 81920
+      prune_backups = "keep-last=7,keep-weekly=4,keep-monthly=3"
+    }
+    lxc-weekly = {
+      comment       = "Weekly LXC backups - heavy workloads (elk)"
+      schedule      = "sun 03:00"
+      vmid          = "105"
+      storage       = "pbs-backup"
+      bwlimit       = 81920
+      prune_backups = "keep-last=4,keep-weekly=2,keep-monthly=2"
+    }
+    vm-daily = {
+      comment       = "Daily VM backups (jclee-dev, jclee-prd)"
+      schedule      = "04:00"
+      vmid          = "200,220"
+      storage       = "pbs-backup"
+      bwlimit       = 81920
+      prune_backups = "keep-last=7,keep-weekly=4,keep-monthly=3"
+    }
+  }
 
-    vzdump: lxc-weekly
-    \tcomment Weekly LXC backups - heavy workloads (elk)
-    \tschedule sun 03:00
-    \tcompress zstd
-    \tenabled 1
-    \tmailnotification failure
-    \tmailto admin@jclee.me
-    \tmode snapshot
-    \tprune-backups keep-last=4,keep-weekly=2,keep-monthly=2
-    \tstorage pbs
-    \tvmid 105
-
-    vzdump: vm-daily
-    \tcomment Daily VM backups (oc, youtube)
-    \tschedule 04:00
-    \tcompress zstd
-    \tenabled 1
-    \tmailnotification failure
-    \tmailto admin@jclee.me
-    \tmode snapshot
-    \tprune-backups keep-last=7,keep-weekly=4,keep-monthly=3
-    \tstorage pbs
-    \tvmid 200,220
-  EOT
+  backup_job_commands = {
+    for job_id, job in local.backup_jobs : job_id => <<-EOT
+      set -eu
+      if pvesh get "/cluster/backup/${job_id}" --quiet >/dev/null 2>&1; then
+        pvesh set "/cluster/backup/${job_id}" \
+          --schedule '${replace(job.schedule, "'", "'\"'\"'")}' \
+          --storage '${replace(job.storage, "'", "'\"'\"'")}' \
+          --vmid '${replace(job.vmid, "'", "'\"'\"'")}' \
+          --bwlimit '${job.bwlimit}' \
+          --mode snapshot \
+          --compress zstd \
+          --enabled 1 \
+          --mailnotification failure \
+          --mailto 'admin@jclee.me' \
+          --prune-backups '${replace(job.prune_backups, "'", "'\"'\"'")}' \
+          --comment '${replace(job.comment, "'", "'\"'\"'")}'
+      else
+        pvesh create /cluster/backup \
+          --id '${replace(job_id, "'", "'\"'\"'")}' \
+          --schedule '${replace(job.schedule, "'", "'\"'\"'")}' \
+          --storage '${replace(job.storage, "'", "'\"'\"'")}' \
+          --vmid '${replace(job.vmid, "'", "'\"'\"'")}' \
+          --bwlimit '${job.bwlimit}' \
+          --mode snapshot \
+          --compress zstd \
+          --enabled 1 \
+          --mailnotification failure \
+          --mailto 'admin@jclee.me' \
+          --prune-backups '${replace(job.prune_backups, "'", "'\"'\"'")}' \
+          --comment '${replace(job.comment, "'", "'\"'\"'")}'
+      fi
+      pvesh get "/cluster/backup/${job_id}" --output-format json >/dev/null
+    EOT
+  }
 }
 
 resource "null_resource" "backup_jobs" {
-  count = var.enable_pbs && var.deploy_lxc_configs ? 1 : 0
+  for_each = var.enable_pbs && var.deploy_lxc_configs ? local.backup_jobs : {}
 
-  triggers = {
-    config_hash = sha256(local.backup_jobs_cfg)
-  }
+  triggers = merge(each.value, {
+    command_contract = sha256(local.backup_job_commands[each.key])
+  })
 
   connection {
     type        = "ssh"
@@ -63,13 +87,7 @@ resource "null_resource" "backup_jobs" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "set -e",
-      "BAK=/etc/pve/jobs.cfg.bak-$(date +%Y%m%d-%H%M%S)",
-      "[ -f /etc/pve/jobs.cfg ] && cp /etc/pve/jobs.cfg $BAK || true",
-      "cat > /etc/pve/jobs.cfg <<'PVE_JOBS_EOF'\n${replace(local.backup_jobs_cfg, "\\t", "\t")}PVE_JOBS_EOF",
-      "pvesh get /cluster/backup --output-format json >/dev/null && echo 'jobs.cfg syntax OK'",
-    ]
+    inline = [local.backup_job_commands[each.key]]
   }
 }
 
@@ -83,7 +101,7 @@ resource "null_resource" "pbs_gc_schedule" {
   count = var.enable_pbs ? 1 : 0
 
   triggers = {
-    schedule = "sun 02:00"
+    schedule = "sun 06:00"
   }
 
   provisioner "local-exec" {
@@ -143,7 +161,7 @@ output "backup_jobs_summary" {
   description = "Summary of vzdump + PBS automation status"
   value = {
     vzdump_jobs         = ["lxc-daily", "lxc-weekly", "vm-daily"]
-    pbs_gc_schedule     = "sun 02:00"
+    pbs_gc_schedule     = "sun 06:00"
     pbs_prune_schedule  = "daily (keep 7d/4w/3m)"
     pbs_verify_schedule = "monthly"
     pbs_storage_id      = "pbs-backup"
