@@ -95,4 +95,4 @@ ssh root@192.168.50.{IP} -- bash -c '
 - Elasticsearch ILM policy should auto-delete indices >30 days
 - Docker log rotation: configure `max-size: 10m` and `max-file: 3` in daemon.json
 - Disk usage alert at 80% threshold
-- Review `105-elk/config/` for index lifecycle settings
+- Review `105-elk/terraform/main.tf` and `105-elk/templates/ilm-policy.json.tftpl` for index lifecycle settings

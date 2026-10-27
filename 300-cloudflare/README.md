@@ -15,18 +15,19 @@ Terraform and script-based central secret management system for the `jclee.me` h
 - Terraform -> Cloudflare Tunnels (Tunnel)
 - Terraform -> Cloudflare Secrets Store (CFSecrets)
 - Terraform -> GitHub Actions Secrets (GHSecrets)
-- Cloudflare Tunnels (Tunnel) -> HTTP, TCP, and log ingestion origins (Services)
+- Cloudflare Tunnels (Tunnel) -> HTTP and TCP origins (Services)
 - Cloudflare Secrets Store (CFSecrets) -> Cloudflare Workers runtime (Workers)
 - GitHub Actions Secrets (GHSecrets) -> GitHub Actions CI/CD (CI)
 
 
 ## Tunnel Runtime
 
-- The active `cloudflared` connector runs as a native systemd service on the cliproxy VM (VMID 114).
-- `code.jclee.me` routes directly to the OpenCode VM at `192.168.50.200:8888`.
+- The active `cloudflared` connector runs as a native systemd service on the jclee-dev VM (VMID 200).
+- `vscode.jclee.me` routes directly to code-server on the jclee-dev VM at `192.168.50.200:8888`.
+- `proxmox.jclee.me` routes to the pve3 Proxmox VE UI at `192.168.50.100:8006` (see `docs/runbooks/pve-cloudflare-ui.md`).
 - Synology routes directly to its HTTPS DSM origin.
-- `logstash-ingest.jclee.me` routes directly to Logstash at `192.168.50.105:8080`.
 - HTTP and TCP services use their direct tunnel origins; no reverse proxy is required.
+- Logstash inputs on ports `5044`, `5000`, and `8080` remain private; Cloudflare Logpush is intentionally disabled pending an authenticated ingestion design.
 - `docker/cloudflared/` is retained as a legacy reference and is not the active connector deployment path.
 
 ## Source of Truth
@@ -130,56 +131,36 @@ go run scripts/generate-bindings.go --out wrangler.toml
 |------|---------|
 | <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.18.0 |
 | <a name="provider_cloudflare.apikey"></a> [cloudflare.apikey](#provider\_cloudflare.apikey) | 5.18.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
-| <a name="provider_time"></a> [time](#provider\_time) | 0.13.1 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../modules/shared/onepassword-secrets | n/a |
+| <a name="module_onepassword_secrets"></a> [onepassword\_secrets](#module\_onepassword\_secrets) | ../../modules/shared/onepassword-secrets | n/a |
+| <a name="module_tunnels"></a> [tunnels](#module\_tunnels) | ../../modules/cloudflare/tunnel | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [cloudflare_dns_record.direct](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
 | [cloudflare_dns_record.homelab](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
-| [cloudflare_dns_record.logstash_ingest](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
 | [cloudflare_dns_record.tcp_services](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
-| [cloudflare_logpush_job.worker_traces](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/logpush_job) | resource |
 | [cloudflare_r2_bucket.synology_cache](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/r2_bucket) | resource |
 | [cloudflare_ruleset.waf_custom](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/ruleset) | resource |
 | [cloudflare_workers_route.synology_proxy](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/workers_route) | resource |
-| [cloudflare_zero_trust_access_application.homelab](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_application) | resource |
-| [cloudflare_zero_trust_access_application.logstash_ingest](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_application) | resource |
-| [cloudflare_zero_trust_access_application.synology](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_application) | resource |
-| [cloudflare_zero_trust_access_application.tcp_services](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_application) | resource |
 | [cloudflare_zero_trust_access_identity_provider.google](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_identity_provider) | resource |
 | [cloudflare_zero_trust_access_identity_provider.otp](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_identity_provider) | resource |
-| [cloudflare_zero_trust_access_policy.synology_email](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_policy) | resource |
-| [cloudflare_zero_trust_access_service_token.logpush](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_access_service_token) | resource |
-| [cloudflare_zero_trust_tunnel_cloudflared.homelab](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared) | resource |
-| [cloudflare_zero_trust_tunnel_cloudflared.jclee](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared) | resource |
-| [cloudflare_zero_trust_tunnel_cloudflared.synology](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared) | resource |
-| [cloudflare_zero_trust_tunnel_cloudflared_config.homelab](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared_config) | resource |
-| [cloudflare_zero_trust_tunnel_cloudflared_config.synology](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/zero_trust_tunnel_cloudflared_config) | resource |
-| [random_password.homelab_tunnel_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
-| [random_password.jclee_tunnel_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
-| [random_password.tunnel_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [terraform_data.cf_secrets_store](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.cf_store_secret_sync](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.validate_credentials](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
-| [time_rotating.service_token_rotation](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/rotating) | resource |
-| [cloudflare_zero_trust_tunnel_cloudflared_token.homelab](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/data-sources/zero_trust_tunnel_cloudflared_token) | data source |
-| [cloudflare_zero_trust_tunnel_cloudflared_token.jclee](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/data-sources/zero_trust_tunnel_cloudflared_token) | data source |
-| [cloudflare_zero_trust_tunnel_cloudflared_token.synology](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/data-sources/zero_trust_tunnel_cloudflared_token) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_access_allowed_emails"></a> [access\_allowed\_emails](#input\_access\_allowed\_emails) | List of email addresses allowed through CF Access | `list(string)` | n/a | yes |
+| <a name="input_synology_domain"></a> [synology\_domain](#input\_synology\_domain) | Domain/subdomain for Synology proxy (e.g., nas.jclee.me) | `string` | n/a | yes |
 | <a name="input_cloudflare_account_id"></a> [cloudflare\_account\_id](#input\_cloudflare\_account\_id) | Cloudflare account ID (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_cloudflare_api_key"></a> [cloudflare\_api\_key](#input\_cloudflare\_api\_key) | Cloudflare Global API key (fallback when API token is unavailable) | `string` | `""` | no |
 | <a name="input_cloudflare_api_token"></a> [cloudflare\_api\_token](#input\_cloudflare\_api\_token) | Cloudflare API token (preferred for scoped access; optional if provided via 1Password) | `string` | `""` | no |
@@ -192,12 +173,10 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="input_google_oauth_client_id"></a> [google\_oauth\_client\_id](#input\_google\_oauth\_client\_id) | Google OAuth 2.0 Client ID for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_google_oauth_client_secret"></a> [google\_oauth\_client\_secret](#input\_google\_oauth\_client\_secret) | Google OAuth 2.0 Client Secret for CF Access IdP (optional if provided via 1Password) | `string` | `""` | no |
 | <a name="input_homelab_domain"></a> [homelab\_domain](#input\_homelab\_domain) | Base domain for homelab services | `string` | `"jclee.me"` | no |
-| <a name="input_homelab_public_ip"></a> [homelab\_public\_ip](#input\_homelab\_public\_ip) | Public IP address of homelab network for CF Access internal bypass | `string` | `null` | no |
 | <a name="input_jclee_dev_ip"></a> [jclee\_dev\_ip](#input\_jclee\_dev\_ip) | JCLee development workstation IP address (VMID 200) | `string` | `"192.168.50.200"` | no |
 | <a name="input_jclee_ip"></a> [jclee\_ip](#input\_jclee\_ip) | JCLee workstation IP address (physical PC, host ID 80) | `string` | `"192.168.50.80"` | no |
 | <a name="input_onepassword_vault_name"></a> [onepassword\_vault\_name](#input\_onepassword\_vault\_name) | 1Password vault name for secret lookups | `string` | `"homelab"` | no |
 | <a name="input_secret_values"></a> [secret\_values](#input\_secret\_values) | Runtime secret values map, keyed by secret name (never commit) | `map(string)` | `{}` | no |
-| <a name="input_synology_domain"></a> [synology\_domain](#input\_synology\_domain) | Domain/subdomain for Synology proxy (e.g., nas.jclee.me) | `string` | n/a | yes |
 | <a name="input_synology_nas_ip"></a> [synology\_nas\_ip](#input\_synology\_nas\_ip) | Synology NAS IP address on local network | `string` | `"192.168.50.215"` | no |
 | <a name="input_synology_nas_port"></a> [synology\_nas\_port](#input\_synology\_nas\_port) | Synology DSM HTTP port | `number` | `5000` | no |
 | <a name="input_youtube_ip"></a> [youtube\_ip](#input\_youtube\_ip) | YouTube media server IP address (VMID 220) | `string` | `"192.168.50.220"` | no |
@@ -206,8 +185,6 @@ go run scripts/generate-bindings.go --out wrangler.toml
 
 | Name | Description |
 |------|-------------|
-| <a name="output_access_application_id"></a> [access\_application\_id](#output\_access\_application\_id) | Cloudflare Access application ID for Synology |
-| <a name="output_homelab_access_applications"></a> [homelab\_access\_applications](#output\_homelab\_access\_applications) | Cloudflare Access applications for restricted services |
 | <a name="output_homelab_dns_records"></a> [homelab\_dns\_records](#output\_homelab\_dns\_records) | DNS records created for homelab services |
 | <a name="output_homelab_tunnel_id"></a> [homelab\_tunnel\_id](#output\_homelab\_tunnel\_id) | Cloudflare Tunnel ID for homelab services |
 | <a name="output_homelab_tunnel_token"></a> [homelab\_tunnel\_token](#output\_homelab\_tunnel\_token) | Cloudflare Tunnel token for homelab cloudflared connector |
@@ -215,8 +192,9 @@ go run scripts/generate-bindings.go --out wrangler.toml
 | <a name="output_jclee_tunnel_token"></a> [jclee\_tunnel\_token](#output\_jclee\_tunnel\_token) | Cloudflare Tunnel token for JCLee cloudflared connector |
 | <a name="output_r2_bucket_name"></a> [r2\_bucket\_name](#output\_r2\_bucket\_name) | R2 bucket name used for Synology cache |
 | <a name="output_secrets_store_id"></a> [secrets\_store\_id](#output\_secrets\_store\_id) | Cloudflare Secrets Store ID used by this configuration |
-| <a name="output_synology_domain"></a> [synology\_domain](#output\_synology\_domain) | Synology domain protected by Cloudflare Access |
+| <a name="output_synology_domain"></a> [synology\_domain](#output\_synology\_domain) | Synology domain routed through the direct Cloudflare Tunnel origin |
 | <a name="output_total_secrets_count"></a> [total\_secrets\_count](#output\_total\_secrets\_count) | Total number of secrets in inventory |
 | <a name="output_tunnel_id"></a> [tunnel\_id](#output\_tunnel\_id) | Cloudflare Tunnel ID for Synology NAS |
 | <a name="output_tunnel_token"></a> [tunnel\_token](#output\_tunnel\_token) | Cloudflare Tunnel token for cloudflared runtime |
+| <a name="output_tunnels"></a> [tunnels](#output\_tunnels) | Cloudflare tunnel IDs and tokens by tunnel key. |
 <!-- END_TF_DOCS -->

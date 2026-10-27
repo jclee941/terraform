@@ -41,9 +41,9 @@ Boundary guidance for Cloudflare Worker implementations under `300-cloudflare/wo
 npm --prefix 300-cloudflare/workers/synology-proxy run dev
 npm --prefix 300-cloudflare/workers/synology-proxy test
 npm --prefix 300-cloudflare/workers/synology-proxy run build
-npm --prefix 300-cloudflare/workers/synology-proxy run deploy  # DISABLED — use worker-deploy.yml CI workflow
+npm --prefix 300-cloudflare/workers/synology-proxy run deploy  # DISABLED — no worker deploy workflow exists
 npm --prefix 300-cloudflare/workers/issue-form run dev
 npm --prefix 300-cloudflare/workers/issue-form test
 npm --prefix 300-cloudflare/workers/issue-form run build
-npm --prefix 300-cloudflare/workers/issue-form run deploy  # DISABLED — use worker-deploy.yml CI workflow
+npm --prefix 300-cloudflare/workers/issue-form run deploy  # DISABLED — no worker deploy workflow exists
 ```

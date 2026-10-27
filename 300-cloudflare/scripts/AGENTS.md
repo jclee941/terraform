@@ -21,7 +21,7 @@ Automation scripts for secret harvesting/sync/audit and Worker deployment suppor
 | Sync to targets | `sync.go` | Pushes secret values to CF/GitHub/Vault targets. |
 || Inventory drift checks | `audit.go` | Compares registry to target stores. |
 || Worker secret bindings | `generate-bindings.go` | Generates Wrangler binding declarations from inventory metadata. |
-| Worker deployment guard | `deploy-worker.go` | **DISABLED** — prints error and exits 1. Deploy via `worker-deploy.yml` CI workflow only. |
+| Worker deployment guard | `deploy-worker.go` | **DISABLED** — prints error and exits 1. No worker deploy workflow currently exists in `.github/workflows/`. |
 | Secret metadata source | `../inventory/secrets.yaml` | Registry SSoT for secret names/targets (no values). |
 | Parent workspace policy | `../AGENTS.md` | Cloudflare workspace constraints and Terraform wiring. |
 | Worker runtime counterpart | `../workers/AGENTS.md` | Worker boundary and runtime-specific rules. |

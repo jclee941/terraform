@@ -56,7 +56,9 @@ Source of truth for all documentation in the Terraform homelab repository.
 | `docs/runbooks/elk-integration-template.md` | Onboarding | `active` | ELK | Update when Filebeat or Logstash configs change. |
 | `docs/runbooks/monitoring-gaps.md` | Troubleshooting | `active` | Operations | Update when new services are added. |
 | `docs/runbooks/network-issues.md` | Troubleshooting | `active` | Operations | Update when network topology changes. |
+| `docs/runbooks/pve-cloudflare-ui.md` | Deployment | `active` | Operations | Update when the proxmox.jclee.me tunnel route, connector host, or origin changes. |
 | `docs/runbooks/pve-filebeat-deployment.md` | Deployment | `active` | ELK | Update when Filebeat version or config changes. |
+| `docs/runbooks/pve-tailscale.md` | Deployment | `active` | Operations | Update when Tailscale placement, routes, or install steps change. |
 | `docs/runbooks/service-deployment.md` | Deployment | `active` | Operations | Update when CI/CD workflow changes. |
 | `docs/runbooks/service-down.md` | Incident response | `active` | Operations | Update after post-mortems. |
 | `docs/runbooks/state-locking.md` | Troubleshooting | `active` | Terraform | Update when backend or state setup changes. |
@@ -78,6 +80,7 @@ Source of truth for all documentation in the Terraform homelab repository.
 | `100-pve/README.md` | Service docs | `generated-section-preserve` | PVE | Hand-written intro + terraform-docs section. Regenerate via `make docs`. |
 | `100-pve/envs/prod/README.md` | Service docs | `generated-section-preserve` | PVE | terraform-docs generated. Regenerate via `make docs`. |
 | `100-pve/pve-hacks/README.md` | Service docs | `removed` | PVE | Empty file. Deleted. |
+| `105-elk/legacy/README.md` | Archive note | `manual` | ELK | Marks inactive snapshots and points to active templates. |
 | `105-elk/terraform/README.md` | Service docs | `generated-section-preserve` | ELK | terraform-docs generated. Regenerate via `make docs`. |
 | `200-oc/README.md` | Service docs | `active` | OpenCode | Hand-written. Keep current. |
 | `215-synology/README.md` | Service docs | `generated-section-preserve` | Storage | terraform-docs generated. Regenerate via `make docs`. |
@@ -104,9 +107,9 @@ Source of truth for all documentation in the Terraform homelab repository.
 | `tests/modules/proxmox/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
 | `tests/modules/shared/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
 | `tests/integration/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
-| `tests/workspaces/pve/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
+| `tests/workspaces/pve/README.md` | Test migration note | `manual` | Tests | Points to production-root tests under `100-pve/terraform/tests/`. |
 | `tests/workspaces/elk/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
-| `tests/workspaces/cloudflare/README.md` | Test docs | `generated-section-preserve` | Tests | terraform-docs generated. Regenerate via `make docs`. |
+| `tests/workspaces/cloudflare/README.md` | Test migration note | `manual` | Tests | Points to production-root tests under `300-cloudflare/terraform/tests/`. |
 
 ## Auto-Synced AGENTS.md Files
 

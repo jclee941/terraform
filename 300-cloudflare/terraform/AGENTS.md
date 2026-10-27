@@ -1,7 +1,7 @@
 # AGENTS: 300-cloudflare/terraform — Cloudflare Infrastructure
 
 ## OVERVIEW
-Terraform workspace managing Cloudflare DNS, tunnels, Worker bindings/routes, Logpush, R2, WAF, and 1Password-backed provider inputs.
+Terraform workspace managing Cloudflare DNS, tunnels, Worker bindings/routes, R2, WAF, and 1Password-backed provider inputs. Cloudflare Logpush is intentionally disabled.
 
 ## STRUCTURE
 ```
@@ -10,7 +10,6 @@ terraform/
 ├── dns.tf                 # DNS records
 ├── tunnel.tf              # Cloudflare Tunnel configs
 ├── workers.tf             # Worker script/route wiring
-├── logpush.tf             # Worker trace Logpush
 ├── onepassword.tf         # Secret/metadata lookup
 ├── secrets-store.tf       # CF Secrets Store sync resources
 ├── validation.tf/checks.tf # Input and metadata checks
@@ -24,7 +23,7 @@ terraform/
 
 | Task | Location | Notes |
 |------|----------|-------|
-| DNS records | `dns.tf` | CNAMEs for HTTP, TCP, and logstash-ingest. |
+| DNS records | `dns.tf` | CNAMEs for active HTTP and TCP services. |
 | Tunnels | `tunnel.tf` | Cloudflare tunnel resources and moved blocks. |
 | Worker wiring | `workers.tf` | Worker routes, services, and bindings. |
 | Secret inventory | `../inventory/secrets.yaml`, `locals.tf`, `secrets-store.tf` | Metadata-driven secret target handling. |
@@ -35,6 +34,7 @@ terraform/
 - Prefer 1Password-derived Cloudflare metadata; keep variable fallback explicit and validated.
 - Keep service hostnames in `locals.tf`; avoid duplicating them across DNS/tunnel files.
 - Use feature flags (`enable_cf_store_sync`, `enable_worker_route`) for side-effectful resources.
+- Keep Logstash inputs private; do not recreate public Logpush ingress without an authenticated ingestion design.
 
 ## ANTI-PATTERNS
 - NEVER commit API tokens

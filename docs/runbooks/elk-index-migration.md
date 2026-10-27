@@ -13,8 +13,8 @@ Procedures for the index pattern migration from `logs-YYYY.MM.dd` to `logs-{serv
 # From LXC 105
 cd /opt/elk
 
-# Copy updated logstash.conf (index pattern fix)
-# Source: 105-elk/config/logstash.conf (committed to git)
+# Deploy the updated Logstash template through Terraform
+# Source: 105-elk/templates/logstash.conf.tftpl
 # Key change: index => "logs-%{[service]}-%{+YYYY.MM.dd}"
 
 # Restart Logstash only (no ES/Kibana restart needed)

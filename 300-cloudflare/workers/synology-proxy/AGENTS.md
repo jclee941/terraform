@@ -53,4 +53,4 @@ src/
 - Don't cache upload/delete responses — only read operations (list, get, download)
 - Don't access `env.*` in route handlers — use injected services from `createApp()`
 - Test files must use `miniflare` environment for R2/Workers bindings
-- **NEVER** deploy manually — `npm run deploy` is disabled. Use `worker-deploy.yml` CI workflow.
+- **NEVER** deploy manually — `npm run deploy` is disabled; no worker deploy workflow currently exists.

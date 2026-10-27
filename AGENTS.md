@@ -35,7 +35,7 @@ terraform/
 | ELK pipeline/indexing | `105-elk/templates/logstash.conf.tftpl` + `modules/elasticstack/` | Keep ILM and auth assumptions intact. |
 | Cloudflare DNS/tunnel/Workers | `300-cloudflare/terraform/` + `modules/cloudflare/` | Access resources are removed; scripts and Workers have separate child scopes. |
 | Secret retrieval | `modules/shared/onepassword-secrets/` | Values come from 1Password, not committed files. |
-| CI/CD or PR policy | `.github/AGENTS.md` + `.github/workflows/` | Many workflows delegate to `jclee941/.github`. |
+| CI/CD or PR policy | `.github/AGENTS.md` + `.github/workflows/` | PR review/release workflows plus local `ci.yml`; manual merges (no auto-merge); catalog in `.github/workflow-registry.yml`. |
 | Test behavior | `tests/AGENTS.md` | Native `terraform test`; provider-mocked by default; Make targets run a subset. |
 | Documentation policy | `docs/AGENTS.md` | ADRs append-only; runbooks actionable. |
 
@@ -55,12 +55,12 @@ terraform/
 - `snake_case` for Terraform identifiers; single-instance resources use `resource "x" "this"`.
 - Templates and scripts use `kebab-case`; app logic belongs in `templates/*.tftpl`, not inline cloud-init.
 - Variables and outputs need descriptions; variables need explicit types.
-- Local backend state exists beside workspaces; `105-elk` and `100-pve/terraform` carry state/plan artifacts as explicit exceptions, not a pattern to copy.
+- Local backend state exists beside workspaces, except `100-pve/terraform`, whose state lives in the Cloudflare R2 (S3) backend; `105-elk` and `100-pve/terraform` carry local state/plan artifacts as explicit exceptions, not a pattern to copy.
 - CI concurrency is the serialization mechanism.
 - 1Password vault `homelab` feeds Terraform via the shared module and environment variables.
 
 ## ANTI-PATTERNS
-- No local `make apply` or local drift check; deployment and drift detection are CI/CD paths.
+- No local `make apply` or local drift check; both Make targets are disabled by policy, and `.github/workflows/` currently has no apply or drift workflow.
 - No hand-editing `100-pve/terraform/configs/`, rendered templates, or guest files managed by Terraform.
 - No hardcoded service IPs; use `module.hosts.hosts[name].ip`, variables, or template inputs.
 - No committed `.tfvars`, `.env`, API keys, tunnel tokens, private keys, or secret-bearing `data/` outputs.

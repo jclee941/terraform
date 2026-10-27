@@ -54,7 +54,7 @@ issue-form/
 ## ANTI-PATTERNS
 
 - Do not hardcode GitHub credentials in source — use Wrangler secrets.
-- Do not bypass `Env` type bindings with `env: any` in `index.ts` (existing tech debt).
+- Do not bypass `Env` type bindings with `env: any` in `index.ts`.
 - Do not insert user input via `innerHTML` without sanitization (existing XSS risk in `form.ts`).
 - Do not add authentication middleware without updating this doc and parent AGENTS.md.
 - Do not hand-edit rendered form HTML outside `form.ts` — it is the single source.

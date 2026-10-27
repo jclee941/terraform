@@ -20,7 +20,7 @@
 | 도메인 / Domain | `jclee.me` |
 | 사설 LAN / Private LAN | RFC1918 홈랩 서브넷 (`<homelab-subnet>` 자리표시자) |
 | Terraform | 1.10.5 (제약: `>= 1.7, < 2.0`) |
-| 워크스페이스 / Workspaces | 13개의 번호 디렉터리, 12개의 Makefile 별칭 |
+| 워크스페이스 / Workspaces | 9개의 번호 디렉터리, 9개의 Makefile 별칭 |
 | 모듈 진입점 / Module entry points | 10 (`modules/{proxmox,shared,cloudflare,elasticstack}`) |
 | 비밀 저장소 / Secrets | 1Password vault `homelab` (모듈 `modules/shared/onepassword-secrets/`) |
 | CI/CD | GitHub Actions (동시성 그룹으로 직렬화) |
@@ -32,9 +32,9 @@
 1. 별칭 확인 — `grep '^ALIAS_' Makefile` 또는 아래 [워크스페이스 별칭](#워크스페이스-별칭--workspace-aliases) 표 참고.
 2. 코드 수정 — 호스트/IP/VMID는 `100-pve/envs/prod/hosts.tf`를 SSoT로 사용.
 3. 검증 — `make fmt validate lint SVC=<alias>`.
-4. 계획 — `make plan SVC=<alias>` (출력은 `tfpla`).
-5. 적용 — `make apply SVC=<alias>` (CI에서는 `merge to master`로 트리거).
-6. 사후 점검 — `make drift-check verify SVC=<alias>`, `make test`로 회귀 테스트.
+4. 계획 — `make plan SVC=<alias>` (출력은 `tfplan`, Git 추적 제외).
+5. 적용 — 검토 후 `master`에 병합하여 CI/CD로 배포. 로컬 `make apply`는 비활성화되어 있습니다.
+6. 사후 점검 — `make verify SVC=<alias>`, `make test`로 회귀 테스트. 드리프트 검사는 CI `terraform-drift.yml`에서만 실행합니다.
 
 ## 목적 / Purpose
 
@@ -45,77 +45,30 @@
 
 ## 패키지 구성 / Package Contents
 
-저장소 최상위 구조는 아래와 같습니다(스냅샷에 실제로 존재하는 경로만 반영).
+주요 워크스페이스와 공통 디렉터리는 아래와 같습니다. 서비스 설정의 활성 소스는 `templates/`이며, 보관된 레거시 설정은 배포 입력으로 사용하지 않습니다.
 
 ```text
 /
-├── AGENTS.md
-├── ARCHITECTURE.md
-├── CODE_STYLE.md
-├── CONTRIBUTING.md
-├── DEPENDENCY_MAP.md
-├── LICENSE
-├── Makefile
-├── README.md
-├── build.env
-├── 105-elk/                    # Tier 1 — ELK 스택 (Terraform + 템플릿 + 스크립트 + 컨피그)
-│   ├── AGENTS.md
-│   ├── docker-compose.yml
-│   ├── ilm-policy.json
-│   ├── scripts/
-│   │   ├── remove-promtail
-│   │   ├── remove-promtail.go
-│   │   ├── setup-ilm.go
-│   │   └── setup-watcher.go
-│   ├── config/
-│   │   ├── AGENTS.md
-│   │   ├── Dockerfile.logstash
-│   │   ├── filebeat.yml
-│   │   ├── ilm-policy.json
-│   │   ├── logstash.conf
-│   │   └── logstash.yml
-│   ├── templates/
-│   │   ├── AGENTS.md
-│   │   ├── Dockerfile.logstash.tftpl
-│   │   ├── docker-compose.yml.tftpl
-│   │   ├── filebeat.yml.tftpl
-│   │   ├── ilm-policy.json.tftpl
-│   │   ├── logstash.conf.tftpl
-│   │   ├── logstash.yml.tftpl
-│   │   └── setup-ilm.sh.tftpl
-│   └── terraform/
-│       ├── AGENTS.md
-│       ├── README.md
-│       ├── checks.tf
-│       ├── main.tf
-│       ├── onepassword.tf
-│       ├── outputs.tf
-│       ├── providers.tf
-│       ├── validation.tf
-│       ├── variables.tf
-│       └── versions.tf
-└── 300-cloudflare/             # External — Cloudflare Terraform + Workers + 스크립트
-    ├── AGENTS.md
-    ├── README.md
-    ├── inventory/
-    │   └── secrets.yaml
-    ├── scripts/
-    │   ├── AGENTS.md
-    │   ├── audit.go
-    │   ├── collect.go
-    │   ├── deploy-worker.go
-    │   ├── generate-bindings.go
-    │   └── sync.go
-    ├── docs/
-    │   └── requirements.md
-    └── workers/
-        ├── AGENTS.md
-        └── synology-proxy/
-            ├── AGENTS.md
-            └── package-lock.json
+├── 80-jclee/                  # Personal workstation
+├── 100-pve/                   # Tier 0: Terraform orchestrator and host SSoT
+├── 105-elk/                   # Tier 1: ELK
+│   ├── templates/             # Active configuration sources
+│   ├── scripts/               # Operational helpers
+│   └── terraform/             # Elastic Stack provider workspace
+├── 200-oc/                    # Open Cloud
+├── 215-synology/              # Synology (flat Terraform workspace)
+├── 220-youtube/               # YouTube
+├── 300-cloudflare/            # Cloudflare Terraform, Workers and scripts
+├── 310-safetywallet/           # Safety Wallet
+├── 400-gcp/                   # GCP
+├── modules/                   # Reusable Terraform modules
+├── tests/                     # Shared module and integration tests
+├── scripts/                   # Validation and operational tooling
+├── docs/                      # Runbooks, reference and append-only ADRs
+└── .github/                   # CI/CD workflows and repository policy
 ```
 
-> 참고 / Note: AGENTS.md에 언급된 추가 워크스페이스(`80-jclee`, `100-pve`, `200-oc`, `215-synology`, `220-youtube`, `310-safetywallet`, `400-gcp`), `modules/`, `tests/`, `scripts/`, `docs/`, `.github/`는 전체 저장소에는 존재하지만 이 스냅샷 트리에는 포함되지 않았습니다. 위 표의 별칭 경로와 [워크스페이스 티어](#워크스페이스-티어--workspace-tiers) 표는 Makefile과 AGENTS.md에서 가져온 메타데이터입니다.
+> 별칭과 실행 명령의 기준은 [Makefile](Makefile)입니다. 생성된 설정, 로컬 상태·플랜, 캐시는 Git에 추가하지 않습니다.
 
 ## 먼저 읽을 파일 / First Files to Read
 
@@ -125,7 +78,7 @@
 | 2 | [Makefile](Makefile) | 명령어 계약, ALIAS 맵, 워크스페이스 해석 규칙 확인 |
 | 3 | [DEPENDENCY_MAP.md](DEPENDENCY_MAP.md) | 모듈 의존성 그래프와 템플릿 인벤토리 |
 | 4 | [CODE_STYLE.md](CODE_STYLE.md) | 명명·구조·변수 규칙 |
-| 5 | `100-pve/envs/prod/hosts.tf` | 호스트/IP/VMID SSoT (스냅샷에 미포함 시 Makefile 경로 참고) |
+| 5 | `100-pve/envs/prod/hosts.tf` | 호스트/IP/VMID SSoT |
 | 6 | `.github/workflows/` | CI 정책, 자동 적용 트리거 |
 
 ## 진입점 / API & Entry Points
@@ -202,14 +155,13 @@ make lint
 make lint-go
 
 # 플랜 / Plan
-make plan SVC=pve            # tfpla 산출물 생성
+make plan SVC=pve            # Git에서 제외되는 tfplan 산출물 생성
 
-# 적용 / Apply
-make apply SVC=pve
+# 적용 / Apply: master 병합 후 CI/CD에서 실행 (로컬 실행 금지)
 
-# 검증·드리프트 / Verify & drift
+# 검증 / Verify
 make verify SVC=pve
-make drift-check
+# 드리프트 / Drift: CI terraform-drift.yml에서 실행 (로컬 실행 금지)
 
 # 테스트 / Test
 make test
@@ -240,7 +192,7 @@ make setup
 | Terraform 버전 | `terraform { required_version = "~> 1.10" }` | `>= 1.7, < 2.0` |
 | 비밀 / Secrets | 1Password vault `homelab` | `modules/shared/onepassword-secrets/` 모듈 사용, 평문 커밋 금지 |
 | 환경 변수 / Env vars | [build.env](build.env) | CI는 `.github/workflows/` 참조 |
-| 상태 백엔드 / State backend | 로컬 | 예외적으로 `100-pve/terraform/`, `105-elk/`만 `tfpla`/`terraform.tfstate*` 보유 — 일반화 금지 |
+| 상태 백엔드 / State backend | 로컬 | 로컬 상태·플랜은 Git 추적 제외. 기존 `100-pve/terraform/`, `105-elk/`의 상태 파일은 임의 삭제 금지 |
 | 변수 명명 | `snake_case`, 설명 + 명시적 타입 필수 | 단일 인스턴스 리소스는 `resource "x" "this"` |
 | 파일 명명 | Terraform은 `snake_case`, 템플릿/스크립트는 `kebab-case` | 앱 로직은 `templates/*.tftpl`에 둠 |
 
@@ -251,14 +203,14 @@ make setup
 | 명령 / Command | 설명 / Description |
 |---|---|
 | `make init SVC=<alias>` | Terraform 초기화 |
-| `make plan SVC=<alias>` | `tfpla`로 계획 저장 |
-| `make apply SVC=<alias>` | 계획 적용 |
+| `make plan SVC=<alias>` | `tfplan`으로 계획 저장 (Git 추적 제외) |
+| `make apply SVC=<alias>` | 로컬 실행 비활성화. CI/CD로만 적용 |
 | `make verify SVC=<alias>` | 적용 후 검증 |
 | `make fmt` | 모든 `.tf` 포맷 (nested `terraform/` 포함) |
 | `make validate SVC=<alias>` | 워크스페이스 검증 |
 | `make lint` | 통합 린트 |
 | `make lint-go` | Go 스크립트 린트 |
-| `make drift-check` | 상태 드리프트 검사 |
+| `make drift-check` | 로컬 실행 비활성화. CI `terraform-drift.yml` 사용 |
 | `make test` | 모든 테스트 |
 | `make test-unit` | 단위 테스트 |
 | `make test-integration` | 통합 테스트 |
