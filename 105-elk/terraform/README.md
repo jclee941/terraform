@@ -9,8 +9,7 @@ Nested `elasticstack` provider workspace managing ILM policies, index templates,
 #### Diagram summary 1
 
 - Type: flowchart
-- Filebeat agents (Filebeat) -> Logstash
-- Cloudflare Logpush (Cloudflare) -> Logstash
+- Private Filebeat, syslog, and HTTP inputs -> Logstash
 - Logstash -> Elasticsearch
 - Elasticsearch -> Kibana
 - Terraform elasticstack provider (Terraform) -> Elasticsearch
@@ -44,6 +43,7 @@ terraform test
 - Do not rename `log_services` keys without updating Logstash routing and tests.
 - Provider auth is 1Password-backed. tfvars overrides are break-glass only.
 - Local apply is disabled. Use CI/CD for all applies.
+- Cloudflare Logpush is intentionally disabled pending an authenticated ingestion design; Logstash inputs remain private.
 
 
 <!-- BEGIN_TF_DOCS -->

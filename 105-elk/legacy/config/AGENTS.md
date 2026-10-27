@@ -1,7 +1,7 @@
-# AGENTS: 105-elk/config — ELK Stack Configuration
+# AGENTS: 105-elk/legacy/config — Archived ELK Stack Configuration
 
 ## OVERVIEW
-Rendered/reference configuration files for ELK stack (LXC 105). Source edits usually belong in `../templates/`.
+Inactive configuration snapshots retained for historical comparison. Active source edits belong in `../../templates/`.
 
 ## STRUCTURE
 ```
@@ -20,14 +20,15 @@ config/
 | Logstash pipeline | `logstash.conf` | Beats/HTTP inputs, filters, ES output. |
 | Logstash settings | `logstash.yml` | Runtime settings. |
 | ILM policy | `ilm-policy.json` | Index lifecycle policy. |
-| Source templates | `../templates/AGENTS.md` | Edit templates, then render. |
+| Active source templates | `../../templates/AGENTS.md` | Edit templates, then render. |
 
 ## CONVENTIONS
-- Treat files here as rendered/reference unless a runbook explicitly says otherwise.
+- Treat every file here as archived and non-deployable.
 - Logstash listens on 5044 (Beats), 8080 (HTTP ingest), and 9600 (API/exporter path).
 - Kibana/Elasticsearch external access uses direct Cloudflare Tunnel origins.
 
 ## ANTI-PATTERNS
 - NEVER expose ES port 9200 publicly
+- NEVER use these snapshots as deployment input.
 - NEVER put credentials in rendered configs.
 - NEVER let indices grow unbounded — use ILM
