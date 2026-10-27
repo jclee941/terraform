@@ -2,17 +2,16 @@
 
 ## OVERVIEW
 
-Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests Filebeat, Synology syslog, and Cloudflare Logpush Worker trace events via HTTP input (port 8080). Alerting is handled outside this workspace; ElastAlert2 was removed.
+Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17.0), **Logstash** (ETL pipeline with exporter sidecar), and **Kibana** (visualization). Ingests private Filebeat, Synology syslog, and internal HTTP inputs. Alerting is handled outside this workspace; ElastAlert2 was removed.
 
 ## STRUCTURE
 
 ```
 105-elk/
 ├── templates/          # TF template sources (SSoT) — 7 tftpl files
-├── config/             # Production config (reference/manual)
+├── legacy/             # Inactive config snapshots; never deployed
 ├── scripts/            # Operational helpers (ILM, watcher, promtail cleanup)
 ├── terraform/          # Standalone elasticstack provider workspace
-├── docker-compose.yml  # Production stack (reference)
 └── .env.example        # Environment template
 ```
 
@@ -22,6 +21,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 | -------------------------- | ------------------------------------------------------------------ |
 | **Edit Pipeline**          | `templates/logstash.conf.tftpl` (source)                           |
 | **Docker Stack**           | `templates/docker-compose.yml.tftpl` (source)                      |
+| **Archived Snapshots**     | `legacy/` (historical comparison only; never deploy)               |
 | **Index Management**       | `templates/ilm-policy.json.tftpl` (source)                         |
 | **Logstash Settings**      | `templates/logstash.yml.tftpl` (source)                            |
 | **Logstash Exporter**      | `templates/Dockerfile.logstash.tftpl` (custom image with exporter) |
@@ -48,9 +48,10 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 - **DLQ**: Enabled by default (1024mb max) to capture failed document mappings.
 - **Resource Limits**: ES 4G/2cpu, Logstash 1G/1cpu, Kibana 1G/0.5cpu.
 - **Naming**: Index pattern is `logs-{service}-YYYY.MM.dd`. Service is extracted by Logstash from filebeat fields, Docker Compose labels, or parsed JSON. Fallback: `unknown`.
-- **HTTP Ingest**: Logstash listens on port 8080 (`http` input, `json_lines` codec) for external log sources. Cloudflare Logpush Worker traces are routed to `logs-cloudflare-workers-*` with error classification on non-ok Outcome.
+- **Private Inputs**: Logstash keeps Beats on port 5044, syslog on port 5000, and HTTP JSON on port 8080 private to the homelab. Cloudflare Logpush is intentionally disabled pending an authenticated ingestion design.
 - **Alerting**: Alerting is external to this workspace. ElastAlert2 was removed.
 - **State Tracking**: `.tfstate` files are ignored; do not commit local Elastic provider state.
+- **Legacy Isolation**: `legacy/` is outside the render/deploy path and must never be used as production input.
 - **Terraform Secret Source**: `terraform/` provider auth password resolves from `module.onepassword_secrets` (`onepassword_vault_name` default `homelab`), not tfvars plaintext.
 
 ## SECURITY
@@ -63,6 +64,7 @@ Centralized logging stack for the homelab. Orchestrates **Elasticsearch** (v8.17
 
 - **NO Public 9200**: Elasticsearch API must never be exposed beyond `192.168.50.0/24`.
 - **NO Manual Config Updates**: Do not hand-edit rendered configs or use Kibana Console for settings.
+- **NO Legacy Deployment**: Do not copy or deploy files from `legacy/`; use `templates/*.tftpl`.
 - **NO Single-Point-of-Failure**: Do not disable ILM rollover (risk of disk saturation).
 - **NO Plaintext Secrets**: Keep Terraform provider credentials 1Password-backed. tfvars secret overrides are break-glass only during active incident response, must be time-boxed, and require same-day rollback to 1Password source.
 - **NO Disabling xpack.security**: Once enabled, do not disable; all clients depend on auth.
