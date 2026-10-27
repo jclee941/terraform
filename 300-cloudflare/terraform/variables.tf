@@ -190,5 +190,3 @@ variable "youtube_ip" {
     error_message = "youtube_ip must be a valid IPv4 address."
   }
 }
-
-

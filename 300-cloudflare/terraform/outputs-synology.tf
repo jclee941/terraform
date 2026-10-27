@@ -26,7 +26,7 @@ output "tunnels" {
 }
 
 output "synology_domain" {
-  description = "Synology domain protected by Cloudflare Access"
+  description = "Synology domain routed through the direct Cloudflare Tunnel origin"
   value       = var.synology_domain
 }
 
