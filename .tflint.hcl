@@ -68,8 +68,13 @@ rule "terraform_unused_declarations" {
 }
 
 # Standard module structure
+# Disabled: this monorepo intentionally splits outputs by consumer
+# (outputs-homelab.tf, outputs-jclee.tf, outputs-synology.tf) and co-locates
+# some outputs with their resource file (e.g. backup_jobs.tf), which this rule
+# forbids. The split-outputs convention is documented in the workspace AGENTS.md
+# files, so the rule is turned off to match the intended structure.
 rule "terraform_standard_module_structure" {
-  enabled = true
+  enabled = false
 }
 
 # Require version constraints for providers in required_providers
