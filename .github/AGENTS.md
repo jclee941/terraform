@@ -1,7 +1,7 @@
 # AGENTS: .github
 
 ## OVERVIEW
-GitHub repository automation boundary: PR gates, CI wrappers, issue automation, security scans, templates, CODEOWNERS, and Dependabot.
+GitHub repository automation boundary: PR gates, CI wrappers, issue automation, security scans, templates, and CODEOWNERS. Dependabot was retired in #620.
 
 ## STRUCTURE
 ```text
@@ -11,8 +11,7 @@ GitHub repository automation boundary: PR gates, CI wrappers, issue automation, 
 ├── workflow-registry.yml  # Workflow catalog audited by scripts/audit-workflows.go
 ├── ISSUE_TEMPLATE/    # Bug/feature/security issue forms
 ├── CODEOWNERS
-├── PULL_REQUEST_TEMPLATE.md
-└── dependabot.yml
+└── PULL_REQUEST_TEMPLATE.md
 ```
 
 ## WHERE TO LOOK
@@ -23,7 +22,7 @@ GitHub repository automation boundary: PR gates, CI wrappers, issue automation, 
 | AI/security review | `workflows/10_pr-review.yml` + `workflows/11_security-pr-review.yml` | AI code review and security audit on PRs. |
 | Releases | `workflows/24_release-notes.yml` + `workflows/25_release-publish.yml` | Release notes and semver release publishing. |
 | Secret scan / workflow lint | `.pre-commit-config.yaml` | gitleaks and actionlint run as pre-commit hooks; no dedicated workflow. |
-| Repo policy text | `PULL_REQUEST_TEMPLATE.md`, `CODEOWNERS`, `dependabot.yml` | Review routing and update policy. |
+| Repo policy text | `PULL_REQUEST_TEMPLATE.md`, `CODEOWNERS` | Review routing policy. |
 
 ## CONVENTIONS
 - Keep the main CI validation local, secretless, and free of production mutation paths.
