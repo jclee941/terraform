@@ -4,7 +4,7 @@
 
 locals {
   vm_baseline_runcmd = [
-    "systemctl enable qemu-guest-agent || true",
+    "systemctl add-wants multi-user.target qemu-guest-agent.service",
     "systemctl start qemu-guest-agent || true",
     "systemctl enable docker",
     "systemctl start docker",

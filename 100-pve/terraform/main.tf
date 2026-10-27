@@ -38,6 +38,7 @@ module "lxc" {
   privileged       = lookup(each.value, "privileged", false)
   protection       = lookup(each.value, "protection", false)
   start_on_boot    = lookup(each.value, "start_on_boot", true)
+  startup          = try(each.value.startup, null)
   network_gateway  = var.network_gateway
   dns_servers      = var.dns_servers
   datastore_id     = var.datastore_id
@@ -84,10 +85,15 @@ module "vm" {
   scsi_hardware         = try(each.value.scsi_hardware, "virtio-scsi-single")
   serial_devices        = try(each.value.serial_devices, [])
   tablet_device         = try(each.value.tablet_device, false)
+  tpm_enabled           = try(each.value.tpm_enabled, null)
+  usb_devices           = try(each.value.usb_devices, [])
+  vga_enabled           = try(each.value.vga_enabled, true)
   vga_clipboard         = try(each.value.vga_clipboard, null)
   vga_memory            = try(each.value.vga_memory, 16)
   vga_type              = try(each.value.vga_type, "std")
   balloon_min           = try(each.value.balloon_min, 0)
+  on_boot               = try(each.value.on_boot, true)
+  startup               = try(each.value.startup, null)
 
   cloud_init_file_id = try(local.cloud_init_files[each.key], null)
 }

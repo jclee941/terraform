@@ -29,7 +29,7 @@ module "config_renderer" {
 
       elk_version = "8.17.0"
 
-      es_heap                     = "3g"
+      es_heap                     = "2g"
       logstash_heap               = "1g"
       logstash_dlq_size           = "1024mb"
       elasticsearch_index_pattern = "logs-%%{[service]}-%%{+YYYY.MM.dd}"

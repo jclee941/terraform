@@ -98,9 +98,9 @@ variable "github_org" {
 }
 
 variable "dns_servers" {
-  description = "DNS servers for containers (router/gateway DNS first, upstream fallback)"
+  description = "Ordered DNS servers for all containers and VMs (Google first, Cloudflare second)"
   type        = list(string)
-  default     = ["192.168.50.1", "8.8.8.8"]
+  default     = ["8.8.8.8", "1.1.1.1"]
 
   validation {
     condition     = length(var.dns_servers) > 0 && length(var.dns_servers) <= 3

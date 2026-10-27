@@ -9,7 +9,7 @@ locals {
   firewall_guests = {
     elk         = "container"
     "jclee-dev" = "vm"
-    youtube     = "vm"
+    jclee-prd   = "vm"
   }
 
   # ── Port labels ────────────────────────────────────────────────────────────
@@ -138,5 +138,15 @@ moved {
   to   = module.firewall_vm.proxmox_virtual_environment_firewall_options.this
 }
 
+moved {
+  from = module.firewall_vm.proxmox_virtual_environment_firewall_rules.this["youtube"]
+  to   = module.firewall_vm.proxmox_virtual_environment_firewall_rules.this["jclee-prd"]
+}
+
+moved {
+  from = module.firewall_vm.proxmox_virtual_environment_firewall_options.this["youtube"]
+  to   = module.firewall_vm.proxmox_virtual_environment_firewall_options.this["jclee-prd"]
+}
+
 # Import commands (run manually, not as HCL import blocks which break terraform test):
-# terraform import 'proxmox_virtual_environment_firewall_rules.vm["youtube"]' vm/pve3/220
+# terraform import 'module.firewall_vm.proxmox_virtual_environment_firewall_rules.this["jclee-prd"]' vm/pve3/220

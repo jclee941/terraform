@@ -35,11 +35,9 @@ locals {
   ]
 
   # Container sizing (IP/VMID from module.hosts, sizing here)
-  # Memory budget: Optimized with per-container swap for efficient memory utilization
-  # Strategy: Match live Proxmox allocation for active containers.
   container_sizing = {
-    elk      = { memory = 10240, swap = 5120, cores = 4, cpu_limit = 2, cpu_units = 512, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk", replicate = false }] }
-    cliproxy = { memory = 8192, swap = 1024, cores = 2, cpu_limit = 1.5, cpu_units = 512, disk_size = 100, description = "Squid Forward Proxy", mount_points = [{ volume = "/mnt/pve/shared/ci-cache", path = "/mnt/nas-cache", backup = false, replicate = false }] }
+    elk      = { memory = 10240, swap = 4096, cores = 4, cpu_limit = 2, cpu_units = 512, disk_size = 64, description = "ELK Stack (Elasticsearch, Logstash, Kibana)", startup = { order = 2, up_delay = 60, down_delay = 120 }, mount_points = [{ volume = "/mnt/nas-elk", path = "/mnt/nas-elk", replicate = false }] }
+    cliproxy = { memory = 4096, swap = 2048, cores = 4, cpu_limit = 1.5, cpu_units = 1024, disk_size = 100, description = "Cloudflare Tunnel and GitHub Actions Runner", startup = { order = 1, up_delay = 30, down_delay = 60 }, mount_points = [{ volume = "/mnt/pve/shared/ci-cache", path = "/mnt/nas-cache", backup = false, replicate = false }] }
   }
 
   # Merge host inventory with sizing (containers only, exclude VMs and hypervisor)
@@ -92,18 +90,21 @@ locals {
 
 locals {
   cloud_init_files = {
-    youtube = "local:snippets/youtube-user-data.yaml"
+    jclee-prd = "local:snippets/youtube-user-data.yaml"
   }
   vm_definitions = {
-    youtube = {
+    jclee-prd = {
       vmid                  = 220
-      description           = "YouTube Media Server"
-      memory                = 32768
-      balloon_min           = 16384
-      cores                 = 8
+      hostname              = "jclee-prd"
+      description           = "Production Media Server"
+      memory                = 24576
+      balloon_min           = 20480
+      on_boot               = true
+      startup               = { order = 3, up_delay = 60, down_delay = 120 }
+      cores                 = 6
       cpu_limit             = 4
       cpu_numa              = true
-      cpu_units             = 512
+      cpu_units             = 1024
       disk_size             = 400
       disk_backup           = true
       disk_cache            = "none"
@@ -113,10 +114,11 @@ locals {
       hotplug               = "memory,usb"
       machine               = "q35"
       hostpci_devices = [
-        { device = "hostpci0", mapping = "gpu", pcie = true, xvga = true }
+        { device = "hostpci0", mapping = "gpu", pcie = false, rombar = true, xvga = true }
       ]
       serial_devices = [{ device = "socket" }]
       tablet_device  = false
+      vga_type       = "serial0"
       usb_devices = [
         { host = "04e8:6860" },
         { host = "04e8:6860", usb3 = true },
@@ -124,23 +126,47 @@ locals {
     }
     jclee-dev = {
       vmid          = 200
-      description   = "OpenCode Development VM (oc)"
+      description   = "OpenCode Development VM"
       memory        = 28672
-      balloon_min   = 20480
+      balloon_min   = 16384
+      on_boot       = true
+      startup       = { order = 4, up_delay = 0, down_delay = 30 }
       cores         = 8
-      cpu_limit     = 4
+      cpu_limit     = 6
       cpu_numa      = true
-      cpu_units     = 768
-      disk_size     = 200
+      cpu_units     = 512
+      disk_size     = 500
       hotplug       = "0"
-      hostname      = "oc"
+      hostname      = "jclee-dev"
       bios          = "seabios"
+      tpm_enabled   = true
       machine       = "q35"
       tablet_device = false
-      vga_clipboard = "vnc"
-      vga_type      = "virtio"
+
+      serial_devices = [{ device = "socket" }]
+      vga_type       = "serial0"
     }
   }
+
+  proxmox_operating_budget_mb = 60 * 1024
+  proxmox_reserved_memory_mb  = 8 * 1024
+  startup_guest_budget_mb     = local.proxmox_operating_budget_mb - local.proxmox_reserved_memory_mb
+  startup_guest_minimum_memory_mb = sum([
+    for container in values(local.container_sizing) : container.memory
+    if try(container.start_on_boot, true)
+    ]) + sum([
+    for vm in values(local.vm_definitions) : vm.balloon_min
+    if try(vm.on_boot, true)
+  ])
+  total_guest_cpu_limit = sum(concat(
+    [for container in values(local.container_sizing) : coalesce(try(container.cpu_limit, null), container.cores)],
+    [for vm in values(local.vm_definitions) : coalesce(try(vm.cpu_limit, null), vm.cores)],
+  ))
+  total_guest_disk_gb             = sum([for container in values(local.container_sizing) : container.disk_size]) + sum([for vm in values(local.vm_definitions) : vm.disk_size])
+  proxmox_cpu_limit_budget        = 14
+  proxmox_ssd_capacity_gb         = 882
+  proxmox_ssd_overcommit_ratio    = 1.25
+  proxmox_ssd_allocation_limit_gb = local.proxmox_ssd_capacity_gb * local.proxmox_ssd_overcommit_ratio
 }
 
 # -----------------------------------------------------------------------------

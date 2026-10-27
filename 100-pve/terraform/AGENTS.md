@@ -1,7 +1,7 @@
 # AGENTS: 100-pve/terraform — Core Infrastructure Definitions
 
 ## OVERVIEW
-Terraform configuration workspace containing the complete infrastructure-as-code definitions for the homelab. Orchestrates four LXC containers and three VMs via modular composition.
+Terraform configuration workspace containing the complete infrastructure-as-code definitions for the homelab. Orchestrates two LXC containers (elk, cliproxy) and two VMs (jclee-dev, jclee-prd) via modular composition.
 
 ## STRUCTURE
 ```
@@ -15,7 +15,7 @@ terraform/
 ├── checks.tf            # TF 1.5+ validation checks
 ├── outputs.tf           # Workspace outputs
 ├── variables.tf         # Input variables
-├── versions.tf          # Provider constraints
+├── versions.tf          # Provider constraints + Cloudflare R2 (S3) backend
 └── configs/             # Rendered config outputs (auto-generated)
 ```
 
@@ -47,11 +47,10 @@ terraform init              # Initialize providers
 terraform plan              # Preview changes
 terraform validate          # Syntax validation
 terraform fmt -recursive    # Format all files
-# apply via CI/CD only; local make apply is disabled
+# make apply is disabled by repository policy; no CI apply workflow exists
 ```
 
 ## NOTES
 
-- Memory budget: GitHub Actions Runner (LXC 101) is 3072MB / 1536MB swap.
 - VM memory is defined in `local.vm_definitions`; do not duplicate budget totals here.
-- NFS cache mount configured for LXC 101 at `/srv/runner/cache`.
+- CI cache: cliproxy (LXC 114) mounts `/mnt/pve/shared/ci-cache` at `/mnt/nas-cache` (`container_sizing.cliproxy.mount_points`).

@@ -10,10 +10,10 @@ module "vm_config" {
   ssh_private_key   = lookup(module.onepassword_secrets.secrets, "proxmox_ssh_private_key", "")
 
   vms = {
-    youtube = {
-      vmid           = module.hosts.hosts.youtube.vmid
-      hostname       = "youtube"
-      ip_address     = module.hosts.hosts.youtube.ip
+    jclee-prd = {
+      vmid           = module.hosts.hosts["jclee-prd"].vmid
+      hostname       = "jclee-prd"
+      ip_address     = module.hosts.hosts["jclee-prd"].ip
       deploy         = var.deploy_vm_configs
       setup_filebeat = true
 
@@ -59,7 +59,7 @@ module "vm_config" {
 
     jclee-dev = {
       vmid           = module.hosts.hosts["jclee-dev"].vmid
-      hostname       = "oc"
+      hostname       = "jclee-dev"
       ip_address     = module.hosts.hosts["jclee-dev"].ip
       deploy         = var.deploy_vm_configs
       setup_filebeat = false
