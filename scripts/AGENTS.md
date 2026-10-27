@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-Operational automation scripts for the `proxmox` infrastructure. Includes production health checks, PR automation, Terraform drift detection, and Filebeat deployment.
+Operational automation scripts for the `proxmox` infrastructure. Includes production health checks, PR automation, state backup, workflow/docs audits, and Filebeat deployment.
 
 ## STRUCTURE
 
@@ -11,13 +11,14 @@ scripts/
 ├── create-pr.go                  # PR automation wrapper (gh cli + custom logic)
 ├── scaffold-workspace.go         # Scaffold new NNN-service workspace directories
 ├── production-verification.go    # Live health check suite for deployed services
-├── setup-backups.go              # Backup configuration (Restic/Borg) (Go)
 ├── setup-filebeat.go             # Local filebeat setup tool (Go, root-only)
 ├── install-filebeat.sh           # Remote execution payload for TF provisioners (SCP'd to hosts)
 ├── sync-vault-secrets.go         # 1Password → GitHub secret sync (Go)
 ├── setup-github-secrets.go       # GitHub secrets provisioning (Go)
 ├── setup-local-env.go            # Local dev environment setup (Go)
-├── backup-tfstate.go              # Terraform state backup (Go)
+├── backup-tfstate.go             # Encrypted backup of local-backend Terraform state (Go)
+├── audit-workflows.go            # .github/workflow-registry.yml drift audit (Go)
+└── validate-docs/                # Markdown link/drift validator (`make lint-docs`)
 ```
 
 ## CONVENTIONS
@@ -32,8 +33,9 @@ scripts/
 | ------------------ | ----------------------------------------- | ------------------------------------------------ |
 | Verify Prod Health | `production-verification.go`              | Run after ANY deploy                             |
 | Create PR          | `create-pr.go`                            | Enforces naming conventions                      |
-| Check Drift        | `terraform-drift-check.sh`                | DEPRECATED — use `terraform-drift.yml`           |
-| Restore Backups    | `setup-backups.go`                        | Restic/Borg config                               |
+| Backup state       | `backup-tfstate.go`                       | `make backup`; elk/synology/cloudflare only (pve state is in R2) |
+| Audit workflows    | `audit-workflows.go`                      | `go run scripts/audit-workflows.go`; exit 1 on registry drift |
+| Backup jobs        | `../100-pve/terraform/backup_jobs.tf`     | Terraform-owned PBS job declarations            |
 | Deploy Filebeat    | `install-filebeat.sh`                     | Remote payload, SCP'd by TF provisioners         |
 | Sync Vault         | `sync-vault-secrets.go`                   | `go run scripts/sync-vault-secrets.go --audit`   |
 | Scaffold Workspace | `scaffold-workspace.go`                   | `go run scripts/scaffold-workspace.go 113 redis` |
@@ -43,4 +45,4 @@ scripts/
 - **NO manual PR creation**: Use `create-pr.go` to ensure correct labelling.
 - **NO ignoring verification failures**: If `production-verification.go` fails, rollback or fix immediately.
 - **NO running install-filebeat.sh directly**: Use Terraform provisioner via CI/CD for consistent deployment.
-- **NO running `make apply` locally**: `make apply` is disabled. All applies go through CI/CD (`terraform-apply.yml` or `{svc}-apply.yml`).
+- **NO running `make apply` locally**: `make apply` is disabled by repository policy. No apply or drift workflow currently exists in `.github/workflows/`.

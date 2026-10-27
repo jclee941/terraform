@@ -312,10 +312,11 @@ func TestValidateDocsCollectMarkdownFilesExclude(t *testing.T) {
 
 	// Create various directories
 	terraformDir := filepath.Join(tmpDir, ".terraform")
+	terraformTestDir := filepath.Join(tmpDir, ".terraform-test", "pve", "providers")
 	gitDir := filepath.Join(tmpDir, ".git")
 	archiveDir := filepath.Join(tmpDir, "docs", "archive")
 
-	for _, dir := range []string{terraformDir, gitDir, archiveDir} {
+	for _, dir := range []string{terraformDir, terraformTestDir, gitDir, archiveDir} {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatalf("failed to create temp dir: %v", err)
 		}
@@ -325,6 +326,7 @@ func TestValidateDocsCollectMarkdownFilesExclude(t *testing.T) {
 	files := map[string]string{
 		filepath.Join(tmpDir, "README.md"):                 "root readme",
 		filepath.Join(tmpDir, ".terraform", "module.md"):   "should be skipped",
+		filepath.Join(terraformTestDir, "README.md"):       "should be skipped (test provider cache)",
 		filepath.Join(tmpDir, ".git", "docs.md"):           "should be skipped",
 		filepath.Join(tmpDir, "docs", "archive", "old.md"): "should be skipped",
 		filepath.Join(tmpDir, "docs", "current.md"):        "should be included",
@@ -367,6 +369,9 @@ func TestValidateDocsCollectMarkdownFilesExclude(t *testing.T) {
 
 	if found[".terraform/module.md"] {
 		t.Error("expected .terraform/module.md to be excluded")
+	}
+	if found[".terraform-test/pve/providers/README.md"] {
+		t.Error("expected .terraform-test/pve/providers/README.md to be excluded")
 	}
 	if found[".git/docs.md"] {
 		t.Error("expected .git/docs.md to be excluded")
