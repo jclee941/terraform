@@ -18,6 +18,18 @@ resource "elasticstack_elasticsearch_index_lifecycle" "this" {
     }
   }
 
+  dynamic "warm" {
+    for_each = var.warm_min_age == null ? [] : [var.warm_min_age]
+
+    content {
+      min_age = warm.value
+
+      forcemerge {
+        max_num_segments = 1
+      }
+    }
+  }
+
   delete {
     min_age = var.min_age
     delete {}
