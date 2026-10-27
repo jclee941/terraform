@@ -6,7 +6,9 @@ GitHub repository automation boundary: PR gates, CI wrappers, issue automation, 
 ## STRUCTURE
 ```text
 .github/
-├── workflows/         # CI, PR gates, automation, security, reusable workflow wrappers
+├── workflows/         # CI, AI/security review, release automation
+├── actions/           # Composite actions (build cache, Python setup)
+├── workflow-registry.yml  # Workflow catalog audited by scripts/audit-workflows.go
 ├── ISSUE_TEMPLATE/    # Bug/feature/security issue forms
 ├── CODEOWNERS
 ├── PULL_REQUEST_TEMPLATE.md
@@ -16,21 +18,20 @@ GitHub repository automation boundary: PR gates, CI wrappers, issue automation, 
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
-| Main CI entry | `workflows/ci.yml` | Wrapper around `jclee941/.github/.github/workflows/reusable-ci.yml@master`. |
-| PR metadata gates | `workflows/pr-checks.yml` + `workflows/reusable-pr-checks.yml` | Title, branch, description, size, sensitive-file checks. |
-| Workflow linting | `workflows/actionlint.yml` | Downloads actionlint tarball and verifies SHA256. |
-| Secret scanning | `workflows/gitleaks.yml` | Independent PR/push gate. |
-| AI/code review | `workflows/pr-review.yml` + `workflows/security/pr-review.yml` | Separate normal and manual security review paths. |
-| Shared automation wrappers | `workflows/{auto-merge,docs-sync,issue-management,welcome,labeler}.yml` | Many call reusable workflows in `jclee941/.github`. |
+| Main CI entry | `workflows/ci.yml` | Local secretless validation with SHA-pinned actions. |
+| Workflow inventory | `workflow-registry.yml` | Update with every workflow add/rename; `go run scripts/audit-workflows.go` fails on drift. |
+| AI/security review | `workflows/10_pr-review.yml` + `workflows/11_security-pr-review.yml` | AI code review and security audit on PRs. |
+| Releases | `workflows/24_release-notes.yml` + `workflows/25_release-publish.yml` | Release notes and semver release publishing. |
+| Secret scan / workflow lint | `.pre-commit-config.yaml` | gitleaks and actionlint run as pre-commit hooks; no dedicated workflow. |
 | Repo policy text | `PULL_REQUEST_TEMPLATE.md`, `CODEOWNERS`, `dependabot.yml` | Review routing and update policy. |
 
 ## CONVENTIONS
-- Prefer local workflow files only for repo-specific policy; shared behavior usually belongs in `jclee941/.github`.
+- Keep the main CI validation local, secretless, and free of production mutation paths.
 - Use `self-hosted` for private-repo jobs when workflows already follow that visibility split.
 - Keep concurrency groups per workflow/ref or PR number to avoid duplicate automation.
 - Preserve `secrets: inherit` only for trusted reusable workflow calls.
 - When adding actions, SHA-pin with a version comment if possible; existing files still contain mixed tag pinning.
-- Keep PR status contexts stable; branch protection depends on the reusable PR-check job names.
+- Master has no required status checks (ruleset keeps deletion and non-fast-forward protection only); PRs are merged manually and repository auto-merge is disabled.
 
 ## ANTI-PATTERNS
 - Do not enable local deploy/apply flows here; Terraform applies are CI/CD controlled.

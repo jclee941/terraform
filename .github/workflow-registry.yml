@@ -1,0 +1,41 @@
+# Workflow Registry
+# Canonical catalog of all GitHub Actions workflows in this repository.
+# Maintained alongside workflow changes. Do not auto-generate.
+# Audit: go run scripts/audit-workflows.go (exit 1 on undocumented or stale entries)
+#
+# Convention:
+#   - Reusable templates: _name.yml (underscore prefix), listed under templates:
+#   - Direct workflows: name.yml (self-contained), listed under direct:
+#
+# Runner value visibility-split: self-hosted for private repos, ubuntu-latest otherwise.
+
+direct:
+  - file: 10_pr-review.yml
+    name: PR Review (CLIProxyAPI)
+    trigger: pull_request
+    purpose: Automated AI code review for non-draft, non-Dependabot PRs
+    runner: visibility-split
+
+  - file: 11_security-pr-review.yml
+    name: Security Audit
+    trigger: pull_request_target
+    purpose: Security-focused PR review
+    runner: visibility-split
+
+  - file: 24_release-notes.yml
+    name: Release Notes Generator
+    trigger: push (v* tags), workflow_dispatch
+    purpose: Generate categorized release notes and create or update the release
+    runner: visibility-split
+
+  - file: 25_release-publish.yml
+    name: Release Publish
+    trigger: push, workflow_dispatch
+    purpose: Compute next semver tag from Conventional Commits and publish a release
+    runner: visibility-split
+
+  - file: ci.yml
+    name: CI
+    trigger: pull_request, push, workflow_dispatch
+    purpose: Terraform fmt/validate/test, Go tests, and docs validation
+    runner: ubuntu-latest
