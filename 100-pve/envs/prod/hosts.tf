@@ -80,7 +80,7 @@ locals {
         dsm_https = 5001
       }
     }
-    youtube = {
+    jclee-prd = {
       vmid  = 220
       ip    = "192.168.50.220"
       roles = ["youtube", "media"]

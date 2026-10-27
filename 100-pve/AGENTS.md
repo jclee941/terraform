@@ -16,7 +16,7 @@ Central Terraform workspace orchestrating Proxmox infrastructure. The live Terra
 │   ├── locals.tf        # Sizing, VM defs, config maps
 │   ├── checks.tf        # TF check blocks
 │   ├── variables.tf     # Input variables + validation
-│   ├── versions.tf      # Provider + local backend config
+│   ├── versions.tf      # Providers + Cloudflare R2 (S3) backend
 │   └── configs/         # TF-rendered outputs (NOT hand-editable)
 ├── envs/prod/
 │   └── hosts.tf         # SSoT: ALL host IPs, ports, roles, VMIDs
@@ -30,7 +30,7 @@ Central Terraform workspace orchestrating Proxmox infrastructure. The live Terra
 | -------------------- | --------------------------------------- | ------------------------------------------------------------- |
 | **All IPs/Ports**    | `envs/prod/hosts.tf`                    | SSoT. `module.hosts.hosts[name].{ip,vmid,ports,roles}`.       |
 | **Container Sizing** | `terraform/locals.tf` → `container_sizing` | Active LXC sizing entries: elk and cliproxy. |
-| **VM Definitions**   | `terraform/locals.tf` → `vm_definitions` | Two QEMU VMs: oc and youtube. |
+| **VM Definitions**   | `terraform/locals.tf` → `vm_definitions` | Two QEMU VMs: jclee-dev (200) and jclee-prd (220). |
 | **Validation**       | `terraform/checks.tf`                   | VMID range, IP subnet, memory checks.                         |
 | **LXC Provisioning** | `terraform/main.tf` → `module.lxc`      | Calls `../../modules/proxmox/lxc` for `local.containers`.     |
 | **VM Provisioning**  | `terraform/main.tf` → `module.vm`       | Calls `../../modules/proxmox/vm` for `local.vm_definitions`.  |
@@ -72,5 +72,5 @@ envs/prod/hosts.tf (SSoT)
 
 ```bash
 make plan SVC=pve             # Plan changes
-# make apply is DISABLED locally — all applies go through CI/CD
+# make apply is disabled by repository policy; no CI apply workflow exists
 ```

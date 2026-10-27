@@ -35,6 +35,38 @@ check "memory_requirements" {
   }
 }
 
+check "startup_guest_memory_budget" {
+  assert {
+    condition     = local.startup_guest_minimum_memory_mb <= local.startup_guest_budget_mb
+    error_message = "Boot-time guaranteed guest memory ${local.startup_guest_minimum_memory_mb}MB exceeds the ${local.startup_guest_budget_mb}MB budget reserved for VM 200 and always-on infrastructure."
+  }
+}
+
+resource "terraform_data" "resource_budget_guard" {
+  input = {
+    startup_guest_memory_mb = local.startup_guest_minimum_memory_mb
+    total_guest_cpu_limit   = local.total_guest_cpu_limit
+    total_guest_disk_gb     = local.total_guest_disk_gb
+  }
+
+  lifecycle {
+    precondition {
+      condition     = local.startup_guest_minimum_memory_mb <= local.startup_guest_budget_mb
+      error_message = "Guaranteed guest memory ${local.startup_guest_minimum_memory_mb}MB exceeds the blocking ${local.startup_guest_budget_mb}MB startup budget."
+    }
+
+    precondition {
+      condition     = local.total_guest_cpu_limit <= local.proxmox_cpu_limit_budget
+      error_message = "Aggregate guest CPU limit ${local.total_guest_cpu_limit} exceeds the ${local.proxmox_cpu_limit_budget}-core host budget."
+    }
+
+    precondition {
+      condition     = local.total_guest_disk_gb <= local.proxmox_ssd_allocation_limit_gb
+      error_message = "Guest disk allocation ${local.total_guest_disk_gb}GB exceeds the ${local.proxmox_ssd_allocation_limit_gb}GB thin-pool allocation budget."
+    }
+  }
+}
+
 check "proxmox_provider_token_required" {
   assert {
     condition     = length(local.effective_proxmox_api_token) > 0
