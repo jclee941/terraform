@@ -30,10 +30,6 @@ locals {
           hostname = "${svc.subdomain}.${var.homelab_domain}"
           service  = svc.origin
         }],
-        [{
-          hostname = "logstash-ingest.${var.homelab_domain}"
-          service  = "http://${var.elk_ip}:8080"
-        }],
         [{ service = "http_status:404" }]
       )
     }
