@@ -11,11 +11,11 @@ tests/
 ├── modules/cloudflare/   # Cloudflare tunnel module tests
 ├── modules/elasticstack/ # ILM/index template module tests
 ├── integration/          # Cross-module pipeline tests
-└── workspaces/           # Workspace-level variable validation tests
-    ├── cloudflare/      # Cloudflare workspace validation
+└── workspaces/           # Workspace validation roots and migration docs
+    ├── cloudflare/      # Migration docs; tests live in 300-cloudflare/terraform/tests
     ├── elk/             # ELK workspace validation
     ├── gcp/             # GCP workspace validation
-    ├── pve/             # PVE workspace validation
+    ├── pve/             # Migration docs; tests live in 100-pve/terraform/tests
     ├── safetywallet/    # SafetyWallet workspace validation
     ├── synology/        # Synology workspace validation
 ```
@@ -30,7 +30,9 @@ tests/
 | Elasticstack module tests | `tests/modules/elasticstack/` | ILM policy and index template checks. |
 | Pipeline integration checks | `tests/integration/AGENTS.md` | Config renderer and hosts-map end-to-end strategy. |
 | Workspace validation checks | `tests/workspaces/AGENTS.md` | Standalone workspace variable-validation strategy. |
-| Specific workspace tests | `tests/workspaces/{cloudflare,elk,gcp,pve,safetywallet,synology}/` | Per-workspace `*.tftest.hcl` + mock `main.tf`. |
+| PVE production-root tests | `100-pve/terraform/tests/` | Provider-mocked, plan-only tests executed against the production root. |
+| Cloudflare production-root tests | `300-cloudflare/terraform/tests/` | Provider-mocked, plan-only tests executed against the production root. |
+| Other workspace tests | `tests/workspaces/{elk,gcp,safetywallet,synology}/` | Per-workspace `*.tftest.hcl` and fixtures. |
 
 ## CONVENTIONS
 - Use native `terraform test`; avoid custom runners.
@@ -54,4 +56,4 @@ terraform test
 ```
 
 ## NOTES
-- `make test` currently runs Proxmox/shared module tests plus integration and selected workspace tests; run cloudflare/elasticstack module test directories directly when changing those modules.
+- `make test` runs Proxmox/shared module tests, integration tests, production-root PVE/Cloudflare tests, and selected workspace tests.

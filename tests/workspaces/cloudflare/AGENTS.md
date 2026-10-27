@@ -5,17 +5,15 @@ Terraform workspace tests for `300-cloudflare` DNS and Workers.
 
 ## STRUCTURE
 ```
-cloudflare/
-├── main.tf                # Test workspace configuration
-└── .terraform/            # Provider cache
+300-cloudflare/terraform/tests/
+└── cloudflare_test.tftest.hcl    # Production-root test file
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| DNS tests | `main.tf` | Validate record syntax |
-| Worker tests | `main.tf` | Validate Worker scripts |
+| DNS and retired-ingress tests | `300-cloudflare/terraform/tests/cloudflare_test.tftest.hcl` | Runs in the production root with mocked providers. |
 
 ## CONVENTIONS
 - Use Cloudflare provider in mock mode
@@ -28,6 +26,6 @@ cloudflare/
 
 ## COMMANDS
 ```bash
-terraform -chdir=tests/workspaces/cloudflare test
-make test-workspace SVC=cloudflare
+terraform -chdir=300-cloudflare/terraform test -filter=tests/cloudflare_test.tftest.hcl
+make test-workspace
 ```

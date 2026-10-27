@@ -16,6 +16,10 @@ mock_provider "proxmox" {
 }
 mock_provider "onepassword" {}
 
+override_resource {
+  target = module.lxc["cliproxy"].proxmox_virtual_environment_container.this
+}
+
 override_module {
   target = module.onepassword_secrets
   outputs = {
@@ -58,8 +62,6 @@ override_module {
   }
 }
 
-
-
 # =============================================================================
 # NEGATIVE TESTS — Invalid Variable Values
 # =============================================================================
@@ -68,9 +70,6 @@ override_module {
 
 run "test_endpoint_http_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_endpoint  = "http://192.168.50.100:8006/"
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -80,9 +79,6 @@ run "test_endpoint_http_rejected" {
 
 run "test_endpoint_no_protocol_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_endpoint  = "192.168.50.100:8006"
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
@@ -94,9 +90,6 @@ run "test_endpoint_no_protocol_rejected" {
 
 run "test_api_token_missing_realm_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform!tf-token=12345678"
   }
@@ -105,9 +98,6 @@ run "test_api_token_missing_realm_rejected" {
 
 run "test_api_token_missing_equals_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token"
   }
@@ -118,9 +108,6 @@ run "test_api_token_missing_equals_rejected" {
 
 run "test_node_name_no_number_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     node_name         = "pve"
@@ -130,9 +117,6 @@ run "test_node_name_no_number_rejected" {
 
 run "test_node_name_wrong_prefix_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     node_name         = "node1"
@@ -142,9 +126,6 @@ run "test_node_name_wrong_prefix_rejected" {
 
 run "test_node_name_uppercase_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     node_name         = "PVE3"
@@ -156,9 +137,6 @@ run "test_node_name_uppercase_rejected" {
 
 run "test_gateway_invalid_ip_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     network_gateway   = "not-an-ip"
@@ -170,9 +148,6 @@ run "test_gateway_invalid_ip_rejected" {
 
 run "test_cidr_no_mask_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     network_cidr      = "192.168.50.0"
@@ -182,9 +157,6 @@ run "test_cidr_no_mask_rejected" {
 
 run "test_cidr_invalid_notation_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     network_cidr      = "not-a-cidr"
@@ -196,9 +168,6 @@ run "test_cidr_invalid_notation_rejected" {
 
 run "test_dns_servers_empty_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     dns_servers       = []
@@ -208,9 +177,6 @@ run "test_dns_servers_empty_rejected" {
 
 run "test_dns_servers_too_many_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     dns_servers       = ["8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1"]
@@ -222,9 +188,6 @@ run "test_dns_servers_too_many_rejected" {
 
 run "test_datastore_starts_with_number_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     datastore_id      = "1storage"
@@ -234,9 +197,6 @@ run "test_datastore_starts_with_number_rejected" {
 
 run "test_datastore_special_chars_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     datastore_id      = "store@pool"
@@ -248,9 +208,6 @@ run "test_datastore_special_chars_rejected" {
 
 run "test_vmid_range_min_equals_max_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     managed_vmid_range = { min = 110, max = 110 }
@@ -260,9 +217,6 @@ run "test_vmid_range_min_equals_max_rejected" {
 
 run "test_vmid_range_min_greater_than_max_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     managed_vmid_range = { min = 150, max = 110 }
@@ -272,9 +226,6 @@ run "test_vmid_range_min_greater_than_max_rejected" {
 
 run "test_vmid_range_below_100_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     managed_vmid_range = { min = 50, max = 150 }
@@ -284,9 +235,6 @@ run "test_vmid_range_below_100_rejected" {
 
 run "test_vmid_range_above_255_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token  = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     managed_vmid_range = { min = 100, max = 300 }
@@ -298,9 +246,6 @@ run "test_vmid_range_above_255_rejected" {
 
 run "test_ssh_key_invalid_format_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     ssh_public_keys   = ["not-a-valid-ssh-key"]
@@ -310,9 +255,6 @@ run "test_ssh_key_invalid_format_rejected" {
 
 run "test_ssh_key_invalid_type_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     ssh_public_keys   = ["dsa-key AAAAB3NzaC1kc3MAAACBAP user@host"]
@@ -324,9 +266,6 @@ run "test_ssh_key_invalid_type_rejected" {
 
 run "test_onepassword_vault_name_empty_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token      = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     onepassword_vault_name = ""
@@ -338,12 +277,173 @@ run "test_onepassword_vault_name_empty_rejected" {
 
 run "test_github_org_invalid_chars_rejected" {
   command = plan
-  module {
-    source = "../../../100-pve/terraform"
-  }
   variables {
     proxmox_api_token = "terraform@pam!tf-token=12345678-1234-1234-1234-123456789abc"
     github_org        = "my_org@invalid"
   }
   expect_failures = [var.github_org]
+}
+
+run "test_backup_jobs_match_live_contract" {
+  command = plan
+
+  variables {
+    enable_pbs         = true
+    deploy_lxc_configs = true
+  }
+
+  plan_options {
+    target = [null_resource.backup_jobs]
+  }
+
+  assert {
+    condition = alltrue([
+      null_resource.backup_jobs["lxc-daily"].triggers["storage"] == "pbs-backup",
+      null_resource.backup_jobs["lxc-daily"].triggers["schedule"] == "02:00",
+      null_resource.backup_jobs["lxc-daily"].triggers["vmid"] == "114",
+      null_resource.backup_jobs["lxc-weekly"].triggers["storage"] == "pbs-backup",
+      null_resource.backup_jobs["lxc-weekly"].triggers["schedule"] == "sun 03:00",
+      null_resource.backup_jobs["lxc-weekly"].triggers["vmid"] == "105",
+      null_resource.backup_jobs["vm-daily"].triggers["storage"] == "pbs-backup",
+      null_resource.backup_jobs["vm-daily"].triggers["schedule"] == "04:00",
+      null_resource.backup_jobs["vm-daily"].triggers["vmid"] == "200,220",
+    ])
+    error_message = "Backup job triggers must match the PBS storage, schedule, and VMID contract."
+  }
+
+  assert {
+    condition = alltrue([
+      can(regex("^[0-9a-f]{64}$", null_resource.backup_jobs["lxc-daily"].triggers["command_contract"])),
+      can(regex("^[0-9a-f]{64}$", null_resource.backup_jobs["lxc-weekly"].triggers["command_contract"])),
+      can(regex("^[0-9a-f]{64}$", null_resource.backup_jobs["vm-daily"].triggers["command_contract"])),
+    ])
+    error_message = "Each backup job must rerun when its pvesh command contract changes."
+  }
+
+  assert {
+    condition = alltrue([
+      for job_id in ["lxc-daily", "lxc-weekly", "vm-daily"] : alltrue([
+        strcontains(local.backup_job_commands[job_id], "pvesh get \"/cluster/backup/${job_id}\" --quiet"),
+        strcontains(local.backup_job_commands[job_id], "pvesh set \"/cluster/backup/${job_id}\""),
+        strcontains(local.backup_job_commands[job_id], "pvesh create /cluster/backup"),
+        strcontains(local.backup_job_commands[job_id], "--id '${job_id}'"),
+        strcontains(local.backup_job_commands[job_id], "pvesh get \"/cluster/backup/${job_id}\" --output-format json"),
+        !strcontains(local.backup_job_commands[job_id], "pvesh delete"),
+        !strcontains(local.backup_job_commands[job_id], "pvesh remove"),
+      ])
+    ])
+    error_message = "Each owned backup job must use pvesh get/set/create/read-back without deleting unrelated jobs."
+  }
+
+  assert {
+    condition     = terraform.workspace != "" && !can(regex("cat > /etc/pve/jobs\\.cfg", file("backup_jobs.tf")))
+    error_message = "Backup jobs must not overwrite jobs.cfg."
+  }
+}
+
+run "test_vm_cloud_init_baseline_refactor_contract" {
+  command = plan
+
+  assert {
+    condition = alltrue([
+      terraform.workspace != "",
+      can(regex("vm_baseline_runcmd\\s*=\\s*\\[", file("cloud_init_baseline.tf"))),
+      can(regex("systemctl add-wants multi-user.target qemu-guest-agent.service", file("cloud_init_baseline.tf"))),
+      can(regex("systemctl start qemu-guest-agent", file("cloud_init_baseline.tf"))),
+      can(regex("systemctl enable docker", file("cloud_init_baseline.tf"))),
+      can(regex("systemctl start docker", file("cloud_init_baseline.tf"))),
+      can(regex("PasswordAuthentication no", file("cloud_init_baseline.tf"))),
+      can(regex("PermitRootLogin prohibit-password", file("cloud_init_baseline.tf"))),
+      can(regex("systemctl enable fail2ban", file("cloud_init_baseline.tf"))),
+      can(regex("systemctl start fail2ban", file("cloud_init_baseline.tf"))),
+      can(regex("runcmd = concat\\(local\\.vm_baseline_runcmd", file("vm_configs.tf"))),
+    ])
+    error_message = "VM cloud-init baseline must retain qemu guest agent, Docker, SSH hardening, fail2ban, and VM runcmd concat usage."
+  }
+}
+
+run "test_guest_hardware_matches_workload_contract" {
+  command = plan
+
+  plan_options {
+    target = [
+      module.lxc["elk"],
+      module.lxc["cliproxy"],
+      module.vm["jclee-dev"],
+      module.vm["jclee-prd"],
+    ]
+  }
+
+  assert {
+    condition = alltrue([
+      local.container_sizing.elk.cores == 4,
+      local.container_sizing.elk.cpu_limit == 2,
+      local.container_sizing.elk.cpu_units == 512,
+      local.container_sizing.elk.memory == 10240,
+      local.container_sizing.elk.swap == 4096,
+      local.container_sizing.elk.startup == { order = 2, up_delay = 60, down_delay = 120 },
+      try(local.container_sizing.elk.start_on_boot, true),
+    ])
+    error_message = "ELK must retain its throughput-oriented 4-core, 10 GiB RAM, and 4 GiB swap profile."
+  }
+
+  assert {
+    condition = alltrue([
+      local.container_sizing.cliproxy.cores == 4,
+      local.container_sizing.cliproxy.cpu_limit == 1.5,
+      local.container_sizing.cliproxy.cpu_units == 1024,
+      local.container_sizing.cliproxy.memory == 4096,
+      local.container_sizing.cliproxy.swap == 2048,
+      local.container_sizing.cliproxy.startup == { order = 1, up_delay = 30, down_delay = 60 },
+      try(local.container_sizing.cliproxy.start_on_boot, true),
+    ])
+    error_message = "cliproxy must retain four burst-visible cores, the 1.5-core external cap, 4 GiB RAM, and 2 GiB swap."
+  }
+
+  assert {
+    condition = alltrue([
+      local.vm_definitions["jclee-dev"].cores == 8,
+      local.vm_definitions["jclee-dev"].cpu_limit == 6,
+      local.vm_definitions["jclee-dev"].cpu_numa,
+      local.vm_definitions["jclee-dev"].cpu_units == 512,
+      local.vm_definitions["jclee-dev"].memory == 28672,
+      local.vm_definitions["jclee-dev"].balloon_min == 16384,
+      local.vm_definitions["jclee-dev"].startup == { order = 4, up_delay = 0, down_delay = 30 },
+      local.vm_definitions["jclee-dev"].on_boot,
+    ])
+    error_message = "jclee-dev must keep its 8-vCPU/6-core cap profile and 28/16 GiB balloon envelope."
+  }
+
+  assert {
+    condition = alltrue([
+      local.vm_definitions["jclee-prd"].cores == 6,
+      local.vm_definitions["jclee-prd"].cpu_limit == 4,
+      local.vm_definitions["jclee-prd"].cpu_numa,
+      local.vm_definitions["jclee-prd"].cpu_units == 1024,
+      local.vm_definitions["jclee-prd"].memory == 24576,
+      local.vm_definitions["jclee-prd"].balloon_min == 20480,
+      local.vm_definitions["jclee-prd"].startup == { order = 3, up_delay = 60, down_delay = 120 },
+      local.vm_definitions["jclee-prd"].on_boot,
+      length(local.vm_definitions["jclee-prd"].hostpci_devices) == 1,
+      local.vm_definitions["jclee-prd"].hostpci_devices[0].device == "hostpci0",
+      local.vm_definitions["jclee-prd"].hostpci_devices[0].mapping == "gpu",
+      !local.vm_definitions["jclee-prd"].hostpci_devices[0].pcie,
+      local.vm_definitions["jclee-prd"].hostpci_devices[0].rombar,
+      local.vm_definitions["jclee-prd"].hostpci_devices[0].xvga,
+      length(local.vm_definitions["jclee-prd"].usb_devices) == 2,
+      local.vm_definitions["jclee-prd"].usb_devices[0].host == "04e8:6860",
+      !try(local.vm_definitions["jclee-prd"].usb_devices[0].usb3, false),
+      local.vm_definitions["jclee-prd"].usb_devices[1].host == "04e8:6860",
+      local.vm_definitions["jclee-prd"].usb_devices[1].usb3,
+    ])
+    error_message = "jclee-prd must preserve its CPU/memory envelope and exact GPU/USB passthrough topology."
+  }
+
+  assert {
+    condition = alltrue([
+      for vm in values(local.vm_definitions) :
+      try(vm.vga_type, "std") == "serial0" && contains([for serial in try(vm.serial_devices, []) : serial.device], "socket")
+    ])
+    error_message = "Every VM must open its Proxmox console as xterm.js: vga serial0 backed by a serial0 socket."
+  }
 }
